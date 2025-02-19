@@ -12,7 +12,7 @@ import { LinearGradient } from "expo-linear-gradient";
 import { useNavigation } from "@react-navigation/native";
 import { Text, Button } from "../../components/common";
 import { useTheme } from "../../hooks/useTheme";
-import { useTranslation } from "../../hooks/useTranslation";
+import { LanguageSwitcher } from "../../hooks/LanguageSwitcher";
 import { Ionicons } from "@expo/vector-icons";
 
 const slides = [
@@ -38,7 +38,7 @@ const slides = [
 
 export const OnboardingScreen = () => {
   const { theme } = useTheme();
-  const { t } = useTranslation();
+  const { t } = LanguageSwitcher();
   const navigation = useNavigation();
   const { width } = useWindowDimensions();
   const [currentIndex, setCurrentIndex] = useState(0);

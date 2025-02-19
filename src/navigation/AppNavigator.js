@@ -5,7 +5,9 @@ import { MainNavigator } from "./MainNavigator";
 import { OnboardingScreen } from "../screens/onboarding/OnboardingScreen";
 import { useAuth } from "../hooks/useAuth";
 import { storage } from "../utils/storage";
-
+import i18n from "../i18n";
+import { I18nextProvider } from "react-i18next";
+import "../i18n";
 const Stack = createNativeStackNavigator();
 
 export const AppNavigator = () => {
@@ -20,7 +22,6 @@ export const AppNavigator = () => {
         await storage.set("hasLaunched", true);
       }
     };
-
     checkFirstLaunch();
   }, []);
 
@@ -40,11 +41,12 @@ export const AppNavigator = () => {
     //     <Stack.Screen name="Auth" component={AuthNavigator} />
     //   )}
     // </Stack.Navigator>
-
-    <Stack.Navigator screenOptions={{ headerShown: false }}>
-      <Stack.Screen name="Onboarding" component={OnboardingScreen} />
-      <Stack.Screen name="MainNavigator" component={MainNavigator} />
-      <Stack.Screen name="Auth" component={AuthNavigator} />
-    </Stack.Navigator>
+    <I18nextProvider i18n={i18n}>
+      <Stack.Navigator screenOptions={{ headerShown: false }}>
+        <Stack.Screen name="Onboarding" component={OnboardingScreen} />
+        <Stack.Screen name="MainNavigator" component={MainNavigator} />
+        <Stack.Screen name="Auth" component={AuthNavigator} />
+      </Stack.Navigator>
+    </I18nextProvider>
   );
 };

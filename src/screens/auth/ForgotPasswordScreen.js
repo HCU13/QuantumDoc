@@ -1,4 +1,3 @@
-// src/screens/auth/ForgotPasswordScreen.js
 import React, { useState } from "react";
 import {
   View,
@@ -6,96 +5,129 @@ import {
   TouchableOpacity,
   KeyboardAvoidingView,
   Platform,
-  Image,
+  ScrollView,
 } from "react-native";
 import { SafeAreaView } from "react-native-safe-area-context";
-import { Text } from "@components/common/Text";
-import { Button } from "@components/common/Button";
-import { Input } from "@components/common/Input";
-import { useTheme } from "@hooks/useTheme";
+import { Text, Button, Input } from "../../components/common";
+import { useTheme } from "../../hooks/useTheme";
+import { useTranslation } from "react-i18next";
 import { Ionicons } from "@expo/vector-icons";
 
 export const ForgotPasswordScreen = ({ navigation }) => {
   const { theme } = useTheme();
+  const { t } = useTranslation();
   const [email, setEmail] = useState("");
+  const [loading, setLoading] = useState(false);
+  const [resetSent, setResetSent] = useState(false);
+
+  const handleResetPassword = async () => {
+    if (!email) return;
+
+    setLoading(true);
+    try {
+      // Firebase reset password will be here
+      await new Promise((resolve) => setTimeout(resolve, 1000));
+      setResetSent(true);
+    } catch (error) {
+      console.error(error);
+    } finally {
+      setLoading(false);
+    }
+  };
 
   return (
     <SafeAreaView
       style={[styles.container, { backgroundColor: theme.colors.background }]}
+      edges={["top"]}
     >
       <KeyboardAvoidingView
         behavior={Platform.OS === "ios" ? "padding" : "height"}
         style={styles.keyboardView}
       >
-        {/* Header with back button */}
-        <View style={styles.header}>
+        <ScrollView contentContainerStyle={styles.scrollContent}>
           <TouchableOpacity
             onPress={() => navigation.goBack()}
-            style={styles.backButton}
+            style={[
+              styles.backButton,
+              { backgroundColor: theme.colors.surface },
+            ]}
           >
             <Ionicons name="arrow-back" size={24} color={theme.colors.text} />
           </TouchableOpacity>
-        </View>
 
-        <View style={styles.content}>
-          {/* Image */}
-          <View style={styles.imageContainer}>
-            {/* <Image
-              source={require("@/assets/images/forgot-password.png")}
-              style={styles.image}
-              resizeMode="contain"
-            /> */}
-          </View>
+          <View style={styles.content}>
+            <View style={styles.iconContainer}>
+              <View
+                style={[
+                  styles.iconBackground,
+                  { backgroundColor: theme.colors.primary },
+                ]}
+              >
+                <Ionicons name="lock-open" size={32} color="white" />
+              </View>
+            </View>
 
-          {/* Title and Description */}
-          <View style={styles.textContainer}>
             <Text
+              variant="h1"
               style={[styles.title, { color: theme.colors.text }]}
-              variant="h2"
             >
-              Forgot Password?
+              {resetSent
+                ? t("auth.checkYourEmail")
+                : t("auth.forgotPasswordTitle")}
             </Text>
+
             <Text
               style={[
                 styles.description,
                 { color: theme.colors.textSecondary },
               ]}
             >
-              Don't worry! It happens. Please enter the email address associated
-              with your account.
+              {resetSent
+                ? t("auth.resetEmailSent")
+                : t("auth.forgotPasswordDescription")}
             </Text>
+
+            {!resetSent && (
+              <View style={styles.form}>
+                <Input
+                  placeholder={t("auth.email")}
+                  value={email}
+                  onChangeText={setEmail}
+                  keyboardType="email-address"
+                  autoCapitalize="none"
+                  theme={theme}
+                  icon="mail-outline"
+                />
+
+                <Button
+                  title={t("auth.resetPassword")}
+                  onPress={handleResetPassword}
+                  loading={loading}
+                  theme={theme}
+                  style={styles.resetButton}
+                />
+              </View>
+            )}
+
+            {resetSent && (
+              <View style={styles.actions}>
+                <Button
+                  title={t("common.backToLogin")}
+                  onPress={() => navigation.navigate("Login")}
+                  theme={theme}
+                  style={styles.backToLoginButton}
+                />
+                <Button
+                  title={t("auth.resendEmail")}
+                  onPress={handleResetPassword}
+                  type="secondary"
+                  theme={theme}
+                  style={styles.resendButton}
+                />
+              </View>
+            )}
           </View>
-
-          {/* Form */}
-          <View style={styles.form}>
-            <Input
-              placeholder="Enter your email"
-              value={email}
-              onChangeText={setEmail}
-              keyboardType="email-address"
-              autoCapitalize="none"
-              theme={theme}
-              leftIcon="mail-outline"
-              containerStyle={styles.input}
-            />
-
-            <Button
-              title="Send Reset Link"
-              onPress={() => {}}
-              theme={theme}
-              style={styles.button}
-            />
-
-            <TouchableOpacity
-              onPress={() => navigation.navigate("Login")}
-              style={styles.linkContainer}
-            >
-              <Text style={[styles.linkText, { color: theme.colors.primary }]}>
-                Remember Password? Login
-              </Text>
-            </TouchableOpacity>
-          </View>
-        </View>
+        </ScrollView>
       </KeyboardAvoidingView>
     </SafeAreaView>
   );
@@ -108,61 +140,61 @@ const styles = StyleSheet.create({
   keyboardView: {
     flex: 1,
   },
-  header: {
-    height: 56,
-    justifyContent: "center",
-    paddingHorizontal: 16,
+  scrollContent: {
+    flexGrow: 1,
+    padding: 24,
   },
   backButton: {
     width: 40,
     height: 40,
-    justifyContent: "center",
+    borderRadius: 12,
     alignItems: "center",
+    justifyContent: "center",
+    marginBottom: 24,
   },
   content: {
     flex: 1,
-    paddingHorizontal: 24,
+    alignItems: "center",
+    paddingTop: 40,
+  },
+  iconContainer: {
+    marginBottom: 32,
+  },
+  iconBackground: {
+    width: 80,
+    height: 80,
+    borderRadius: 40,
+    alignItems: "center",
     justifyContent: "center",
   },
-  imageContainer: {
-    alignItems: "center",
-    marginBottom: 32,
-  },
-  image: {
-    width: 200,
-    height: 200,
-  },
-  textContainer: {
-    alignItems: "center",
-    marginBottom: 32,
-  },
   title: {
-    fontSize: 24,
+    fontSize: 28,
     fontWeight: "700",
     marginBottom: 12,
     textAlign: "center",
   },
   description: {
     fontSize: 16,
-    textAlign: "center",
-    paddingHorizontal: 24,
     lineHeight: 24,
+    textAlign: "center",
+    marginBottom: 32,
+    paddingHorizontal: 24,
   },
   form: {
     width: "100%",
+    gap: 16,
   },
-  input: {
-    marginBottom: 16,
-  },
-  button: {
+  resetButton: {
     marginTop: 8,
   },
-  linkContainer: {
-    marginTop: 24,
-    alignItems: "center",
+  actions: {
+    width: "100%",
+    gap: 12,
   },
-  linkText: {
-    fontSize: 16,
-    fontWeight: "600",
+  backToLoginButton: {
+    marginTop: 8,
+  },
+  resendButton: {
+    marginTop: 8,
   },
 });

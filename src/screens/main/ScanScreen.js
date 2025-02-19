@@ -1,11 +1,12 @@
+// ScanScreen.js
 import React, { useState, useRef } from "react";
 import {
   View,
   StyleSheet,
   TouchableOpacity,
-  Image,
   Platform,
   Dimensions,
+  Alert,
 } from "react-native";
 import { Camera } from "expo-camera";
 import { SafeAreaView } from "react-native-safe-area-context";
@@ -26,6 +27,10 @@ export const ScanScreen = ({ navigation }) => {
   const [previewImage, setPreviewImage] = useState(null);
   const cameraRef = useRef(null);
 
+  // Token durumu (gerçek uygulamada redux/context'ten gelecek)
+  const [tokenCount, setTokenCount] = useState(0);
+  const [freeTrialUsed, setFreeTrialUsed] = useState(false);
+
   React.useEffect(() => {
     (async () => {
       const { status } = await Camera.requestCameraPermissionsAsync();
@@ -33,7 +38,37 @@ export const ScanScreen = ({ navigation }) => {
     })();
   }, []);
 
+  const checkTokenStatus = () => {
+    if (!freeTrialUsed) {
+      // Ücretsiz deneme hakkı var
+      return { canScan: true, message: "Using free trial" };
+    }
+    if (tokenCount > 0) {
+      // Yeterli token var
+      return { canScan: true, message: `${tokenCount} tokens remaining` };
+    }
+    // Token yetersiz
+    return { canScan: false, message: "No tokens available" };
+  };
+
   const takePicture = async () => {
+    const tokenStatus = checkTokenStatus();
+
+    if (!tokenStatus.canScan) {
+      Alert.alert(
+        "No Tokens Available",
+        "Please purchase tokens to continue scanning documents.",
+        [
+          { text: "Cancel", style: "cancel" },
+          {
+            text: "Get Tokens",
+            onPress: () => navigation.navigate("Premium"),
+          },
+        ]
+      );
+      return;
+    }
+
     if (cameraRef.current) {
       try {
         setScanning(true);
@@ -45,45 +80,47 @@ export const ScanScreen = ({ navigation }) => {
         });
 
         setPreviewImage(photo.uri);
-        // Burada document edge detection yapılacak
       } catch (error) {
         console.error("Error taking picture:", error);
+        Alert.alert("Error", "Failed to take picture. Please try again.");
       } finally {
         setScanning(false);
       }
     }
   };
 
-  const handleRetake = () => {
-    setPreviewImage(null);
+  const handleScan = async () => {
+    // Token kullanımı
+    if (!freeTrialUsed) {
+      setFreeTrialUsed(true);
+    } else {
+      setTokenCount((prev) => prev - 1);
+    }
+
+    // Burada tarama işlemi yapılacak
+    navigation.replace("DocumentDetail", { documentId: "new" });
   };
 
-  const handleSave = () => {
-    // Burada işlenmiş görüntü kaydedilecek
-    navigation.goBack();
-  };
+  const renderTokenStatus = () => (
+    <View
+      style={[styles.tokenStatus, { backgroundColor: theme.colors.surface }]}
+    >
+      <Ionicons
+        name="flash"
+        size={16}
+        color={freeTrialUsed ? theme.colors.warning : theme.colors.success}
+      />
+      <Text style={{ color: theme.colors.text }}>
+        {checkTokenStatus().message}
+      </Text>
+    </View>
+  );
 
   const renderCameraOverlay = () => (
     <View style={styles.overlay}>
-      <View style={styles.scanArea}>
-        <View
-          style={[styles.cornerTL, { borderColor: theme.colors.primary }]}
-        />
-        <View
-          style={[styles.cornerTR, { borderColor: theme.colors.primary }]}
-        />
-        <View
-          style={[styles.cornerBL, { borderColor: theme.colors.primary }]}
-        />
-        <View
-          style={[styles.cornerBR, { borderColor: theme.colors.primary }]}
-        />
-      </View>
       <LinearGradient
         colors={["rgba(0,0,0,0.7)", "transparent"]}
         style={styles.topGradient}
-        start={{ x: 0, y: 0 }}
-        end={{ x: 0, y: 1 }}
       >
         <SafeAreaView edges={["top"]} style={styles.header}>
           <TouchableOpacity
@@ -92,9 +129,9 @@ export const ScanScreen = ({ navigation }) => {
           >
             <Ionicons name="close" size={24} color="white" />
           </TouchableOpacity>
-          <Text color="white" style={styles.headerTitle}>
-            Scan Document
-          </Text>
+
+          {renderTokenStatus()}
+
           <TouchableOpacity
             style={styles.headerButton}
             onPress={() =>
@@ -115,11 +152,25 @@ export const ScanScreen = ({ navigation }) => {
           </TouchableOpacity>
         </SafeAreaView>
       </LinearGradient>
+
+      <View style={styles.scanArea}>
+        <View
+          style={[styles.cornerTL, { borderColor: theme.colors.primary }]}
+        />
+        <View
+          style={[styles.cornerTR, { borderColor: theme.colors.primary }]}
+        />
+        <View
+          style={[styles.cornerBL, { borderColor: theme.colors.primary }]}
+        />
+        <View
+          style={[styles.cornerBR, { borderColor: theme.colors.primary }]}
+        />
+      </View>
+
       <LinearGradient
         colors={["transparent", "rgba(0,0,0,0.7)"]}
         style={styles.bottomGradient}
-        start={{ x: 0, y: 0 }}
-        end={{ x: 0, y: 1 }}
       >
         <SafeAreaView edges={["bottom"]} style={styles.controls}>
           <View style={styles.controlsContainer}>
@@ -154,11 +205,12 @@ export const ScanScreen = ({ navigation }) => {
       <LinearGradient
         colors={["rgba(0,0,0,0.7)", "transparent"]}
         style={styles.topGradient}
-        start={{ x: 0, y: 0 }}
-        end={{ x: 0, y: 1 }}
       >
         <SafeAreaView edges={["top"]} style={styles.header}>
-          <TouchableOpacity style={styles.headerButton} onPress={handleRetake}>
+          <TouchableOpacity
+            style={styles.headerButton}
+            onPress={() => setPreviewImage(null)}
+          >
             <Ionicons name="arrow-back" size={24} color="white" />
           </TouchableOpacity>
           <Text color="white" style={styles.headerTitle}>
@@ -167,23 +219,24 @@ export const ScanScreen = ({ navigation }) => {
           <View style={styles.headerButton} />
         </SafeAreaView>
       </LinearGradient>
+
       <LinearGradient
         colors={["transparent", "rgba(0,0,0,0.7)"]}
         style={styles.bottomGradient}
-        start={{ x: 0, y: 0 }}
-        end={{ x: 0, y: 1 }}
       >
         <SafeAreaView edges={["bottom"]} style={styles.previewControls}>
           <Button
             title="Retake"
-            onPress={handleRetake}
+            onPress={() => setPreviewImage(null)}
             type="secondary"
             theme={theme}
             style={styles.previewButton}
           />
           <Button
-            title="Use Photo"
-            onPress={handleSave}
+            title={`Scan Document (${
+              !freeTrialUsed ? "Free Trial" : "1 Token"
+            })`}
+            onPress={handleScan}
             theme={theme}
             style={styles.previewButton}
           />
@@ -217,7 +270,6 @@ export const ScanScreen = ({ navigation }) => {
             style={styles.camera}
             type={type}
             flashMode={flash}
-            ratio="4:3"
           />
           {renderCameraOverlay()}
         </>
@@ -263,6 +315,14 @@ const styles = StyleSheet.create({
   headerTitle: {
     fontSize: 17,
     fontWeight: "600",
+  },
+  tokenStatus: {
+    flexDirection: "row",
+    alignItems: "center",
+    paddingHorizontal: 12,
+    paddingVertical: 6,
+    borderRadius: 16,
+    gap: 6,
   },
   scanArea: {
     position: "absolute",

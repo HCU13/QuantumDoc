@@ -1,3 +1,4 @@
+// LoginScreen.js
 import React, { useState } from "react";
 import {
   View,
@@ -5,18 +6,20 @@ import {
   KeyboardAvoidingView,
   Platform,
   ScrollView,
-  Dimensions,
   TouchableOpacity,
   Image,
+  StatusBar,
 } from "react-native";
 import { SafeAreaView } from "react-native-safe-area-context";
-import { LinearGradient } from "expo-linear-gradient";
 import { Text, Input, Button } from "../../components/common";
 import { useTheme } from "../../hooks/useTheme";
 import { useTranslation } from "react-i18next";
 import { Ionicons } from "@expo/vector-icons";
-
-const { width } = Dimensions.get("window");
+import { FIREBASE_AUTH } from "../../../FirebaseConfig";
+import {
+  signInWithEmailAndPassword,
+  createUserWithEmailAndPassword,
+} from "firebase/auth";
 
 export const LoginScreen = ({ navigation }) => {
   const { theme } = useTheme();
@@ -25,19 +28,36 @@ export const LoginScreen = ({ navigation }) => {
   const [password, setPassword] = useState("");
   const [loading, setLoading] = useState(false);
   const [showPassword, setShowPassword] = useState(false);
+  const auth = FIREBASE_AUTH;
 
   const handleLogin = async () => {
-    navigation.replace("MainNavigator", { screen: "home" });
+    try {
+      setLoading(true);
+      const response = await signInWithEmailAndPassword(auth, email, password);
+      // navigation.replace("MainNavigator");
+      console.log("response::", response);
+    } catch (error) {
+      console.log("Error::", error);
+      setError(t(`auth.errors.${error.code}`));
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  const handleSignUp = async () => {
     if (!email || !password) {
       // Show error
       return;
     }
-
-    setLoading(true);
     try {
-      // Add your login logic here
-      await new Promise((resolve) => setTimeout(resolve, 1500)); // Simulating API call
-      navigation.replace("MainNavigator", { screen: "home" });
+      setLoading(true);
+      // await new Promise((resolve) => setTimeout(resolve, 1000));
+      const response = await createUserWithEmailAndPassword(
+        auth,
+        email,
+        password
+      );
+      console.log(response);
     } catch (error) {
       console.error(error);
     } finally {
@@ -48,179 +68,154 @@ export const LoginScreen = ({ navigation }) => {
   return (
     <SafeAreaView
       style={[styles.container, { backgroundColor: theme.colors.background }]}
-      edges={["bottom"]}
+      edges={["top"]}
     >
+      <StatusBar barStyle={theme.isDark ? "light-content" : "dark-content"} />
       <KeyboardAvoidingView
         behavior={Platform.OS === "ios" ? "padding" : "height"}
         style={styles.keyboardView}
       >
-        <ScrollView
-          contentContainerStyle={styles.scrollContent}
-          showsVerticalScrollIndicator={false}
-        >
-          {/* Header Section */}
-          <View style={styles.headerSection}>
-            <LinearGradient
-              colors={theme.colors.gradient.primary}
-              style={styles.headerGradient}
-              start={{ x: 0, y: 0 }}
-              end={{ x: 1, y: 1 }}
-            >
-              <View style={styles.logoContainer}>
-                <Ionicons
-                  name="document-text"
-                  size={48}
-                  color={theme.colors.white}
-                />
+        <ScrollView contentContainerStyle={styles.scrollContent}>
+          <View style={styles.header}>
+            <View style={styles.logoContainer}>
+              <View
+                style={[
+                  styles.logoBackground,
+                  { backgroundColor: theme.colors.primary },
+                ]}
+              >
+                <Ionicons name="document-text" size={40} color="white" />
               </View>
               <Text
-                style={styles.appName}
-                color={theme.colors.white}
-                variant="h2"
+                style={[styles.appName, { color: theme.colors.text }]}
+                variant="h1"
               >
                 DocAI
               </Text>
-            </LinearGradient>
+              <Text
+                style={[
+                  styles.appSubtitle,
+                  { color: theme.colors.textSecondary },
+                ]}
+              >
+                Your AI Document Assistant
+              </Text>
+            </View>
           </View>
 
-          {/* Form Section */}
-          <View
-            style={[
-              styles.formSection,
-              { backgroundColor: theme.colors.surface },
-            ]}
-          >
-            <Text
-              variant="h2"
-              style={[styles.welcomeText, { color: theme.colors.text }]}
+          <View style={styles.form}>
+            <Input
+              placeholder={t("auth.email")}
+              value={email}
+              onChangeText={setEmail}
+              keyboardType="email-address"
+              autoCapitalize="none"
+              theme={theme}
+              icon="mail-outline"
+            />
+
+            <Input
+              placeholder={t("auth.password")}
+              value={password}
+              onChangeText={setPassword}
+              secureTextEntry={!showPassword}
+              theme={theme}
+              icon="lock-closed-outline"
+              rightIcon={showPassword ? "eye-off-outline" : "eye-outline"}
+              onRightIconPress={() => setShowPassword(!showPassword)}
+              style={styles.passwordInput}
+            />
+
+            <TouchableOpacity
+              onPress={() => navigation.navigate("ForgotPassword")}
+              style={styles.forgotPassword}
             >
-              {t("auth.loginTitle")}
-            </Text>
-
-            <Text
-              style={[styles.subtitle, { color: theme.colors.textSecondary }]}
-            >
-              {t("auth.loginSubtitle")}
-            </Text>
-
-            <View style={styles.form}>
-              <Input
-                placeholder={t("auth.email")}
-                value={email}
-                onChangeText={setEmail}
-                keyboardType="email-address"
-                autoCapitalize="none"
-                theme={theme}
-                icon="mail-outline"
-                style={styles.input}
-              />
-
-              <Input
-                placeholder={t("auth.password")}
-                value={password}
-                onChangeText={setPassword}
-                secureTextEntry={!showPassword}
-                theme={theme}
-                icon="lock-closed-outline"
-                rightIcon={showPassword ? "eye-off-outline" : "eye-outline"}
-                onRightIconPress={() => setShowPassword(!showPassword)}
-                style={styles.input}
-              />
-
-              <TouchableOpacity
-                onPress={() => navigation.navigate("ForgotPassword")}
-                style={styles.forgotPassword}
+              <Text
+                style={[
+                  styles.forgotPasswordText,
+                  { color: theme.colors.primary },
+                ]}
               >
-                <Text
-                  style={[
-                    styles.forgotPasswordText,
-                    { color: theme.colors.primary },
-                  ]}
-                >
-                  {t("auth.forgotPassword")}
-                </Text>
-              </TouchableOpacity>
-
-              <Button
-                title={t("common.login")}
-                onPress={handleLogin}
-                loading={loading}
-                theme={theme}
-                style={styles.loginButton}
-              />
-
-              <View style={styles.divider}>
-                <View
-                  style={[
-                    styles.dividerLine,
-                    { backgroundColor: theme.colors.border },
-                  ]}
-                />
-                <Text
-                  style={[
-                    styles.dividerText,
-                    { color: theme.colors.textSecondary },
-                  ]}
-                >
-                  {t("common.or")}
-                </Text>
-                <View
-                  style={[
-                    styles.dividerLine,
-                    { backgroundColor: theme.colors.border },
-                  ]}
-                />
-              </View>
-
-              <View style={styles.socialButtons}>
-                <TouchableOpacity
-                  style={[
-                    styles.socialButton,
-                    {
-                      backgroundColor: theme.colors.surface,
-                      borderColor: theme.colors.border,
-                    },
-                  ]}
-                >
-                  <Ionicons
-                    name="logo-google"
-                    size={24}
-                    color={theme.colors.text}
-                  />
-                </TouchableOpacity>
-                <TouchableOpacity
-                  style={[
-                    styles.socialButton,
-                    {
-                      backgroundColor: theme.colors.surface,
-                      borderColor: theme.colors.border,
-                    },
-                  ]}
-                >
-                  <Ionicons
-                    name="logo-apple"
-                    size={24}
-                    color={theme.colors.text}
-                  />
-                </TouchableOpacity>
-              </View>
-            </View>
-
-            <View style={styles.footer}>
-              <Text style={{ color: theme.colors.textSecondary }}>
-                {t("auth.noAccount")}
+                {t("auth.forgotPassword")}
               </Text>
-              <TouchableOpacity
-                onPress={() => navigation.navigate("Register")}
-                style={styles.registerButton}
+            </TouchableOpacity>
+
+            <Button
+              title={t("common.login")}
+              onPress={handleLogin}
+              loading={loading}
+              theme={theme}
+              style={styles.loginButton}
+            />
+
+            <View style={styles.divider}>
+              <View
+                style={[
+                  styles.dividerLine,
+                  { backgroundColor: theme.colors.border },
+                ]}
+              />
+              <Text
+                style={[
+                  styles.dividerText,
+                  { color: theme.colors.textSecondary },
+                ]}
               >
-                <Text
-                  style={[styles.registerText, { color: theme.colors.primary }]}
-                >
-                  {t("common.register")}
-                </Text>
+                {t("common.or")}
+              </Text>
+              <View
+                style={[
+                  styles.dividerLine,
+                  { backgroundColor: theme.colors.border },
+                ]}
+              />
+            </View>
+
+            <View style={styles.socialButtons}>
+              <TouchableOpacity
+                style={[
+                  styles.socialButton,
+                  { backgroundColor: theme.colors.surface },
+                ]}
+                onPress={() => {
+                  //google
+                }}
+              >
+                <Ionicons
+                  name="logo-google"
+                  size={24}
+                  color={theme.colors.text}
+                />
+              </TouchableOpacity>
+              <TouchableOpacity
+                style={[
+                  styles.socialButton,
+                  { backgroundColor: theme.colors.surface },
+                ]}
+                onPress={() => {
+                  /* Apple login */
+                }}
+              >
+                <Ionicons
+                  name="logo-apple"
+                  size={24}
+                  color={theme.colors.text}
+                />
               </TouchableOpacity>
             </View>
+          </View>
+
+          <View style={styles.footer}>
+            <Text style={{ color: theme.colors.textSecondary }}>
+              {t("auth.noAccount")}
+            </Text>
+            <TouchableOpacity onPress={() => navigation.navigate("Register")}>
+              <Text
+                style={[styles.registerText, { color: theme.colors.primary }]}
+              >
+                {t("common.register")}
+              </Text>
+            </TouchableOpacity>
           </View>
         </ScrollView>
       </KeyboardAvoidingView>
@@ -237,20 +232,19 @@ const styles = StyleSheet.create({
   },
   scrollContent: {
     flexGrow: 1,
+    padding: 24,
   },
-  headerSection: {
-    height: 200,
-  },
-  headerGradient: {
-    flex: 1,
+  header: {
     alignItems: "center",
-    justifyContent: "center",
+    marginVertical: 40,
   },
   logoContainer: {
+    alignItems: "center",
+  },
+  logoBackground: {
     width: 80,
     height: 80,
-    borderRadius: 40,
-    backgroundColor: "rgba(255, 255, 255, 0.2)",
+    borderRadius: 20,
     alignItems: "center",
     justifyContent: "center",
     marginBottom: 16,
@@ -258,35 +252,16 @@ const styles = StyleSheet.create({
   appName: {
     fontSize: 32,
     fontWeight: "700",
-  },
-  formSection: {
-    flex: 1,
-    borderTopLeftRadius: 30,
-    borderTopRightRadius: 30,
-    marginTop: -30,
-    padding: 24,
-    elevation: 24,
-    shadowColor: "#000",
-    shadowOffset: {
-      width: 0,
-      height: -10,
-    },
-    shadowOpacity: 0.1,
-    shadowRadius: 24,
-  },
-  welcomeText: {
     marginBottom: 8,
-    textAlign: "center",
   },
-  subtitle: {
-    textAlign: "center",
-    marginBottom: 32,
+  appSubtitle: {
+    fontSize: 16,
   },
   form: {
     gap: 16,
   },
-  input: {
-    marginBottom: 8,
+  passwordInput: {
+    marginBottom: 4,
   },
   forgotPassword: {
     alignSelf: "flex-end",
@@ -321,10 +296,17 @@ const styles = StyleSheet.create({
   socialButton: {
     width: 56,
     height: 56,
-    borderRadius: 28,
+    borderRadius: 16,
     alignItems: "center",
     justifyContent: "center",
-    borderWidth: 1,
+    shadowColor: "#000",
+    shadowOffset: {
+      width: 0,
+      height: 2,
+    },
+    shadowOpacity: 0.1,
+    shadowRadius: 4,
+    elevation: 3,
   },
   footer: {
     flexDirection: "row",

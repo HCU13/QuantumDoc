@@ -45,8 +45,8 @@ export const RegisterScreen = ({ navigation }) => {
 
     setLoading(true);
     try {
-      // Add your registration logic here
-      await new Promise((resolve) => setTimeout(resolve, 1500)); // Simulating API call
+      // Firebase registration will be here
+      await new Promise((resolve) => setTimeout(resolve, 1000));
       navigation.replace("MainNavigator");
     } catch (error) {
       console.error(error);
@@ -63,209 +63,180 @@ export const RegisterScreen = ({ navigation }) => {
   };
 
   return (
-    <View
+    <SafeAreaView
       style={[styles.container, { backgroundColor: theme.colors.background }]}
+      edges={["top"]}
     >
-      <StatusBar
-        barStyle={theme.isDark ? "light-content" : "dark-content"}
-        backgroundColor={theme.colors.background}
-      />
+      <StatusBar barStyle={theme.isDark ? "light-content" : "dark-content"} />
+      <KeyboardAvoidingView
+        behavior={Platform.OS === "ios" ? "padding" : "height"}
+        style={styles.keyboardView}
+      >
+        <ScrollView contentContainerStyle={styles.scrollContent}>
+          <View style={styles.header}>
+            <TouchableOpacity
+              onPress={() => navigation.goBack()}
+              style={[
+                styles.backButton,
+                { backgroundColor: theme.colors.surface },
+              ]}
+            >
+              <Ionicons name="arrow-back" size={24} color={theme.colors.text} />
+            </TouchableOpacity>
 
-      <SafeAreaView edges={["bottom"]} style={{ flex: 1 }}>
-        <KeyboardAvoidingView
-          behavior={Platform.OS === "ios" ? "padding" : "height"}
-          style={styles.keyboardView}
-        >
-          <ScrollView
-            contentContainerStyle={styles.scrollContent}
-            showsVerticalScrollIndicator={false}
-          >
-            {/* Header */}
-            <View style={styles.header}>
-              <TouchableOpacity
-                onPress={() => navigation.goBack()}
+            <Text
+              variant="h1"
+              style={[styles.title, { color: theme.colors.text }]}
+            >
+              {t("auth.registerTitle")}
+            </Text>
+            <Text
+              style={[styles.subtitle, { color: theme.colors.textSecondary }]}
+            >
+              {t("auth.registerSubtitle")}
+            </Text>
+          </View>
+
+          <View style={styles.form}>
+            <Input
+              placeholder={t("auth.fullName")}
+              value={formData.fullName}
+              onChangeText={(value) => updateFormData("fullName", value)}
+              theme={theme}
+              icon="person-outline"
+            />
+
+            <Input
+              placeholder={t("auth.email")}
+              value={formData.email}
+              onChangeText={(value) => updateFormData("email", value)}
+              keyboardType="email-address"
+              autoCapitalize="none"
+              theme={theme}
+              icon="mail-outline"
+            />
+
+            <Input
+              placeholder={t("auth.password")}
+              value={formData.password}
+              onChangeText={(value) => updateFormData("password", value)}
+              secureTextEntry={!showPassword}
+              theme={theme}
+              icon="lock-closed-outline"
+              rightIcon={showPassword ? "eye-off-outline" : "eye-outline"}
+              onRightIconPress={() => setShowPassword(!showPassword)}
+            />
+
+            <Input
+              placeholder={t("auth.confirmPassword")}
+              value={formData.confirmPassword}
+              onChangeText={(value) => updateFormData("confirmPassword", value)}
+              secureTextEntry={!showConfirmPassword}
+              theme={theme}
+              icon="lock-closed-outline"
+              rightIcon={
+                showConfirmPassword ? "eye-off-outline" : "eye-outline"
+              }
+              onRightIconPress={() =>
+                setShowConfirmPassword(!showConfirmPassword)
+              }
+            />
+
+            <Text
+              style={[styles.termsText, { color: theme.colors.textSecondary }]}
+            >
+              {t("auth.termsText")}{" "}
+              <Text style={{ color: theme.colors.primary }}>
+                {t("auth.termsLink")}
+              </Text>{" "}
+              {t("common.and")}{" "}
+              <Text style={{ color: theme.colors.primary }}>
+                {t("auth.privacyLink")}
+              </Text>
+            </Text>
+
+            <Button
+              title={t("common.register")}
+              onPress={handleRegister}
+              loading={loading}
+              theme={theme}
+              style={styles.registerButton}
+            />
+
+            <View style={styles.divider}>
+              <View
                 style={[
-                  styles.backButton,
-                  { backgroundColor: theme.colors.surface },
+                  styles.dividerLine,
+                  { backgroundColor: theme.colors.border },
+                ]}
+              />
+              <Text
+                style={[
+                  styles.dividerText,
+                  { color: theme.colors.textSecondary },
                 ]}
               >
+                {t("common.or")}
+              </Text>
+              <View
+                style={[
+                  styles.dividerLine,
+                  { backgroundColor: theme.colors.border },
+                ]}
+              />
+            </View>
+
+            <View style={styles.socialButtons}>
+              <TouchableOpacity
+                style={[
+                  styles.socialButton,
+                  { backgroundColor: theme.colors.surface },
+                ]}
+                onPress={() => {
+                  /* Google registration */
+                }}
+              >
                 <Ionicons
-                  name="arrow-back"
+                  name="logo-google"
                   size={24}
                   color={theme.colors.text}
                 />
               </TouchableOpacity>
-
-              <View style={styles.titleContainer}>
-                <Text
-                  variant="h1"
-                  style={[styles.title, { color: theme.colors.text }]}
-                >
-                  {t("auth.registerTitle")}
-                </Text>
-                <Text
-                  style={[
-                    styles.subtitle,
-                    { color: theme.colors.textSecondary },
-                  ]}
-                >
-                  {t("auth.registerSubtitle")}
-                </Text>
-              </View>
-            </View>
-
-            {/* Form */}
-            <View style={styles.form}>
-              <Input
-                placeholder={t("auth.fullName")}
-                value={formData.fullName}
-                onChangeText={(value) => updateFormData("fullName", value)}
-                theme={theme}
-                icon="person-outline"
-                style={styles.input}
-              />
-
-              <Input
-                placeholder={t("auth.email")}
-                value={formData.email}
-                onChangeText={(value) => updateFormData("email", value)}
-                keyboardType="email-address"
-                autoCapitalize="none"
-                theme={theme}
-                icon="mail-outline"
-                style={styles.input}
-              />
-
-              <Input
-                placeholder={t("auth.password")}
-                value={formData.password}
-                onChangeText={(value) => updateFormData("password", value)}
-                secureTextEntry={!showPassword}
-                theme={theme}
-                icon="lock-closed-outline"
-                rightIcon={showPassword ? "eye-off-outline" : "eye-outline"}
-                onRightIconPress={() => setShowPassword(!showPassword)}
-                style={styles.input}
-              />
-
-              <Input
-                placeholder={t("auth.confirmPassword")}
-                value={formData.confirmPassword}
-                onChangeText={(value) =>
-                  updateFormData("confirmPassword", value)
-                }
-                secureTextEntry={!showConfirmPassword}
-                theme={theme}
-                icon="lock-closed-outline"
-                rightIcon={
-                  showConfirmPassword ? "eye-off-outline" : "eye-outline"
-                }
-                onRightIconPress={() =>
-                  setShowConfirmPassword(!showConfirmPassword)
-                }
-                style={styles.input}
-              />
-
-              <Text
+              <TouchableOpacity
                 style={[
-                  styles.termsText,
-                  { color: theme.colors.textSecondary },
+                  styles.socialButton,
+                  { backgroundColor: theme.colors.surface },
                 ]}
+                onPress={() => {
+                  /* Apple registration */
+                }}
               >
-                {t("auth.termsText")}{" "}
-                <Text style={{ color: theme.colors.primary }}>
-                  {t("auth.termsLink")}
-                </Text>{" "}
-                {t("common.and")}{" "}
-                <Text style={{ color: theme.colors.primary }}>
-                  {t("auth.privacyLink")}
-                </Text>
-              </Text>
-
-              <Button
-                title={t("common.register")}
-                onPress={handleRegister}
-                loading={loading}
-                theme={theme}
-                style={styles.registerButton}
-              />
-
-              <View style={styles.divider}>
-                <View
-                  style={[
-                    styles.dividerLine,
-                    { backgroundColor: theme.colors.border },
-                  ]}
+                <Ionicons
+                  name="logo-apple"
+                  size={24}
+                  color={theme.colors.text}
                 />
-                <Text
-                  style={[
-                    styles.dividerText,
-                    { color: theme.colors.textSecondary },
-                  ]}
-                >
-                  {t("common.or")}
-                </Text>
-                <View
-                  style={[
-                    styles.dividerLine,
-                    { backgroundColor: theme.colors.border },
-                  ]}
-                />
-              </View>
-
-              <View style={styles.socialButtons}>
-                <TouchableOpacity
-                  style={[
-                    styles.socialButton,
-                    {
-                      backgroundColor: theme.colors.surface,
-                      borderColor: theme.colors.border,
-                    },
-                  ]}
-                >
-                  <Ionicons
-                    name="logo-google"
-                    size={24}
-                    color={theme.colors.text}
-                  />
-                </TouchableOpacity>
-                <TouchableOpacity
-                  style={[
-                    styles.socialButton,
-                    {
-                      backgroundColor: theme.colors.surface,
-                      borderColor: theme.colors.border,
-                    },
-                  ]}
-                >
-                  <Ionicons
-                    name="logo-apple"
-                    size={24}
-                    color={theme.colors.text}
-                  />
-                </TouchableOpacity>
-              </View>
-
-              <View style={styles.loginContainer}>
-                <Text style={{ color: theme.colors.textSecondary }}>
-                  {t("auth.alreadyHaveAccount")}{" "}
-                </Text>
-                <TouchableOpacity onPress={() => navigation.navigate("Login")}>
-                  <Text
-                    style={{ color: theme.colors.primary, fontWeight: "600" }}
-                  >
-                    {t("common.login")}
-                  </Text>
-                </TouchableOpacity>
-              </View>
+              </TouchableOpacity>
             </View>
-          </ScrollView>
-        </KeyboardAvoidingView>
-      </SafeAreaView>
-    </View>
+
+            <View style={styles.footer}>
+              <Text style={{ color: theme.colors.textSecondary }}>
+                {t("auth.alreadyHaveAccount")}
+              </Text>
+              <TouchableOpacity onPress={() => navigation.navigate("Login")}>
+                <Text
+                  style={[styles.loginText, { color: theme.colors.primary }]}
+                >
+                  {t("common.login")}
+                </Text>
+              </TouchableOpacity>
+            </View>
+          </View>
+        </ScrollView>
+      </KeyboardAvoidingView>
+    </SafeAreaView>
   );
 };
-
 const styles = StyleSheet.create({
   container: {
     flex: 1,
@@ -275,8 +246,7 @@ const styles = StyleSheet.create({
   },
   scrollContent: {
     flexGrow: 1,
-    paddingTop: Platform.OS === "ios" ? 64 : 32,
-    paddingHorizontal: 24,
+    padding: 24,
   },
   header: {
     marginBottom: 32,
@@ -284,17 +254,15 @@ const styles = StyleSheet.create({
   backButton: {
     width: 40,
     height: 40,
-    borderRadius: 20,
+    borderRadius: 12,
     alignItems: "center",
     justifyContent: "center",
     marginBottom: 24,
   },
-  titleContainer: {
-    gap: 8,
-  },
   title: {
     fontSize: 32,
     fontWeight: "700",
+    marginBottom: 8,
   },
   subtitle: {
     fontSize: 16,
@@ -303,22 +271,19 @@ const styles = StyleSheet.create({
   form: {
     gap: 16,
   },
-  input: {
-    marginBottom: 8,
-  },
   termsText: {
     fontSize: 14,
     lineHeight: 20,
     textAlign: "center",
-    marginBottom: 8,
+    marginTop: 8,
   },
   registerButton: {
-    marginVertical: 8,
+    marginTop: 8,
   },
   divider: {
     flexDirection: "row",
     alignItems: "center",
-    marginVertical: 16,
+    marginVertical: 24,
   },
   dividerLine: {
     flex: 1,
@@ -332,21 +297,30 @@ const styles = StyleSheet.create({
     flexDirection: "row",
     justifyContent: "center",
     gap: 16,
-    marginBottom: 24,
   },
   socialButton: {
     width: 56,
     height: 56,
-    borderRadius: 28,
+    borderRadius: 16,
     alignItems: "center",
     justifyContent: "center",
-    borderWidth: 1,
+    shadowColor: "#000",
+    shadowOffset: {
+      width: 0,
+      height: 2,
+    },
+    shadowOpacity: 0.1,
+    shadowRadius: 4,
+    elevation: 3,
   },
-  loginContainer: {
+  footer: {
     flexDirection: "row",
     justifyContent: "center",
     alignItems: "center",
-    marginTop: 8,
-    marginBottom: 24,
+    marginTop: 24,
+    gap: 4,
+  },
+  loginText: {
+    fontWeight: "600",
   },
 });

@@ -1,3 +1,4 @@
+// ProfileScreen.js
 import React from "react";
 import {
   View,
@@ -11,104 +12,123 @@ import {
 import { SafeAreaView } from "react-native-safe-area-context";
 import { Text, Button } from "../../components/common";
 import { useTheme } from "../../hooks/useTheme";
-import { useTranslation } from "../../hooks/useTranslation";
+import { LanguageSwitcher } from "../../hooks/LanguageSwitcher";
 import { Ionicons } from "@expo/vector-icons";
 import { LinearGradient } from "expo-linear-gradient";
-import { useSelector } from "react-redux";
-import { useNavigation } from "@react-navigation/native";
-const getUserInitials = (name) => {
-  return name
-    .split(" ")
-    .map((part) => part[0])
-    .join("")
-    .toUpperCase();
-};
 
-export const ProfileScreen = () => {
+export const ProfileScreen = ({ navigation }) => {
   const { theme, switchTheme } = useTheme();
-  const { t, changeLanguage, currentLanguage } = useTranslation();
-  const isDarkMode = useSelector((state) => state.theme.isDark);
-  const navigation = useNavigation();
+  const { t, changeLanguage, currentLanguage } = LanguageSwitcher();
+  const [tokenCount, setTokenCount] = React.useState(0);
+console.log(currentLanguage)
+  // Örnek kullanıcı bilgileri
   const userStats = {
-    documentsAnalyzed: 142,
-    totalReports: 28,
-    storageUsed: "2.4",
+    documentsProcessed: 24,
+    tokensUsed: 126,
+    savedTime: "4.5",
   };
 
   const menuItems = [
     {
+      id: "tokens",
+      title: "Token Management",
+      description: `${tokenCount} tokens available`,
+      icon: "flash",
+      color: theme.colors.warning,
+      // Burada navigation yaptık
+      action: () => navigation.navigate("Premium"),
+    },
+    {
       id: "account",
       title: "Account Settings",
+      description: "Security, Password, Email",
       icon: "person-circle",
       color: theme.colors.primary,
+      // AccountSettings sayfasına yönlendirme
+      action: () => navigation.navigate("AccountSettings"),
     },
     {
       id: "notification",
       title: "Notifications",
+      description: "Customize your alerts",
       icon: "notifications",
       color: theme.colors.secondary,
-      badge: 3,
-    },
-    {
-      id: "security",
-      title: "Security",
-      icon: "shield-checkmark",
-      color: theme.colors.success,
+      badge: 2,
+      // Notifications sayfasına yönlendirme
+      action: () => navigation.navigate("Notifications"),
     },
     {
       id: "storage",
-      title: "Storage",
+      title: "Storage & Data",
+      description: "Manage your documents",
       icon: "cloud",
       color: theme.colors.info,
+      // Storage sayfasına yönlendirme
+      action: () => navigation.navigate("Storage"),
     },
     {
       id: "help",
       title: "Help & Support",
+      description: "FAQs, Contact us",
       icon: "help-circle",
-      color: theme.colors.warning,
+      color: theme.colors.success,
+      // HelpSupport sayfasına yönlendirme
+      action: () => navigation.navigate("HelpSupport"),
     },
   ];
 
   const renderHeader = () => (
-    <View style={styles.header}>
-      <LinearGradient
-        colors={[theme.colors.primary, theme.colors.primaryDark]}
-        style={styles.headerGradient}
-        start={{ x: 0, y: 0 }}
-        end={{ x: 1, y: 1 }}
-      >
-        <View style={styles.headerContent}>
-          <View style={styles.profileInfo}>
-            <View style={styles.avatarContainer}>
-              <View
-                style={[
-                  styles.avatarView,
-                  { backgroundColor: theme.colors.primary + "30" },
-                ]}
-              >
-                <Text style={styles.avatarText}>
-                  {getUserInitials("John Doe")}
-                </Text>
-              </View>
+    <LinearGradient
+      colors={[theme.colors.primary, theme.colors.primaryDark]}
+      style={styles.headerGradient}
+      start={{ x: 0, y: 0 }}
+      end={{ x: 1, y: 1 }}
+    >
+      <View style={styles.headerContent}>
+        <View style={styles.profileInfo}>
+          <View style={styles.avatarSection}>
+            <View
+              style={[
+                styles.avatarContainer,
+                { backgroundColor: "rgba(255,255,255,0.2)" },
+              ]}
+            >
+              <Image
+                source={{ uri: "https://i.pravatar.cc/200" }}
+                style={styles.avatar}
+              />
             </View>
-            <View style={styles.userInfo}>
-              <Text style={styles.userName} color="white">
-                John Doe
-              </Text>
-              <Text style={styles.userEmail} color="white">
-                john.doe@example.com
-              </Text>
-              <View style={styles.userPlan}>
-                <Ionicons name="star" size={14} color={theme.colors.warning} />
-                <Text style={styles.planText} color="white">
-                  Premium Plan
-                </Text>
-              </View>
-            </View>
+            <TouchableOpacity
+              style={[
+                styles.editButton,
+                { backgroundColor: theme.colors.primary },
+              ]}
+            >
+              <Ionicons name="camera" size={14} color="white" />
+            </TouchableOpacity>
+          </View>
+
+          <View style={styles.userInfo}>
+            <Text variant="h2" style={styles.userName} color="white">
+              John Doe
+            </Text>
+            <Text style={styles.userEmail} color="white">
+              john.doe@example.com
+            </Text>
+            <TouchableOpacity
+              style={[
+                styles.tokenBadge,
+                { backgroundColor: "rgba(255,255,255,0.2)" },
+              ]}
+              onPress={() => navigation.navigate("Premium")}
+            >
+              <Ionicons name="flash" size={16} color={theme.colors.warning} />
+              <Text color="white">{tokenCount} tokens</Text>
+            </TouchableOpacity>
           </View>
         </View>
-      </LinearGradient>
-    </View>
+      </View>
+    </LinearGradient>
   );
 
   const renderStats = () => (
@@ -116,7 +136,7 @@ export const ProfileScreen = () => {
       <View style={styles.statsGrid}>
         <View style={styles.statItem}>
           <Text style={[styles.statValue, { color: theme.colors.text }]}>
-            {userStats.documentsAnalyzed}
+            {userStats.documentsProcessed}
           </Text>
           <Text
             style={[styles.statLabel, { color: theme.colors.textSecondary }]}
@@ -124,30 +144,34 @@ export const ProfileScreen = () => {
             Documents
           </Text>
         </View>
+
         <View
           style={[styles.statDivider, { backgroundColor: theme.colors.border }]}
         />
+
         <View style={styles.statItem}>
           <Text style={[styles.statValue, { color: theme.colors.text }]}>
-            {userStats.totalReports}
+            {userStats.tokensUsed}
           </Text>
           <Text
             style={[styles.statLabel, { color: theme.colors.textSecondary }]}
           >
-            Reports
+            Tokens Used
           </Text>
         </View>
+
         <View
           style={[styles.statDivider, { backgroundColor: theme.colors.border }]}
         />
+
         <View style={styles.statItem}>
           <Text style={[styles.statValue, { color: theme.colors.text }]}>
-            {userStats.storageUsed}GB
+            {userStats.savedTime}h
           </Text>
           <Text
             style={[styles.statLabel, { color: theme.colors.textSecondary }]}
           >
-            Storage Used
+            Time Saved
           </Text>
         </View>
       </View>
@@ -158,15 +182,27 @@ export const ProfileScreen = () => {
     <TouchableOpacity
       key={item.id}
       style={[styles.menuItem, { backgroundColor: theme.colors.surface }]}
-      onPress={() => navigation.navigate("Premium")}
+      onPress={item.action}
     >
-      <View style={styles.menuItemLeft}>
+      <View style={styles.menuLeft}>
         <View style={[styles.menuIcon, { backgroundColor: item.color + "15" }]}>
-          <Ionicons name={item.icon} size={20} color={item.color} />
+          <Ionicons name={item.icon} size={22} color={item.color} />
         </View>
-        <Text style={{ color: theme.colors.text }}>{item.title}</Text>
+        <View style={styles.menuTexts}>
+          <Text style={[styles.menuTitle, { color: theme.colors.text }]}>
+            {item.title}
+          </Text>
+          <Text
+            style={[
+              styles.menuDescription,
+              { color: theme.colors.textSecondary },
+            ]}
+          >
+            {item.description}
+          </Text>
+        </View>
       </View>
-      <View style={styles.menuItemRight}>
+      <View style={styles.menuRight}>
         {item.badge && (
           <View
             style={[styles.badge, { backgroundColor: theme.colors.primary }]}
@@ -203,7 +239,7 @@ export const ProfileScreen = () => {
           ]}
           onPress={switchTheme}
         >
-          <View style={styles.settingItemLeft}>
+          <View style={styles.settingLeft}>
             <View
               style={[
                 styles.menuIcon,
@@ -211,28 +247,25 @@ export const ProfileScreen = () => {
               ]}
             >
               <Ionicons
-                name={isDarkMode ? "moon" : "sunny"}
-                size={20}
+                name={theme.isDark ? "moon" : "sunny"}
+                size={22}
                 color={theme.colors.primary}
               />
             </View>
             <Text style={{ color: theme.colors.text }}>Dark Mode</Text>
           </View>
-          <View
-            style={[
-              styles.toggleSwitch,
-              {
-                backgroundColor: isDarkMode ? theme.colors.primary : "#767577",
-              },
-            ]}
-          >
-            <View
-              style={[
-                styles.toggleKnob,
-                { transform: [{ translateX: isDarkMode ? 20 : 0 }] },
-              ]}
-            />
-          </View>
+          <Switch
+            value={theme.isDark}
+            onValueChange={switchTheme}
+            trackColor={{
+              false: Platform.select({ ios: "#e9e9ea", android: "#767577" }),
+              true: theme.colors.primary,
+            }}
+            thumbColor={Platform.select({
+              ios: "#ffffff",
+              android: theme.isDark ? "#ffffff" : "#f4f3f4",
+            })}
+          />
         </TouchableOpacity>
 
         {/* Language Selector */}
@@ -242,10 +275,10 @@ export const ProfileScreen = () => {
             { backgroundColor: theme.colors.surface },
           ]}
           onPress={() => {
-            // Show language picker
+            changeLanguage(currentLanguage === "en" ? "tr" : "en");
           }}
         >
-          <View style={styles.settingItemLeft}>
+          <View style={styles.settingLeft}>
             <View
               style={[
                 styles.menuIcon,
@@ -254,13 +287,13 @@ export const ProfileScreen = () => {
             >
               <Ionicons
                 name="language"
-                size={20}
+                size={22}
                 color={theme.colors.secondary}
               />
             </View>
             <Text style={{ color: theme.colors.text }}>Language</Text>
           </View>
-          <View style={styles.settingItemRight}>
+          <View style={styles.settingRight}>
             <Text style={{ color: theme.colors.textSecondary }}>
               {currentLanguage === "en" ? "English" : "Türkçe"}
             </Text>
@@ -289,20 +322,14 @@ export const ProfileScreen = () => {
     <View
       style={[styles.container, { backgroundColor: theme.colors.background }]}
     >
-      <SafeAreaView edges={["bottom"]} style={{ flex: 1 }}>
-        <ScrollView
-          contentContainerStyle={styles.content}
-          showsVerticalScrollIndicator={false}
-        >
-          {renderHeader()}
-          {renderStats()}
-          {renderSettings()}
-        </ScrollView>
-      </SafeAreaView>
+      <ScrollView contentContainerStyle={styles.content}>
+        {renderHeader()}
+        {renderStats()}
+        {renderSettings()}
+      </ScrollView>
     </View>
   );
 };
-
 const styles = StyleSheet.create({
   container: {
     flex: 1,
@@ -310,40 +337,33 @@ const styles = StyleSheet.create({
   content: {
     paddingBottom: 24,
   },
-  header: {
-    height: 200,
-  },
   headerGradient: {
-    flex: 1,
-    paddingHorizontal: 24,
-    paddingTop: 20,
+    padding: 20,
+    paddingTop: Platform.OS === "ios" ? 60 : 40,
+    paddingBottom: 40,
   },
   headerContent: {
     flex: 1,
-    justifyContent: "flex-end",
   },
   profileInfo: {
     flexDirection: "row",
     alignItems: "center",
     gap: 16,
-    marginBottom: 24,
   },
-  avatarContainer: {
+  avatarSection: {
     position: "relative",
   },
-  avatarView: {
+  avatarContainer: {
     width: 80,
     height: 80,
     borderRadius: 40,
     borderWidth: 3,
     borderColor: "white",
-    alignItems: "center",
-    justifyContent: "center",
+    overflow: "hidden",
   },
-  avatarText: {
-    fontSize: 22,
-    fontWeight: "bold",
-    color: "white",
+  avatar: {
+    width: "100%",
+    height: "100%",
   },
   editButton: {
     position: "absolute",
@@ -362,26 +382,25 @@ const styles = StyleSheet.create({
   },
   userName: {
     fontSize: 24,
-    fontWeight: "700",
     marginBottom: 4,
   },
   userEmail: {
     fontSize: 14,
     opacity: 0.9,
-    marginBottom: 8,
+    marginBottom: 12,
   },
-  userPlan: {
+  tokenBadge: {
     flexDirection: "row",
     alignItems: "center",
-    gap: 4,
-  },
-  planText: {
-    fontSize: 12,
-    fontWeight: "600",
+    alignSelf: "flex-start",
+    paddingHorizontal: 12,
+    paddingVertical: 6,
+    borderRadius: 16,
+    gap: 6,
   },
   statsCard: {
     margin: 20,
-    marginTop: -10,
+    marginTop: -20,
     borderRadius: 16,
     padding: 20,
     elevation: 4,
@@ -433,12 +452,12 @@ const styles = StyleSheet.create({
     padding: 16,
     borderRadius: 12,
   },
-  settingItemLeft: {
+  settingLeft: {
     flexDirection: "row",
     alignItems: "center",
     gap: 12,
   },
-  settingItemRight: {
+  settingRight: {
     flexDirection: "row",
     alignItems: "center",
     gap: 8,
@@ -454,22 +473,34 @@ const styles = StyleSheet.create({
     padding: 16,
     borderRadius: 12,
   },
-  menuItemLeft: {
+  menuLeft: {
     flexDirection: "row",
     alignItems: "center",
     gap: 12,
+    flex: 1,
   },
-  menuItemRight: {
+  menuIcon: {
+    width: 44,
+    height: 44,
+    borderRadius: 22,
+    alignItems: "center",
+    justifyContent: "center",
+  },
+  menuTexts: {
+    flex: 1,
+  },
+  menuTitle: {
+    fontSize: 16,
+    fontWeight: "600",
+    marginBottom: 2,
+  },
+  menuDescription: {
+    fontSize: 13,
+  },
+  menuRight: {
     flexDirection: "row",
     alignItems: "center",
     gap: 8,
-  },
-  menuIcon: {
-    width: 40,
-    height: 40,
-    borderRadius: 20,
-    alignItems: "center",
-    justifyContent: "center",
   },
   badge: {
     minWidth: 20,
@@ -485,25 +516,5 @@ const styles = StyleSheet.create({
   },
   signOutButton: {
     marginHorizontal: 20,
-  },
-  toggleSwitch: {
-    width: 46,
-    height: 26,
-    borderRadius: 13,
-    padding: 3,
-  },
-  toggleKnob: {
-    width: 20,
-    height: 20,
-    borderRadius: 10,
-    backgroundColor: "white",
-    shadowColor: "#000",
-    shadowOffset: {
-      width: 0,
-      height: 2,
-    },
-    shadowOpacity: 0.25,
-    shadowRadius: 3.84,
-    elevation: 5,
   },
 });

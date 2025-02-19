@@ -1,30 +1,72 @@
 export default {
-    common: {
-      getStarted: 'Başla',
-      next: 'İleri',
-      skip: 'Atla',
-      login: 'Giriş',
-      register: 'Kayıt Ol',
+  common: {
+    getStarted: "Başla",
+    next: "İleri",
+    skip: "Atla",
+    login: "Giriş",
+    register: "Kayıt Ol",
+  },
+  slides: {
+    welcome: {
+      title: "DocAI'ya Hoş Geldiniz",
+      description: "Yapay zeka destekli akıllı doküman analiz asistanınız",
     },
-    slides: {
-      welcome: {
-        title: "DocAI'ya Hoş Geldiniz",
-        description: 'Yapay zeka destekli akıllı doküman analiz asistanınız',
-      },
-      analyze: {
-        title: 'Hızlı Analiz',
-        description: 'Dokümanlarınızı yükleyin, anında analiz ve özet alın',
-      },
-      ai: {
-        title: 'Yapay Zeka Destekli İçgörüler',
-        description: 'Gelişmiş yapay zeka teknolojisi dokümanlarınızı daha iyi anlamanıza yardımcı olur',
-      },
+    analyze: {
+      title: "Hızlı Analiz",
+      description: "Dokümanlarınızı yükleyin, anında analiz ve özet alın",
     },
-    auth: {
-      loginTitle: 'Tekrar Hoşgeldiniz',
-      registerTitle: 'Hesap Oluştur',
-      email: 'E-posta',
-      password: 'Şifre',
-      forgotPassword: 'Şifremi Unuttum?',
+    ai: {
+      title: "Yapay Zeka Destekli İçgörüler",
+      description:
+        "Gelişmiş yapay zeka teknolojisi dokümanlarınızı daha iyi anlamanıza yardımcı olur",
     },
-  };
+  },
+  auth: {
+    loginTitle: "Tekrar Hoşgeldiniz",
+    registerTitle: "Hesap Oluştur",
+    email: "E-posta",
+    password: "Şifre",
+    forgotPassword: "Şifremi Unuttum?",
+    errors: {
+      "auth/claims-too-large":
+        "Kimlik doğrulama talepleri maksimum boyutu aşıyor",
+      "auth/email-already-exists": "E-posta adresi zaten mevcut",
+      "auth/id-token-expired": "Kimlik belirteci süresi doldu",
+      "auth/id-token-revoked": "Kimlik belirteci iptal edildi",
+      "auth/insufficient-permission": "Yetersiz izin",
+      "auth/internal-error": "Dahili hata oluştu",
+      "auth/invalid-argument": "Geçersiz argüman",
+      "auth/invalid-claims": "Geçersiz talepler",
+      "auth/invalid-creation-time": "Geçersiz oluşturma zamanı",
+      "auth/invalid-credential": "Geçersiz kimlik bilgileri",
+      "auth/invalid-disabled-field": "Geçersiz devre dışı bırakma alanı",
+      "auth/invalid-email": "Geçersiz e-posta adresi",
+      "auth/invalid-email-verified": "Geçersiz e-posta doğrulama durumu",
+      "auth/invalid-password": "Geçersiz şifre",
+      "auth/invalid-phone-number": "Geçersiz telefon numarası",
+      "auth/invalid-photo-url": "Geçersiz fotoğraf URL",
+      "auth/invalid-provider-data": "Geçersiz sağlayıcı verisi",
+      "auth/invalid-provider-id": "Geçersiz sağlayıcı kimliği",
+      "auth/invalid-session-cookie-duration": "Geçersiz oturum çerezi süresi",
+      "auth/invalid-uid": "Geçersiz kullanıcı kimliği",
+      "auth/missing-android-pkg-name": "Android paket adı eksik",
+      "auth/missing-continue-uri": "Devam URL eksik",
+      "auth/missing-ios-bundle-id": "iOS paket kimliği eksik",
+      "auth/missing-uid": "Kullanıcı kimliği eksik",
+      "auth/operation-not-allowed": "İşleme izin verilmiyor",
+      "auth/phone-number-already-exists": "Telefon numarası zaten mevcut",
+      "auth/project-not-found": "Proje bulunamadı",
+      "auth/reserved-claims": "Ayrılmış talepler sağlandı",
+      "auth/session-cookie-expired": "Oturum çerezi süresi doldu",
+      "auth/session-cookie-revoked": "Oturum çerezi iptal edildi",
+      "auth/uid-already-exists": "Kullanıcı kimliği zaten mevcut",
+      "auth/unauthorized-continue-uri": "Yetkisiz devam URL",
+      "auth/user-not-found": "Kullanıcı bulunamadı",
+      "auth/wrong-password": "Yanlış şifre",
+      "auth/email-already-in-use": "E-posta adresi zaten kullanımda",
+      "auth/weak-password": "Şifre çok zayıf",
+      "auth/too-many-requests":
+        "Çok fazla deneme yapıldı. Lütfen daha sonra tekrar deneyin",
+    },
+  },
+};

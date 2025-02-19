@@ -11,7 +11,7 @@ import {
 import { SafeAreaView } from "react-native-safe-area-context";
 import { Text, Button } from "../../components/common";
 import { useTheme } from "../../hooks/useTheme";
-import { useTranslation } from "../../hooks/useTranslation";
+import { LanguageSwitcher } from "../../hooks/LanguageSwitcher";
 import { Ionicons } from "@expo/vector-icons";
 import { LinearGradient } from "expo-linear-gradient";
 
@@ -19,7 +19,7 @@ const { width } = Dimensions.get("window");
 
 export const DocumentDetailScreen = ({ navigation, route }) => {
   const { theme } = useTheme();
-  const { t } = useTranslation();
+  const { t } = LanguageSwitcher();
   const [activeTab, setActiveTab] = useState("summary"); // summary, insights, qa
 
   // Bu veriler normalde API'den gelecek

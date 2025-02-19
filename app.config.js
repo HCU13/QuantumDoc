@@ -1,7 +1,8 @@
 export default {
   expo: {
-    name: "DocAI",
-    slug: "doc-ai",
+    name: "QuantumDoc",
+    slug: "quantumdoc",
+    owner: "trooper13",
     version: "1.0.0",
     orientation: "portrait",
     icon: "./src/assets/images/icon.png",
@@ -18,7 +19,7 @@ export default {
     ios: {
       newArchEnabled: true,
       supportsTablet: true,
-      bundleIdentifier: "com.yourdomain.docai",
+      bundleIdentifier: "com.firebase.quantumdoc",
     },
     android: {
       adaptiveIcon: {
@@ -26,19 +27,7 @@ export default {
         backgroundColor: "#FFFFFF",
       },
       newArchEnabled: true,
-      package: "com.yourdomain.docai",
-    },
-    extra: {
-      firebaseApiKey: process.env.FIREBASE_API_KEY,
-      firebaseAuthDomain: process.env.FIREBASE_AUTH_DOMAIN,
-      firebaseProjectId: process.env.FIREBASE_PROJECT_ID,
-      firebaseStorageBucket: process.env.FIREBASE_STORAGE_BUCKET,
-      firebaseMessagingSenderId: process.env.FIREBASE_MESSAGING_SENDER_ID,
-      firebaseAppId: process.env.FIREBASE_APP_ID,
-      anthropicApiKey: process.env.ANTHROPIC_API_KEY,
-      eas: {
-        projectId: "your-project-id",
-      },
+      package: "com.firebase.quantumdoc",
     },
     plugins: [
       [
