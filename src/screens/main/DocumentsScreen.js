@@ -1,70 +1,100 @@
-// DocumentsScreen.js - legacy camera kullanımı ile düzeltilmiş versiyon
-import React, { useState, useCallback, useRef, useEffect } from "react";
+import React, { useState, useRef, useEffect } from "react";
 import {
   View,
-  ScrollView,
   StyleSheet,
   TouchableOpacity,
-  RefreshControl,
   ActivityIndicator,
-  FlatList,
-  Dimensions,
+  Alert,
   Modal,
   StatusBar,
   Platform,
+  Dimensions,
+  Animated,
+  Easing,
 } from "react-native";
 import { SafeAreaView } from "react-native-safe-area-context";
 import { Text, Button } from "../../components/common";
 import { useTheme } from "../../hooks/useTheme";
 import { Ionicons } from "@expo/vector-icons";
+import { LinearGradient } from "expo-linear-gradient";
 import { showToast } from "../../utils/toast";
 import * as DocumentPicker from "expo-document-picker";
+import { ScanGuides } from "../../components/ScanGuides";
 
-// Camera ve Haptics modüllerini güvenli bir şekilde import etme
+// Camera imports with fallback handling
 let Camera;
 let CameraType;
 let FlashMode;
-let Haptics;
-
 try {
-  const ExpoCamera = require('expo-camera/legacy');
+  const ExpoCamera = require("expo-camera/legacy");
   Camera = ExpoCamera.Camera;
   CameraType = ExpoCamera.CameraType;
   FlashMode = ExpoCamera.FlashMode;
-  Haptics = require('expo-haptics');
 } catch (error) {
-  console.log("Module import error:", error);
-  Camera = null;
-  CameraType = null;
-  FlashMode = null;
-  Haptics = null;
+  console.log("Camera module import error:", error);
 }
 
-const { width } = Dimensions.get("window");
+// Haptics import with fallback
+let Haptics;
+try {
+  Haptics = require("expo-haptics");
+} catch (error) {
+  console.log("Haptics module import error:", error);
+}
+
+const { width, height } = Dimensions.get("window");
 
 export const DocumentsScreen = ({ navigation }) => {
   const { theme } = useTheme();
-  const [selectedFilter, setSelectedFilter] = useState("all");
-  const [loading, setLoading] = useState(true);
-  const [refreshing, setRefreshing] = useState(false);
-  const [documents, setDocuments] = useState([]);
-  const [uploading, setUploading] = useState(false);
-  const [scanModalVisible, setScanModalVisible] = useState(false);
+
+  // Camera state
   const [hasCameraPermission, setHasCameraPermission] = useState(null);
-  const [cameraType, setCameraType] = useState(CameraType ? CameraType.back : 'back');
-  const [flash, setFlash] = useState(FlashMode ? FlashMode.off : 'off');
-  const [capturing, setCapturing] = useState(false);
+  const [cameraType, setCameraType] = useState(
+    CameraType ? CameraType.back : "back"
+  );
+  const [flash, setFlash] = useState(FlashMode ? FlashMode.off : "off");
   const cameraRef = useRef(null);
 
-  // Token durumu
-  const [tokenCount, setTokenCount] = useState(5);
-  const [freeTrialUsed, setFreeTrialUsed] = useState(false);
+  // Processing states
+  const [isScanning, setIsScanning] = useState(false);
+  const [isUploading, setIsUploading] = useState(false);
+  const [processingState, setProcessingState] = useState(null); // null, 'scanning', 'uploading', 'analyzing', 'completed'
+  const [processingProgress, setProcessingProgress] = useState(0);
 
-  // İlk yükleme
+  // Animation states
+  const scanButtonScale = useRef(new Animated.Value(1)).current;
+  const uploadButtonScale = useRef(new Animated.Value(1)).current;
+  const headerOpacity = useRef(new Animated.Value(0)).current;
+  const contentOpacity = useRef(new Animated.Value(0)).current;
+
+  // Modal states
+  const [scanModalVisible, setScanModalVisible] = useState(false);
+  const [resultModalVisible, setResultModalVisible] = useState(false);
+
+  // Result document data
+  const [processedDocument, setProcessedDocument] = useState(null);
+
+  // Tokens (simplified for this implementation)
+  const [tokenCount, setTokenCount] = useState(5);
+
+  // Animation when component mounts
   useEffect(() => {
-    loadDocuments();
-    
-    // Camera izni kontrolü (sadece Camera varsa)
+    Animated.sequence([
+      Animated.timing(headerOpacity, {
+        toValue: 1,
+        duration: 500,
+        useNativeDriver: true,
+      }),
+      Animated.timing(contentOpacity, {
+        toValue: 1,
+        duration: 700,
+        useNativeDriver: true,
+      }),
+    ]).start();
+  }, []);
+
+  // Check camera permissions on mount
+  useEffect(() => {
     if (Camera) {
       (async () => {
         try {
@@ -78,106 +108,92 @@ export const DocumentsScreen = ({ navigation }) => {
     }
   }, []);
 
-  const filters = [
-    {
-      id: "all",
-      label: "All Files",
-      icon: "documents-outline",
-    },
-    {
-      id: "recent",
-      label: "Recent",
-      icon: "time-outline",
-    },
-    {
-      id: "scanned",
-      label: "Scanned",
-      icon: "scan-outline",
-    },
-    {
-      id: "uploaded",
-      label: "Uploaded",
-      icon: "cloud-upload-outline",
-    },
-  ];
-
-  const loadDocuments = async () => {
-    setLoading(true);
-    try {
-      // API'den dokümanları çek
-      await new Promise((resolve) => setTimeout(resolve, 1000));
-
-      // Mock data
-      const mockDocuments = [
-        {
-          id: "1",
-          title: "Financial Report",
-          type: "PDF",
-          date: "Just now",
-          size: "2.4 MB",
-          source: "scan",
-          icon: "document-text-outline",
-        },
-        {
-          id: "2",
-          title: "Meeting Notes",
-          type: "DOCX",
-          date: "2h ago",
-          size: "1.8 MB",
-          source: "upload",
-          icon: "document-text-outline",
-        },
-        {
-          id: "3",
-          title: "Presentation",
-          type: "PPTX",
-          date: "Yesterday",
-          size: "5.1 MB",
-          source: "upload",
-          icon: "document-text-outline",
-        },
-        {
-          id: "4",
-          title: "Invoice",
-          type: "PDF",
-          date: "2 days ago",
-          size: "1.2 MB",
-          source: "scan",
-          icon: "receipt-outline",
-        },
-      ];
-
-      setDocuments(mockDocuments);
-    } catch (error) {
-      if (showToast) {
-        showToast.error("Error", "Failed to load documents");
-      } else {
-        console.error("Failed to load documents:", error);
-      }
-    } finally {
-      setLoading(false);
-    }
+  // Button animation handlers
+  const animateButtonPress = (button) => {
+    Animated.sequence([
+      Animated.timing(button, {
+        toValue: 0.95,
+        duration: 100,
+        useNativeDriver: true,
+        easing: Easing.inOut(Easing.ease),
+      }),
+      Animated.timing(button, {
+        toValue: 1,
+        duration: 100,
+        useNativeDriver: true,
+        easing: Easing.inOut(Easing.ease),
+      }),
+    ]).start();
   };
 
-  const onRefresh = useCallback(() => {
-    setRefreshing(true);
-    loadDocuments().finally(() => setRefreshing(false));
-  }, []);
+  // Handle scan button press
+  const handleScan = async () => {
+    animateButtonPress(scanButtonScale);
 
+    // Provide haptic feedback
+    if (Haptics?.impactAsync) {
+      Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Medium);
+    }
+
+    // Check token availability
+    if (tokenCount <= 0) {
+      Alert.alert(
+        "No Tokens Available",
+        "You need tokens to scan documents. Would you like to purchase tokens?",
+        [
+          { text: "Cancel", style: "cancel" },
+          { text: "Get Tokens", onPress: () => navigation.navigate("Premium") },
+        ]
+      );
+      return;
+    }
+
+    // If Camera is not available or not permitted, show fallback
+    if (!Camera || !hasCameraPermission) {
+      Alert.alert(
+        "Camera Required",
+        "This feature requires camera access. Please enable camera permissions in your device settings.",
+        [
+          { text: "Cancel", style: "cancel" },
+          {
+            text: "Settings",
+            onPress: () => {
+              // This would ideally open the app settings, but we'll just simulate for now
+              simulateScanProcess();
+            },
+          },
+        ]
+      );
+      return;
+    }
+
+    // Show camera modal
+    setScanModalVisible(true);
+  };
+
+  // Handle upload button press
   const handleUpload = async () => {
-    if (tokenCount === 0 && freeTrialUsed) {
-      if (showToast) {
-        showToast.info(
-          "Tokens Required",
-          "Please purchase tokens to analyze more documents"
-        );
-      }
-      navigation.navigate("Premium");
+    animateButtonPress(uploadButtonScale);
+
+    // Provide haptic feedback
+    if (Haptics?.impactAsync) {
+      Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Medium);
+    }
+
+    // Check token availability
+    if (tokenCount <= 0) {
+      Alert.alert(
+        "No Tokens Available",
+        "You need tokens to upload documents. Would you like to purchase tokens?",
+        [
+          { text: "Cancel", style: "cancel" },
+          { text: "Get Tokens", onPress: () => navigation.navigate("Premium") },
+        ]
+      );
       return;
     }
 
     try {
-      setUploading(true);
       const result = await DocumentPicker.getDocumentAsync({
         type: [
           "application/pdf",
@@ -188,535 +204,536 @@ export const DocumentsScreen = ({ navigation }) => {
         copyToCacheDirectory: true,
       });
 
-      if (result.type === "success") {
-        // Simüle edilmiş yükleme
-        await new Promise((resolve) => setTimeout(resolve, 1500));
-
-        if (!freeTrialUsed) {
-          setFreeTrialUsed(true);
-        } else {
-          setTokenCount((prev) => prev - 1);
-        }
-
-        if (showToast) {
-          showToast.success("Success", "Document uploaded successfully");
-        }
-
-        // Add new document to list
-        const newDoc = {
-          id: String(documents.length + 1),
-          title: result.name,
-          type: result.name.split(".").pop().toUpperCase(),
-          date: "Just now",
-          size: `${(result.size / (1024 * 1024)).toFixed(1)} MB`,
-          source: "upload",
-          icon: "document-text-outline",
-        };
-
-        setDocuments([newDoc, ...documents]);
-        navigation.navigate("DocumentDetail", { documentId: newDoc.id });
+      if (result.canceled) {
+        return;
       }
+
+      // Process the selected document
+      startDocumentProcessing("uploading", result.assets[0]);
     } catch (error) {
-      if (showToast) {
-        showToast.error("Error", "Failed to upload document");
-      } else {
-        console.error("Failed to upload document:", error);
-      }
-    } finally {
-      setUploading(false);
+      console.error("Document picker error:", error);
+      showToast.error("Error", "Failed to select document");
     }
   };
 
-  const handleScan = async () => {
-    // Camera modülü yoksa veya Expo Go'daysa doğrudan modal göster
-    if (!Camera || !CameraType) {
-      setScanModalVisible(true);
-      return;
-    }
-    
-    // Camera varsa normal akış
-    if (!hasCameraPermission) {
-      if (showToast) {
-        showToast.error("Permission Required", "Camera permission is needed");
-      }
-      return;
-    }
-
-    if (tokenCount === 0 && freeTrialUsed) {
-      if (showToast) {
-        showToast.info(
-          "Tokens Required",
-          "Please purchase tokens to scan more documents"
-        );
-      }
-      navigation.navigate("Premium");
-      return;
-    }
-
-    setScanModalVisible(true);
-  };
-
-  const toggleFlash = () => {
-    if (FlashMode) {
-      setFlash(flash === FlashMode.off ? FlashMode.on : FlashMode.off);
-    }
-  }
-
-  const simulateScan = () => {
-    setScanModalVisible(false);
-    
-    // Yükleme simülasyonu
-    setCapturing(true);
-    setTimeout(() => {
-      if (!freeTrialUsed) {
-        setFreeTrialUsed(true);
-      } else {
-        setTokenCount((prev) => prev - 1);
-      }
-
-      // Add new document to list
-      const newDoc = {
-        id: String(documents.length + 1),
-        title: `Scanned Document ${new Date().toLocaleTimeString()}`,
-        type: "PDF",
-        date: "Just now",
-        size: "1.2 MB",
-        source: "scan",
-        icon: "document-text-outline",
-      };
-
-      setDocuments([newDoc, ...documents]);
-      setCapturing(false);
-      
-      if (showToast) {
-        showToast.success("Success", "Document scanned successfully");
-      }
-      
-      navigation.navigate("DocumentDetail", { documentId: newDoc.id });
-    }, 1000);
-  };
-
+  // Handle camera capture
   const takePicture = async () => {
-    if (cameraRef.current && !capturing) {
-      try {
-        setCapturing(true);
-        
-        // Haptics feedback
-        if (Haptics && Haptics.notificationAsync) {
-          Haptics.notificationAsync(Haptics.NotificationFeedbackType.Success);
-        }
+    if (cameraRef.current && !isScanning) {
+      setIsScanning(true);
 
+      // Provide haptic feedback if available
+      if (Haptics?.notificationAsync) {
+        Haptics.notificationAsync(Haptics.NotificationFeedbackType.Success);
+      }
+
+      try {
         const photo = await cameraRef.current.takePictureAsync({
           quality: 1,
           base64: true,
         });
 
-        // Close modal
+        // Close camera modal
         setScanModalVisible(false);
 
-        // Process document (simulate)
-        await new Promise((resolve) => setTimeout(resolve, 1000));
-
-        if (!freeTrialUsed) {
-          setFreeTrialUsed(true);
-        } else {
-          setTokenCount((prev) => prev - 1);
-        }
-
-        // Add new document to list
-        const newDoc = {
-          id: String(documents.length + 1),
-          title: `Scanned Document ${new Date().toLocaleTimeString()}`,
-          type: "PDF",
-          date: "Just now",
-          size: "1.2 MB",
-          source: "scan",
-          icon: "document-text-outline",
-        };
-
-        setDocuments([newDoc, ...documents]);
-
-        if (showToast) {
-          showToast.success("Success", "Document scanned successfully");
-        }
-        
-        navigation.navigate("DocumentDetail", { documentId: newDoc.id });
+        // Process the captured image
+        startDocumentProcessing("scanning", {
+          uri: photo.uri,
+          name: `scan_${new Date().toISOString()}.jpg`,
+          type: "image/jpeg",
+        });
       } catch (error) {
-        if (showToast) {
-          showToast.error("Error", "Failed to scan document");
-        } else {
-          console.error("Failed to scan document:", error);
-        }
-      } finally {
-        setCapturing(false);
+        console.error("Camera capture error:", error);
+        showToast.error("Error", "Failed to capture image");
+        setIsScanning(false);
       }
     }
   };
 
+  // Fallback for when camera is not available
+  const simulateScanProcess = () => {
+    setScanModalVisible(false);
+
+    // Simulate a capture
+    startDocumentProcessing("scanning", {
+      uri: "https://example.com/placeholder.jpg",
+      name: `scan_${new Date().toISOString()}.jpg`,
+      type: "image/jpeg",
+    });
+  };
+
+  // Start document processing
+  const startDocumentProcessing = (type, documentData) => {
+    // Set the processing state and show result modal
+    setProcessingState(type);
+    setResultModalVisible(true);
+    setProcessingProgress(0);
+
+    // Use token
+    setTokenCount((prevCount) => prevCount - 1);
+
+    // Avoid state closure issues with progress tracking
+    let progress = 0;
+    const interval = setInterval(() => {
+      progress += 0.1;
+      setProcessingProgress(Math.min(progress, 1));
+
+      // Use a function form to ensure we get the latest state
+      if (progress >= 0.5) {
+        setProcessingState((prevState) =>
+          prevState !== "analyzing" ? "analyzing" : prevState
+        );
+      }
+
+      if (progress >= 1) {
+        clearInterval(interval);
+
+        // Complete processing
+        setProcessingState("completed");
+
+        // Set processed document data
+        setProcessedDocument({
+          id: `doc-${Date.now()}`,
+          title:
+            documentData.name || `Document ${new Date().toLocaleTimeString()}`,
+          type: type === "scanning" ? "Scanned Document" : "Uploaded Document",
+          date: new Date().toISOString(),
+          preview: documentData.uri,
+        });
+
+        // Provide haptic success feedback
+        if (Haptics?.notificationAsync) {
+          Haptics.notificationAsync(Haptics.NotificationFeedbackStyle.Success);
+        }
+      }
+    }, 300);
+  };
+
+  // Navigate to document detail
+  const viewDocumentDetail = () => {
+    setResultModalVisible(false);
+
+    // Small delay to ensure modal is closed before navigation
+    setTimeout(() => {
+      navigation.navigate("DocumentDetail", {
+        documentId: processedDocument?.id || `doc-${Date.now()}`,
+      });
+    }, 300);
+  };
+
+  // Toggle flash for camera
+  const toggleFlash = () => {
+    if (FlashMode) {
+      setFlash(flash === FlashMode.off ? FlashMode.on : FlashMode.off);
+    }
+  };
+
+  // Render header with tokens
   const renderHeader = () => (
-    <View style={styles.header}>
-      <Text
-        variant="h1"
-        style={[styles.headerTitle, { color: theme.colors.text }]}
+    <Animated.View style={{ opacity: headerOpacity }}>
+      <LinearGradient
+        colors={["#f7f7f7", "#ffffff"]}
+        style={styles.headerGradient}
       >
-        Documents
-      </Text>
-      <View style={styles.headerButtons}>
-        <TouchableOpacity
+        <View style={styles.header}>
+          <View>
+            <Text
+              variant="h1"
+              style={[styles.headerTitle, { color: theme.colors.text }]}
+            >
+              DocAI
+            </Text>
+            <Text
+              style={[
+                styles.headerSubtitle,
+                { color: theme.colors.textSecondary },
+              ]}
+            >
+              Scan & analyze your documents
+            </Text>
+          </View>
+
+          <TouchableOpacity
+            style={[
+              styles.tokenButton,
+              { backgroundColor: theme.colors.surface },
+            ]}
+            onPress={() => navigation.navigate("Premium")}
+          >
+            <Ionicons name="flash" size={20} color={theme.colors.warning} />
+            <Text style={[styles.tokenCount, { color: theme.colors.text }]}>
+              {tokenCount}
+            </Text>
+          </TouchableOpacity>
+        </View>
+      </LinearGradient>
+    </Animated.View>
+  );
+
+  // Render scan modal
+  const renderScanModal = () => (
+    <Modal
+      animationType="slide"
+      transparent={false}
+      visible={scanModalVisible}
+      onRequestClose={() => setScanModalVisible(false)}
+    >
+      <View style={styles.modalContainer}>
+        <StatusBar barStyle="light-content" />
+
+        {Camera && hasCameraPermission ? (
+          <Camera
+            ref={cameraRef}
+            style={styles.camera}
+            type={cameraType}
+            flashMode={flash}
+          >
+            <SafeAreaView style={styles.cameraControls}>
+              <View style={styles.cameraHeader}>
+                <TouchableOpacity
+                  style={styles.closeButton}
+                  onPress={() => setScanModalVisible(false)}
+                >
+                  <Ionicons name="close" size={24} color="white" />
+                </TouchableOpacity>
+
+                <TouchableOpacity
+                  style={styles.flashButton}
+                  onPress={toggleFlash}
+                >
+                  <Ionicons
+                    name={
+                      flash === (FlashMode?.off || "off")
+                        ? "flash-off"
+                        : "flash"
+                    }
+                    size={24}
+                    color="white"
+                  />
+                </TouchableOpacity>
+              </View>
+
+              <ScanGuides />
+
+              <View style={styles.cameraFooter}>
+                <TouchableOpacity
+                  style={styles.captureButton}
+                  onPress={takePicture}
+                  disabled={isScanning}
+                >
+                  <View style={styles.captureOuter}>
+                    {isScanning ? (
+                      <ActivityIndicator size="large" color="white" />
+                    ) : (
+                      <View style={styles.captureInner} />
+                    )}
+                  </View>
+                </TouchableOpacity>
+              </View>
+            </SafeAreaView>
+          </Camera>
+        ) : (
+          <View style={styles.fallbackContainer}>
+            <Text style={styles.fallbackText}>Camera Preview</Text>
+            <Text style={[styles.fallbackSubtext, { color: "#aaa" }]}>
+              {isScanning
+                ? "Processing document..."
+                : "Camera will be available in the compiled app"}
+            </Text>
+
+            {isScanning ? (
+              <ActivityIndicator
+                size="large"
+                color="white"
+                style={{ marginTop: 20 }}
+              />
+            ) : (
+              <>
+                <Button
+                  title="Simulate Scan"
+                  onPress={simulateScanProcess}
+                  theme={theme}
+                  style={{ marginTop: 20 }}
+                />
+                <Button
+                  title="Cancel"
+                  onPress={() => setScanModalVisible(false)}
+                  theme={theme}
+                  type="secondary"
+                  style={{ marginTop: 12 }}
+                />
+              </>
+            )}
+          </View>
+        )}
+      </View>
+    </Modal>
+  );
+
+  // Render result modal (processing and completion)
+  const renderResultModal = () => (
+    <Modal
+      animationType="fade"
+      transparent={true}
+      visible={resultModalVisible}
+      onRequestClose={() => {
+        if (processingState === "completed") {
+          setResultModalVisible(false);
+        }
+      }}
+    >
+      <View style={styles.resultModalOverlay}>
+        <View
           style={[
-            styles.tokenButton,
+            styles.resultModalContent,
             { backgroundColor: theme.colors.surface },
           ]}
-          onPress={() => navigation.navigate("Premium")}
         >
-          <Ionicons name="flash" size={18} color={theme.colors.warning} />
-          <Text style={[styles.tokenCount, { color: theme.colors.text }]}>
-            {tokenCount}
-          </Text>
-        </TouchableOpacity>
-        <TouchableOpacity
-          style={[styles.iconButton, { backgroundColor: theme.colors.surface }]}
-        >
-          <Ionicons name="search" size={22} color={theme.colors.text} />
-        </TouchableOpacity>
+          {processingState !== "completed" ? (
+            // Processing state
+            <>
+              <View style={styles.processingIconContainer}>
+                <ActivityIndicator size="large" color={theme.colors.primary} />
+              </View>
+
+              <Text
+                style={[styles.processingTitle, { color: theme.colors.text }]}
+              >
+                {processingState === "analyzing"
+                  ? "Analyzing Document"
+                  : processingState === "scanning"
+                  ? "Processing Scan"
+                  : "Processing Upload"}
+              </Text>
+
+              <Text
+                style={[
+                  styles.processingSubtitle,
+                  { color: theme.colors.textSecondary },
+                ]}
+              >
+                {processingState === "analyzing"
+                  ? "AI is extracting information..."
+                  : "Preparing document for analysis..."}
+              </Text>
+
+              <View
+                style={[
+                  styles.progressBarContainer,
+                  { backgroundColor: theme.colors.border },
+                ]}
+              >
+                <View
+                  style={[
+                    styles.progressBar,
+                    {
+                      backgroundColor: theme.colors.primary,
+                      width: `${processingProgress * 100}%`,
+                    },
+                  ]}
+                />
+              </View>
+
+              <Text
+                style={[
+                  styles.progressText,
+                  { color: theme.colors.textSecondary },
+                ]}
+              >
+                {Math.round(processingProgress * 100)}% Complete
+              </Text>
+            </>
+          ) : (
+            // Completed state
+            <>
+              <View
+                style={[
+                  styles.completedIconContainer,
+                  { backgroundColor: theme.colors.success + "15" },
+                ]}
+              >
+                <Ionicons
+                  name="checkmark-circle"
+                  size={48}
+                  color={theme.colors.success}
+                />
+              </View>
+
+              <Text
+                style={[styles.completedTitle, { color: theme.colors.text }]}
+              >
+                Document Ready
+              </Text>
+
+              <Text
+                style={[
+                  styles.completedSubtitle,
+                  { color: theme.colors.textSecondary },
+                ]}
+              >
+                Your document has been successfully processed and is ready to
+                view
+              </Text>
+
+              <Button
+                title="View Document"
+                onPress={viewDocumentDetail}
+                theme={theme}
+                style={styles.viewDocumentButton}
+              />
+            </>
+          )}
+        </View>
       </View>
-    </View>
+    </Modal>
   );
 
-  const renderActionButtons = () => (
-    <View style={styles.actionButtonsContainer}>
-      <TouchableOpacity
-        style={[styles.scanButton, { backgroundColor: theme.colors.primary }]}
-        onPress={handleScan}
-      >
-        <Ionicons name="scan-outline" size={22} color="white" />
-        <Text style={styles.scanButtonText} color="white">
-          Scan Document
-        </Text>
-      </TouchableOpacity>
-
-      <TouchableOpacity
-        style={[
-          styles.uploadButton,
-          {
-            backgroundColor: theme.colors.surface,
-            borderColor: theme.colors.primary,
-          },
-        ]}
-        onPress={handleUpload}
-      >
-        <Ionicons
-          name="cloud-upload-outline"
-          size={22}
-          color={theme.colors.primary}
-        />
-        <Text
-          style={[styles.uploadButtonText, { color: theme.colors.primary }]}
-        >
-          Upload File
-        </Text>
-      </TouchableOpacity>
-    </View>
-  );
-
-  const renderFilters = () => (
-    <ScrollView
-      horizontal
-      showsHorizontalScrollIndicator={false}
-      contentContainerStyle={styles.filtersContainer}
+  // Main content view - two big buttons
+  const renderMainContent = () => (
+    <Animated.View
+      style={[styles.mainContentContainer, { opacity: contentOpacity }]}
     >
-      {filters.map((filter) => (
-        <TouchableOpacity
-          key={filter.id}
+      <View style={styles.welcomeContainer}>
+        <View
           style={[
-            styles.filterChip,
-            {
-              backgroundColor:
-                selectedFilter === filter.id
-                  ? theme.colors.primary
-                  : theme.colors.surface,
-            },
+            styles.welcomeBadge,
+            { backgroundColor: theme.colors.primary + "10" },
           ]}
-          onPress={() => setSelectedFilter(filter.id)}
         >
           <Ionicons
-            name={filter.icon}
+            name="document-text"
+            size={20}
+            color={theme.colors.primary}
+          />
+          <Text style={[styles.welcomeText, { color: theme.colors.primary }]}>
+            AI Document Analysis
+          </Text>
+        </View>
+      </View>
+
+      <View style={styles.instructionContainer}>
+        <Text style={[styles.instructionText, { color: theme.colors.text }]}>
+          Get started by scanning or uploading a document
+        </Text>
+      </View>
+
+      <View style={styles.buttonContainer}>
+        {/* Scan button */}
+        <Animated.View style={{ transform: [{ scale: scanButtonScale }] }}>
+          <TouchableOpacity
+            style={[
+              styles.mainButton,
+              styles.scanButton,
+              {
+                backgroundColor: theme.colors.primary,
+                shadowColor: theme.colors.primary,
+              },
+            ]}
+            onPress={handleScan}
+            activeOpacity={0.95}
+          >
+            <LinearGradient
+              colors={
+                theme.colors.gradient?.primary || [
+                  theme.colors.primary,
+                  `${theme.colors.primary}DD`,
+                ]
+              }
+              style={styles.gradientBg}
+              start={{ x: 0, y: 0 }}
+              end={{ x: 1, y: 1 }}
+            >
+              <View style={styles.buttonIconContainer}>
+                <Ionicons name="scan" size={44} color="white" />
+              </View>
+              <Text style={styles.buttonTitle} color="white">
+                Scan Document
+              </Text>
+              <Text style={styles.buttonSubtitle} color="white">
+                Take a photo of any document
+              </Text>
+            </LinearGradient>
+          </TouchableOpacity>
+        </Animated.View>
+
+        {/* Upload button */}
+        <Animated.View style={{ transform: [{ scale: uploadButtonScale }] }}>
+          <TouchableOpacity
+            style={[
+              styles.mainButton,
+              {
+                backgroundColor: theme.colors.surface,
+                borderColor: theme.colors.border,
+              },
+            ]}
+            onPress={handleUpload}
+            activeOpacity={0.95}
+          >
+            <View style={styles.buttonContent}>
+              <View
+                style={[
+                  styles.buttonIconContainer,
+                  { backgroundColor: theme.colors.primary + "15" },
+                ]}
+              >
+                <Ionicons
+                  name="cloud-upload"
+                  size={44}
+                  color={theme.colors.primary}
+                />
+              </View>
+              <Text style={[styles.buttonTitle, { color: theme.colors.text }]}>
+                Upload File
+              </Text>
+              <Text
+                style={[
+                  styles.buttonSubtitle,
+                  { color: theme.colors.textSecondary },
+                ]}
+              >
+                Select PDF, Word, or image files
+              </Text>
+            </View>
+          </TouchableOpacity>
+        </Animated.View>
+      </View>
+
+      <View style={styles.tokenInfoContainer}>
+        <View
+          style={[
+            styles.tokenInfoBubble,
+            { backgroundColor: theme.colors.surface },
+          ]}
+        >
+          <Ionicons
+            name="information-circle"
             size={18}
-            color={selectedFilter === filter.id ? "white" : theme.colors.text}
+            color={theme.colors.primary}
           />
           <Text
             style={[
-              styles.filterLabel,
-              {
-                color:
-                  selectedFilter === filter.id ? "white" : theme.colors.text,
-              },
+              styles.tokenInfoText,
+              { color: theme.colors.textSecondary },
             ]}
           >
-            {filter.label}
+            {tokenCount > 0
+              ? `You have ${tokenCount} tokens remaining`
+              : "You need tokens to process documents"}
           </Text>
-        </TouchableOpacity>
-      ))}
-    </ScrollView>
-  );
-
-  const renderDocumentItem = ({ item }) => (
-    <TouchableOpacity
-      style={[styles.documentCard, { backgroundColor: theme.colors.surface }]}
-      onPress={() =>
-        navigation.navigate("DocumentDetail", { documentId: item.id })
-      }
-    >
-      <View
-        style={[
-          styles.documentIcon,
-          { backgroundColor: theme.colors.primary + "15" },
-        ]}
-      >
-        <Ionicons name={item.icon} size={24} color={theme.colors.primary} />
-      </View>
-
-      <View style={styles.documentInfo}>
-        <Text style={[styles.documentTitle, { color: theme.colors.text }]}>
-          {item.title}
-        </Text>
-        <Text
-          style={[styles.documentMeta, { color: theme.colors.textSecondary }]}
-        >
-          {item.type} • {item.size} • {item.date}
-        </Text>
-      </View>
-
-      <TouchableOpacity style={styles.documentMenu}>
-        <Ionicons
-          name="ellipsis-vertical"
-          size={20}
-          color={theme.colors.textSecondary}
-        />
-      </TouchableOpacity>
-    </TouchableOpacity>
-  );
-
-  const renderEmptyState = () => (
-    <View
-      style={[styles.emptyState, { backgroundColor: theme.colors.surface }]}
-    >
-      <View
-        style={[
-          styles.emptyIcon,
-          { backgroundColor: theme.colors.primary + "15" },
-        ]}
-      >
-        <Ionicons
-          name="documents-outline"
-          size={40}
-          color={theme.colors.primary}
-        />
-      </View>
-      <Text style={[styles.emptyTitle, { color: theme.colors.text }]}>
-        No Documents Yet
-      </Text>
-      <Text
-        style={[styles.emptyDescription, { color: theme.colors.textSecondary }]}
-      >
-        Start by scanning or uploading your first document
-      </Text>
-      <View style={styles.emptyActions}>
-        <Button
-          title="Scan Document"
-          onPress={handleScan}
-          theme={theme}
-          style={styles.emptyActionButton}
-        />
-        <Button
-          title="Upload File"
-          onPress={handleUpload}
-          type="secondary"
-          theme={theme}
-          style={styles.emptyActionButton}
-        />
-      </View>
-    </View>
-  );
-
-  const renderLoading = () => (
-    <View style={styles.loadingContainer}>
-      <ActivityIndicator size="large" color={theme.colors.primary} />
-      <Text style={[styles.loadingText, { color: theme.colors.textSecondary }]}>
-        Loading documents...
-      </Text>
-    </View>
-  );
-
-  const renderScanModal = () => {
-    // Camera modülü mevcut değilse veya Expo Go içindeyiz
-    if (!Camera || !CameraType) {
-      return (
-        <Modal
-          animationType="slide"
-          transparent={false}
-          visible={scanModalVisible}
-          onRequestClose={() => setScanModalVisible(false)}
-        >
-          <View style={styles.scanModalContainer}>
-            <StatusBar barStyle="light-content" />
-            <View style={styles.permissionContainer}>
-              <Text style={styles.permissionText}>Camera Preview</Text>
-              <Text style={[styles.permissionText, {fontSize: 14, marginTop: 10, color: '#aaa'}]}>
-                {capturing ? 'Processing document...' : 'Camera will be available in the compiled app'}
-              </Text>
-              
-              {capturing ? (
-                <ActivityIndicator size="large" color="white" style={{marginTop: 20}} />
-              ) : (
-                <>
-                  <Button 
-                    title="Simulate Scan" 
-                    onPress={simulateScan}
-                    theme={theme}
-                    style={{marginTop: 20}}
-                  />
-                  <Button 
-                    title="Cancel" 
-                    onPress={() => setScanModalVisible(false)}
-                    theme={theme}
-                    type="secondary"
-                    style={{marginTop: 12}}
-                  />
-                </>
-              )}
-            </View>
-          </View>
-        </Modal>
-      );
-    }
-    
-    // Camera modülü varsa ve izni varsa
-    return (
-      <Modal
-        animationType="slide"
-        transparent={false}
-        visible={scanModalVisible}
-        onRequestClose={() => setScanModalVisible(false)}
-      >
-        <View style={styles.scanModalContainer}>
-          <StatusBar barStyle="light-content" />
-          
-          {hasCameraPermission ? (
-            <Camera
-              ref={cameraRef}
-              style={styles.camera}
-              type={cameraType}
-              flashMode={flash}
-            >
-              <SafeAreaView style={styles.cameraControls}>
-                <View style={styles.cameraHeader}>
-                  <TouchableOpacity
-                    style={styles.closeButton}
-                    onPress={() => setScanModalVisible(false)}
-                  >
-                    <Ionicons name="close" size={24} color="white" />
-                  </TouchableOpacity>
-    
-                  <TouchableOpacity
-                    style={styles.flashButton}
-                    onPress={toggleFlash}
-                  >
-                    <Ionicons
-                      name={flash === (FlashMode?.off || 'off') ? "flash-off" : "flash"}
-                      size={24}
-                      color="white"
-                    />
-                  </TouchableOpacity>
-                </View>
-    
-                {/* Scan frame guides */}
-                <View style={styles.scanFrame}>
-                  <View style={styles.cornerTL} />
-                  <View style={styles.cornerTR} />
-                  <View style={styles.cornerBL} />
-                  <View style={styles.cornerBR} />
-                </View>
-    
-                <View style={styles.cameraFooter}>
-                  <TouchableOpacity
-                    style={styles.captureButton}
-                    onPress={takePicture}
-                    disabled={capturing}
-                  >
-                    <View style={styles.captureOuter}>
-                      {capturing ? (
-                        <ActivityIndicator size="large" color="white" />
-                      ) : (
-                        <View style={styles.captureInner} />
-                      )}
-                    </View>
-                  </TouchableOpacity>
-                </View>
-              </SafeAreaView>
-            </Camera>
-          ) : (
-            <View style={styles.permissionContainer}>
-              <Text style={styles.permissionText}>Camera permission required</Text>
-              <Button 
-                title="Grant Permission" 
-                onPress={async () => {
-                  if (Camera && Camera.requestCameraPermissionsAsync) {
-                    const { status } = await Camera.requestCameraPermissionsAsync();
-                    setHasCameraPermission(status === "granted");
-                  }
-                }}
-                theme={theme}
-                style={{marginTop: 20}}
-              />
-              <Button 
-                title="Cancel" 
-                onPress={() => setScanModalVisible(false)}
-                theme={theme}
-                type="secondary"
-                style={{marginTop: 12}}
-              />
-            </View>
-          )}
         </View>
-      </Modal>
-    );
-  };
+      </View>
+    </Animated.View>
+  );
 
   return (
     <SafeAreaView
       style={[styles.container, { backgroundColor: theme.colors.background }]}
       edges={["top"]}
     >
+      <StatusBar barStyle={theme.isDark ? "light-content" : "dark-content"} />
       {renderHeader()}
-
-      <View style={styles.content}>
-        {renderActionButtons()}
-        {renderFilters()}
-
-        {loading ? (
-          renderLoading()
-        ) : documents.length > 0 ? (
-          <FlatList
-            data={documents}
-            renderItem={renderDocumentItem}
-            keyExtractor={(item) => item.id}
-            contentContainerStyle={styles.documentsList}
-            showsVerticalScrollIndicator={false}
-            refreshControl={
-              <RefreshControl
-                refreshing={refreshing}
-                onRefresh={onRefresh}
-                tintColor={theme.colors.primary}
-              />
-            }
-          />
-        ) : (
-          renderEmptyState()
-        )}
-      </View>
-
+      {renderMainContent()}
       {renderScanModal()}
+      {renderResultModal()}
     </SafeAreaView>
   );
 };
@@ -725,170 +742,157 @@ const styles = StyleSheet.create({
   container: {
     flex: 1,
   },
-  content: {
-    flex: 1,
-    padding: 20,
+  // Header styles
+  headerGradient: {
+    borderBottomWidth: StyleSheet.hairlineWidth,
+    borderBottomColor: "#E5E7EB",
   },
   header: {
     flexDirection: "row",
     justifyContent: "space-between",
     alignItems: "center",
     paddingHorizontal: 20,
-    paddingTop: 10,
-    paddingBottom: 10,
+    paddingVertical: 16,
   },
   headerTitle: {
     fontSize: 28,
-    fontWeight: "700",
+    fontWeight: "800",
   },
-  headerButtons: {
-    flexDirection: "row",
-    gap: 12,
+  headerSubtitle: {
+    fontSize: 14,
+    marginTop: 2,
   },
   tokenButton: {
     flexDirection: "row",
     alignItems: "center",
-    padding: 8,
-    borderRadius: 12,
+    paddingHorizontal: 12,
+    paddingVertical: 8,
+    borderRadius: 16,
     gap: 6,
+    shadowColor: "#000",
+    shadowOffset: { width: 0, height: 2 },
+    shadowOpacity: 0.05,
+    shadowRadius: 4,
+    elevation: 2,
   },
   tokenCount: {
-    fontSize: 14,
-    fontWeight: "600",
-  },
-  iconButton: {
-    width: 40,
-    height: 40,
-    borderRadius: 12,
-    alignItems: "center",
-    justifyContent: "center",
-  },
-  actionButtonsContainer: {
-    flexDirection: "row",
-    marginBottom: 16,
-    gap: 12,
-  },
-  scanButton: {
-    flex: 1,
-    flexDirection: "row",
-    alignItems: "center",
-    justifyContent: "center",
-    paddingVertical: 14,
-    borderRadius: 12,
-    gap: 8,
-  },
-  scanButtonText: {
     fontSize: 16,
-    fontWeight: "600",
+    fontWeight: "700",
   },
-  uploadButton: {
+
+  // Main content
+  mainContentContainer: {
     flex: 1,
-    flexDirection: "row",
-    alignItems: "center",
     justifyContent: "center",
-    paddingVertical: 14,
-    borderRadius: 12,
-    borderWidth: 1,
-    gap: 8,
+    padding: 20,
+    bottom: 20,
   },
-  uploadButtonText: {
-    fontSize: 16,
-    fontWeight: "600",
+  welcomeContainer: {
+    alignItems: "center",
+    marginBottom: 8,
   },
-  filtersContainer: {
-    flexDirection: "row",
-    paddingBottom: 16,
-    gap: 10,
-  },
-  filterChip: {
+  welcomeBadge: {
     flexDirection: "row",
     alignItems: "center",
-    paddingHorizontal: 16,
+    paddingHorizontal: 14,
     paddingVertical: 8,
     borderRadius: 20,
     gap: 8,
   },
-  filterLabel: {
-    fontSize: 14,
-    fontWeight: "500",
-  },
-  documentsList: {
-    paddingBottom: 20,
-  },
-  documentCard: {
-    flexDirection: "row",
-    alignItems: "center",
-    padding: 16,
-    borderRadius: 12,
-    marginBottom: 12,
-  },
-  documentIcon: {
-    width: 48,
-    height: 48,
-    borderRadius: 24,
-    alignItems: "center",
-    justifyContent: "center",
-  },
-  documentInfo: {
-    flex: 1,
-    marginLeft: 16,
-  },
-  documentTitle: {
-    fontSize: 16,
+  welcomeText: {
+    fontSize: 15,
     fontWeight: "600",
-    marginBottom: 4,
   },
-  documentMeta: {
-    fontSize: 13,
-  },
-  documentMenu: {
-    padding: 8,
-  },
-  loadingContainer: {
-    flex: 1,
+  instructionContainer: {
     alignItems: "center",
-    justifyContent: "center",
-    paddingVertical: 40,
-    gap: 16,
+    marginBottom: 30,
   },
-  loadingText: {
-    fontSize: 14,
+  instructionText: {
+    fontSize: 16,
+    textAlign: "center",
+    lineHeight: 22,
   },
-  emptyState: {
+
+  // Button styles
+  buttonContainer: {
+    gap: 20,
+  },
+  mainButton: {
+    height: 170,
+    borderRadius: 20,
+    overflow: "hidden",
+    borderWidth: 1,
+    shadowColor: "#000",
+    shadowOffset: { width: 0, height: 4 },
+    shadowOpacity: 0.1,
+    shadowRadius: 8,
+    elevation: 4,
+  },
+  scanButton: {
+    shadowColor: "#6366F1",
+    shadowOffset: { width: 0, height: 8 },
+    shadowOpacity: 0.2,
+    shadowRadius: 12,
+    elevation: 8,
+  },
+  gradientBg: {
     flex: 1,
-    alignItems: "center",
+    padding: 24,
     justifyContent: "center",
-    padding: 32,
-    margin: 16,
-    borderRadius: 16,
+    alignItems: "center",
   },
-  emptyIcon: {
+  buttonContent: {
+    flex: 1,
+    padding: 24,
+    justifyContent: "center",
+    alignItems: "center",
+  },
+  buttonIconContainer: {
     width: 80,
     height: 80,
     borderRadius: 40,
-    alignItems: "center",
+    backgroundColor: "rgba(255,255,255,0.2)",
     justifyContent: "center",
-    marginBottom: 24,
+    alignItems: "center",
+    marginBottom: 16,
   },
-  emptyTitle: {
-    fontSize: 20,
+  buttonTitle: {
+    fontSize: 22,
     fontWeight: "700",
-    marginBottom: 8,
+    marginBottom: 6,
     textAlign: "center",
   },
-  emptyDescription: {
+  buttonSubtitle: {
     fontSize: 14,
+    opacity: 0.8,
     textAlign: "center",
-    marginBottom: 24,
   },
-  emptyActions: {
+
+  // Token info
+  tokenInfoContainer: {
+    position: "absolute",
+    bottom: 30,
+    alignSelf: "center",
+  },
+  tokenInfoBubble: {
     flexDirection: "row",
-    gap: 12,
+    alignItems: "center",
+    paddingHorizontal: 16,
+    paddingVertical: 10,
+    borderRadius: 20,
+    shadowColor: "#000",
+    shadowOffset: { width: 0, height: 1 },
+    shadowOpacity: 0.08,
+    shadowRadius: 2,
+    elevation: 1,
+    gap: 8,
   },
-  emptyActionButton: {
-    minWidth: 140,
+  tokenInfoText: {
+    fontSize: 14,
   },
-  scanModalContainer: {
+
+  // Camera modal styles
+  modalContainer: {
     flex: 1,
     backgroundColor: "black",
   },
@@ -920,55 +924,11 @@ const styles = StyleSheet.create({
     alignItems: "center",
     justifyContent: "center",
   },
-  scanFrame: {
-    flex: 1,
-    position: "relative",
-  },
-  cornerTL: {
-    position: "absolute",
-    top: "15%",
-    left: "10%",
-    width: 40,
-    height: 40,
-    borderTopWidth: 3,
-    borderLeftWidth: 3,
-    borderColor: "white",
-    borderTopLeftRadius: 8,
-  },
-  cornerTR: {
-    position: "absolute",
-    top: "15%",
-    right: "10%",
-    width: 40,
-    height: 40,
-    borderTopWidth: 3,
-    borderRightWidth: 3,
-    borderColor: "white",
-    borderTopRightRadius: 8,
-  },
-  cornerBL: {
-    position: "absolute",
-    bottom: "25%",
-    left: "10%",
-    width: 40,
-    height: 40,
-    borderBottomWidth: 3,
-    borderLeftWidth: 3,
-    borderColor: "white",
-    borderBottomLeftRadius: 8,
-  },
-  cornerBR: {
-    position: "absolute",
-    bottom: "25%",
-    right: "10%",
-    width: 40,
-    height: 40,
-    borderBottomWidth: 3,
-    borderRightWidth: 3,
-    borderColor: "white",
-    borderBottomRightRadius: 8,
-  },
   cameraFooter: {
+    position: "absolute",
+    bottom: 0,
+    left: 0,
+    right: 0,
     alignItems: "center",
     paddingBottom: Platform.OS === "ios" ? 40 : 20,
   },
@@ -984,7 +944,7 @@ const styles = StyleSheet.create({
     width: 70,
     height: 70,
     borderRadius: 35,
-    borderWidth: 5,
+    borderWidth: 4,
     borderColor: "white",
     alignItems: "center",
     justifyContent: "center",
@@ -995,17 +955,97 @@ const styles = StyleSheet.create({
     borderRadius: 27,
     backgroundColor: "white",
   },
-  permissionContainer: {
+  fallbackContainer: {
     flex: 1,
-    justifyContent: 'center',
-    alignItems: 'center',
+    justifyContent: "center",
+    alignItems: "center",
     padding: 20,
-    backgroundColor: 'black',
+    backgroundColor: "black",
   },
-  permissionText: {
-    color: 'white',
+  fallbackText: {
+    color: "white",
     fontSize: 18,
+    marginBottom: 8,
+    textAlign: "center",
+  },
+  fallbackSubtext: {
+    fontSize: 14,
+    marginTop: 8,
+    textAlign: "center",
+    color: "white",
+  },
+
+  // Result modal styles
+  resultModalOverlay: {
+    flex: 1,
+    backgroundColor: "rgba(0,0,0,0.6)",
+    justifyContent: "center",
+    alignItems: "center",
+    padding: 20,
+  },
+  resultModalContent: {
+    width: "90%",
+    borderRadius: 24,
+    padding: 28,
+    alignItems: "center",
+    shadowColor: "#000",
+    shadowOffset: { width: 0, height: 10 },
+    shadowOpacity: 0.2,
+    shadowRadius: 20,
+    elevation: 8,
+  },
+  processingIconContainer: {
     marginBottom: 20,
-    textAlign: 'center',
+  },
+  processingTitle: {
+    fontSize: 22,
+    fontWeight: "700",
+    marginBottom: 8,
+    textAlign: "center",
+  },
+  processingSubtitle: {
+    fontSize: 15,
+    marginBottom: 28,
+    textAlign: "center",
+    lineHeight: 20,
+  },
+  progressBarContainer: {
+    width: "100%",
+    height: 8,
+    borderRadius: 4,
+    overflow: "hidden",
+    marginBottom: 10,
+  },
+  progressBar: {
+    height: "100%",
+  },
+  progressText: {
+    fontSize: 13,
+    fontWeight: "500",
+  },
+  completedIconContainer: {
+    width: 90,
+    height: 90,
+    borderRadius: 45,
+    alignItems: "center",
+    justifyContent: "center",
+    marginBottom: 20,
+  },
+  completedTitle: {
+    fontSize: 24,
+    fontWeight: "700",
+    marginBottom: 8,
+    textAlign: "center",
+  },
+  completedSubtitle: {
+    fontSize: 15,
+    marginBottom: 28,
+    textAlign: "center",
+    lineHeight: 22,
+  },
+  viewDocumentButton: {
+    width: "100%",
+    height: 56,
+    borderRadius: 12,
   },
 });
