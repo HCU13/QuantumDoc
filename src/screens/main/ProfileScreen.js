@@ -15,19 +15,31 @@ import { useTheme } from "../../hooks/useTheme";
 import { LanguageSwitcher } from "../../hooks/LanguageSwitcher";
 import { Ionicons } from "@expo/vector-icons";
 import { LinearGradient } from "expo-linear-gradient";
-
+import AsyncStorage from "@react-native-async-storage/async-storage";
 export const ProfileScreen = ({ navigation }) => {
   const { theme, switchTheme } = useTheme();
   const { t, changeLanguage, currentLanguage } = LanguageSwitcher();
   const [tokenCount, setTokenCount] = React.useState(0);
-console.log(currentLanguage)
+  console.log(currentLanguage);
   // Örnek kullanıcı bilgileri
   const userStats = {
     documentsProcessed: 24,
     tokensUsed: 126,
     savedTime: "4.5",
   };
-
+  const signOut = async () => {
+    try {
+      // AsyncStorage'dan kullanıcı verilerini temizle
+      await AsyncStorage.removeItem("user");
+      // Uygulama yönlendirmesini yap, örneğin Login ekranına
+      navigation.reset({
+        index: 0,
+        routes: [{ name: "Auth", screen: "Login" }],
+      });
+    } catch (error) {
+      console.error("Sign Out Error:", error);
+    }
+  };
   const menuItems = [
     {
       id: "tokens",
@@ -39,6 +51,23 @@ console.log(currentLanguage)
       action: () => navigation.navigate("Premium"),
     },
     {
+      id: "subscription",
+      title: "Subscription",
+      description: "Manage your plan",
+      icon: "star",
+      color: theme.colors.primary,
+      action: () => navigation.navigate("Subscription"),
+    },
+
+    {
+      id: "billing",
+      title: "Billing History",
+      description: "View past transactions",
+      icon: "receipt",
+      color: theme.colors.info,
+      action: () => navigation.navigate("BillingHistory"),
+    },
+    {
       id: "account",
       title: "Account Settings",
       description: "Security, Password, Email",
@@ -47,16 +76,16 @@ console.log(currentLanguage)
       // AccountSettings sayfasına yönlendirme
       action: () => navigation.navigate("AccountSettings"),
     },
-    {
-      id: "notification",
-      title: "Notifications",
-      description: "Customize your alerts",
-      icon: "notifications",
-      color: theme.colors.secondary,
-      badge: 2,
-      // Notifications sayfasına yönlendirme
-      action: () => navigation.navigate("Notifications"),
-    },
+    // {
+    //   id: "notification",
+    //   title: "Notifications",
+    //   description: "Customize your alerts",
+    //   icon: "notifications",
+    //   color: theme.colors.secondary,
+    //   badge: 2,
+    //   // Notifications sayfasına yönlendirme
+    //   action: () => navigation.navigate("Notifications"),
+    // },
     {
       id: "storage",
       title: "Storage & Data",
@@ -310,7 +339,7 @@ console.log(currentLanguage)
 
       <Button
         title="Sign Out"
-        onPress={() => {}}
+        onPress={() => signOut()}
         type="secondary"
         theme={theme}
         style={styles.signOutButton}

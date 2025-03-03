@@ -13,6 +13,9 @@ import { Text, Input, Button } from "../../components/common";
 import { useTheme } from "../../hooks/useTheme";
 import { useTranslation } from "react-i18next";
 import { Ionicons } from "@expo/vector-icons";
+import { createUserWithEmailAndPassword } from "firebase/auth";
+import { FIREBASE_AUTH, FIRESTORE_DB } from "../../../FirebaseConfig";
+import { collection, addDoc } from "firebase/firestore";
 
 export const RegisterScreen = ({ navigation }) => {
   const { theme } = useTheme();
@@ -26,7 +29,7 @@ export const RegisterScreen = ({ navigation }) => {
   const [loading, setLoading] = useState(false);
   const [showPassword, setShowPassword] = useState(false);
   const [showConfirmPassword, setShowConfirmPassword] = useState(false);
-
+  const auth = FIREBASE_AUTH;
   const handleRegister = async () => {
     if (
       !formData.fullName ||
@@ -45,9 +48,23 @@ export const RegisterScreen = ({ navigation }) => {
 
     setLoading(true);
     try {
-      // Firebase registration will be here
-      await new Promise((resolve) => setTimeout(resolve, 1000));
-      navigation.replace("MainNavigator");
+      const response = await createUserWithEmailAndPassword(
+        auth,
+        formData.email,
+        formData.password
+      );
+
+      const user = response.user;
+
+      // Firestore’a kullanıcı ekleme
+      const userDocRef = await addDoc(collection(FIRESTORE_DB, "users"), {
+        uid: user.uid,
+        fullName: formData.fullName,
+        email: formData.email,
+        createdAt: new Date().toISOString(),
+      });
+
+      console.log("User registered with ID: ", userDocRef.id);
     } catch (error) {
       console.error(error);
     } finally {

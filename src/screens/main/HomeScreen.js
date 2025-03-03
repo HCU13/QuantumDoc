@@ -1,213 +1,200 @@
 // HomeScreen.js
-import React, { useState } from "react";
+import React, { useState, useEffect } from "react";
 import {
   View,
   ScrollView,
   StyleSheet,
   TouchableOpacity,
   Image,
+  ActivityIndicator,
+  RefreshControl,
+  Dimensions,
 } from "react-native";
 import { SafeAreaView } from "react-native-safe-area-context";
 import { Text, Button } from "../../components/common";
 import { useTheme } from "../../hooks/useTheme";
 import { Ionicons } from "@expo/vector-icons";
+import { LinearGradient } from "expo-linear-gradient";
+
+const { width } = Dimensions.get("window");
 
 export const HomeScreen = ({ navigation }) => {
   const { theme } = useTheme();
-  const [tokenCount, setTokenCount] = useState(0);
+  const [loading, setLoading] = useState(true);
+  const [refreshing, setRefreshing] = useState(false);
+  const [documents, setDocuments] = useState([]);
+  const [tokenCount, setTokenCount] = useState(5);
 
-  // Örnek döküman verisi
-  const recentDocuments = [
-    {
-      id: "1",
-      title: "Financial Report Q4",
-      type: "PDF",
-      date: "2h ago",
-      status: "analyzed",
-      pages: 12,
-      insights: 8,
-    },
-    {
-      id: "2",
-      title: "Business Proposal",
-      type: "DOCX",
-      date: "5h ago",
-      status: "pending",
-      pages: 8,
-      insights: 0,
-    },
-    {
-      id: "3",
-      title: "Meeting Notes",
-      type: "PDF",
-      date: "Yesterday",
-      status: "analyzed",
-      pages: 3,
-      insights: 4,
-    },
-  ];
+  // Load data on mount
+  useEffect(() => {
+    loadData();
+  }, []);
+
+  const loadData = async () => {
+    setLoading(true);
+    try {
+      // Simulate API call
+      await new Promise((resolve) => setTimeout(resolve, 1000));
+
+      // Mock data
+      setDocuments([
+        {
+          id: "1",
+          title: "Invoice",
+          type: "PDF",
+          date: "Just now",
+          icon: "receipt-outline",
+        },
+        {
+          id: "2",
+          title: "Meeting Notes",
+          type: "DOCX",
+          date: "2h ago",
+          icon: "document-text-outline",
+        },
+        {
+          id: "3",
+          title: "Resume",
+          type: "PDF",
+          date: "Yesterday",
+          icon: "person-outline",
+        },
+      ]);
+    } catch (error) {
+      console.error("Error loading data:", error);
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  const onRefresh = React.useCallback(() => {
+    setRefreshing(true);
+    loadData().finally(() => setRefreshing(false));
+  }, []);
 
   const renderHeader = () => (
-    <View style={styles.header}>
-      <View>
-        <Text style={[styles.greeting, { color: theme.colors.textSecondary }]}>
-          Welcome back 👋
-        </Text>
-        <Text style={[styles.userName, { color: theme.colors.text }]}>
-          John Doe
-        </Text>
-      </View>
-
-      <View style={styles.headerActions}>
-        <TouchableOpacity
-          onPress={() =>
-            navigation.navigate("Profile", {
-              screen: "Notifications",
-            })
-          }
-          style={[styles.iconButton, { backgroundColor: theme.colors.surface }]}
-        >
-          <Ionicons
-            name="notifications-outline"
-            size={22}
-            color={theme.colors.text}
-          />
-          <View
-            style={[styles.badge, { backgroundColor: theme.colors.primary }]}
-          />
-        </TouchableOpacity>
-
-        <TouchableOpacity
-          onPress={() => navigation.navigate("Profile")}
-          style={[
-            styles.avatarButton,
-            { backgroundColor: theme.colors.surface },
-          ]}
-        >
-          <Image
-            source={{ uri: "https://i.pravatar.cc/100" }}
-            style={styles.avatar}
-          />
-        </TouchableOpacity>
-      </View>
-    </View>
-  );
-
-  const renderTokenSection = () => (
-    <TouchableOpacity
-      onPress={() => navigation.navigate("Profile", { screen: "Premium" })}
-      style={[styles.tokenCard, { backgroundColor: theme.colors.surface }]}
+    <View
+      style={[
+        styles.headerContainer,
+        {
+          backgroundColor: theme.colors.background,
+          borderBottomColor: theme.colors.border,
+        },
+      ]}
     >
-      <View style={styles.tokenInfo}>
-        <Ionicons name="flash" size={24} color={theme.colors.warning} />
-        <Text style={[styles.tokenCount, { color: theme.colors.text }]}>
-          {tokenCount} tokens available
-        </Text>
-      </View>
-      <Text style={[styles.tokenHint, { color: theme.colors.textSecondary }]}>
-        Tap to get more tokens
-      </Text>
-    </TouchableOpacity>
-  );
+      <View style={styles.headerContent}>
+        <View>
+          <Text
+            style={[styles.welcomeText, { color: theme.colors.textSecondary }]}
+          >
+            Hello there 👋
+          </Text>
+          <Text style={[styles.titleText, { color: theme.colors.text }]}>
+            DocAI
+          </Text>
+        </View>
 
-  const renderQuickActions = () => (
-    <View style={styles.quickActions}>
-      <Text
-        variant="h2"
-        style={[styles.sectionTitle, { color: theme.colors.text }]}
-      >
-        Quick Actions
-      </Text>
-
-      <View style={styles.actionGrid}>
-        <TouchableOpacity
-          style={[styles.actionCard, { backgroundColor: theme.colors.surface }]}
-          onPress={() => navigation.navigate("Scan")}
-        >
-          <View
+        <View style={styles.headerActions}>
+          <TouchableOpacity
             style={[
-              styles.actionIcon,
+              styles.tokenButton,
               { backgroundColor: theme.colors.primary + "15" },
             ]}
+            onPress={() => navigation.navigate("Premium")}
           >
-            <Ionicons name="scan" size={24} color={theme.colors.primary} />
-          </View>
-          <Text style={[styles.actionTitle, { color: theme.colors.text }]}>
-            Scan Document
-          </Text>
-          <Text
-            style={[
-              styles.actionDescription,
-              { color: theme.colors.textSecondary },
-            ]}
-          >
-            Scan and process instantly
-          </Text>
-        </TouchableOpacity>
+            <Ionicons name="flash" size={18} color={theme.colors.warning} />
+            <Text style={[styles.tokenText, { color: theme.colors.primary }]}>
+              {tokenCount}
+            </Text>
+          </TouchableOpacity>
 
-        <TouchableOpacity
-          style={[styles.actionCard, { backgroundColor: theme.colors.surface }]}
-          onPress={() => navigation.navigate("Documents")}
-        >
-          <View
-            style={[
-              styles.actionIcon,
-              { backgroundColor: theme.colors.secondary + "15" },
-            ]}
+          <TouchableOpacity
+            style={[styles.profileButton, { borderColor: theme.colors.border }]}
+            onPress={() => navigation.navigate("Profile")}
           >
-            <Ionicons
-              name="cloud-upload"
-              size={24}
-              color={theme.colors.secondary}
+            <Image
+              source={{ uri: "https://i.pravatar.cc/100" }}
+              style={styles.profileImage}
             />
-          </View>
-          <Text style={[styles.actionTitle, { color: theme.colors.text }]}>
-            Upload Files
-          </Text>
-          <Text
-            style={[
-              styles.actionDescription,
-              { color: theme.colors.textSecondary },
-            ]}
-          >
-            Process documents
-          </Text>
-        </TouchableOpacity>
-
-        <TouchableOpacity
-          style={[styles.actionCard, { backgroundColor: theme.colors.surface }]}
-          onPress={() => navigation.navigate("Analytics")}
-        >
-          <View
-            style={[
-              styles.actionIcon,
-              { backgroundColor: theme.colors.success + "15" },
-            ]}
-          >
-            <Ionicons name="analytics" size={24} color={theme.colors.success} />
-          </View>
-          <Text style={[styles.actionTitle, { color: theme.colors.text }]}>
-            View Analytics
-          </Text>
-          <Text
-            style={[
-              styles.actionDescription,
-              { color: theme.colors.textSecondary },
-            ]}
-          >
-            See your insights
-          </Text>
-        </TouchableOpacity>
+          </TouchableOpacity>
+        </View>
       </View>
     </View>
   );
 
-  const renderRecentDocuments = () => (
+  const renderActionButtons = () => (
+    <View style={styles.actionButtonsContainer}>
+      <TouchableOpacity
+        style={[styles.actionButton, { backgroundColor: theme.colors.surface }]}
+        onPress={() => navigation.navigate("Scan")}
+      >
+        <View
+          style={[
+            styles.actionIcon,
+            { backgroundColor: theme.colors.primary + "15" },
+          ]}
+        >
+          <Ionicons
+            name="scan-outline"
+            size={24}
+            color={theme.colors.primary}
+          />
+        </View>
+        <Text style={[styles.actionText, { color: theme.colors.text }]}>
+          Scan
+        </Text>
+      </TouchableOpacity>
+
+      <TouchableOpacity
+        style={[styles.actionButton, { backgroundColor: theme.colors.surface }]}
+        onPress={() => navigation.navigate("Documents")}
+      >
+        <View
+          style={[
+            styles.actionIcon,
+            { backgroundColor: theme.colors.secondary + "15" },
+          ]}
+        >
+          <Ionicons
+            name="document-outline"
+            size={24}
+            color={theme.colors.secondary}
+          />
+        </View>
+        <Text style={[styles.actionText, { color: theme.colors.text }]}>
+          Upload
+        </Text>
+      </TouchableOpacity>
+
+      <TouchableOpacity
+        style={[styles.actionButton, { backgroundColor: theme.colors.surface }]}
+        onPress={() => navigation.navigate("Premium")}
+      >
+        <View
+          style={[
+            styles.actionIcon,
+            { backgroundColor: theme.colors.warning + "15" },
+          ]}
+        >
+          <Ionicons
+            name="flash-outline"
+            size={24}
+            color={theme.colors.warning}
+          />
+        </View>
+        <Text style={[styles.actionText, { color: theme.colors.text }]}>
+          Get Tokens
+        </Text>
+      </TouchableOpacity>
+    </View>
+  );
+
+  const renderRecent = () => (
     <View style={styles.recentSection}>
       <View style={styles.sectionHeader}>
         <Text
-          variant="h2"
           style={[styles.sectionTitle, { color: theme.colors.text }]}
+          variant="h2"
         >
           Recent Documents
         </Text>
@@ -216,66 +203,144 @@ export const HomeScreen = ({ navigation }) => {
         </TouchableOpacity>
       </View>
 
-      {recentDocuments.map((doc) => (
-        <TouchableOpacity
-          key={doc.id}
-          style={[
-            styles.documentCard,
-            { backgroundColor: theme.colors.surface },
-          ]}
-          onPress={() =>
-            navigation.navigate("Documents", {
-              screen: "DocumentDetail",
-              params: { documentId: doc.id },
-            })
-          }
-        >
-          <View style={styles.documentHeader}>
-            <View
+      {loading ? (
+        <View style={styles.loadingContainer}>
+          <ActivityIndicator size="large" color={theme.colors.primary} />
+        </View>
+      ) : documents.length > 0 ? (
+        <View style={styles.documentsList}>
+          {documents.map((doc) => (
+            <TouchableOpacity
+              key={doc.id}
               style={[
-                styles.documentIcon,
-                { backgroundColor: theme.colors.primary + "15" },
+                styles.documentCard,
+                { backgroundColor: theme.colors.surface },
               ]}
+              onPress={() =>
+                navigation.navigate("DocumentDetail", { documentId: doc.id })
+              }
             >
-              <Ionicons
-                name={doc.type === "PDF" ? "document-text" : "document"}
-                size={24}
-                color={theme.colors.primary}
-              />
-            </View>
-            <View style={styles.documentInfo}>
-              <Text
-                style={[styles.documentTitle, { color: theme.colors.text }]}
-              >
-                {doc.title}
-              </Text>
-              <Text
+              <View
                 style={[
-                  styles.documentMeta,
-                  { color: theme.colors.textSecondary },
+                  styles.documentIcon,
+                  { backgroundColor: theme.colors.primary + "15" },
                 ]}
               >
-                {doc.type} • {doc.pages} pages • {doc.date}
-              </Text>
-            </View>
+                <Ionicons
+                  name={doc.icon}
+                  size={24}
+                  color={theme.colors.primary}
+                />
+              </View>
+
+              <View style={styles.documentInfo}>
+                <Text
+                  style={[styles.documentTitle, { color: theme.colors.text }]}
+                >
+                  {doc.title}
+                </Text>
+                <Text
+                  style={[
+                    styles.documentMeta,
+                    { color: theme.colors.textSecondary },
+                  ]}
+                >
+                  {doc.type} • {doc.date}
+                </Text>
+              </View>
+
+              <Ionicons
+                name="chevron-forward"
+                size={20}
+                color={theme.colors.textSecondary}
+              />
+            </TouchableOpacity>
+          ))}
+        </View>
+      ) : (
+        <View
+          style={[
+            styles.emptyContainer,
+            { backgroundColor: theme.colors.surface },
+          ]}
+        >
+          <Ionicons
+            name="document-outline"
+            size={40}
+            color={theme.colors.textSecondary}
+          />
+          <Text
+            style={[styles.emptyText, { color: theme.colors.textSecondary }]}
+          >
+            No documents yet
+          </Text>
+          <Button
+            title="Upload Document"
+            onPress={() => navigation.navigate("Documents")}
+            theme={theme}
+            style={styles.emptyButton}
+          />
+        </View>
+      )}
+    </View>
+  );
+
+  const renderTips = () => (
+    <View style={styles.tipsSection}>
+      <Text
+        style={[styles.sectionTitle, { color: theme.colors.text }]}
+        variant="h2"
+      >
+        Tips & Tricks
+      </Text>
+
+      <ScrollView
+        horizontal
+        showsHorizontalScrollIndicator={false}
+        contentContainerStyle={styles.tipsContainer}
+      >
+        <TouchableOpacity
+          style={[styles.tipCard, { backgroundColor: theme.colors.primary }]}
+        >
+          <View style={styles.tipContent}>
+            <Ionicons name="bulb-outline" size={24} color="white" />
+            <Text style={styles.tipTitle} color="white">
+              Scan Tips
+            </Text>
+            <Text style={styles.tipDescription} color="white">
+              Learn how to get better document scans
+            </Text>
           </View>
-          {doc.status === "analyzed" && (
-            <View
-              style={[
-                styles.insightBadge,
-                { backgroundColor: theme.colors.success + "15" },
-              ]}
-            >
-              <Ionicons name="bulb" size={16} color={theme.colors.success} />
-              <Text
-                style={[styles.insightText, { color: theme.colors.success }]}
-              >
-                {doc.insights} insights found
-              </Text>
-            </View>
-          )}
         </TouchableOpacity>
-      ))}
+
+        <TouchableOpacity
+          style={[styles.tipCard, { backgroundColor: theme.colors.secondary }]}
+        >
+          <View style={styles.tipContent}>
+            <Ionicons name="help-buoy-outline" size={24} color="white" />
+            <Text style={styles.tipTitle} color="white">
+              AI Features
+            </Text>
+            <Text style={styles.tipDescription} color="white">
+              Get the most out of AI analysis
+            </Text>
+          </View>
+        </TouchableOpacity>
+
+        <TouchableOpacity
+          style={[styles.tipCard, { backgroundColor: theme.colors.success }]}
+        >
+          <View style={styles.tipContent}>
+            <Ionicons name="checkmark-circle-outline" size={24} color="white" />
+            <Text style={styles.tipTitle} color="white">
+              First Steps
+            </Text>
+            <Text style={styles.tipDescription} color="white">
+              Complete the onboarding guide
+            </Text>
+          </View>
+        </TouchableOpacity>
+      </ScrollView>
     </View>
   );
 
@@ -284,11 +349,22 @@ export const HomeScreen = ({ navigation }) => {
       style={[styles.container, { backgroundColor: theme.colors.background }]}
       edges={["top"]}
     >
-      <ScrollView contentContainerStyle={styles.content}>
-        {renderHeader()}
-        {renderTokenSection()}
-        {renderQuickActions()}
-        {renderRecentDocuments()}
+      {renderHeader()}
+
+      <ScrollView
+        contentContainerStyle={styles.content}
+        showsVerticalScrollIndicator={false}
+        refreshControl={
+          <RefreshControl
+            refreshing={refreshing}
+            onRefresh={onRefresh}
+            tintColor={theme.colors.primary}
+          />
+        }
+      >
+        {renderActionButtons()}
+        {renderRecent()}
+        {renderTips()}
       </ScrollView>
     </SafeAreaView>
   );
@@ -298,87 +374,74 @@ const styles = StyleSheet.create({
   container: {
     flex: 1,
   },
-  content: {
-    padding: 20,
+  headerContainer: {
+    paddingTop: 16,
+    paddingBottom: 16,
+    paddingHorizontal: 20,
+    borderBottomWidth: 1,
   },
-  header: {
+  headerContent: {
     flexDirection: "row",
     justifyContent: "space-between",
     alignItems: "center",
-    marginBottom: 24,
+  },
+  welcomeText: {
+    fontSize: 14,
+    marginBottom: 4,
+  },
+  titleText: {
+    fontSize: 24,
+    fontWeight: "700",
   },
   headerActions: {
     flexDirection: "row",
+    alignItems: "center",
     gap: 12,
   },
-  iconButton: {
-    width: 40,
-    height: 40,
-    borderRadius: 20,
+  tokenButton: {
+    flexDirection: "row",
     alignItems: "center",
-    justifyContent: "center",
+    paddingHorizontal: 12,
+    paddingVertical: 6,
+    borderRadius: 16,
+    gap: 4,
   },
-  avatarButton: {
+  tokenText: {
+    fontWeight: "600",
+  },
+  profileButton: {
     width: 40,
     height: 40,
     borderRadius: 20,
     overflow: "hidden",
+    borderWidth: 1,
   },
-  avatar: {
+  profileImage: {
     width: "100%",
     height: "100%",
   },
-  badge: {
-    position: "absolute",
-    top: -2,
-    right: -2,
-    width: 12,
-    height: 12,
-    borderRadius: 6,
-    borderWidth: 2,
-    borderColor: "white",
+  content: {
+    padding: 20,
   },
-  greeting: {
-    fontSize: 14,
-    marginBottom: 4,
-  },
-  userName: {
-    fontSize: 24,
-    fontWeight: "700",
-  },
-  tokenCard: {
-    padding: 16,
-    borderRadius: 16,
-    marginBottom: 24,
-  },
-  tokenInfo: {
+  actionButtonsContainer: {
     flexDirection: "row",
+    justifyContent: "space-between",
+    marginVertical: 20,
+  },
+  actionButton: {
     alignItems: "center",
-    gap: 12,
-    marginBottom: 4,
-  },
-  tokenCount: {
-    fontSize: 16,
-    fontWeight: "600",
-  },
-  tokenHint: {
-    fontSize: 14,
-  },
-  quickActions: {
-    marginBottom: 32,
-  },
-  sectionTitle: {
-    fontSize: 20,
-    fontWeight: "700",
-    marginBottom: 16,
-  },
-  actionGrid: {
-    gap: 16,
-  },
-  actionCard: {
+    justifyContent: "center",
     padding: 16,
     borderRadius: 16,
-    marginBottom: 12,
+    width: (width - 56) / 3,
+    shadowColor: "#000",
+    shadowOffset: {
+      width: 0,
+      height: 2,
+    },
+    shadowOpacity: 0.05,
+    shadowRadius: 3.84,
+    elevation: 2,
   },
   actionIcon: {
     width: 48,
@@ -386,33 +449,41 @@ const styles = StyleSheet.create({
     borderRadius: 24,
     alignItems: "center",
     justifyContent: "center",
-    marginBottom: 12,
+    marginBottom: 8,
   },
-  actionTitle: {
-    fontSize: 16,
-    fontWeight: "600",
-    marginBottom: 4,
-  },
-  actionDescription: {
+  actionText: {
     fontSize: 14,
+    fontWeight: "600",
   },
   recentSection: {
-    gap: 12,
+    marginBottom: 24,
   },
   sectionHeader: {
     flexDirection: "row",
     justifyContent: "space-between",
     alignItems: "center",
+    marginBottom: 16,
+  },
+  sectionTitle: {
+    fontSize: 18,
+    fontWeight: "700",
+  },
+  documentsList: {
+    gap: 12,
   },
   documentCard: {
+    flexDirection: "row",
+    alignItems: "center",
     padding: 16,
     borderRadius: 16,
-    marginBottom: 12,
-  },
-  documentHeader: {
-    flexDirection: "row",
-    gap: 12,
-    marginBottom: 12,
+    shadowColor: "#000",
+    shadowOffset: {
+      width: 0,
+      height: 2,
+    },
+    shadowOpacity: 0.05,
+    shadowRadius: 3.84,
+    elevation: 2,
   },
   documentIcon: {
     width: 44,
@@ -420,6 +491,7 @@ const styles = StyleSheet.create({
     borderRadius: 22,
     alignItems: "center",
     justifyContent: "center",
+    marginRight: 16,
   },
   documentInfo: {
     flex: 1,
@@ -432,17 +504,47 @@ const styles = StyleSheet.create({
   documentMeta: {
     fontSize: 13,
   },
-  insightBadge: {
-    flexDirection: "row",
+  loadingContainer: {
     alignItems: "center",
-    alignSelf: "flex-start",
-    paddingHorizontal: 12,
-    paddingVertical: 6,
-    borderRadius: 8,
-    gap: 6,
+    justifyContent: "center",
+    height: 160,
   },
-  insightText: {
+  emptyContainer: {
+    alignItems: "center",
+    justifyContent: "center",
+    padding: 32,
+    borderRadius: 16,
+    gap: 16,
+  },
+  emptyText: {
+    fontSize: 16,
+  },
+  emptyButton: {
+    marginTop: 8,
+  },
+  tipsSection: {
+    marginBottom: 24,
+  },
+  tipsContainer: {
+    paddingTop: 8,
+    paddingBottom: 16,
+    gap: 16,
+  },
+  tipCard: {
+    width: 220,
+    borderRadius: 16,
+    overflow: "hidden",
+  },
+  tipContent: {
+    padding: 20,
+    gap: 8,
+  },
+  tipTitle: {
+    fontSize: 16,
+    fontWeight: "700",
+  },
+  tipDescription: {
     fontSize: 13,
-    fontWeight: "500",
+    opacity: 0.9,
   },
 });

@@ -72,11 +72,9 @@ export const PremiumScreen = ({ navigation }) => {
     try {
       // Burada ödeme işlemi gerçekleşecek
       await new Promise((resolve) => setTimeout(resolve, 1500));
-      Alert.alert(
-        "Purchase Successful",
-        `You've received ${selectedPackage.tokens} tokens!`,
-        [{ text: "OK", onPress: () => navigation.goBack() }]
-      );
+      navigation.replace("TokenPurchaseSuccess", {
+        tokenAmount: selectedPackage.tokens,
+      });
     } catch (error) {
       Alert.alert("Error", "Failed to complete purchase. Please try again.");
     } finally {
@@ -124,7 +122,12 @@ export const PremiumScreen = ({ navigation }) => {
               : "transparent",
         },
       ]}
-      onPress={() => setSelectedPackage(pkg)}
+      onPress={() => {
+        setSelectedPackage(pkg);
+        navigation.navigate("TokenPurchaseSuccess", {
+          tokenAmount: pkg.tokens,
+        });
+      }}
     >
       {pkg.popular && (
         <View

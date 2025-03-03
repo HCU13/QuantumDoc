@@ -1,5 +1,5 @@
 // ScanScreen.js
-import React, { useState, useRef } from "react";
+import React, { useState, useRef, useCallback } from "react";
 import {
   View,
   StyleSheet,
@@ -7,6 +7,7 @@ import {
   Platform,
   Dimensions,
   Alert,
+  Image,
 } from "react-native";
 import { Camera } from "expo-camera";
 import { SafeAreaView } from "react-native-safe-area-context";
@@ -15,8 +16,8 @@ import { useTheme } from "../../hooks/useTheme";
 import { Ionicons } from "@expo/vector-icons";
 import { LinearGradient } from "expo-linear-gradient";
 import * as Haptics from "expo-haptics";
-
-const { width, height } = Dimensions.get("window");
+import { ScanGuides } from "../../components/ScanGuides";
+import { showToast } from "../../utils/toast";
 
 export const ScanScreen = ({ navigation }) => {
   const { theme } = useTheme();
@@ -25,9 +26,10 @@ export const ScanScreen = ({ navigation }) => {
   const [flash, setFlash] = useState(Camera.Constants.FlashMode.off);
   const [scanning, setScanning] = useState(false);
   const [previewImage, setPreviewImage] = useState(null);
+  const [processingStatus, setProcessingStatus] = useState("");
   const cameraRef = useRef(null);
 
-  // Token durumu (gerçek uygulamada redux/context'ten gelecek)
+  // Token durumu
   const [tokenCount, setTokenCount] = useState(0);
   const [freeTrialUsed, setFreeTrialUsed] = useState(false);
 
@@ -35,20 +37,47 @@ export const ScanScreen = ({ navigation }) => {
     (async () => {
       const { status } = await Camera.requestCameraPermissionsAsync();
       setHasPermission(status === "granted");
+
+      if (status !== "granted") {
+        showToast.error(
+          "Permission Required",
+          "Camera permission is needed to scan documents"
+        );
+      }
     })();
   }, []);
 
   const checkTokenStatus = () => {
     if (!freeTrialUsed) {
-      // Ücretsiz deneme hakkı var
       return { canScan: true, message: "Using free trial" };
     }
     if (tokenCount > 0) {
-      // Yeterli token var
       return { canScan: true, message: `${tokenCount} tokens remaining` };
     }
-    // Token yetersiz
     return { canScan: false, message: "No tokens available" };
+  };
+
+  const processDocument = async (imageUri) => {
+    setProcessingStatus("initializing");
+    try {
+      // Burada OCR ve AI analizi yapılacak
+      await new Promise((resolve) => setTimeout(resolve, 2000));
+      setProcessingStatus("analyzing");
+      await new Promise((resolve) => setTimeout(resolve, 1500));
+
+      // Token kullanımı
+      if (!freeTrialUsed) {
+        setFreeTrialUsed(true);
+      } else {
+        setTokenCount((prev) => prev - 1);
+      }
+
+      showToast.success("Success", "Document processed successfully");
+      navigation.replace("DocumentDetail", { documentId: "new" });
+    } catch (error) {
+      showToast.error("Error", "Failed to process document");
+      setPreviewImage(null);
+    }
   };
 
   const takePicture = async () => {
@@ -60,10 +89,7 @@ export const ScanScreen = ({ navigation }) => {
         "Please purchase tokens to continue scanning documents.",
         [
           { text: "Cancel", style: "cancel" },
-          {
-            text: "Get Tokens",
-            onPress: () => navigation.navigate("Premium"),
-          },
+          { text: "Get Tokens", onPress: () => navigation.navigate("Premium") },
         ]
       );
       return;
@@ -81,99 +107,90 @@ export const ScanScreen = ({ navigation }) => {
 
         setPreviewImage(photo.uri);
       } catch (error) {
-        console.error("Error taking picture:", error);
-        Alert.alert("Error", "Failed to take picture. Please try again.");
+        showToast.error("Error", "Failed to take picture");
       } finally {
         setScanning(false);
       }
     }
   };
 
-  const handleScan = async () => {
-    // Token kullanımı
-    if (!freeTrialUsed) {
-      setFreeTrialUsed(true);
-    } else {
-      setTokenCount((prev) => prev - 1);
-    }
-
-    // Burada tarama işlemi yapılacak
-    navigation.replace("DocumentDetail", { documentId: "new" });
-  };
-
-  const renderTokenStatus = () => (
-    <View
-      style={[styles.tokenStatus, { backgroundColor: theme.colors.surface }]}
+  const renderHeader = () => (
+    <LinearGradient
+      colors={["rgba(0,0,0,0.7)", "transparent"]}
+      style={styles.topGradient}
     >
-      <Ionicons
-        name="flash"
-        size={16}
-        color={freeTrialUsed ? theme.colors.warning : theme.colors.success}
-      />
-      <Text style={{ color: theme.colors.text }}>
-        {checkTokenStatus().message}
-      </Text>
+      <SafeAreaView edges={["top"]} style={styles.header}>
+        <TouchableOpacity
+          style={styles.headerButton}
+          onPress={() => navigation.goBack()}
+        >
+          <Ionicons name="close" size={24} color="white" />
+        </TouchableOpacity>
+
+        <View
+          style={[styles.tokenStatus, { backgroundColor: "rgba(0,0,0,0.5)" }]}
+        >
+          <Ionicons
+            name="flash"
+            size={16}
+            color={freeTrialUsed ? theme.colors.warning : theme.colors.success}
+          />
+          <Text style={styles.tokenText} color="white">
+            {checkTokenStatus().message}
+          </Text>
+        </View>
+
+        <TouchableOpacity
+          style={styles.headerButton}
+          onPress={() =>
+            setFlash(
+              flash === Camera.Constants.FlashMode.off
+                ? Camera.Constants.FlashMode.on
+                : Camera.Constants.FlashMode.off
+            )
+          }
+        >
+          <Ionicons
+            name={
+              flash === Camera.Constants.FlashMode.off ? "flash-off" : "flash"
+            }
+            size={24}
+            color="white"
+          />
+        </TouchableOpacity>
+      </SafeAreaView>
+    </LinearGradient>
+  );
+
+  const renderProcessingOverlay = () => (
+    <View style={styles.processingOverlay}>
+      <View style={styles.processingContent}>
+        <ActivityIndicator size="large" color={theme.colors.primary} />
+        <Text style={styles.processingText} color="white">
+          {processingStatus === "initializing"
+            ? "Preparing document..."
+            : "Analyzing content..."}
+        </Text>
+      </View>
     </View>
   );
 
-  const renderCameraOverlay = () => (
-    <View style={styles.overlay}>
-      <LinearGradient
-        colors={["rgba(0,0,0,0.7)", "transparent"]}
-        style={styles.topGradient}
+  const renderCamera = () => (
+    <View style={styles.cameraContainer}>
+      <Camera
+        ref={cameraRef}
+        style={styles.camera}
+        type={type}
+        flashMode={flash}
       >
-        <SafeAreaView edges={["top"]} style={styles.header}>
-          <TouchableOpacity
-            style={styles.headerButton}
-            onPress={() => navigation.goBack()}
-          >
-            <Ionicons name="close" size={24} color="white" />
-          </TouchableOpacity>
+        <ScanGuides />
+        {renderHeader()}
 
-          {renderTokenStatus()}
-
-          <TouchableOpacity
-            style={styles.headerButton}
-            onPress={() =>
-              setFlash(
-                flash === Camera.Constants.FlashMode.off
-                  ? Camera.Constants.FlashMode.on
-                  : Camera.Constants.FlashMode.off
-              )
-            }
-          >
-            <Ionicons
-              name={
-                flash === Camera.Constants.FlashMode.off ? "flash-off" : "flash"
-              }
-              size={24}
-              color="white"
-            />
-          </TouchableOpacity>
-        </SafeAreaView>
-      </LinearGradient>
-
-      <View style={styles.scanArea}>
-        <View
-          style={[styles.cornerTL, { borderColor: theme.colors.primary }]}
-        />
-        <View
-          style={[styles.cornerTR, { borderColor: theme.colors.primary }]}
-        />
-        <View
-          style={[styles.cornerBL, { borderColor: theme.colors.primary }]}
-        />
-        <View
-          style={[styles.cornerBR, { borderColor: theme.colors.primary }]}
-        />
-      </View>
-
-      <LinearGradient
-        colors={["transparent", "rgba(0,0,0,0.7)"]}
-        style={styles.bottomGradient}
-      >
-        <SafeAreaView edges={["bottom"]} style={styles.controls}>
-          <View style={styles.controlsContainer}>
+        <LinearGradient
+          colors={["transparent", "rgba(0,0,0,0.7)"]}
+          style={styles.bottomGradient}
+        >
+          <SafeAreaView edges={["bottom"]} style={styles.controls}>
             <TouchableOpacity
               style={styles.captureButton}
               onPress={takePicture}
@@ -193,55 +210,44 @@ export const ScanScreen = ({ navigation }) => {
                 />
               </View>
             </TouchableOpacity>
-          </View>
-        </SafeAreaView>
-      </LinearGradient>
+          </SafeAreaView>
+        </LinearGradient>
+      </Camera>
     </View>
   );
 
   const renderPreview = () => (
     <View style={styles.previewContainer}>
       <Image source={{ uri: previewImage }} style={styles.previewImage} />
-      <LinearGradient
-        colors={["rgba(0,0,0,0.7)", "transparent"]}
-        style={styles.topGradient}
-      >
-        <SafeAreaView edges={["top"]} style={styles.header}>
-          <TouchableOpacity
-            style={styles.headerButton}
-            onPress={() => setPreviewImage(null)}
+      {processingStatus ? (
+        renderProcessingOverlay()
+      ) : (
+        <>
+          {renderHeader()}
+          <LinearGradient
+            colors={["transparent", "rgba(0,0,0,0.7)"]}
+            style={styles.bottomGradient}
           >
-            <Ionicons name="arrow-back" size={24} color="white" />
-          </TouchableOpacity>
-          <Text color="white" style={styles.headerTitle}>
-            Preview
-          </Text>
-          <View style={styles.headerButton} />
-        </SafeAreaView>
-      </LinearGradient>
-
-      <LinearGradient
-        colors={["transparent", "rgba(0,0,0,0.7)"]}
-        style={styles.bottomGradient}
-      >
-        <SafeAreaView edges={["bottom"]} style={styles.previewControls}>
-          <Button
-            title="Retake"
-            onPress={() => setPreviewImage(null)}
-            type="secondary"
-            theme={theme}
-            style={styles.previewButton}
-          />
-          <Button
-            title={`Scan Document (${
-              !freeTrialUsed ? "Free Trial" : "1 Token"
-            })`}
-            onPress={handleScan}
-            theme={theme}
-            style={styles.previewButton}
-          />
-        </SafeAreaView>
-      </LinearGradient>
+            <SafeAreaView edges={["bottom"]} style={styles.previewControls}>
+              <Button
+                title="Retake"
+                onPress={() => setPreviewImage(null)}
+                type="secondary"
+                theme={theme}
+                style={styles.previewButton}
+              />
+              <Button
+                title={`Process Document ${
+                  !freeTrialUsed ? "(Free Trial)" : "(1 Token)"
+                }`}
+                onPress={() => processDocument(previewImage)}
+                theme={theme}
+                style={styles.previewButton}
+              />
+            </SafeAreaView>
+          </LinearGradient>
+        </>
+      )}
     </View>
   );
 
@@ -254,26 +260,23 @@ export const ScanScreen = ({ navigation }) => {
       <View
         style={[styles.container, { backgroundColor: theme.colors.background }]}
       >
-        <Text>No access to camera</Text>
+        <Text style={{ color: theme.colors.text }}>No access to camera</Text>
+        <Button
+          title="Grant Permission"
+          onPress={async () => {
+            const { status } = await Camera.requestCameraPermissionsAsync();
+            setHasPermission(status === "granted");
+          }}
+          theme={theme}
+          style={styles.permissionButton}
+        />
       </View>
     );
   }
 
   return (
     <View style={styles.container}>
-      {previewImage ? (
-        renderPreview()
-      ) : (
-        <>
-          <Camera
-            ref={cameraRef}
-            style={styles.camera}
-            type={type}
-            flashMode={flash}
-          />
-          {renderCameraOverlay()}
-        </>
-      )}
+      {previewImage ? renderPreview() : renderCamera()}
     </View>
   );
 };
@@ -283,11 +286,11 @@ const styles = StyleSheet.create({
     flex: 1,
     backgroundColor: "black",
   },
-  camera: {
+  cameraContainer: {
     flex: 1,
   },
-  overlay: {
-    ...StyleSheet.absoluteFillObject,
+  camera: {
+    flex: 1,
   },
   topGradient: {
     height: 120,
@@ -312,10 +315,6 @@ const styles = StyleSheet.create({
     alignItems: "center",
     justifyContent: "center",
   },
-  headerTitle: {
-    fontSize: 17,
-    fontWeight: "600",
-  },
   tokenStatus: {
     flexDirection: "row",
     alignItems: "center",
@@ -324,61 +323,12 @@ const styles = StyleSheet.create({
     borderRadius: 16,
     gap: 6,
   },
-  scanArea: {
-    position: "absolute",
-    top: "20%",
-    left: "10%",
-    right: "10%",
-    height: "45%",
-  },
-  cornerTL: {
-    position: "absolute",
-    top: 0,
-    left: 0,
-    width: 40,
-    height: 40,
-    borderTopWidth: 3,
-    borderLeftWidth: 3,
-    borderTopLeftRadius: 16,
-  },
-  cornerTR: {
-    position: "absolute",
-    top: 0,
-    right: 0,
-    width: 40,
-    height: 40,
-    borderTopWidth: 3,
-    borderRightWidth: 3,
-    borderTopRightRadius: 16,
-  },
-  cornerBL: {
-    position: "absolute",
-    bottom: 0,
-    left: 0,
-    width: 40,
-    height: 40,
-    borderBottomWidth: 3,
-    borderLeftWidth: 3,
-    borderBottomLeftRadius: 16,
-  },
-  cornerBR: {
-    position: "absolute",
-    bottom: 0,
-    right: 0,
-    width: 40,
-    height: 40,
-    borderBottomWidth: 3,
-    borderRightWidth: 3,
-    borderBottomRightRadius: 16,
+  tokenText: {
+    fontSize: 14,
   },
   controls: {
     width: "100%",
-  },
-  controlsContainer: {
-    flexDirection: "row",
-    justifyContent: "center",
     alignItems: "center",
-    paddingHorizontal: 20,
     paddingBottom: Platform.OS === "ios" ? 0 : 20,
   },
   captureButton: {
@@ -408,12 +358,29 @@ const styles = StyleSheet.create({
   },
   previewControls: {
     flexDirection: "row",
-    justifyContent: "center",
-    gap: 16,
+    justifyContent: "space-between",
     paddingHorizontal: 20,
     paddingBottom: Platform.OS === "ios" ? 0 : 20,
+    gap: 16,
   },
   previewButton: {
     flex: 1,
+  },
+  processingOverlay: {
+    ...StyleSheet.absoluteFillObject,
+    backgroundColor: "rgba(0,0,0,0.7)",
+    justifyContent: "center",
+    alignItems: "center",
+  },
+  processingContent: {
+    alignItems: "center",
+    gap: 16,
+  },
+  processingText: {
+    fontSize: 16,
+  },
+  permissionButton: {
+    marginTop: 16,
+    minWidth: 200,
   },
 });

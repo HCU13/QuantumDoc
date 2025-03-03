@@ -131,7 +131,9 @@ export const AccountSettingsScreen = ({ navigation }) => {
 
           <TouchableOpacity
             style={[styles.menuItem, { backgroundColor: theme.colors.surface }]}
-            onPress={() => {}}
+            onPress={() => {
+              navigation.navigate("PaymentMethod");
+            }}
           >
             <View style={styles.menuLeft}>
               <View
@@ -146,9 +148,7 @@ export const AccountSettingsScreen = ({ navigation }) => {
                   color={theme.colors.warning}
                 />
               </View>
-              <Text style={{ color: theme.colors.text }}>
-                Two-Factor Authentication
-              </Text>
+              <Text style={{ color: theme.colors.text }}>Payment Methods</Text>
             </View>
             <Ionicons
               name="chevron-forward"

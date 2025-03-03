@@ -16,50 +16,36 @@ import { useTheme } from "../../hooks/useTheme";
 import { useTranslation } from "react-i18next";
 import { Ionicons } from "@expo/vector-icons";
 import { FIREBASE_AUTH } from "../../../FirebaseConfig";
-import {
-  signInWithEmailAndPassword,
-  createUserWithEmailAndPassword,
-} from "firebase/auth";
+import { signInWithEmailAndPassword } from "firebase/auth";
+import AsyncStorage from "@react-native-async-storage/async-storage";
 
 export const LoginScreen = ({ navigation }) => {
   const { theme } = useTheme();
   const { t } = useTranslation();
-  const [email, setEmail] = useState("");
-  const [password, setPassword] = useState("");
+  const [email, setEmail] = useState("trooper1803@gmail.com");
+  const [password, setPassword] = useState("123123123");
   const [loading, setLoading] = useState(false);
   const [showPassword, setShowPassword] = useState(false);
   const auth = FIREBASE_AUTH;
 
   const handleLogin = async () => {
+    if (!email || !password) {
+      setError(t("auth.errors.invalidEmailAndPassword"));
+      return;
+    }
+
     try {
       setLoading(true);
       const response = await signInWithEmailAndPassword(auth, email, password);
-      // navigation.replace("MainNavigator");
-      console.log("response::", response);
+      await AsyncStorage.setItem("user", JSON.stringify(response.user));
+
+      navigation.reset({
+        index: 0,
+        routes: [{ name: "MainNavigator" }],
+      });
     } catch (error) {
       console.log("Error::", error);
       setError(t(`auth.errors.${error.code}`));
-    } finally {
-      setLoading(false);
-    }
-  };
-
-  const handleSignUp = async () => {
-    if (!email || !password) {
-      // Show error
-      return;
-    }
-    try {
-      setLoading(true);
-      // await new Promise((resolve) => setTimeout(resolve, 1000));
-      const response = await createUserWithEmailAndPassword(
-        auth,
-        email,
-        password
-      );
-      console.log(response);
-    } catch (error) {
-      console.error(error);
     } finally {
       setLoading(false);
     }
