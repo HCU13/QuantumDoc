@@ -20,7 +20,7 @@ const CLAUDE_API_KEY =
 // Claude API models
 const CLAUDE_MODELS = {
   CLAUDE_3_HAIKU: "claude-3-haiku-20240307",
-  CLAUDE_3_SONNET: "claude-3-sonnet-20240229",
+  CLAUDE_3_SONNET: "claude-3-5-sonnet-20240229",
   CLAUDE_3_OPUS: "claude-3-opus-20240229",
   CLAUDE_3_7_SONNET: "claude-3-7-sonnet-20250219", // Latest model
 };
@@ -36,7 +36,7 @@ export const claudeService = {
   processDocument: async (
     documentData,
     promptTemplate = null,
-    modelName = CLAUDE_MODELS.CLAUDE_3_7_SONNET
+    modelName = CLAUDE_MODELS.CLAUDE_3_SONNET
   ) => {
     try {
       // Default prompt for document analysis
