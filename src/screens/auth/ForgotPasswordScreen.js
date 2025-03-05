@@ -12,6 +12,9 @@ import { Text, Button, Input } from "../../components/common";
 import { useTheme } from "../../hooks/useTheme";
 import { useTranslation } from "react-i18next";
 import { Ionicons } from "@expo/vector-icons";
+import { FIREBASE_AUTH } from "../../../FirebaseConfig";
+import { sendPasswordResetEmail } from "firebase/auth";
+import { showToast } from "../../utils/toast";
 
 export const ForgotPasswordScreen = ({ navigation }) => {
   const { theme } = useTheme();
@@ -19,17 +22,62 @@ export const ForgotPasswordScreen = ({ navigation }) => {
   const [email, setEmail] = useState("");
   const [loading, setLoading] = useState(false);
   const [resetSent, setResetSent] = useState(false);
+  const [error, setError] = useState("");
+  const auth = FIREBASE_AUTH;
+  
+  const validateEmail = (email) => {
+    const re = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+    return re.test(email);
+  };
 
   const handleResetPassword = async () => {
-    if (!email) return;
+    // Reset previous error
+    setError("");
+    
+    // Validate email
+    if (!email) {
+      setError(t("auth.errors.missing-email") || "Please enter your email address");
+      return;
+    }
+    
+    if (!validateEmail(email)) {
+      setError(t("auth.errors.invalid-email") || "Please enter a valid email address");
+      return;
+    }
 
     setLoading(true);
     try {
-      // Firebase reset password will be here
-      await new Promise((resolve) => setTimeout(resolve, 1000));
+      // ActionCodeSettings - Profesyonel yönlendirme için
+      const actionCodeSettings = {
+        // URL, Firebase Console'da izin verilen alan listesinde olmalıdır
+        url: 'https://quantumdoc-aa05d.firebaseapp.com/passwordReset?email=' + email,
+        // Derin bağlantı için
+        handleCodeInApp: true,
+        iOS: {
+          bundleId: 'com.yourcompany.docai'
+        },
+        android: {
+          packageName: 'com.yourcompany.docai',
+          installApp: true,
+          minimumVersion: '12'
+        }
+      };
+      
+      // Firebase şifre sıfırlama e-postası gönder
+      await sendPasswordResetEmail(auth, email, actionCodeSettings);
       setResetSent(true);
+      showToast.success(
+        t("auth.resetEmailSentTitle") || "Email Sent", 
+        t("auth.resetEmailSentMessage") || "Check your inbox for password reset instructions"
+      );
     } catch (error) {
-      console.error(error);
+      console.error("Password reset error:", error);
+      const errorCode = error.code || "auth/unknown-error";
+      setError(t(`auth.errors.${errorCode}`) || error.message || "Failed to send reset email");
+      showToast.error(
+        t("auth.resetFailedTitle") || "Reset Failed", 
+        t(`auth.errors.${errorCode}`) || error.message
+      );
     } finally {
       setLoading(false);
     }
@@ -97,10 +145,11 @@ export const ForgotPasswordScreen = ({ navigation }) => {
                   autoCapitalize="none"
                   theme={theme}
                   icon="mail-outline"
+                  error={error}
                 />
 
                 <Button
-                  title={t("auth.resetPassword")}
+                  title={t("auth.resetPassword") || "Reset Password"}
                   onPress={handleResetPassword}
                   loading={loading}
                   theme={theme}
@@ -112,16 +161,17 @@ export const ForgotPasswordScreen = ({ navigation }) => {
             {resetSent && (
               <View style={styles.actions}>
                 <Button
-                  title={t("common.backToLogin")}
+                  title={t("common.backToLogin") || "Back to Login"}
                   onPress={() => navigation.navigate("Login")}
                   theme={theme}
                   style={styles.backToLoginButton}
                 />
                 <Button
-                  title={t("auth.resendEmail")}
+                  title={t("auth.resendEmail") || "Resend Email"}
                   onPress={handleResetPassword}
                   type="secondary"
                   theme={theme}
+                  loading={loading}
                   style={styles.resendButton}
                 />
               </View>

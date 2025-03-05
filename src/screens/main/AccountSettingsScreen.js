@@ -2,34 +2,31 @@
 import React, { useState } from "react";
 import {
   View,
-  ScrollView,
   StyleSheet,
   TouchableOpacity,
   Alert,
+  TextInput,
+  ScrollView,
 } from "react-native";
 import { SafeAreaView } from "react-native-safe-area-context";
-import { Text, Button, Input } from "../../components/common";
+import { Text, Button } from "../../components/common";
 import { useTheme } from "../../hooks/useTheme";
 import { Ionicons } from "@expo/vector-icons";
 
 export const AccountSettingsScreen = ({ navigation }) => {
   const { theme } = useTheme();
-  const [formData, setFormData] = useState({
-    fullName: "John Doe",
-    email: "john.doe@example.com",
-    phone: "+1 234 567 89",
-  });
-  const [saving, setSaving] = useState(false);
+  const [fullName, setFullName] = useState("John Doe");
+  const [email, setEmail] = useState("johndoe@example.com");
+  const [loading, setSaving] = useState(false);
 
   const handleSave = async () => {
     setSaving(true);
     try {
-      // Backend güncelleme işlemleri
+      // Burada kullanıcı bilgileri güncellenir
       await new Promise((resolve) => setTimeout(resolve, 1000));
-      Alert.alert("Success", "Profile updated successfully");
-      navigation.goBack();
+      Alert.alert("Başarılı", "Profil bilgileriniz güncellendi");
     } catch (error) {
-      Alert.alert("Error", "Failed to update profile");
+      Alert.alert("Hata", "Profil güncellenemedi");
     } finally {
       setSaving(false);
     }
@@ -47,160 +44,115 @@ export const AccountSettingsScreen = ({ navigation }) => {
         >
           <Ionicons name="arrow-back" size={24} color={theme.colors.text} />
         </TouchableOpacity>
-        <Text
-          style={[styles.headerTitle, { color: theme.colors.text }]}
-          variant="h2"
-        >
-          Account Settings
+        <Text style={[styles.headerTitle, { color: theme.colors.text }]}>
+          Hesap Ayarları
         </Text>
-        <View style={styles.backButton} />
+        <View style={{ width: 40 }}></View>
       </View>
 
-      <ScrollView contentContainerStyle={styles.content}>
+      <ScrollView contentContainerStyle={styles.scrollContent}>
         <View style={styles.section}>
           <Text style={[styles.sectionTitle, { color: theme.colors.text }]}>
-            Personal Information
+            Profil Bilgileri
           </Text>
 
-          <Input
-            label="Full Name"
-            value={formData.fullName}
-            onChangeText={(text) =>
-              setFormData((prev) => ({ ...prev, fullName: text }))
-            }
-            placeholder="Enter your full name"
-            theme={theme}
-            icon="person-outline"
-          />
+          <View style={styles.formGroup}>
+            <Text style={[styles.label, { color: theme.colors.textSecondary }]}>
+              Ad Soyad
+            </Text>
+            <TextInput
+              style={[
+                styles.input,
+                {
+                  backgroundColor: theme.colors.surface,
+                  color: theme.colors.text,
+                  borderColor: theme.colors.border,
+                },
+              ]}
+              value={fullName}
+              onChangeText={setFullName}
+              placeholder="Adınız Soyadınız"
+              placeholderTextColor={theme.colors.textSecondary}
+            />
+          </View>
 
-          <Input
-            label="Email"
-            value={formData.email}
-            onChangeText={(text) =>
-              setFormData((prev) => ({ ...prev, email: text }))
-            }
-            placeholder="Enter your email"
-            keyboardType="email-address"
-            theme={theme}
-            icon="mail-outline"
-          />
-
-          <Input
-            label="Phone"
-            value={formData.phone}
-            onChangeText={(text) =>
-              setFormData((prev) => ({ ...prev, phone: text }))
-            }
-            placeholder="Enter your phone number"
-            keyboardType="phone-pad"
-            theme={theme}
-            icon="call-outline"
-          />
+          <View style={styles.formGroup}>
+            <Text style={[styles.label, { color: theme.colors.textSecondary }]}>
+              Email
+            </Text>
+            <TextInput
+              style={[
+                styles.input,
+                {
+                  backgroundColor: theme.colors.surface,
+                  color: theme.colors.text,
+                  borderColor: theme.colors.border,
+                },
+              ]}
+              value={email}
+              onChangeText={setEmail}
+              keyboardType="email-address"
+              placeholder="Email adresiniz"
+              placeholderTextColor={theme.colors.textSecondary}
+              autoCapitalize="none"
+            />
+          </View>
         </View>
 
         <View style={styles.section}>
           <Text style={[styles.sectionTitle, { color: theme.colors.text }]}>
-            Security
+            Güvenlik
           </Text>
 
-          <TouchableOpacity
-            style={[styles.menuItem, { backgroundColor: theme.colors.surface }]}
-            onPress={() => {}}
-          >
-            <View style={styles.menuLeft}>
-              <View
-                style={[
-                  styles.menuIcon,
-                  { backgroundColor: theme.colors.primary + "15" },
-                ]}
-              >
-                <Ionicons
-                  name="key-outline"
-                  size={20}
-                  color={theme.colors.primary}
-                />
-              </View>
-              <Text style={{ color: theme.colors.text }}>Change Password</Text>
-            </View>
-            <Ionicons
-              name="chevron-forward"
-              size={20}
-              color={theme.colors.textSecondary}
-            />
-          </TouchableOpacity>
-
-          <TouchableOpacity
-            style={[styles.menuItem, { backgroundColor: theme.colors.surface }]}
+          <Button
+            title="Şifre Değiştir"
             onPress={() => {
-              navigation.navigate("PaymentMethod");
+              /* Şifre değiştirme sayfasına yönlendirme */
+              Alert.alert(
+                "Bilgi",
+                "Şifre değiştirme özelliği yakında eklenecek"
+              );
             }}
-          >
-            <View style={styles.menuLeft}>
-              <View
-                style={[
-                  styles.menuIcon,
-                  { backgroundColor: theme.colors.warning + "15" },
-                ]}
-              >
-                <Ionicons
-                  name="shield-checkmark-outline"
-                  size={20}
-                  color={theme.colors.warning}
-                />
-              </View>
-              <Text style={{ color: theme.colors.text }}>Payment Methods</Text>
-            </View>
-            <Ionicons
-              name="chevron-forward"
-              size={20}
-              color={theme.colors.textSecondary}
-            />
-          </TouchableOpacity>
+            type="secondary"
+            theme={theme}
+            style={styles.button}
+          />
         </View>
 
-        <View style={styles.section}>
-          <Text style={[styles.sectionTitle, { color: theme.colors.text }]}>
-            Account
-          </Text>
-
-          <TouchableOpacity
-            style={[styles.menuItem, { backgroundColor: theme.colors.surface }]}
-            onPress={() => {}}
-          >
-            <View style={styles.menuLeft}>
-              <View
-                style={[
-                  styles.menuIcon,
-                  { backgroundColor: theme.colors.error + "15" },
-                ]}
-              >
-                <Ionicons
-                  name="trash-outline"
-                  size={20}
-                  color={theme.colors.error}
-                />
-              </View>
-              <Text style={{ color: theme.colors.error }}>Delete Account</Text>
-            </View>
-            <Ionicons
-              name="chevron-forward"
-              size={20}
-              color={theme.colors.textSecondary}
-            />
-          </TouchableOpacity>
-        </View>
-      </ScrollView>
-
-      <SafeAreaView edges={["bottom"]} style={styles.footer}>
         <Button
-          title={saving ? "Saving..." : "Save Changes"}
+          title={loading ? "Kaydediliyor..." : "Değişiklikleri Kaydet"}
           onPress={handleSave}
-          disabled={saving}
-          loading={saving}
+          disabled={loading}
           theme={theme}
-          style={styles.saveButton}
+          style={styles.button}
         />
-      </SafeAreaView>
+
+        <TouchableOpacity
+          style={[styles.deleteButton, { borderColor: theme.colors.error }]}
+          onPress={() => {
+            Alert.alert(
+              "Hesabı Sil",
+              "Hesabınızı silmek istediğinizden emin misiniz? Bu işlem geri alınamaz.",
+              [
+                { text: "İptal", style: "cancel" },
+                {
+                  text: "Hesabı Sil",
+                  style: "destructive",
+                  onPress: async () => {
+                    await AsyncStorage.clear();
+                    navigation.reset({
+                      index: 0,
+                      routes: [{ name: "Auth" }],
+                    });
+                  },
+                },
+              ]
+            );
+          }}
+        >
+          <Text style={{ color: theme.colors.error }}>Hesabı Sil</Text>
+        </TouchableOpacity>
+      </ScrollView>
     </SafeAreaView>
   );
 };
@@ -211,9 +163,10 @@ const styles = StyleSheet.create({
   },
   header: {
     flexDirection: "row",
-    alignItems: "center",
     justifyContent: "space-between",
-    padding: 16,
+    alignItems: "center",
+    paddingHorizontal: 16,
+    paddingVertical: 12,
   },
   backButton: {
     width: 40,
@@ -223,46 +176,44 @@ const styles = StyleSheet.create({
     justifyContent: "center",
   },
   headerTitle: {
-    fontSize: 20,
+    fontSize: 18,
     fontWeight: "600",
   },
-  content: {
-    padding: 16,
+  scrollContent: {
+    padding: 20,
+    paddingBottom: 40,
   },
   section: {
-    marginBottom: 32,
-    gap: 16,
+    marginBottom: 24,
   },
   sectionTitle: {
     fontSize: 18,
-    fontWeight: "600",
+    fontWeight: "700",
     marginBottom: 16,
   },
-  menuItem: {
-    flexDirection: "row",
-    alignItems: "center",
-    justifyContent: "space-between",
-    padding: 16,
-    borderRadius: 12,
+  formGroup: {
+    marginBottom: 16,
   },
-  menuLeft: {
-    flexDirection: "row",
-    alignItems: "center",
-    gap: 12,
+  label: {
+    fontSize: 14,
+    marginBottom: 8,
   },
-  menuIcon: {
-    width: 40,
-    height: 40,
-    borderRadius: 20,
+  input: {
+    height: 48,
+    borderRadius: 8,
+    paddingHorizontal: 16,
+    fontSize: 16,
+    borderWidth: 1,
+  },
+  button: {
+    marginBottom: 16,
+  },
+  deleteButton: {
     alignItems: "center",
     justifyContent: "center",
-  },
-  footer: {
-    padding: 16,
-    borderTopWidth: 1,
-    borderTopColor: "rgba(0,0,0,0.1)",
-  },
-  saveButton: {
-    height: 50,
+    paddingVertical: 12,
+    borderWidth: 1,
+    borderRadius: 8,
+    marginTop: 16,
   },
 });

@@ -1,5 +1,5 @@
-// ProfileScreen.js
-import React from "react";
+// ProfileScreen.js - Düzeltilmiş versiyon
+import React, { useState } from "react";
 import {
   View,
   ScrollView,
@@ -7,210 +7,145 @@ import {
   TouchableOpacity,
   Image,
   Switch,
+  Alert,
+  StatusBar,
   Platform,
+  Dimensions,
 } from "react-native";
-import { SafeAreaView } from "react-native-safe-area-context";
 import { Text, Button } from "../../components/common";
 import { useTheme } from "../../hooks/useTheme";
 import { LanguageSwitcher } from "../../hooks/LanguageSwitcher";
 import { Ionicons } from "@expo/vector-icons";
-import { LinearGradient } from "expo-linear-gradient";
 import AsyncStorage from "@react-native-async-storage/async-storage";
+import { useAuth } from "../../hooks/useAuth";
+import { showToast } from "../../utils/toast";
+const STATUSBAR_HEIGHT = Platform.OS === "ios" ? 44 : StatusBar.currentHeight;
+const { width } = Dimensions.get("window");
+
 export const ProfileScreen = ({ navigation }) => {
   const { theme, switchTheme } = useTheme();
   const { t, changeLanguage, currentLanguage } = LanguageSwitcher();
-  const [tokenCount, setTokenCount] = React.useState(0);
-  console.log(currentLanguage);
-  // Örnek kullanıcı bilgileri
-  const userStats = {
-    documentsProcessed: 24,
-    tokensUsed: 126,
-    savedTime: "4.5",
+  const [tokenCount, setTokenCount] = useState(5);
+  const [notificationsEnabled, setNotificationsEnabled] = useState(true);
+  const { signOut } = useAuth();
+  // Çıkış fonksiyonuconst
+  const handleSignOut = () => {
+    Alert.alert("Çıkış Yap", "Çıkış yapmak istediğinize emin misiniz?", [
+      { text: "İptal", style: "cancel" },
+      {
+        text: "Çıkış Yap",
+        style: "destructive",
+        onPress: async () => {
+          // Doğrudan çıkış yap
+          await signOut();
+          navigation.reset({
+            index: 0,
+            routes: [{ name: "Auth" }], // Auth navigator'a yönlendir
+          });
+        },
+      },
+    ]);
   };
-  const signOut = async () => {
-    try {
-      // AsyncStorage'dan kullanıcı verilerini temizle
-      await AsyncStorage.removeItem("user");
-      // Uygulama yönlendirmesini yap, örneğin Login ekranına
-      navigation.reset({
-        index: 0,
-        routes: [{ name: "Auth", screen: "Login" }],
-      });
-    } catch (error) {
-      console.error("Sign Out Error:", error);
-    }
+  // Hesap silme fonksiyonu
+  const deleteAccount = () => {
+    Alert.alert(
+      "Hesabı Sil",
+      "Hesabınızı silmek istediğinize emin misiniz? Bu işlem geri alınamaz.",
+      [
+        { text: "İptal", style: "cancel" },
+        {
+          text: "Hesabı Sil",
+          style: "destructive",
+          onPress: handleSignOut,
+        },
+      ]
+    );
   };
-  const menuItems = [
-    {
-      id: "tokens",
-      title: "Token Management",
-      description: `${tokenCount} tokens available`,
-      icon: "flash",
-      color: theme.colors.warning,
-      // Burada navigation yaptık
-      action: () => navigation.navigate("Premium"),
-    },
-    {
-      id: "subscription",
-      title: "Subscription",
-      description: "Manage your plan",
-      icon: "star",
-      color: theme.colors.primary,
-      action: () => navigation.navigate("Subscription"),
-    },
-
-    {
-      id: "billing",
-      title: "Billing History",
-      description: "View past transactions",
-      icon: "receipt",
-      color: theme.colors.info,
-      action: () => navigation.navigate("BillingHistory"),
-    },
-    {
-      id: "account",
-      title: "Account Settings",
-      description: "Security, Password, Email",
-      icon: "person-circle",
-      color: theme.colors.primary,
-      // AccountSettings sayfasına yönlendirme
-      action: () => navigation.navigate("AccountSettings"),
-    },
-    // {
-    //   id: "notification",
-    //   title: "Notifications",
-    //   description: "Customize your alerts",
-    //   icon: "notifications",
-    //   color: theme.colors.secondary,
-    //   badge: 2,
-    //   // Notifications sayfasına yönlendirme
-    //   action: () => navigation.navigate("Notifications"),
-    // },
-    {
-      id: "storage",
-      title: "Storage & Data",
-      description: "Manage your documents",
-      icon: "cloud",
-      color: theme.colors.info,
-      // Storage sayfasına yönlendirme
-      action: () => navigation.navigate("Storage"),
-    },
-    {
-      id: "help",
-      title: "Help & Support",
-      description: "FAQs, Contact us",
-      icon: "help-circle",
-      color: theme.colors.success,
-      // HelpSupport sayfasına yönlendirme
-      action: () => navigation.navigate("HelpSupport"),
-    },
-  ];
 
   const renderHeader = () => (
-    <LinearGradient
-      colors={[theme.colors.primary, theme.colors.primaryDark]}
-      style={styles.headerGradient}
-      start={{ x: 0, y: 0 }}
-      end={{ x: 1, y: 1 }}
-    >
-      <View style={styles.headerContent}>
+    <View style={styles.headerContainer}>
+      <StatusBar
+        barStyle="light-content"
+        backgroundColor={theme.colors.primary}
+        translucent={true}
+      />
+
+      <View
+        style={[
+          styles.header,
+          {
+            backgroundColor: theme.colors.primary,
+            paddingTop: STATUSBAR_HEIGHT + 10,
+          },
+        ]}
+      >
         <View style={styles.profileInfo}>
-          <View style={styles.avatarSection}>
-            <View
-              style={[
-                styles.avatarContainer,
-                { backgroundColor: "rgba(255,255,255,0.2)" },
-              ]}
-            >
-              <Image
-                source={{ uri: "https://i.pravatar.cc/200" }}
-                style={styles.avatar}
-              />
-            </View>
-            <TouchableOpacity
-              style={[
-                styles.editButton,
-                { backgroundColor: theme.colors.primary },
-              ]}
-            >
-              <Ionicons name="camera" size={14} color="white" />
-            </TouchableOpacity>
-          </View>
+          <Image
+            source={{ uri: "https://i.pravatar.cc/150" }}
+            style={styles.avatar}
+          />
 
           <View style={styles.userInfo}>
-            <Text variant="h2" style={styles.userName} color="white">
+            <Text style={styles.userName} color="white">
               John Doe
             </Text>
             <Text style={styles.userEmail} color="white">
               john.doe@example.com
             </Text>
+
             <TouchableOpacity
-              style={[
-                styles.tokenBadge,
-                { backgroundColor: "rgba(255,255,255,0.2)" },
-              ]}
+              style={styles.tokenContainer}
               onPress={() => navigation.navigate("Premium")}
             >
-              <Ionicons name="flash" size={16} color={theme.colors.warning} />
-              <Text color="white">{tokenCount} tokens</Text>
+              <Ionicons name="flash" size={16} color="#FFD700" />
+              <Text style={styles.tokenText} color="white">
+                {tokenCount} token
+              </Text>
+              <Ionicons name="chevron-forward" size={12} color="white" />
             </TouchableOpacity>
           </View>
-        </View>
-      </View>
-    </LinearGradient>
-  );
-
-  const renderStats = () => (
-    <View style={[styles.statsCard, { backgroundColor: theme.colors.surface }]}>
-      <View style={styles.statsGrid}>
-        <View style={styles.statItem}>
-          <Text style={[styles.statValue, { color: theme.colors.text }]}>
-            {userStats.documentsProcessed}
-          </Text>
-          <Text
-            style={[styles.statLabel, { color: theme.colors.textSecondary }]}
-          >
-            Documents
-          </Text>
-        </View>
-
-        <View
-          style={[styles.statDivider, { backgroundColor: theme.colors.border }]}
-        />
-
-        <View style={styles.statItem}>
-          <Text style={[styles.statValue, { color: theme.colors.text }]}>
-            {userStats.tokensUsed}
-          </Text>
-          <Text
-            style={[styles.statLabel, { color: theme.colors.textSecondary }]}
-          >
-            Tokens Used
-          </Text>
-        </View>
-
-        <View
-          style={[styles.statDivider, { backgroundColor: theme.colors.border }]}
-        />
-
-        <View style={styles.statItem}>
-          <Text style={[styles.statValue, { color: theme.colors.text }]}>
-            {userStats.savedTime}h
-          </Text>
-          <Text
-            style={[styles.statLabel, { color: theme.colors.textSecondary }]}
-          >
-            Time Saved
-          </Text>
         </View>
       </View>
     </View>
   );
 
+  const menuItems = [
+    {
+      id: "tokens",
+      title: "Token Satın Al",
+      description: "Daha fazla döküman için token ekle",
+      icon: "flash",
+      color: "#FFD700",
+      action: () => navigation.navigate("Premium"),
+    },
+    {
+      id: "account",
+      title: "Hesap Ayarları",
+      description: "Profil bilgilerini düzenle",
+      icon: "person-circle",
+      color: theme.colors.primary,
+      action: () => navigation.navigate("AccountSettings"),
+    },
+    {
+      id: "help",
+      title: "Yardım ve Destek",
+      description: "SSS, iletişim",
+      icon: "help-circle",
+      color: theme.colors.success,
+      action: () => navigation.navigate("HelpSupport"),
+    },
+  ];
+
   const renderMenuItem = (item) => (
     <TouchableOpacity
       key={item.id}
-      style={[styles.menuItem, { backgroundColor: theme.colors.surface }]}
+      style={[
+        styles.menuItem,
+        {
+          backgroundColor: theme.colors.surface,
+          shadowColor: theme.isDark ? "transparent" : "#000",
+        },
+      ]}
       onPress={item.action}
     >
       <View style={styles.menuLeft}>
@@ -231,47 +166,42 @@ export const ProfileScreen = ({ navigation }) => {
           </Text>
         </View>
       </View>
-      <View style={styles.menuRight}>
-        {item.badge && (
-          <View
-            style={[styles.badge, { backgroundColor: theme.colors.primary }]}
-          >
-            <Text style={styles.badgeText} color="white">
-              {item.badge}
-            </Text>
-          </View>
-        )}
-        <Ionicons
-          name="chevron-forward"
-          size={20}
-          color={theme.colors.textSecondary}
-        />
-      </View>
+      <Ionicons
+        name="chevron-forward"
+        size={20}
+        color={theme.colors.textSecondary}
+      />
     </TouchableOpacity>
   );
 
   const renderSettings = () => (
     <View style={styles.settingsSection}>
-      <Text
-        style={[styles.sectionTitle, { color: theme.colors.text }]}
-        variant="h2"
-      >
-        Settings
+      <Text style={[styles.sectionTitle, { color: theme.colors.text }]}>
+        Menü
       </Text>
 
-      <View style={styles.settingsList}>
-        {/* Theme Toggle */}
+      <View style={styles.menuList}>{menuItems.map(renderMenuItem)}</View>
+
+      <Text style={[styles.sectionTitle, { color: theme.colors.text }]}>
+        Ayarlar
+      </Text>
+
+      <View style={styles.quickSettings}>
+        {/* Tema değiştirme */}
         <TouchableOpacity
           style={[
             styles.settingItem,
-            { backgroundColor: theme.colors.surface },
+            {
+              backgroundColor: theme.colors.surface,
+              shadowColor: theme.isDark ? "transparent" : "#000",
+            },
           ]}
           onPress={switchTheme}
         >
           <View style={styles.settingLeft}>
             <View
               style={[
-                styles.menuIcon,
+                styles.settingIcon,
                 { backgroundColor: theme.colors.primary + "15" },
               ]}
             >
@@ -281,27 +211,34 @@ export const ProfileScreen = ({ navigation }) => {
                 color={theme.colors.primary}
               />
             </View>
-            <Text style={{ color: theme.colors.text }}>Dark Mode</Text>
+            <Text style={{ color: theme.colors.text }}>Karanlık Mod</Text>
           </View>
           <Switch
             value={theme.isDark}
             onValueChange={switchTheme}
             trackColor={{
-              false: Platform.select({ ios: "#e9e9ea", android: "#767577" }),
+              false: "#e9e9ea",
               true: theme.colors.primary,
             }}
-            thumbColor={Platform.select({
-              ios: "#ffffff",
-              android: theme.isDark ? "#ffffff" : "#f4f3f4",
-            })}
+            thumbColor={
+              Platform.OS === "ios"
+                ? "#ffffff"
+                : theme.isDark
+                ? "#ffffff"
+                : "#f4f3f4"
+            }
+            ios_backgroundColor="#e9e9ea"
           />
         </TouchableOpacity>
 
-        {/* Language Selector */}
+        {/* Dil seçimi */}
         <TouchableOpacity
           style={[
             styles.settingItem,
-            { backgroundColor: theme.colors.surface },
+            {
+              backgroundColor: theme.colors.surface,
+              shadowColor: theme.isDark ? "transparent" : "#000",
+            },
           ]}
           onPress={() => {
             changeLanguage(currentLanguage === "en" ? "tr" : "en");
@@ -310,7 +247,7 @@ export const ProfileScreen = ({ navigation }) => {
           <View style={styles.settingLeft}>
             <View
               style={[
-                styles.menuIcon,
+                styles.settingIcon,
                 { backgroundColor: theme.colors.secondary + "15" },
               ]}
             >
@@ -320,7 +257,7 @@ export const ProfileScreen = ({ navigation }) => {
                 color={theme.colors.secondary}
               />
             </View>
-            <Text style={{ color: theme.colors.text }}>Language</Text>
+            <Text style={{ color: theme.colors.text }}>Dil</Text>
           </View>
           <View style={styles.settingRight}>
             <Text style={{ color: theme.colors.textSecondary }}>
@@ -333,17 +270,71 @@ export const ProfileScreen = ({ navigation }) => {
             />
           </View>
         </TouchableOpacity>
+
+        {/* Bildirimler */}
+        <TouchableOpacity
+          style={[
+            styles.settingItem,
+            {
+              backgroundColor: theme.colors.surface,
+              shadowColor: theme.isDark ? "transparent" : "#000",
+            },
+          ]}
+          onPress={() => setNotificationsEnabled(!notificationsEnabled)}
+        >
+          <View style={styles.settingLeft}>
+            <View
+              style={[
+                styles.settingIcon,
+                { backgroundColor: theme.colors.info + "15" },
+              ]}
+            >
+              <Ionicons
+                name="notifications"
+                size={22}
+                color={theme.colors.info}
+              />
+            </View>
+            <Text style={{ color: theme.colors.text }}>Bildirimler</Text>
+          </View>
+          <Switch
+            value={notificationsEnabled}
+            onValueChange={setNotificationsEnabled}
+            trackColor={{
+              false: "#e9e9ea",
+              true: theme.colors.info,
+            }}
+            thumbColor={
+              Platform.OS === "ios"
+                ? "#ffffff"
+                : notificationsEnabled
+                ? "#ffffff"
+                : "#f4f3f4"
+            }
+            ios_backgroundColor="#e9e9ea"
+          />
+        </TouchableOpacity>
       </View>
 
-      <View style={styles.menuList}>{menuItems.map(renderMenuItem)}</View>
-
+      {/* Çıkış butonu */}
       <Button
-        title="Sign Out"
-        onPress={() => signOut()}
+        title="Çıkış Yap"
+        onPress={handleSignOut}
         type="secondary"
         theme={theme}
         style={styles.signOutButton}
       />
+
+      {/* Hesap silme butonu */}
+      <TouchableOpacity
+        style={[
+          styles.deleteAccountButton,
+          { borderColor: theme.colors.error },
+        ]}
+        onPress={deleteAccount}
+      >
+        <Text style={{ color: theme.colors.error }}>Hesabımı Sil</Text>
+      </TouchableOpacity>
     </View>
   );
 
@@ -351,149 +342,94 @@ export const ProfileScreen = ({ navigation }) => {
     <View
       style={[styles.container, { backgroundColor: theme.colors.background }]}
     >
-      <ScrollView contentContainerStyle={styles.content}>
-        {renderHeader()}
-        {renderStats()}
+      {renderHeader()}
+      <ScrollView
+        style={styles.scrollView}
+        showsVerticalScrollIndicator={false}
+        contentContainerStyle={styles.scrollContent}
+      >
         {renderSettings()}
       </ScrollView>
     </View>
   );
 };
+
 const styles = StyleSheet.create({
   container: {
     flex: 1,
   },
-  content: {
-    paddingBottom: 24,
+  headerContainer: {
+    zIndex: 10,
+    elevation: 10,
+    shadowColor: "#000",
+    shadowOffset: { width: 0, height: 2 },
+    shadowOpacity: 0.2,
+    shadowRadius: 3,
   },
-  headerGradient: {
+  header: {
     padding: 20,
-    paddingTop: Platform.OS === "ios" ? 60 : 40,
-    paddingBottom: 40,
-  },
-  headerContent: {
-    flex: 1,
+    paddingBottom: 30,
+    borderBottomLeftRadius: 20,
+    borderBottomRightRadius: 20,
   },
   profileInfo: {
     flexDirection: "row",
     alignItems: "center",
     gap: 16,
   },
-  avatarSection: {
-    position: "relative",
-  },
-  avatarContainer: {
-    width: 80,
-    height: 80,
-    borderRadius: 40,
-    borderWidth: 3,
-    borderColor: "white",
-    overflow: "hidden",
-  },
   avatar: {
-    width: "100%",
-    height: "100%",
-  },
-  editButton: {
-    position: "absolute",
-    bottom: 0,
-    right: 0,
-    width: 28,
-    height: 28,
-    borderRadius: 14,
-    alignItems: "center",
-    justifyContent: "center",
-    borderWidth: 2,
-    borderColor: "white",
+    width: 70,
+    height: 70,
+    borderRadius: 35,
+    borderWidth: 3,
+    borderColor: "rgba(255, 255, 255, 0.5)",
   },
   userInfo: {
     flex: 1,
   },
   userName: {
-    fontSize: 24,
+    fontSize: 20,
+    fontWeight: "bold",
     marginBottom: 4,
   },
   userEmail: {
     fontSize: 14,
     opacity: 0.9,
-    marginBottom: 12,
+    marginBottom: 8,
   },
-  tokenBadge: {
+  tokenContainer: {
     flexDirection: "row",
     alignItems: "center",
+    gap: 5,
+    backgroundColor: "rgba(255, 255, 255, 0.2)",
+    paddingHorizontal: 10,
+    paddingVertical: 5,
+    borderRadius: 20,
     alignSelf: "flex-start",
-    paddingHorizontal: 12,
-    paddingVertical: 6,
-    borderRadius: 16,
-    gap: 6,
   },
-  statsCard: {
-    margin: 20,
-    marginTop: -20,
-    borderRadius: 16,
-    padding: 20,
-    elevation: 4,
-    shadowColor: "#000",
-    shadowOffset: {
-      width: 0,
-      height: 2,
-    },
-    shadowOpacity: 0.1,
-    shadowRadius: 8,
+  tokenText: {
+    fontSize: 14,
+    fontWeight: "600",
   },
-  statsGrid: {
-    flexDirection: "row",
-    justifyContent: "space-between",
-    alignItems: "center",
-  },
-  statItem: {
+  scrollView: {
     flex: 1,
-    alignItems: "center",
+    marginTop: -20,
   },
-  statValue: {
-    fontSize: 24,
-    fontWeight: "700",
-    marginBottom: 4,
-  },
-  statLabel: {
-    fontSize: 12,
-  },
-  statDivider: {
-    width: 1,
-    height: 40,
+  scrollContent: {
+    paddingTop: 30,
+    paddingBottom: 40,
   },
   settingsSection: {
     paddingHorizontal: 20,
   },
   sectionTitle: {
-    fontSize: 20,
+    fontSize: 18,
     fontWeight: "700",
     marginBottom: 16,
-  },
-  settingsList: {
-    gap: 12,
-    marginBottom: 24,
-  },
-  settingItem: {
-    flexDirection: "row",
-    alignItems: "center",
-    justifyContent: "space-between",
-    padding: 16,
-    borderRadius: 12,
-  },
-  settingLeft: {
-    flexDirection: "row",
-    alignItems: "center",
-    gap: 12,
-  },
-  settingRight: {
-    flexDirection: "row",
-    alignItems: "center",
-    gap: 8,
+    marginTop: 24,
   },
   menuList: {
     gap: 12,
-    marginBottom: 24,
   },
   menuItem: {
     flexDirection: "row",
@@ -501,11 +437,15 @@ const styles = StyleSheet.create({
     justifyContent: "space-between",
     padding: 16,
     borderRadius: 12,
+    shadowOffset: { width: 0, height: 2 },
+    shadowOpacity: 0.05,
+    shadowRadius: 3,
+    elevation: 2,
   },
   menuLeft: {
     flexDirection: "row",
     alignItems: "center",
-    gap: 12,
+    gap: 16,
     flex: 1,
   },
   menuIcon: {
@@ -521,29 +461,52 @@ const styles = StyleSheet.create({
   menuTitle: {
     fontSize: 16,
     fontWeight: "600",
-    marginBottom: 2,
+    marginBottom: 4,
   },
   menuDescription: {
     fontSize: 13,
   },
-  menuRight: {
+  quickSettings: {
+    gap: 12,
+    marginBottom: 24,
+  },
+  settingItem: {
+    flexDirection: "row",
+    alignItems: "center",
+    justifyContent: "space-between",
+    padding: 16,
+    borderRadius: 12,
+    shadowOffset: { width: 0, height: 2 },
+    shadowOpacity: 0.05,
+    shadowRadius: 3,
+    elevation: 2,
+  },
+  settingLeft: {
+    flexDirection: "row",
+    alignItems: "center",
+    gap: 16,
+  },
+  settingIcon: {
+    width: 40,
+    height: 40,
+    borderRadius: 20,
+    alignItems: "center",
+    justifyContent: "center",
+  },
+  settingRight: {
     flexDirection: "row",
     alignItems: "center",
     gap: 8,
   },
-  badge: {
-    minWidth: 20,
-    height: 20,
-    borderRadius: 10,
+  signOutButton: {
+    marginBottom: 16,
+  },
+  deleteAccountButton: {
     alignItems: "center",
     justifyContent: "center",
-    paddingHorizontal: 6,
-  },
-  badgeText: {
-    fontSize: 12,
-    fontWeight: "600",
-  },
-  signOutButton: {
-    marginHorizontal: 20,
+    padding: 12,
+    borderRadius: 8,
+    borderWidth: 1,
+    marginBottom: 24,
   },
 });

@@ -1,595 +1,496 @@
+// PremiumScreen.js - Hibrit Model (Abonelik + Token Paketleri) - Optimizasyonlu
 import React, { useState } from "react";
 import {
   View,
-  ScrollView,
   StyleSheet,
   TouchableOpacity,
+  ScrollView,
   Platform,
-  Alert,
-  Image,
+  StatusBar,
 } from "react-native";
 import { SafeAreaView } from "react-native-safe-area-context";
 import { Text, Button } from "../../components/common";
 import { useTheme } from "../../hooks/useTheme";
 import { Ionicons } from "@expo/vector-icons";
-import { LinearGradient } from "expo-linear-gradient";
-
-// Abonelik planları
-const SUBSCRIPTION_PLANS = [
-  {
-    id: "basic",
-    name: "Basic",
-    price: 9.99,
-    tokenCount: 50,
-    period: "month",
-    features: [
-      "50 AI tokens/month",
-      "Document scanning",
-      "Basic AI analysis",
-      "Email support",
-      "Export to PDF"
-    ],
-    popular: false,
-    savePercent: 0
-  },
-  {
-    id: "pro",
-    name: "Pro",
-    price: 19.99,
-    tokenCount: 150,
-    period: "month",
-    features: [
-      "150 AI tokens/month",
-      "Priority processing",
-      "Advanced AI analysis",
-      "Chat with documents",
-      "Priority email support",
-      "Export to multiple formats",
-      "Cloud storage (5GB)"
-    ],
-    popular: true,
-    savePercent: 0
-  },
-  {
-    id: "business",
-    name: "Business",
-    price: 179.88,
-    displayPrice: "14.99",
-    tokenCount: 200,
-    period: "year",
-    features: [
-      "200 AI tokens/month",
-      "Priority processing",
-      "Advanced AI analysis",
-      "Chat with documents",
-      "Priority email support",
-      "Export to multiple formats",
-      "Cloud storage (20GB)",
-      "Team sharing (up to 3 members)"
-    ],
-    popular: false,
-    savePercent: 25
-  }
-];
-
-// Token paketleri
-const TOKEN_PACKAGES = [
-  {
-    id: "small",
-    title: "Starter Pack",
-    tokens: 20,
-    price: 4.99,
-    description: "Perfect for trying out",
-    popular: false
-  },
-  {
-    id: "medium",
-    title: "Standard Pack",
-    tokens: 100,
-    price: 19.99,
-    description: "Most popular choice",
-    popular: true
-  },
-  {
-    id: "large",
-    title: "Power User",
-    tokens: 300,
-    price: 49.99,
-    description: "Best value for power users",
-    popular: false
-  }
-];
 
 export const PremiumScreen = ({ navigation }) => {
   const { theme } = useTheme();
-  const [purchaseType, setPurchaseType] = useState("subscription"); // "subscription" veya "tokens"
-  const [selectedPlan, setSelectedPlan] = useState(SUBSCRIPTION_PLANS[1]); // Default Pro plan
-  const [selectedPackage, setSelectedPackage] = useState(TOKEN_PACKAGES[1]); // Default Standard pack
-  const [billingPeriod, setBillingPeriod] = useState("monthly");
+  const [activeTab, setActiveTab] = useState("subscription"); // 'subscription' veya 'token'
+  const [selectedPackage, setSelectedPackage] = useState(null);
   const [purchasing, setPurchasing] = useState(false);
 
-  // İş süreci
+  // Abonelik paketleri - Fiyatlar ve token miktarları güncellendi
+  const subscriptionPackages = [
+    {
+      id: "basic_monthly",
+      title: "Temel",
+      tokens: 20,
+      price: 4.99,
+      period: "ay",
+      description: "Ayda 20 token ile başlangıç seviyesi",
+      bestValue: false,
+    },
+    {
+      id: "pro_monthly",
+      title: "Pro",
+      tokens: 50,
+      price: 9.99,
+      period: "ay",
+      description: "Ayda 50 token ile düzenli kullanım",
+      bestValue: true,
+    },
+    {
+      id: "premium_monthly",
+      title: "Premium",
+      tokens: 120,
+      price: 19.99,
+      period: "ay",
+      description: "Ayda 120 token ile yoğun kullanım",
+      bestValue: false,
+    },
+  ];
+
+  // Token paketleri - Güncellendi
+  const tokenPackages = [
+    {
+      id: "tokens_15",
+      title: "Küçük Paket",
+      tokens: 15,
+      price: 4.99,
+      description: "15 token ile ek döküman analizi",
+      bestValue: false,
+    },
+    {
+      id: "tokens_40",
+      title: "Orta Paket",
+      tokens: 40,
+      price: 9.99,
+      description: "40 token ile daha fazla analiz",
+      bestValue: true,
+    },
+    {
+      id: "tokens_90",
+      title: "Büyük Paket",
+      tokens: 90,
+      price: 19.99,
+      description: "90 token ile kapsamlı kullanım",
+      bestValue: false,
+    },
+  ];
+
+  // Aktif paketler
+  const activePackages =
+    activeTab === "subscription" ? subscriptionPackages : tokenPackages;
+
   const handlePurchase = async () => {
+    if (!selectedPackage) {
+      return;
+    }
+
     setPurchasing(true);
     try {
-      // Burada ödeme işlemi yapılacak
+      // RevenueCat ile satın alma işlemi
       await new Promise((resolve) => setTimeout(resolve, 1500));
-      
-      // Başarılı ödeme sonrası
-      if (purchaseType === "subscription") {
-        Alert.alert(
-          "Subscription Activated",
-          `Your ${selectedPlan.name} plan is now active. You have been granted ${selectedPlan.tokenCount} tokens.`,
-          [
-            {
-              text: "Continue",
-              onPress: () => navigation.navigate("Home")
-            }
-          ]
-        );
+
+      if (activeTab === "subscription") {
+        // Abonelik satın alma başarılı
+        navigation.navigate("Home");
       } else {
+        // Token paketi satın alma başarılı
         navigation.replace("TokenPurchaseSuccess", {
           tokenAmount: selectedPackage.tokens,
         });
       }
     } catch (error) {
-      Alert.alert("Error", "Failed to complete purchase. Please try again.");
+      console.error("Purchase error:", error);
     } finally {
       setPurchasing(false);
     }
   };
 
-  // Başlık render
   const renderHeader = () => (
     <View style={styles.header}>
       <TouchableOpacity
-        style={[styles.backButton, { backgroundColor: theme.colors.surface }]}
+        style={[styles.closeButton, { backgroundColor: theme.colors.surface }]}
         onPress={() => navigation.goBack()}
       >
-        <Ionicons name="close" size={24} color={theme.colors.text} />
+        <Ionicons name="close-outline" size={24} color={theme.colors.text} />
       </TouchableOpacity>
+      <Text style={[styles.headerTitle, { color: theme.colors.text }]}>
+        Premium
+      </Text>
+      <View style={{ width: 40 }} />
     </View>
   );
 
-  // Başlık bölümünü render et
-  const renderTitle = () => (
-    <View style={styles.titleSection}>
-      <View
-        style={[styles.titleIcon, { backgroundColor: theme.colors.primary }]}
-      >
-        <Ionicons name="flash" size={32} color="white" />
-      </View>
-      <Text variant="h1" style={[styles.title, { color: theme.colors.text }]}>
-        Upgrade Your Experience
-      </Text>
-      <Text style={[styles.subtitle, { color: theme.colors.textSecondary }]}>
-        Choose the plan that suits your document processing needs
-      </Text>
-    </View>
-  );
-
-  // Segment kontrol render (Abonelik/Token seçimi)
-  const renderSegmentControl = () => (
-    <View style={styles.segmentContainer}>
+  const renderTabSelector = () => (
+    <View style={styles.tabContainer}>
       <TouchableOpacity
         style={[
-          styles.segmentButton,
-          purchaseType === "subscription" && [
-            styles.segmentButtonActive,
-            { backgroundColor: theme.colors.primary }
-          ]
+          styles.tabButton,
+          activeTab === "subscription" && [
+            styles.activeTabButton,
+            { backgroundColor: theme.colors.primary + "15" },
+          ],
         ]}
-        onPress={() => setPurchaseType("subscription")}
+        onPress={() => {
+          setActiveTab("subscription");
+          setSelectedPackage(null);
+        }}
       >
+        <Ionicons
+          name="calendar-outline"
+          size={20}
+          color={
+            activeTab === "subscription"
+              ? theme.colors.primary
+              : theme.colors.textSecondary
+          }
+        />
         <Text
           style={[
-            styles.segmentButtonText,
-            { color: purchaseType === "subscription" ? "white" : theme.colors.textSecondary }
+            styles.tabText,
+            {
+              color:
+                activeTab === "subscription"
+                  ? theme.colors.primary
+                  : theme.colors.textSecondary,
+            },
           ]}
         >
-          Subscription
+          Aylık Abonelik
         </Text>
       </TouchableOpacity>
-      
+
       <TouchableOpacity
         style={[
-          styles.segmentButton,
-          purchaseType === "tokens" && [
-            styles.segmentButtonActive,
-            { backgroundColor: theme.colors.primary }
-          ]
+          styles.tabButton,
+          activeTab === "token" && [
+            styles.activeTabButton,
+            { backgroundColor: theme.colors.primary + "15" },
+          ],
         ]}
-        onPress={() => setPurchaseType("tokens")}
+        onPress={() => {
+          setActiveTab("token");
+          setSelectedPackage(null);
+        }}
       >
+        <Ionicons
+          name="flash-outline"
+          size={20}
+          color={
+            activeTab === "token"
+              ? theme.colors.primary
+              : theme.colors.textSecondary
+          }
+        />
         <Text
           style={[
-            styles.segmentButtonText,
-            { color: purchaseType === "tokens" ? "white" : theme.colors.textSecondary }
+            styles.tabText,
+            {
+              color:
+                activeTab === "token"
+                  ? theme.colors.primary
+                  : theme.colors.textSecondary,
+            },
           ]}
         >
-          Buy Tokens
+          Token Paketleri
         </Text>
       </TouchableOpacity>
     </View>
   );
 
-  // Abonelik frekans seçicisi (aylık/yıllık)
-  const renderBillingToggle = () => {
-    if (purchaseType !== "subscription") return null;
-    
-    return (
-      <View style={styles.billingToggleContainer}>
+  const renderIntroText = () => (
+    <View style={styles.introTextContainer}>
+      {activeTab === "subscription" ? (
+        <Text style={[styles.introText, { color: theme.colors.textSecondary }]}>
+          Aylık yenilenen abonelik ile düzenli token alın. Her ay yeni tokenler
+          otomatik olarak hesabınıza eklenir.
+        </Text>
+      ) : (
+        <Text style={[styles.introText, { color: theme.colors.textSecondary }]}>
+          Tek seferlik token paketleri satın alarak mevcut tokenlerinize
+          ekleyin. İhtiyaç duydukça kullanın.
+        </Text>
+      )}
+    </View>
+  );
+
+  const renderPackages = () => (
+    <View style={styles.packagesContainer}>
+      {activePackages.map((pkg) => (
         <TouchableOpacity
+          key={pkg.id}
           style={[
-            styles.billingOption,
-            billingPeriod === "monthly" && [
-              styles.billingOptionActive,
-              { borderColor: theme.colors.primary }
-            ]
+            styles.packageCard,
+            {
+              backgroundColor: theme.colors.surface,
+              borderColor:
+                selectedPackage?.id === pkg.id
+                  ? theme.colors.primary
+                  : theme.colors.border,
+            },
+            selectedPackage?.id === pkg.id && styles.selectedPackage,
           ]}
-          onPress={() => setBillingPeriod("monthly")}
+          onPress={() => setSelectedPackage(pkg)}
+          disabled={purchasing}
         >
-          <Text
-            style={[
-              styles.billingOptionText,
-              { 
-                color: billingPeriod === "monthly" 
-                  ? theme.colors.primary 
-                  : theme.colors.textSecondary
-              }
-            ]}
-          >
-            Monthly
-          </Text>
-        </TouchableOpacity>
-        
-        <TouchableOpacity
-          style={[
-            styles.billingOption,
-            billingPeriod === "yearly" && [
-              styles.billingOptionActive,
-              { borderColor: theme.colors.primary }
-            ]
-          ]}
-          onPress={() => setBillingPeriod("yearly")}
-        >
-          <View style={styles.yearlyOption}>
-            <Text
-              style={[
-                styles.billingOptionText,
-                { 
-                  color: billingPeriod === "yearly" 
-                    ? theme.colors.primary 
-                    : theme.colors.textSecondary
-                }
-              ]}
-            >
-              Yearly
-            </Text>
+          {pkg.bestValue && (
             <View
               style={[
-                styles.saveBadge,
-                { backgroundColor: theme.colors.success }
+                styles.bestValueTag,
+                { backgroundColor: theme.colors.primary },
               ]}
             >
-              <Text style={styles.saveText} color="white">
-                Save 25%
+              <Text style={styles.bestValueText} color="white">
+                En İyi Değer
               </Text>
             </View>
-          </View>
-        </TouchableOpacity>
-      </View>
-    );
-  };
+          )}
 
-  // Abonelik planları render
-  const renderSubscriptionPlans = () => {
-    if (purchaseType !== "subscription") return null;
-    
-    // Hangi abonelik planlarını göstereceğimizi belirle
-    const filteredPlans = SUBSCRIPTION_PLANS.filter(plan => {
-      if (billingPeriod === "monthly") {
-        return plan.period === "month";
-      } else {
-        return plan.period === "year" || plan.id === "basic"; // Yıllık ve temel planlar
-      }
-    });
-    
-    return (
-      <View style={styles.subscriptionPlansContainer}>
-        {filteredPlans.map((plan) => (
-          <TouchableOpacity
-            key={plan.id}
-            style={[
-              styles.planCard,
-              {
-                backgroundColor: theme.colors.surface,
-                borderColor: selectedPlan?.id === plan.id
-                  ? theme.colors.primary
-                  : "transparent",
-              },
-            ]}
-            onPress={() => setSelectedPlan(plan)}
-          >
-            {plan.popular && (
-              <View
-                style={[
-                  styles.popularBadge,
-                  { backgroundColor: theme.colors.primary },
-                ]}
-              >
-                <Text style={styles.popularText} color="white">
-                  Popular
-                </Text>
-              </View>
-            )}
+          <View style={styles.packageHeader}>
+            <View style={styles.packageTitleRow}>
+              <Text style={[styles.packageTitle, { color: theme.colors.text }]}>
+                {pkg.title}
+              </Text>
 
-            <View style={styles.planHeader}>
-              <View>
-                <Text style={[styles.planTitle, { color: theme.colors.text }]}>
-                  {plan.name}
-                </Text>
-                <View style={styles.priceContainer}>
-                  <Text
-                    style={[styles.currencySymbol, { color: theme.colors.text }]}
-                  >
-                    $
-                  </Text>
-                  <Text
-                    style={[styles.priceText, { color: theme.colors.primary }]}
-                  >
-                    {plan.displayPrice || plan.price}
-                  </Text>
-                  <Text
-                    style={[
-                      styles.pricePeriod,
-                      { color: theme.colors.textSecondary },
-                    ]}
-                  >
-                    /{plan.period}
-                  </Text>
-                </View>
-                
-                {plan.savePercent > 0 && (
-                  <View style={styles.savingContainer}>
-                    <Text 
-                      style={[styles.savingText, { color: theme.colors.success }]}
-                    >
-                      Save {plan.savePercent}%
-                    </Text>
-                  </View>
+              <Text style={[styles.packagePrice, { color: theme.colors.text }]}>
+                ${pkg.price}
+                {activeTab === "subscription" && (
+                  <Text style={styles.periodText}>/{pkg.period}</Text>
                 )}
-              </View>
-
-              <View
-                style={[
-                  styles.tokenBadge,
-                  { backgroundColor: theme.colors.warning + "20" },
-                ]}
-              >
-                <Ionicons name="flash" size={16} color={theme.colors.warning} />
-                <Text style={[styles.tokenText, { color: theme.colors.warning }]}>
-                  {plan.tokenCount}
-                </Text>
-              </View>
-            </View>
-
-            <View style={styles.featuresList}>
-              {plan.features.map((feature, index) => (
-                <View key={index} style={styles.featureItem}>
-                  <Ionicons
-                    name="checkmark-circle"
-                    size={20}
-                    color={theme.colors.success}
-                  />
-                  <Text style={[styles.featureText, { color: theme.colors.text }]}>
-                    {feature}
-                  </Text>
-                </View>
-              ))}
-            </View>
-          </TouchableOpacity>
-        ))}
-      </View>
-    );
-  };
-
-  // Token paketleri render
-  const renderTokenPackages = () => {
-    if (purchaseType !== "tokens") return null;
-
-    return (
-      <View style={styles.tokenPackagesContainer}>
-        {TOKEN_PACKAGES.map((pkg) => (
-          <TouchableOpacity
-            key={pkg.id}
-            style={[
-              styles.packageCard,
-              {
-                backgroundColor: theme.colors.surface,
-                borderColor:
-                  selectedPackage?.id === pkg.id
-                    ? theme.colors.primary
-                    : "transparent",
-              },
-            ]}
-            onPress={() => setSelectedPackage(pkg)}
-          >
-            {pkg.popular && (
-              <View
-                style={[
-                  styles.popularBadge,
-                  { backgroundColor: theme.colors.primary },
-                ]}
-              >
-                <Text style={styles.popularText} color="white">
-                  Popular
-                </Text>
-              </View>
-            )}
-
-            <View style={styles.packageHeader}>
-              <View>
-                <Text style={[styles.packageTitle, { color: theme.colors.text }]}>
-                  {pkg.title}
-                </Text>
-                <Text
-                  style={[
-                    styles.packageDescription,
-                    { color: theme.colors.textSecondary },
-                  ]}
-                >
-                  {pkg.description}
-                </Text>
-              </View>
-              <View
-                style={[
-                  styles.tokenBadge,
-                  { backgroundColor: theme.colors.warning + "20" },
-                ]}
-              >
-                <Ionicons name="flash" size={16} color={theme.colors.warning} />
-                <Text style={[styles.tokenText, { color: theme.colors.warning }]}>
-                  {pkg.tokens}
-                </Text>
-              </View>
-            </View>
-
-            <View style={styles.tokenPriceContainer}>
-              <Text
-                style={[styles.currencySymbol, { color: theme.colors.text }]}
-              >
-                $
-              </Text>
-              <Text
-                style={[styles.tokenPriceText, { color: theme.colors.primary }]}
-              >
-                {pkg.price.toFixed(2)}
               </Text>
             </View>
 
-            {/* Token başına maliyet hesabı */}
+            <View
+              style={[
+                styles.tokenBadge,
+                { backgroundColor: theme.colors.primary + "15" },
+              ]}
+            >
+              <Ionicons name="flash" size={16} color={theme.colors.primary} />
+              <Text
+                style={[styles.tokenBadgeText, { color: theme.colors.primary }]}
+              >
+                {pkg.tokens} token{" "}
+                {activeTab === "subscription" && `/ ${pkg.period}`}
+              </Text>
+            </View>
+
             <Text
               style={[
-                styles.tokenUnitPrice,
+                styles.packageDescription,
                 { color: theme.colors.textSecondary },
               ]}
             >
-              ${(pkg.price / pkg.tokens).toFixed(3)} per token
+              {pkg.description}
             </Text>
-          </TouchableOpacity>
-        ))}
-      </View>
-    );
-  };
+          </View>
 
-  // Token kullanım alanları
-  const renderTokenUsage = () => {
-    return (
-      <View style={styles.tokenUsageSection}>
-        <Text style={[styles.tokenUsageTitle, { color: theme.colors.text }]}>
-          What Can You Do With Tokens?
+          <View
+            style={[styles.radioButton, { borderColor: theme.colors.border }]}
+          >
+            {selectedPackage?.id === pkg.id && (
+              <View
+                style={[
+                  styles.radioButtonInner,
+                  { backgroundColor: theme.colors.primary },
+                ]}
+              />
+            )}
+          </View>
+        </TouchableOpacity>
+      ))}
+    </View>
+  );
+
+  const renderComparisonInfo = () =>
+    activeTab === "subscription" && (
+      <View style={styles.comparisonContainer}>
+        <Text style={[styles.comparisonTitle, { color: theme.colors.text }]}>
+          Abonelik Avantajları
         </Text>
-        
-        <View style={styles.tokenUsageGrid}>
-          <View style={[styles.usageItem, { backgroundColor: theme.colors.surface }]}>
-            <View style={[styles.usageIcon, { backgroundColor: theme.colors.primary + '15' }]}>
-              <Ionicons name="document-text" size={24} color={theme.colors.primary} />
-            </View>
-            <Text style={[styles.usageTitle, { color: theme.colors.text }]}>
-              Document Analysis
-            </Text>
-            <Text style={[styles.usageDescription, { color: theme.colors.textSecondary }]}>
-              1 token per document
-            </Text>
-          </View>
-          
-          <View style={[styles.usageItem, { backgroundColor: theme.colors.surface }]}>
-            <View style={[styles.usageIcon, { backgroundColor: theme.colors.secondary + '15' }]}>
-              <Ionicons name="chatbubbles" size={24} color={theme.colors.secondary} />
-            </View>
-            <Text style={[styles.usageTitle, { color: theme.colors.text }]}>
-              AI Chat
-            </Text>
-            <Text style={[styles.usageDescription, { color: theme.colors.textSecondary }]}>
-              1 token per 5 questions
+
+        <View style={styles.comparisonList}>
+          <View style={styles.comparisonItem}>
+            <Ionicons
+              name="refresh-outline"
+              size={20}
+              color={theme.colors.success}
+            />
+            <Text
+              style={[
+                styles.comparisonText,
+                { color: theme.colors.textSecondary },
+              ]}
+            >
+              Her ay otomatik olarak yenilenen tokenler
             </Text>
           </View>
-          
-          <View style={[styles.usageItem, { backgroundColor: theme.colors.surface }]}>
-            <View style={[styles.usageIcon, { backgroundColor: theme.colors.warning + '15' }]}>
-              <Ionicons name="cloud-download" size={24} color={theme.colors.warning} />
-            </View>
-            <Text style={[styles.usageTitle, { color: theme.colors.text }]}>
-              Export
-            </Text>
-            <Text style={[styles.usageDescription, { color: theme.colors.textSecondary }]}>
-              1 token per 10 exports
+
+          <View style={styles.comparisonItem}>
+            <Ionicons
+              name="trending-down-outline"
+              size={20}
+              color={theme.colors.success}
+            />
+            <Text
+              style={[
+                styles.comparisonText,
+                { color: theme.colors.textSecondary },
+              ]}
+            >
+              Token başına daha düşük maliyet
             </Text>
           </View>
-          
-          <View style={[styles.usageItem, { backgroundColor: theme.colors.surface }]}>
-            <View style={[styles.usageIcon, { backgroundColor: theme.colors.success + '15' }]}>
-              <Ionicons name="folder" size={24} color={theme.colors.success} />
-            </View>
-            <Text style={[styles.usageTitle, { color: theme.colors.text }]}>
-              Storage
-            </Text>
-            <Text style={[styles.usageDescription, { color: theme.colors.textSecondary }]}>
-              Unlimited storage
+
+          <View style={styles.comparisonItem}>
+            <Ionicons
+              name="gift-outline"
+              size={20}
+              color={theme.colors.success}
+            />
+            <Text
+              style={[
+                styles.comparisonText,
+                { color: theme.colors.textSecondary },
+              ]}
+            >
+              Premium özelliklere öncelikli erişim
             </Text>
           </View>
         </View>
       </View>
     );
-  };
+
+  // Güncellenmiş Token Kullanım Bölümü
+  const renderUsageInfo = () => (
+    <View style={styles.usageInfoContainer}>
+      <Text style={[styles.usageTitle, { color: theme.colors.text }]}>
+        Tokenler ne için kullanılır?
+      </Text>
+
+      <View style={styles.usageList}>
+        <View style={styles.usageItem}>
+          <Ionicons
+            name="document-text-outline"
+            size={20}
+            color={theme.colors.primary}
+          />
+          <Text
+            style={[styles.usageText, { color: theme.colors.textSecondary }]}
+          >
+            1-5 sayfalık döküman analizi = 1 token
+          </Text>
+        </View>
+
+        <View style={styles.usageItem}>
+          <Ionicons
+            name="copy-outline"
+            size={20}
+            color={theme.colors.primary}
+          />
+          <Text
+            style={[styles.usageText, { color: theme.colors.textSecondary }]}
+          >
+            5 sayfadan sonra her 5 sayfa için +1 token
+          </Text>
+        </View>
+
+        <View style={styles.usageItem}>
+          <Ionicons
+            name="chatbubble-outline"
+            size={20}
+            color={theme.colors.primary}
+          />
+          <Text
+            style={[styles.usageText, { color: theme.colors.textSecondary }]}
+          >
+            Her döküman için ilk 3 soru ücretsiz, sonraki 5 soru = 1 token
+          </Text>
+        </View>
+
+        <View style={styles.usageItem}>
+          <Ionicons
+            name="download-outline"
+            size={20}
+            color={theme.colors.primary}
+          />
+          <Text
+            style={[styles.usageText, { color: theme.colors.textSecondary }]}
+          >
+            PDF veya Word dışa aktarma = 1 token
+          </Text>
+        </View>
+      </View>
+    </View>
+  );
 
   return (
     <SafeAreaView
       style={[styles.container, { backgroundColor: theme.colors.background }]}
       edges={["top"]}
     >
+      <StatusBar
+        barStyle={theme.isDark ? "light-content" : "dark-content"}
+        backgroundColor={theme.colors.background}
+      />
+
+      {renderHeader()}
+
       <ScrollView
-        contentContainerStyle={styles.content}
+        style={styles.scrollView}
+        contentContainerStyle={styles.scrollContent}
         showsVerticalScrollIndicator={false}
       >
-        {renderHeader()}
-        {renderTitle()}
-        {renderSegmentControl()}
-        {renderBillingToggle()}
-        {renderSubscriptionPlans()}
-        {renderTokenPackages()}
-        {renderTokenUsage()}
+        {renderTabSelector()}
+        {renderIntroText()}
+        {renderPackages()}
+        {renderComparisonInfo()}
+        {renderUsageInfo()}
+
+        <TouchableOpacity style={styles.restoreButton}>
+          <Text style={{ color: theme.colors.primary, fontSize: 14 }}>
+            Önceki satın alımlarımı geri yükle
+          </Text>
+        </TouchableOpacity>
       </ScrollView>
 
-      <SafeAreaView edges={["bottom"]} style={styles.footer}>
-        <LinearGradient
-          colors={[
-            "transparent",
-            theme.isDark ? "rgba(0,0,0,0.9)" : "rgba(255,255,255,0.9)",
-          ]}
-          style={styles.footerGradient}
-        >
-          <View style={styles.footerContent}>
-            <Button
-              title={
-                purchasing
-                  ? "Processing..."
-                  : purchaseType === "subscription"
-                  ? `Subscribe • $${selectedPlan?.displayPrice || selectedPlan?.price}/${selectedPlan?.period}`
-                  : `Buy Tokens • $${selectedPackage?.price.toFixed(2)}`
-              }
-              onPress={handlePurchase}
-              disabled={purchasing || (!selectedPlan && !selectedPackage)}
-              loading={purchasing}
-              theme={theme}
-              style={styles.purchaseButton}
-            />
-            <Text style={[styles.secureText, { color: theme.colors.textSecondary }]}>
-              <Ionicons name="lock-closed" size={12} color={theme.colors.textSecondary} /> Secure payment via Stripe
-            </Text>
-          </View>
-        </LinearGradient>
+      <SafeAreaView
+        edges={["bottom"]}
+        style={[
+          styles.footer,
+          {
+            backgroundColor: theme.isDark ? "#1A1A1A" : "#FFFFFF",
+            borderTopColor: theme.isDark ? "#333333" : "#E5E7EB",
+          },
+        ]}
+      >
+        <Button
+          title={
+            purchasing
+              ? "İşlem yapılıyor..."
+              : selectedPackage
+              ? activeTab === "subscription"
+                ? `${selectedPackage.title} Plan - $${selectedPackage.price}/${selectedPackage.period}`
+                : `${selectedPackage.tokens} Token Satın Al - $${selectedPackage.price}`
+              : activeTab === "subscription"
+              ? "Abonelik Planı Seçin"
+              : "Token Paketi Seçin"
+          }
+          onPress={handlePurchase}
+          disabled={purchasing || !selectedPackage}
+          loading={purchasing}
+          theme={theme}
+          style={styles.purchaseButton}
+        />
+
+        <Text style={[styles.termsText, { color: theme.colors.textSecondary }]}>
+          {activeTab === "subscription"
+            ? "Abonelik, iptal edilmediği sürece otomatik olarak yenilenir. Aboneliğinizi istediğiniz zaman hesap ayarlarınızdan iptal edebilirsiniz."
+            : "Ödeme Apple App Store/Google Play üzerinden gerçekleştirilecektir."}
+        </Text>
       </SafeAreaView>
     </SafeAreaView>
   );
@@ -599,302 +500,203 @@ const styles = StyleSheet.create({
   container: {
     flex: 1,
   },
-  content: {
-    padding: 20,
-    paddingBottom: 100,
-  },
   header: {
-    marginBottom: 24,
+    flexDirection: "row",
+    alignItems: "center",
+    justifyContent: "space-between",
+    paddingHorizontal: 20,
+    paddingVertical: 10,
   },
-  backButton: {
+  closeButton: {
     width: 40,
     height: 40,
     borderRadius: 20,
     alignItems: "center",
     justifyContent: "center",
   },
-  titleSection: {
-    alignItems: "center",
-    marginBottom: 32,
+  headerTitle: {
+    fontSize: 18,
+    fontWeight: "600",
   },
-  titleIcon: {
-    width: 64,
-    height: 64,
-    borderRadius: 32,
+  scrollView: {
+    flex: 1,
+  },
+  scrollContent: {
+    padding: 20,
+    paddingBottom: 100,
+  },
+  tabContainer: {
+    flexDirection: "row",
+    marginBottom: 20,
+    gap: 12,
+  },
+  tabButton: {
+    flex: 1,
+    flexDirection: "row",
     alignItems: "center",
     justifyContent: "center",
-    marginBottom: 16,
-  },
-  title: {
-    fontSize: 28,
-    fontWeight: "700",
-    marginBottom: 8,
-    textAlign: "center",
-  },
-  subtitle: {
-    fontSize: 16,
-    textAlign: "center",
-  },
-  
-  // Segment Control
-  segmentContainer: {
-    flexDirection: "row",
-    backgroundColor: "rgba(0,0,0,0.05)",
-    borderRadius: 12,
-    padding: 4,
-    marginBottom: 24,
-  },
-  segmentButton: {
-    flex: 1,
-    paddingVertical: 10,
-    alignItems: "center",
+    paddingVertical: 12,
     borderRadius: 10,
-  },
-  segmentButtonActive: {
-    shadowColor: "#000",
-    shadowOffset: { width: 0, height: 1 },
-    shadowOpacity: 0.2,
-    shadowRadius: 1.41,
-    elevation: 2,
-  },
-  segmentButtonText: {
-    fontWeight: "600",
-  },
-  
-  // Billing Toggle
-  billingToggleContainer: {
-    flexDirection: "row",
-    marginBottom: 24,
+    gap: 8,
     backgroundColor: "rgba(0,0,0,0.05)",
-    borderRadius: 12,
-    padding: 4,
   },
-  billingOption: {
-    flex: 1,
-    paddingVertical: 10,
-    alignItems: "center",
-    borderRadius: 10,
-    borderWidth: 2,
+  activeTabButton: {
+    borderWidth: 1,
     borderColor: "transparent",
   },
-  billingOptionActive: {
-    backgroundColor: "rgba(255,255,255,0.8)",
-  },
-  billingOptionText: {
+  tabText: {
+    fontSize: 14,
     fontWeight: "600",
   },
-  yearlyOption: {
+  introTextContainer: {
+    marginBottom: 20,
+  },
+  introText: {
+    fontSize: 14,
+    lineHeight: 20,
+    textAlign: "center",
+  },
+  packagesContainer: {
+    marginBottom: 24,
+    gap: 12,
+  },
+  packageCard: {
+    borderRadius: 12,
+    padding: 16,
+    borderWidth: 1,
     flexDirection: "row",
     alignItems: "center",
-    gap: 8,
+    justifyContent: "space-between",
   },
-  saveBadge: {
-    paddingHorizontal: 6,
+  selectedPackage: {
+    borderWidth: 2,
+  },
+  bestValueTag: {
+    position: "absolute",
+    top: -10,
+    right: 10,
+    paddingHorizontal: 8,
     paddingVertical: 2,
     borderRadius: 4,
   },
-  saveText: {
+  bestValueText: {
     fontSize: 10,
-    fontWeight: "bold",
-  },
-  
-  // Subscription Plans
-  subscriptionPlansContainer: {
-    gap: 16,
-    marginBottom: 32,
-  },
-  planCard: {
-    padding: 20,
-    borderRadius: 16,
-    borderWidth: 2,
-    shadowColor: "#000",
-    shadowOffset: { width: 0, height: 2 },
-    shadowOpacity: 0.1,
-    shadowRadius: 4,
-    elevation: 3,
-  },
-  popularBadge: {
-    position: "absolute",
-    top: -12,
-    right: 20,
-    paddingHorizontal: 12,
-    paddingVertical: 4,
-    borderRadius: 12,
-  },
-  popularText: {
-    fontSize: 12,
     fontWeight: "600",
   },
-  planHeader: {
+  packageHeader: {
+    flex: 1,
+  },
+  packageTitleRow: {
     flexDirection: "row",
     justifyContent: "space-between",
-    alignItems: "flex-start",
-    marginBottom: 16,
-  },
-  planTitle: {
-    fontSize: 20,
-    fontWeight: "700",
+    alignItems: "center",
     marginBottom: 8,
   },
-  priceContainer: {
-    flexDirection: "row",
-    alignItems: "flex-end",
-  },
-  currencySymbol: {
+  packageTitle: {
     fontSize: 16,
     fontWeight: "600",
-    marginBottom: 4,
   },
-  priceText: {
-    fontSize: 28,
+  packagePrice: {
+    fontSize: 18,
     fontWeight: "700",
   },
-  pricePeriod: {
+  periodText: {
     fontSize: 14,
-    marginBottom: 4,
-    marginLeft: 2,
-  },
-  savingContainer: {
-    marginTop: 4,
-  },
-  savingText: {
-    fontSize: 14,
-    fontWeight: "600",
+    fontWeight: "normal",
   },
   tokenBadge: {
     flexDirection: "row",
     alignItems: "center",
     paddingHorizontal: 8,
-    paddingVertical: 4,
-    borderRadius: 12,
+    paddingVertical: 3,
+    borderRadius: 6,
+    marginBottom: 8,
+    alignSelf: "flex-start",
     gap: 4,
   },
-  tokenText: {
-    fontSize: 14,
+  tokenBadgeText: {
+    fontSize: 13,
     fontWeight: "600",
   },
-  featuresList: {
+  packageDescription: {
+    fontSize: 13,
+    lineHeight: 18,
+  },
+  radioButton: {
+    width: 22,
+    height: 22,
+    borderRadius: 11,
+    borderWidth: 2,
+    alignItems: "center",
+    justifyContent: "center",
+  },
+  radioButtonInner: {
+    width: 12,
+    height: 12,
+    borderRadius: 6,
+  },
+  comparisonContainer: {
+    marginBottom: 24,
+    paddingVertical: 16,
+    paddingHorizontal: 12,
+    borderRadius: 12,
+    backgroundColor: "rgba(0,0,0,0.02)",
+  },
+  comparisonTitle: {
+    fontSize: 16,
+    fontWeight: "600",
+    marginBottom: 12,
+  },
+  comparisonList: {
     gap: 10,
   },
-  featureItem: {
+  comparisonItem: {
     flexDirection: "row",
     alignItems: "center",
-    gap: 8,
+    gap: 12,
   },
-  featureText: {
+  comparisonText: {
     fontSize: 14,
     flex: 1,
   },
-  
-  // Token Packages
-  tokenPackagesContainer: {
-    gap: 16,
-    marginBottom: 32,
-  },
-  packageCard: {
-    padding: 20,
-    borderRadius: 16,
-    borderWidth: 2,
-    shadowColor: "#000",
-    shadowOffset: { width: 0, height: 2 },
-    shadowOpacity: 0.1,
-    shadowRadius: 4,
-    elevation: 3,
-  },
-  packageHeader: {
-    flexDirection: "row",
-    justifyContent: "space-between",
-    alignItems: "flex-start",
-    marginBottom: 16,
-  },
-  packageTitle: {
-    fontSize: 20,
-    fontWeight: "700",
-    marginBottom: 4,
-  },
-  packageDescription: {
-    fontSize: 14,
-  },
-  tokenPriceContainer: {
-    flexDirection: "row",
-    alignItems: "flex-end",
-    marginBottom: 4,
-  },
-  tokenPriceText: {
-    fontSize: 28,
-    fontWeight: "700",
-  },
-  tokenUnitPrice: {
-    fontSize: 12,
-  },
-  
-  // Token Usage Section
-  tokenUsageSection: {
-    marginBottom: 32,
-  },
-  tokenUsageTitle: {
-    fontSize: 18,
-    fontWeight: "600",
-    marginBottom: 16,
-  },
-  tokenUsageGrid: {
-    flexDirection: "row",
-    flexWrap: "wrap",
-    justifyContent: "space-between",
-    gap: 16,
-  },
-  usageItem: {
-    width: "47%",
-    padding: 16,
-    borderRadius: 16,
-    alignItems: "center",
-    shadowColor: "#000",
-    shadowOffset: { width: 0, height: 1 },
-    shadowOpacity: 0.05,
-    shadowRadius: 2,
-    elevation: 1,
-  },
-  usageIcon: {
-    width: 48,
-    height: 48,
-    borderRadius: 24,
-    alignItems: "center",
-    justifyContent: "center",
-    marginBottom: 12,
+  usageInfoContainer: {
+    marginBottom: 24,
   },
   usageTitle: {
-    fontSize: 14,
+    fontSize: 16,
     fontWeight: "600",
-    marginBottom: 4,
-    textAlign: "center",
+    marginBottom: 12,
   },
-  usageDescription: {
-    fontSize: 12,
-    textAlign: "center",
+  usageList: {
+    gap: 10,
   },
-  
-  // Footer
+  usageItem: {
+    flexDirection: "row",
+    alignItems: "center",
+    gap: 12,
+  },
+  usageText: {
+    fontSize: 14,
+  },
+  restoreButton: {
+    alignSelf: "center",
+    paddingVertical: 10,
+    marginBottom: 20,
+  },
   footer: {
     position: "absolute",
     bottom: 0,
     left: 0,
     right: 0,
-    backgroundColor: "transparent",
-  },
-  footerGradient: {
-    paddingTop: 20,
-  },
-  footerContent: {
-    padding: 20,
-    paddingTop: 0,
-    alignItems: "center",
+    borderTopWidth: 1,
+    padding: 16,
   },
   purchaseButton: {
-    height: 56,
-    width: "100%",
+    marginBottom: 10,
   },
-  secureText: {
-    fontSize: 12,
-    marginTop: 8,
+  termsText: {
+    fontSize: 11,
+    textAlign: "center",
+    lineHeight: 16,
   },
 });

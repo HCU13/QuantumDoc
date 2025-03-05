@@ -5,6 +5,15 @@ export default {
     skip: "Skip",
     login: "Login",
     register: "Register",
+    cancel: "Cancel",
+    ok: "OK",
+    signOut: "Sign Out",
+    back: "Back",
+    save: "Save",
+    delete: "Delete",
+    or: "OR",
+    and: "and",
+    backToLogin: "Back to Login",
   },
   slides: {
     welcome: {
@@ -24,10 +33,40 @@ export default {
   },
   auth: {
     loginTitle: "Welcome Back",
+    loginSuccessTitle: "Login Successful",
+    loginSuccessMessage: "Welcome back!",
+    loginFailedTitle: "Login Failed",
+
     registerTitle: "Create Account",
+    registerSubtitle: "Sign up to start using DocAI",
+    registerSuccessTitle: "Registration Successful",
+    registerSuccessMessage: "Your account has been created",
+    registerFailedTitle: "Registration Failed",
+
     email: "Email",
     password: "Password",
+    fullName: "Full Name",
+    confirmPassword: "Confirm Password",
     forgotPassword: "Forgot Password?",
+    resetPassword: "Reset Password",
+
+    forgotPasswordTitle: "Forgot Password",
+    forgotPasswordDescription:
+      "Enter your email address and we'll send you a link to reset your password",
+    checkYourEmail: "Check Your Email",
+    resetEmailSent: "We have sent a password reset link to your email address",
+    resetEmailSentTitle: "Email Sent",
+    resetEmailSentMessage: "Check your inbox for password reset instructions",
+    resetFailedTitle: "Reset Failed",
+    resendEmail: "Resend Email",
+
+    noAccount: "Don't have an account?",
+    alreadyHaveAccount: "Already have an account?",
+
+    termsText: "By creating an account, you agree to our",
+    termsLink: "Terms of Service",
+    privacyLink: "Privacy Policy",
+
     errors: {
       "auth/claims-too-large": "Auth claims exceed maximum size",
       "auth/email-already-exists": "Email already exists",
@@ -53,6 +92,8 @@ export default {
       "auth/missing-continue-uri": "Missing continue URL",
       "auth/missing-ios-bundle-id": "Missing iOS bundle ID",
       "auth/missing-uid": "Missing user ID",
+      "auth/missing-email": "Please enter your email address",
+      "auth/missing-password": "Please enter your password",
       "auth/operation-not-allowed": "Operation not allowed",
       "auth/phone-number-already-exists": "Phone number already exists",
       "auth/project-not-found": "Project not found",
@@ -66,6 +107,25 @@ export default {
       "auth/email-already-in-use": "Email already in use",
       "auth/weak-password": "Password is too weak",
       "auth/too-many-requests": "Too many attempts. Try again later",
+      "auth/network-request-failed": "Network connection failed",
+      "required-name": "Name is required",
+      "required-password": "Password is required",
+      "password-mismatch": "Passwords don't match",
     },
+  },
+  profile: {
+    logoutTitle: "Sign Out",
+    logoutConfirmation: "Are you sure you want to sign out?",
+    logoutSuccessTitle: "Signed Out",
+    logoutSuccessMessage: "You have been successfully signed out",
+    logoutErrorTitle: "Sign Out Failed",
+    logoutErrorMessage: "There was a problem signing you out",
+    deleteAccountTitle: "Delete Account",
+    deleteAccountConfirmation:
+      "Are you sure you want to delete your account? This action cannot be undone.",
+    deleteAccount: "Delete Account",
+    confirmDeleteTitle: "Confirm Deletion",
+    confirmDeleteMessage:
+      "For security, please log out and log back in before deleting your account.",
   },
 };

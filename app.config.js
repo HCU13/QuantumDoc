@@ -30,6 +30,7 @@ export default {
       package: "com.firebase.quantumdoc",
     },
     plugins: [
+      "expo-secure-store",
       [
         "expo-document-picker",
         {

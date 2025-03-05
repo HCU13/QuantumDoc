@@ -5,6 +5,15 @@ export default {
     skip: "Atla",
     login: "Giriş",
     register: "Kayıt Ol",
+    cancel: "İptal",
+    ok: "Tamam",
+    signOut: "Çıkış Yap",
+    back: "Geri",
+    save: "Kaydet",
+    delete: "Sil",
+    or: "VEYA",
+    and: "ve",
+    backToLogin: "Giriş Sayfasına Dön"
   },
   slides: {
     welcome: {
@@ -23,13 +32,41 @@ export default {
   },
   auth: {
     loginTitle: "Tekrar Hoşgeldiniz",
+    loginSuccessTitle: "Giriş Başarılı",
+    loginSuccessMessage: "Tekrar hoşgeldiniz!",
+    loginFailedTitle: "Giriş Başarısız",
+    
     registerTitle: "Hesap Oluştur",
+    registerSubtitle: "DocAI'yı kullanmaya başlamak için kaydolun",
+    registerSuccessTitle: "Kayıt Başarılı",
+    registerSuccessMessage: "Hesabınız oluşturuldu",
+    registerFailedTitle: "Kayıt Başarısız",
+    
     email: "E-posta",
     password: "Şifre",
+    fullName: "Ad Soyad",
+    confirmPassword: "Şifreyi Onayla",
     forgotPassword: "Şifremi Unuttum?",
+    resetPassword: "Şifremi Sıfırla",
+    
+    forgotPasswordTitle: "Şifremi Unuttum",
+    forgotPasswordDescription: "E-posta adresinizi girin ve size şifrenizi sıfırlamak için bir bağlantı gönderelim",
+    checkYourEmail: "E-postanızı Kontrol Edin",
+    resetEmailSent: "Şifre sıfırlama bağlantısını e-posta adresinize gönderdik",
+    resetEmailSentTitle: "E-posta Gönderildi",
+    resetEmailSentMessage: "Şifre sıfırlama talimatları için gelen kutunuzu kontrol edin",
+    resetFailedTitle: "Sıfırlama Başarısız",
+    resendEmail: "Tekrar Gönder",
+    
+    noAccount: "Hesabınız yok mu?",
+    alreadyHaveAccount: "Zaten hesabınız var mı?",
+    
+    termsText: "Hesap oluşturarak şunları kabul etmiş olursunuz:",
+    termsLink: "Kullanım Koşulları",
+    privacyLink: "Gizlilik Politikası",
+    
     errors: {
-      "auth/claims-too-large":
-        "Kimlik doğrulama talepleri maksimum boyutu aşıyor",
+      "auth/claims-too-large": "Kimlik doğrulama talepleri maksimum boyutu aşıyor",
       "auth/email-already-exists": "E-posta adresi zaten mevcut",
       "auth/id-token-expired": "Kimlik belirteci süresi doldu",
       "auth/id-token-revoked": "Kimlik belirteci iptal edildi",
@@ -53,6 +90,8 @@ export default {
       "auth/missing-continue-uri": "Devam URL eksik",
       "auth/missing-ios-bundle-id": "iOS paket kimliği eksik",
       "auth/missing-uid": "Kullanıcı kimliği eksik",
+      "auth/missing-email": "Lütfen e-posta adresinizi girin",
+      "auth/missing-password": "Lütfen şifrenizi girin",
       "auth/operation-not-allowed": "İşleme izin verilmiyor",
       "auth/phone-number-already-exists": "Telefon numarası zaten mevcut",
       "auth/project-not-found": "Proje bulunamadı",
@@ -65,8 +104,24 @@ export default {
       "auth/wrong-password": "Yanlış şifre",
       "auth/email-already-in-use": "E-posta adresi zaten kullanımda",
       "auth/weak-password": "Şifre çok zayıf",
-      "auth/too-many-requests":
-        "Çok fazla deneme yapıldı. Lütfen daha sonra tekrar deneyin",
+      "auth/too-many-requests": "Çok fazla deneme yapıldı. Lütfen daha sonra tekrar deneyin",
+      "auth/network-request-failed": "Ağ bağlantısı başarısız oldu",
+      "required-name": "Ad Soyad gerekli",
+      "required-password": "Şifre gerekli",
+      "password-mismatch": "Şifreler eşleşmiyor"
     },
   },
+  profile: {
+    logoutTitle: "Çıkış Yap",
+    logoutConfirmation: "Çıkış yapmak istediğinizden emin misiniz?",
+    logoutSuccessTitle: "Çıkış Yapıldı",
+    logoutSuccessMessage: "Başarıyla çıkış yaptınız",
+    logoutErrorTitle: "Çıkış Başarısız",
+    logoutErrorMessage: "Çıkış yapılırken bir sorun oluştu",
+    deleteAccountTitle: "Hesabı Sil",
+    deleteAccountConfirmation: "Hesabınızı silmek istediğinizden emin misiniz? Bu işlem geri alınamaz.",
+    deleteAccount: "Hesabı Sil",
+    confirmDeleteTitle: "Silmeyi Onaylayın",
+    confirmDeleteMessage: "Güvenlik için lütfen önce çıkış yapın ve hesabınızı silmeden önce tekrar giriş yapın."
+  }
 };

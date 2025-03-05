@@ -18,12 +18,9 @@ import { DocumentDetailScreen } from "../screens/main/DocumentDetailScreen";
 import { PremiumScreen } from "../screens/main/PremiumScreen";
 import { AccountSettingsScreen } from "../screens/main/AccountSettingsScreen";
 import { NotificationScreen } from "../screens/main/NotificationScreen";
-import { StorageScreen } from "../screens/main/StorageScreen";
 import { HelpSupportScreen } from "../screens/main/HelpSupportScreen";
 import { PaymentMethodScreen } from "../screens/main/PaymentMethodScreen";
 import { TokenPurchaseSuccessScreen } from "../screens/main/TokenPurchaseSuccessScreen";
-import { BillingHistoryScreen } from "../screens/main/BillingHistoryScreen";
-import { SubscriptionScreen } from "../screens/main/SubscriptionScreen";
 
 const Tab = createBottomTabNavigator();
 const Stack = createNativeStackNavigator();
@@ -114,7 +111,6 @@ export const MainNavigator = () => {
       <Stack.Navigator screenOptions={{ headerShown: false }}>
         <Stack.Screen name="Main" component={MainTabs} />
         <Stack.Screen name="DocumentDetail" component={DocumentDetailScreen} />
-        <Stack.Screen name="Storage" component={StorageScreen} />
         <Stack.Screen name="Premium" component={PremiumScreen} />
         <Stack.Screen
           name="AccountSettings"
@@ -127,8 +123,6 @@ export const MainNavigator = () => {
           name="TokenPurchaseSuccess"
           component={TokenPurchaseSuccessScreen}
         />
-        <Stack.Screen name="BillingHistory" component={BillingHistoryScreen} />
-        <Stack.Screen name="Subscription" component={SubscriptionScreen} />
       </Stack.Navigator>
     </>
   );

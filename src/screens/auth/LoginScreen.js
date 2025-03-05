@@ -17,35 +17,85 @@ import { useTranslation } from "react-i18next";
 import { Ionicons } from "@expo/vector-icons";
 import { FIREBASE_AUTH } from "../../../FirebaseConfig";
 import { signInWithEmailAndPassword } from "firebase/auth";
-import AsyncStorage from "@react-native-async-storage/async-storage";
+import * as SecureStore from "expo-secure-store";
+import { showToast } from "../../utils/toast";
+import { useAuth } from "../../hooks/useAuth";
 
 export const LoginScreen = ({ navigation }) => {
   const { theme } = useTheme();
   const { t } = useTranslation();
+  const { saveUser } = useAuth();
   const [email, setEmail] = useState("trooper1803@gmail.com");
   const [password, setPassword] = useState("123123123");
   const [loading, setLoading] = useState(false);
   const [showPassword, setShowPassword] = useState(false);
   const auth = FIREBASE_AUTH;
+  const [error, setError] = useState("");
+
+  const validateEmail = (email) => {
+    const re = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+    return re.test(email);
+  };
 
   const handleLogin = async () => {
-    if (!email || !password) {
-      setError(t("auth.errors.invalidEmailAndPassword"));
+    // Reset error state
+    setError("");
+
+    // Validate inputs
+    if (!email) {
+      setError(t("auth.errors.missing-email") || "Please enter your email");
+      return;
+    }
+
+    if (!validateEmail(email)) {
+      setError(t("auth.errors.invalid-email") || "Please enter a valid email");
+      return;
+    }
+
+    if (!password) {
+      setError(
+        t("auth.errors.missing-password") || "Please enter your password"
+      );
       return;
     }
 
     try {
       setLoading(true);
+      // Try to sign in with Firebase Authentication
       const response = await signInWithEmailAndPassword(auth, email, password);
-      await AsyncStorage.setItem("user", JSON.stringify(response.user));
+      const userData = response.user;
 
+      console.log("Login successful, saving user data");
+
+      // Kullanıcı bilgilerini kaydet - artık SecureStore kullanıyor
+      const saved = await saveUser(userData);
+      if (!saved) {
+        console.error("Failed to save user data");
+        showToast.error("Login Error", "Failed to save login session");
+        return;
+      }
+
+      // Başarılı giriş
+      console.log("User data saved, navigating to MainNavigator");
+
+      // Ana ekrana yönlendir
       navigation.reset({
         index: 0,
         routes: [{ name: "MainNavigator" }],
       });
     } catch (error) {
-      console.log("Error::", error);
-      setError(t(`auth.errors.${error.code}`));
+      console.log("Login error:", error);
+      // Handle specific Firebase auth errors
+      const errorCode = error.code || "auth/unknown-error";
+      setError(
+        t(`auth.errors.${errorCode}`) || error.message || "Login failed"
+      );
+
+      // Show error toast for better visibility
+      showToast.error(
+        t("auth.loginFailedTitle") || "Login Failed",
+        t(`auth.errors.${errorCode}`) || error.message
+      );
     } finally {
       setLoading(false);
     }
@@ -110,6 +160,7 @@ export const LoginScreen = ({ navigation }) => {
               rightIcon={showPassword ? "eye-off-outline" : "eye-outline"}
               onRightIconPress={() => setShowPassword(!showPassword)}
               style={styles.passwordInput}
+              error={error}
             />
 
             <TouchableOpacity

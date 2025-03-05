@@ -7,19 +7,24 @@ import {
   ScrollView,
   TouchableOpacity,
   StatusBar,
+  Alert,
 } from "react-native";
 import { SafeAreaView } from "react-native-safe-area-context";
 import { Text, Input, Button } from "../../components/common";
 import { useTheme } from "../../hooks/useTheme";
 import { useTranslation } from "react-i18next";
 import { Ionicons } from "@expo/vector-icons";
-import { createUserWithEmailAndPassword } from "firebase/auth";
+import { createUserWithEmailAndPassword, updateProfile } from "firebase/auth";
 import { FIREBASE_AUTH, FIRESTORE_DB } from "../../../FirebaseConfig";
-import { collection, addDoc } from "firebase/firestore";
+import { collection, addDoc, serverTimestamp } from "firebase/firestore";
+import { showToast } from "../../utils/toast";
+import * as SecureStore from "expo-secure-store";
+import { useAuth } from "../../hooks/useAuth";
 
 export const RegisterScreen = ({ navigation }) => {
   const { theme } = useTheme();
   const { t } = useTranslation();
+  const { saveUser } = useAuth();
   const [formData, setFormData] = useState({
     fullName: "",
     email: "",
@@ -30,24 +35,61 @@ export const RegisterScreen = ({ navigation }) => {
   const [showPassword, setShowPassword] = useState(false);
   const [showConfirmPassword, setShowConfirmPassword] = useState(false);
   const auth = FIREBASE_AUTH;
-  const handleRegister = async () => {
-    if (
-      !formData.fullName ||
-      !formData.email ||
-      !formData.password ||
-      !formData.confirmPassword
-    ) {
-      // Show error
-      return;
+  const [errors, setErrors] = useState({});
+
+  const validateEmail = (email) => {
+    const re = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+    return re.test(email);
+  };
+
+  const validateForm = () => {
+    const newErrors = {};
+    let isValid = true;
+
+    // Check required fields
+    if (!formData.fullName.trim()) {
+      newErrors.fullName = t("auth.errors.required-name") || "Name is required";
+      isValid = false;
+    }
+
+    if (!formData.email.trim()) {
+      newErrors.email = t("auth.errors.invalid-email") || "Email is required";
+      isValid = false;
+    } else if (!validateEmail(formData.email)) {
+      newErrors.email = t("auth.errors.invalid-email") || "Email is invalid";
+      isValid = false;
+    }
+
+    if (!formData.password) {
+      newErrors.password =
+        t("auth.errors.required-password") || "Password is required";
+      isValid = false;
+    } else if (formData.password.length < 6) {
+      newErrors.password =
+        t("auth.errors.weak-password") ||
+        "Password must be at least 6 characters";
+      isValid = false;
     }
 
     if (formData.password !== formData.confirmPassword) {
-      // Show password match error
+      newErrors.confirmPassword =
+        t("auth.errors.password-mismatch") || "Passwords don't match";
+      isValid = false;
+    }
+
+    setErrors(newErrors);
+    return isValid;
+  };
+
+  const handleRegister = async () => {
+    // Validate form
+    if (!validateForm()) {
       return;
     }
 
     setLoading(true);
     try {
+      // Create user with Firebase Authentication
       const response = await createUserWithEmailAndPassword(
         auth,
         formData.email,
@@ -56,17 +98,56 @@ export const RegisterScreen = ({ navigation }) => {
 
       const user = response.user;
 
-      // Firestore’a kullanıcı ekleme
+      // Update user profile with full name
+      await updateProfile(user, {
+        displayName: formData.fullName,
+      });
+
+      // Add user to Firestore database
       const userDocRef = await addDoc(collection(FIRESTORE_DB, "users"), {
         uid: user.uid,
         fullName: formData.fullName,
         email: formData.email,
-        createdAt: new Date().toISOString(),
+        createdAt: serverTimestamp(),
+        lastLogin: serverTimestamp(),
       });
 
       console.log("User registered with ID: ", userDocRef.id);
+
+      // Kullanıcı bilgilerini SecureStore'a kaydet
+      await saveUser(user);
+
+      console.log("User registered and data saved to SecureStore");
+
+      // Başarı bildirimi
+      showToast.success(
+        "Registration Successful",
+        "Your account has been created successfully"
+      );
+
+      // Ana ekrana yönlendir
+      navigation.reset({
+        index: 0,
+        routes: [{ name: "MainNavigator" }],
+      });
     } catch (error) {
-      console.error(error);
+      console.error("Registration error:", error);
+      // Handle specific error codes
+      const errorCode = error.code || "auth/unknown-error";
+
+      if (errorCode === "auth/email-already-in-use") {
+        setErrors({
+          ...errors,
+          email:
+            t("auth.errors.email-already-in-use") || "Email already in use",
+        });
+      } else {
+        // Show general error
+        setErrors({
+          ...errors,
+          general: t(`auth.errors.${errorCode}`) || error.message,
+        });
+      }
     } finally {
       setLoading(false);
     }
@@ -116,25 +197,27 @@ export const RegisterScreen = ({ navigation }) => {
 
           <View style={styles.form}>
             <Input
-              placeholder={t("auth.fullName")}
+              placeholder={t("auth.fullName") || "Full Name"}
               value={formData.fullName}
               onChangeText={(value) => updateFormData("fullName", value)}
               theme={theme}
               icon="person-outline"
+              error={errors.fullName}
             />
 
             <Input
-              placeholder={t("auth.email")}
+              placeholder={t("auth.email") || "Email"}
               value={formData.email}
               onChangeText={(value) => updateFormData("email", value)}
               keyboardType="email-address"
               autoCapitalize="none"
               theme={theme}
               icon="mail-outline"
+              error={errors.email}
             />
 
             <Input
-              placeholder={t("auth.password")}
+              placeholder={t("auth.password") || "Password"}
               value={formData.password}
               onChangeText={(value) => updateFormData("password", value)}
               secureTextEntry={!showPassword}
@@ -142,10 +225,11 @@ export const RegisterScreen = ({ navigation }) => {
               icon="lock-closed-outline"
               rightIcon={showPassword ? "eye-off-outline" : "eye-outline"}
               onRightIconPress={() => setShowPassword(!showPassword)}
+              error={errors.password}
             />
 
             <Input
-              placeholder={t("auth.confirmPassword")}
+              placeholder={t("auth.confirmPassword") || "Confirm Password"}
               value={formData.confirmPassword}
               onChangeText={(value) => updateFormData("confirmPassword", value)}
               secureTextEntry={!showConfirmPassword}
@@ -157,6 +241,7 @@ export const RegisterScreen = ({ navigation }) => {
               onRightIconPress={() =>
                 setShowConfirmPassword(!showConfirmPassword)
               }
+              error={errors.confirmPassword}
             />
 
             <Text
