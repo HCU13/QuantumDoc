@@ -1,4 +1,4 @@
-// HistoryScreen.js (Eski Analytics sayfasının yerine)
+// HistoryScreen.js - Kullanıcının dökümanlarını gösteren ekran
 import React, { useState, useEffect } from "react";
 import {
   View,
@@ -14,103 +14,188 @@ import { Text } from "../../components/common";
 import { useTheme } from "../../hooks/useTheme";
 import { Ionicons } from "@expo/vector-icons";
 import { showToast } from "../../utils/toast";
+import { documentManager } from "../../services/DocumentManager";
+import { useAuth } from "../../hooks/useAuth";
 
 export const HistoryScreen = ({ navigation }) => {
   const { theme } = useTheme();
+  const { user } = useAuth();
   const [loading, setLoading] = useState(true);
   const [refreshing, setRefreshing] = useState(false);
   const [histories, setHistories] = useState([]);
   const [selectedFilter, setSelectedFilter] = useState("all");
+  const [documents, setDocuments] = useState([]);
 
   useEffect(() => {
-    loadHistory();
-  }, []);
+    if (user?.uid) {
+      loadHistory();
+    } else {
+      setLoading(false);
+      setHistories([]);
+    }
+  }, [user]);
 
   const loadHistory = async () => {
     setLoading(true);
     try {
-      // Simulated API call
-      await new Promise((resolve) => setTimeout(resolve, 1200));
+      if (!user?.uid) {
+        throw new Error("User not authenticated");
+      }
 
-      // Mock data - grouped by date
-      const mockData = [
-        {
-          title: "Today",
-          data: [
-            {
-              id: "1",
-              title: "Invoice Analysis",
-              type: "PDF",
-              action: "analyze",
-              time: "2 hours ago",
-              icon: "receipt-outline",
-            },
-            {
-              id: "2",
-              title: "Contract Scan",
-              type: "PDF",
-              action: "scan",
-              time: "5 hours ago",
-              icon: "document-text-outline",
-            },
-          ],
-        },
-        {
-          title: "Yesterday",
-          data: [
-            {
-              id: "3",
-              title: "Meeting Notes Upload",
-              type: "DOCX",
-              action: "upload",
-              time: "1 day ago",
-              icon: "document-text-outline",
-            },
-          ],
-        },
-        {
-          title: "This Week",
-          data: [
-            {
-              id: "4",
-              title: "Resume Analysis",
-              type: "PDF",
-              action: "analyze",
-              time: "2 days ago",
-              icon: "person-outline",
-            },
-            {
-              id: "5",
-              title: "Receipt Scan",
-              type: "Image",
-              action: "scan",
-              time: "3 days ago",
-              icon: "receipt-outline",
-            },
-            {
-              id: "6",
-              title: "Project Proposal",
-              type: "DOCX",
-              action: "upload",
-              time: "5 days ago",
-              icon: "document-text-outline",
-            },
-          ],
-        },
-      ];
+      console.log("Loading documents for user:", user.uid);
 
-      setHistories(mockData);
+      // Load user documents from Firebase
+      const userDocuments = await documentManager.getUserDocuments(user.uid);
+      console.log(`Loaded ${userDocuments.length} documents`);
+
+      // Store the raw documents for filtering
+      setDocuments(userDocuments);
+
+      // Group documents by date
+      const grouped = groupDocumentsByDate(userDocuments);
+      setHistories(grouped);
     } catch (error) {
-      showToast.error("Error", "Failed to load history");
+      console.error("Error loading history:", error);
+      showToast.error("Error", "Failed to load document history");
     } finally {
       setLoading(false);
+    }
+  };
+
+  // Helper function to group documents by date
+  const groupDocumentsByDate = (docs) => {
+    if (!docs || docs.length === 0) return [];
+
+    // Sort documents by date (newest first)
+    const sortedDocs = [...docs].sort((a, b) => {
+      const dateA = a.createdAt ? new Date(a.createdAt) : new Date(0);
+      const dateB = b.createdAt ? new Date(b.createdAt) : new Date(0);
+      return dateB - dateA;
+    });
+
+    // Get today and yesterday dates for comparison
+    const today = new Date();
+    today.setHours(0, 0, 0, 0);
+
+    const yesterday = new Date(today);
+    yesterday.setDate(yesterday.getDate() - 1);
+
+    const thisWeekStart = new Date(today);
+    thisWeekStart.setDate(thisWeekStart.getDate() - thisWeekStart.getDay());
+
+    // Group documents
+    const todayDocs = [];
+    const yesterdayDocs = [];
+    const thisWeekDocs = [];
+    const earlierDocs = [];
+
+    sortedDocs.forEach((doc) => {
+      // Convert document date
+      const docDate = doc.createdAt ? new Date(doc.createdAt) : new Date(0);
+      docDate.setHours(0, 0, 0, 0);
+
+      // Determine action type
+      let action = "upload";
+      if (doc.status === "analyzed") {
+        action = "analyze";
+      } else if (doc.type?.toLowerCase().includes("image")) {
+        action = "scan";
+      }
+
+      // Format relative time
+      const timeAgo = getRelativeTimeString(doc.createdAt);
+
+      // Get appropriate icon
+      let icon = "document-text-outline";
+      if (doc.type?.toLowerCase().includes("pdf")) {
+        icon = "document-text-outline";
+      } else if (doc.type?.toLowerCase().includes("image")) {
+        icon = "image-outline";
+      } else if (
+        doc.type?.toLowerCase().includes("word") ||
+        doc.type?.toLowerCase().includes("docx")
+      ) {
+        icon = "document-outline";
+      } else if (
+        doc.name?.toLowerCase().includes("invoice") ||
+        doc.name?.toLowerCase().includes("receipt")
+      ) {
+        icon = "receipt-outline";
+      }
+
+      // Create history item
+      const historyItem = {
+        id: doc.id,
+        title: doc.name || "Document",
+        type: doc.type || "File",
+        action,
+        time: timeAgo,
+        icon,
+        originalDoc: doc,
+      };
+
+      // Add to appropriate group
+      if (docDate.getTime() === today.getTime()) {
+        todayDocs.push(historyItem);
+      } else if (docDate.getTime() === yesterday.getTime()) {
+        yesterdayDocs.push(historyItem);
+      } else if (docDate >= thisWeekStart) {
+        thisWeekDocs.push(historyItem);
+      } else {
+        earlierDocs.push(historyItem);
+      }
+    });
+
+    // Create sections
+    const sections = [];
+
+    if (todayDocs.length > 0) {
+      sections.push({ title: "Today", data: todayDocs });
+    }
+
+    if (yesterdayDocs.length > 0) {
+      sections.push({ title: "Yesterday", data: yesterdayDocs });
+    }
+
+    if (thisWeekDocs.length > 0) {
+      sections.push({ title: "This Week", data: thisWeekDocs });
+    }
+
+    if (earlierDocs.length > 0) {
+      sections.push({ title: "Earlier", data: earlierDocs });
+    }
+
+    return sections;
+  };
+
+  // Helper function to format relative time
+  const getRelativeTimeString = (dateString) => {
+    if (!dateString) return "Unknown";
+
+    const date = new Date(dateString);
+    const now = new Date();
+    const diffSeconds = Math.floor((now - date) / 1000);
+
+    if (diffSeconds < 60) {
+      return "Just now";
+    } else if (diffSeconds < 3600) {
+      const mins = Math.floor(diffSeconds / 60);
+      return `${mins} ${mins === 1 ? "min" : "mins"} ago`;
+    } else if (diffSeconds < 86400) {
+      const hours = Math.floor(diffSeconds / 3600);
+      return `${hours} ${hours === 1 ? "hour" : "hours"} ago`;
+    } else if (diffSeconds < 604800) {
+      const days = Math.floor(diffSeconds / 86400);
+      return `${days} ${days === 1 ? "day" : "days"} ago`;
+    } else {
+      return date.toLocaleDateString();
     }
   };
 
   const onRefresh = React.useCallback(() => {
     setRefreshing(true);
     loadHistory().finally(() => setRefreshing(false));
-  }, []);
+  }, [user]);
 
   const getActionColor = (action) => {
     switch (action) {

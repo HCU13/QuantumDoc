@@ -8,6 +8,8 @@ import {
   getDocs,
   orderBy,
   limit,
+  doc,
+  getDoc,
 } from "firebase/firestore";
 import { FIRESTORE_DB } from "../../FirebaseConfig";
 import * as FileSystem from "expo-file-system";
@@ -23,6 +25,7 @@ export const documentManager = {
    */
   pickDocument: async () => {
     try {
+      console.log("Opening document picker");
       const result = await DocumentPicker.getDocumentAsync({
         type: [
           "application/pdf",
@@ -30,15 +33,17 @@ export const documentManager = {
           "application/vnd.openxmlformats-officedocument.wordprocessingml.document",
           "image/jpeg",
           "image/png",
+          "text/plain",
         ],
         copyToCacheDirectory: true,
       });
 
       if (result.canceled) {
+        console.log("Document picker canceled");
         return null;
       }
 
-      // Return the file information
+      console.log("Document selected:", result.assets[0].name);
       return result.assets[0];
     } catch (error) {
       console.error("Error picking document:", error);
@@ -58,6 +63,7 @@ export const documentManager = {
         throw new Error("Camera permission is required");
       }
 
+      console.log("Opening camera");
       // Take a picture
       const result = await ImagePicker.launchCameraAsync({
         mediaTypes: ImagePicker.MediaTypeOptions.Images,
@@ -67,9 +73,11 @@ export const documentManager = {
       });
 
       if (result.canceled) {
+        console.log("Camera capture canceled");
         return null;
       }
 
+      console.log("Image captured");
       // Optimize the image for document processing
       const processedImage = await ImageManipulator.manipulateAsync(
         result.assets[0].uri,
@@ -77,11 +85,14 @@ export const documentManager = {
         { compress: 0.8, format: ImageManipulator.SaveFormat.JPEG }
       );
 
+      console.log("Image processed");
+      const fileSize = await this.getFileSize(processedImage.uri);
+
       return {
         uri: processedImage.uri,
         name: `scan_${new Date().toISOString()}.jpg`,
         type: "image/jpeg",
-        size: await this.getFileSize(processedImage.uri),
+        size: fileSize,
       };
     } catch (error) {
       console.error("Error scanning document:", error);
@@ -114,63 +125,102 @@ export const documentManager = {
   processDocument: async (file, userId, onProgress = () => {}) => {
     try {
       // Update progress
-      onProgress(0, "Preparing document");
+      onProgress(0, "preparing");
+      console.log("Starting document processing", {
+        fileName: file.name,
+        fileType: file.type,
+      });
 
       // Generate a unique file name
       const timestamp = new Date().getTime();
-      const fileExtension = file.name.split(".").pop();
-      const fileName = `${timestamp}.${fileExtension}`;
+      const fileExtension = file.name.split(".").pop().toLowerCase();
+      const safeFileName = `doc_${timestamp}.${fileExtension}`;
 
       // Upload to Firebase Storage
-      onProgress(10, "Uploading document");
-      const { downloadUrl, storageRef } = await firebaseStorage.uploadDocument(
-        file.uri,
-        fileName,
-        userId,
-        file.type,
-        (progress) => onProgress(10 + progress * 0.3, "Uploading document")
-      );
+      onProgress(10, "uploading");
+      console.log("Uploading document to Firebase Storage");
+
+      const { downloadUrl, storageRef, size } =
+        await firebaseStorage.uploadDocument(
+          file.uri,
+          safeFileName,
+          userId,
+          file.type,
+          (progress) => onProgress(10 + progress * 0.3, "uploading")
+        );
 
       // Save document metadata to Firestore
-      onProgress(40, "Saving document information");
+      onProgress(40, "saving");
+      console.log("Saving document metadata to Firestore");
+
       const documentData = {
-        name: file.name,
-        originalName: file.name,
-        type: file.type,
-        size: file.size,
+        name: file.name || "Unnamed Document",
+        originalName: file.name || "Unnamed Document",
+        fileName: safeFileName,
+        type: file.type || "application/octet-stream", // default type if undefined
+        size: file.size || size || 0,
         userId,
         storageRef,
         downloadUrl,
         status: "uploaded",
+        fileExtension: fileExtension || "unknown",
+        createdAt: new Date().toISOString(),
       };
 
       const documentId = await firebaseStorage.saveDocumentMetadata(
         documentData
       );
 
-      // Process with Claude API
-      onProgress(50, "Analyzing document content");
-      const analysisResult = await claudeService.processDocument({
-        id: documentId,
-        userId,
-        fileUrl: downloadUrl,
-        mimeType: file.type,
-      });
+      console.log("Document saved with ID:", documentId);
 
-      // Update document status
-      onProgress(90, "Finalizing");
-      await firebaseStorage.updateDocumentMetadata(documentId, {
-        status: "analyzed",
-        analysisId: analysisResult.id || "",
-      });
+      // Only proceed with Claude API if it's a text document we can analyze
+      if (
+        ["pdf", "docx", "doc", "txt"].includes(fileExtension) ||
+        file.type.startsWith("application/pdf") ||
+        file.type.includes("document")
+      ) {
+        // Process with Claude API
+        onProgress(50, "analyzing");
+        console.log("Sending document to Claude API for analysis");
 
-      onProgress(100, "Complete");
+        try {
+          const analysisResult = await claudeService.processDocument({
+            id: documentId,
+            userId,
+            fileUrl: downloadUrl,
+            mimeType: file.type,
+          });
+
+          // Update document status
+          onProgress(90, "finalizing");
+          await firebaseStorage.updateDocumentMetadata(documentId, {
+            status: "analyzed",
+            analysisId: analysisResult?.id || "",
+          });
+
+          documentData.analysisResult = analysisResult;
+        } catch (analysisError) {
+          console.error("Error during document analysis:", analysisError);
+          // Still continue - we'll just mark it as uploaded without analysis
+          await firebaseStorage.updateDocumentMetadata(documentId, {
+            status: "upload_only",
+            analysisError: analysisError.message,
+          });
+        }
+      } else {
+        // Skip analysis for non-document files
+        console.log("Skipping analysis for non-document file");
+        await firebaseStorage.updateDocumentMetadata(documentId, {
+          status: "upload_only",
+        });
+      }
+
+      onProgress(100, "complete");
 
       // Return the processed document data
       return {
         id: documentId,
         ...documentData,
-        analysisResult,
       };
     } catch (error) {
       console.error("Error processing document:", error);
@@ -186,6 +236,7 @@ export const documentManager = {
    */
   getUserDocuments: async (userId, limitCount = 20) => {
     try {
+      console.log("Getting user documents", { userId });
       const q = query(
         collection(FIRESTORE_DB, "documents"),
         where("userId", "==", userId),
@@ -194,10 +245,13 @@ export const documentManager = {
       );
 
       const querySnapshot = await getDocs(q);
-      return querySnapshot.docs.map((doc) => ({
+      const documents = querySnapshot.docs.map((doc) => ({
         id: doc.id,
         ...doc.data(),
       }));
+
+      console.log(`Retrieved ${documents.length} documents`);
+      return documents;
     } catch (error) {
       console.error("Error getting user documents:", error);
       throw error;
@@ -212,29 +266,23 @@ export const documentManager = {
    */
   askDocumentQuestion: async (documentId, question) => {
     try {
-      // Get document context
-      // This is a simplified approach - in a real app you'd need to handle large documents properly
+      console.log("Asking question about document", { documentId, question });
+
+      // Get document
       const document = await this.getDocumentById(documentId);
       if (!document) {
         throw new Error("Document not found");
       }
 
-      // Get the most recent analysis result for context
-      const analysis = await claudeService.getDocumentAnalysis(documentId);
-      const documentContext = analysis
-        ? analysis.analysisData.content[0].text
-        : "";
-
-      // Ask Claude the question
+      // Send question to Claude API
       const answer = await claudeService.askDocumentQuestion(
         documentId,
-        question,
-        documentContext
+        question
       );
 
       return {
         question,
-        answer: answer.content[0].text,
+        answer: answer.answer,
         documentId,
         documentName: document.name,
       };
@@ -251,20 +299,19 @@ export const documentManager = {
    */
   getDocumentById: async (documentId) => {
     try {
-      const q = query(
-        collection(FIRESTORE_DB, "documents"),
-        where("__name__", "==", documentId),
-        limit(1)
-      );
+      console.log("Getting document by ID", { documentId });
+      const docRef = doc(FIRESTORE_DB, "documents", documentId);
+      const docSnap = await getDoc(docRef);
 
-      const querySnapshot = await getDocs(q);
-      if (querySnapshot.docs.length === 0) {
+      if (!docSnap.exists()) {
+        console.log("Document not found");
         return null;
       }
 
+      console.log("Document found");
       return {
-        id: querySnapshot.docs[0].id,
-        ...querySnapshot.docs[0].data(),
+        id: docSnap.id,
+        ...docSnap.data(),
       };
     } catch (error) {
       console.error("Error getting document by ID:", error);
@@ -288,12 +335,14 @@ export const documentManager = {
    */
   deleteDocument: async (documentId) => {
     try {
+      console.log("Deleting document", { documentId });
       const document = await this.getDocumentById(documentId);
       if (!document) {
         throw new Error("Document not found");
       }
 
       await firebaseStorage.deleteDocument(documentId, document.storageRef);
+      console.log("Document deleted successfully");
     } catch (error) {
       console.error("Error deleting document:", error);
       throw error;

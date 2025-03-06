@@ -6,7 +6,6 @@ import {
   getDownloadURL,
   deleteObject,
 } from "firebase/storage";
-import { FIREBASE_APP } from "../FirebaseConfig";
 import {
   collection,
   addDoc,
@@ -16,9 +15,9 @@ import {
   deleteDoc,
   getDoc,
 } from "firebase/firestore";
-import { FIRESTORE_DB } from "../../FirebaseConfig";
+import { FIREBASE_APP, FIRESTORE_DB } from "../../FirebaseConfig";
 import * as FileSystem from "expo-file-system";
-
+import { getAuth } from "firebase/auth";
 // Initialize Firebase Storage
 const storage = getStorage(FIREBASE_APP);
 
@@ -32,37 +31,43 @@ export const firebaseStorage = {
    * @param {Function} onProgress - Progress callback
    * @returns {Promise<{downloadUrl: string, storageRef: string}>}
    */
-  uploadDocument: async (
-    uri,
-    fileName,
-    userId,
-    mimeType,
-    onProgress = () => {}
-  ) => {
+  uploadDocument: async (uri, fileName, mimeType, onProgress = () => {}) => {
     try {
-      // Read the file as base64
+      // Firebase Authentication'dan kullanıcı ID'sini al
+      const auth = getAuth();
+      const userId = auth.currentUser ? auth.currentUser.uid : null;
+
+      if (!userId) {
+        throw new Error("User not authenticated");
+      }
+
+      // Read the file info
       const fileInfo = await FileSystem.getInfoAsync(uri);
       if (!fileInfo.exists) {
         throw new Error("File not found");
       }
 
+      console.log(`Uploading file: ${fileName}, size: ${fileInfo.size} bytes`);
+
       // Create a blob from the file
       const response = await fetch(uri);
       const blob = await response.blob();
 
-      // Create storage reference
-      const storageRef = ref(storage, `documents/${userId}/${fileName}`);
+      // Create storage reference with user folder
+      const storagePath = `documents/${userId}/${fileName}`;
+      const storageRef = ref(storage, storagePath);
+      console.log(`Storage reference created: ${storagePath}`);
 
       // Create upload task
       const uploadTask = uploadBytesResumable(storageRef, blob);
 
-      // Return a promise that resolves when the upload is complete
       return new Promise((resolve, reject) => {
         uploadTask.on(
           "state_changed",
           (snapshot) => {
             const progress =
               (snapshot.bytesTransferred / snapshot.totalBytes) * 100;
+            console.log(`Upload progress: ${progress.toFixed(1)}%`);
             onProgress(progress);
           },
           (error) => {
@@ -71,11 +76,18 @@ export const firebaseStorage = {
           },
           async () => {
             // Upload completed successfully, get the download URL
-            const downloadUrl = await getDownloadURL(uploadTask.snapshot.ref);
-            resolve({
-              downloadUrl,
-              storageRef: `documents/${userId}/${fileName}`,
-            });
+            try {
+              const downloadUrl = await getDownloadURL(uploadTask.snapshot.ref);
+              console.log(`Upload successful. Download URL: ${downloadUrl}`);
+              resolve({
+                downloadUrl,
+                storageRef: storagePath,
+                size: fileInfo.size,
+              });
+            } catch (urlError) {
+              console.error("Error getting download URL:", urlError);
+              reject(urlError);
+            }
           }
         );
       });
@@ -92,12 +104,23 @@ export const firebaseStorage = {
    */
   saveDocumentMetadata: async (documentData) => {
     try {
+      console.log("Saving document metadata to Firestore:", documentData);
+
+      // Firestore'a kaydetmeden önce undefined değerleri temizleyelim
+      const sanitizedData = {};
+      Object.keys(documentData).forEach((key) => {
+        // undefined değerleri null olarak değiştir
+        sanitizedData[key] =
+          documentData[key] === undefined ? null : documentData[key];
+      });
+
       const docRef = await addDoc(collection(FIRESTORE_DB, "documents"), {
-        ...documentData,
+        ...sanitizedData,
         createdAt: serverTimestamp(),
         updatedAt: serverTimestamp(),
       });
 
+      console.log("Document metadata saved with ID:", docRef.id);
       return docRef.id;
     } catch (error) {
       console.error("Error saving document metadata:", error);
@@ -113,11 +136,13 @@ export const firebaseStorage = {
    */
   updateDocumentMetadata: async (docId, updateData) => {
     try {
+      console.log("Updating document metadata:", { docId, updateData });
       const docRef = doc(FIRESTORE_DB, "documents", docId);
       await updateDoc(docRef, {
         ...updateData,
         updatedAt: serverTimestamp(),
       });
+      console.log("Document metadata updated successfully");
     } catch (error) {
       console.error("Error updating document metadata:", error);
       throw error;

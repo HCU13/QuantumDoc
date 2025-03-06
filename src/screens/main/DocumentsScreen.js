@@ -18,6 +18,8 @@ import { useTheme } from "../../hooks/useTheme";
 import { Ionicons } from "@expo/vector-icons";
 import { LinearGradient } from "expo-linear-gradient";
 import { showToast } from "../../utils/toast";
+import { documentManager } from "../../services/DocumentManager";
+import { useAuth } from "../../hooks/useAuth";
 import * as DocumentPicker from "expo-document-picker";
 import { ScanGuides } from "../../components/ScanGuides";
 
@@ -46,6 +48,7 @@ const { width, height } = Dimensions.get("window");
 
 export const DocumentsScreen = ({ navigation }) => {
   const { theme } = useTheme();
+  const { user } = useAuth();
 
   // Camera state
   const [hasCameraPermission, setHasCameraPermission] = useState(null);
@@ -60,6 +63,7 @@ export const DocumentsScreen = ({ navigation }) => {
   const [isUploading, setIsUploading] = useState(false);
   const [processingState, setProcessingState] = useState(null); // null, 'scanning', 'uploading', 'analyzing', 'completed'
   const [processingProgress, setProcessingProgress] = useState(0);
+  const [processingStatus, setProcessingStatus] = useState("");
 
   // Animation states
   const scanButtonScale = useRef(new Animated.Value(1)).current;
@@ -135,6 +139,13 @@ export const DocumentsScreen = ({ navigation }) => {
       Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Medium);
     }
 
+    // Check if user is logged in
+    if (!user?.uid) {
+      showToast.error("Error", "You must be logged in to scan documents");
+      navigation.navigate("Auth");
+      return;
+    }
+
     // Check token availability
     if (tokenCount <= 0) {
       Alert.alert(
@@ -180,6 +191,13 @@ export const DocumentsScreen = ({ navigation }) => {
       Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Medium);
     }
 
+    // Check if user is logged in
+    if (!user?.uid) {
+      showToast.error("Error", "You must be logged in to upload documents");
+      navigation.navigate("Auth");
+      return;
+    }
+
     // Check token availability
     if (tokenCount <= 0) {
       Alert.alert(
@@ -194,25 +212,69 @@ export const DocumentsScreen = ({ navigation }) => {
     }
 
     try {
+      setIsUploading(true);
+
+      // Open document picker
       const result = await DocumentPicker.getDocumentAsync({
         type: [
           "application/pdf",
           "image/*",
           "application/msword",
           "application/vnd.openxmlformats-officedocument.wordprocessingml.document",
+          "text/plain",
         ],
         copyToCacheDirectory: true,
       });
 
       if (result.canceled) {
+        setIsUploading(false);
         return;
       }
 
-      // Process the selected document
-      startDocumentProcessing("uploading", result.assets[0]);
+      // Process the selected document with the document manager
+      const selectedFile = result.assets[0];
+      console.log("Selected file:", selectedFile);
+
+      // Show processing modal
+      setProcessingState("uploading");
+      setProcessingProgress(0);
+      setProcessingStatus("preparing");
+      setResultModalVisible(true);
+
+      // Process document
+      try {
+        const processedDoc = await documentManager.processDocument(
+          selectedFile,
+          user.uid,
+          (progress, status) => {
+            setProcessingProgress(progress / 100);
+            setProcessingStatus(status);
+          }
+        );
+
+        console.log("Document processed successfully:", processedDoc);
+
+        // Update token count
+        setTokenCount((prevCount) => Math.max(0, prevCount - 1));
+
+        // Set processed document and complete state
+        setProcessedDocument(processedDoc);
+        setProcessingState("completed");
+
+        // Provide haptic success feedback
+        if (Haptics?.notificationAsync) {
+          Haptics.notificationAsync(Haptics.NotificationFeedbackType.Success);
+        }
+      } catch (processError) {
+        console.error("Error processing document:", processError);
+        showToast.error("Error", "Failed to process document");
+        setResultModalVisible(false);
+      }
     } catch (error) {
       console.error("Document picker error:", error);
       showToast.error("Error", "Failed to select document");
+    } finally {
+      setIsUploading(false);
     }
   };
 
@@ -235,15 +297,40 @@ export const DocumentsScreen = ({ navigation }) => {
         // Close camera modal
         setScanModalVisible(false);
 
+        // Show processing modal
+        setProcessingState("scanning");
+        setProcessingProgress(0);
+        setProcessingStatus("preparing");
+        setResultModalVisible(true);
+
         // Process the captured image
-        startDocumentProcessing("scanning", {
+        const scannedFile = {
           uri: photo.uri,
           name: `scan_${new Date().toISOString()}.jpg`,
           type: "image/jpeg",
-        });
+          size: await documentManager.getFileSize(photo.uri),
+        };
+
+        const processedDoc = await documentManager.processDocument(
+          scannedFile,
+          user.uid,
+          (progress, status) => {
+            setProcessingProgress(progress / 100);
+            setProcessingStatus(status);
+          }
+        );
+
+        // Update token count
+        setTokenCount((prevCount) => Math.max(0, prevCount - 1));
+
+        // Set processed document and complete state
+        setProcessedDocument(processedDoc);
+        setProcessingState("completed");
       } catch (error) {
         console.error("Camera capture error:", error);
         showToast.error("Error", "Failed to capture image");
+        setResultModalVisible(false);
+      } finally {
         setIsScanning(false);
       }
     }
@@ -253,69 +340,46 @@ export const DocumentsScreen = ({ navigation }) => {
   const simulateScanProcess = () => {
     setScanModalVisible(false);
 
-    // Simulate a capture
-    startDocumentProcessing("scanning", {
-      uri: "https://example.com/placeholder.jpg",
-      name: `scan_${new Date().toISOString()}.jpg`,
-      type: "image/jpeg",
-    });
-  };
-
-  // Start document processing
-  const startDocumentProcessing = (type, documentData) => {
-    // Set the processing state and show result modal
-    setProcessingState(type);
-    setResultModalVisible(true);
+    // Simulate a scan
+    setProcessingState("scanning");
     setProcessingProgress(0);
+    setProcessingStatus("preparing");
+    setResultModalVisible(true);
 
-    // Use token
-    setTokenCount((prevCount) => prevCount - 1);
-
-    // Avoid state closure issues with progress tracking
-    let progress = 0;
+    // Simulate processing
     const interval = setInterval(() => {
-      progress += 0.1;
-      setProcessingProgress(Math.min(progress, 1));
-
-      // Use a function form to ensure we get the latest state
-      if (progress >= 0.5) {
-        setProcessingState((prevState) =>
-          prevState !== "analyzing" ? "analyzing" : prevState
-        );
-      }
-
-      if (progress >= 1) {
-        clearInterval(interval);
-
-        // Complete processing
-        setProcessingState("completed");
-
-        // Set processed document data
-        setProcessedDocument({
-          id: `doc-${Date.now()}`,
-          title:
-            documentData.name || `Document ${new Date().toLocaleTimeString()}`,
-          type: type === "scanning" ? "Scanned Document" : "Uploaded Document",
-          date: new Date().toISOString(),
-          preview: documentData.uri,
-        });
-
-        // Provide haptic success feedback
-        if (Haptics?.notificationAsync) {
-          Haptics.notificationAsync(Haptics.NotificationFeedbackStyle.Success);
+      setProcessingProgress((prev) => {
+        const next = prev + 0.1;
+        if (next >= 1) {
+          clearInterval(interval);
+          setProcessingState("completed");
+          setProcessedDocument({
+            id: `doc-${Date.now()}`,
+            name: `Scan_${new Date().toLocaleTimeString()}.jpg`,
+            type: "image/jpeg",
+          });
+        } else if (next >= 0.5 && prev < 0.5) {
+          setProcessingStatus("analyzing");
         }
-      }
+        return Math.min(next, 1);
+      });
     }, 300);
   };
 
-  // Navigate to document detail
+  // View document detail
   const viewDocumentDetail = () => {
+    if (!processedDocument || !processedDocument.id) {
+      showToast.error("Error", "Document information not available");
+      setResultModalVisible(false);
+      return;
+    }
+
     setResultModalVisible(false);
 
     // Small delay to ensure modal is closed before navigation
     setTimeout(() => {
       navigation.navigate("DocumentDetail", {
-        documentId: processedDocument?.id || `doc-${Date.now()}`,
+        documentId: processedDocument.id,
       });
     }, 300);
   };
@@ -511,9 +575,15 @@ export const DocumentsScreen = ({ navigation }) => {
                   { color: theme.colors.textSecondary },
                 ]}
               >
-                {processingState === "analyzing"
+                {processingStatus === "analyzing"
                   ? "AI is extracting information..."
-                  : "Preparing document for analysis..."}
+                  : processingStatus === "uploading"
+                  ? "Uploading document to secure storage..."
+                  : processingStatus === "saving"
+                  ? "Saving document information..."
+                  : processingStatus === "finalizing"
+                  ? "Finalizing document processing..."
+                  : "Preparing document..."}
               </Text>
 
               <View

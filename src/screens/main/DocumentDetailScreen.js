@@ -12,6 +12,7 @@ import {
   KeyboardAvoidingView,
   ActivityIndicator,
   Animated,
+  Alert,
 } from "react-native";
 import { SafeAreaView } from "react-native-safe-area-context";
 import { Text, Button } from "../../components/common";
@@ -19,6 +20,8 @@ import { useTheme } from "../../hooks/useTheme";
 import { LanguageSwitcher } from "../../hooks/LanguageSwitcher";
 import { Ionicons } from "@expo/vector-icons";
 import { LinearGradient } from "expo-linear-gradient";
+import { documentManager } from "../../services/DocumentManager";
+import { showToast } from "../../utils/toast";
 
 const { width } = Dimensions.get("window");
 
@@ -27,24 +30,15 @@ export const DocumentDetailScreen = ({ navigation, route }) => {
   const { t } = LanguageSwitcher();
   const [activeTab, setActiveTab] = useState("summary"); // summary, insights, qa
 
+  // Document states
+  const { documentId } = route.params || {};
+  const [document, setDocument] = useState(null);
+  const [loading, setLoading] = useState(true);
+  const [documentContent, setDocumentContent] = useState(null);
+
   // Q&A states
   const [question, setQuestion] = useState("");
-  const [conversations, setConversations] = useState([
-    {
-      id: "1",
-      question: "What are the key financial metrics in this report?",
-      answer:
-        "The key financial metrics in this report include revenue growth (25% increase), operating cost reduction (12%), and customer acquisition cost (decreased by 18%).",
-      timestamp: new Date().getTime() - 3600000,
-    },
-    {
-      id: "2",
-      question: "Which market showed the strongest growth?",
-      answer:
-        "According to the report, the new market expansion contributed to 15% of the overall growth, with the Asian markets showing particularly strong performance.",
-      timestamp: new Date().getTime() - 1800000,
-    },
-  ]);
+  const [conversations, setConversations] = useState([]);
   const [sending, setSending] = useState(false);
   const [aiThinking, setAiThinking] = useState(false);
   const [keyboardVisible, setKeyboardVisible] = useState(false);
@@ -53,6 +47,61 @@ export const DocumentDetailScreen = ({ navigation, route }) => {
   const scrollViewRef = useRef(null);
   const inputRef = useRef(null);
   const fadeAnim = useRef(new Animated.Value(0)).current;
+
+  // Load document data when the component mounts
+  useEffect(() => {
+    if (documentId) {
+      loadDocument();
+    } else {
+      setLoading(false);
+      showToast.error("Error", "No document ID provided");
+    }
+  }, [documentId]);
+
+  // Load document data from Firebase
+  const loadDocument = async () => {
+    try {
+      setLoading(true);
+
+      // Get document by ID
+      const docData = await documentManager.getDocumentById(documentId);
+
+      if (!docData) {
+        throw new Error("Document not found");
+      }
+
+      console.log("Document loaded:", docData);
+      setDocument(docData);
+
+      // Get document conversations (Q&A history)
+      try {
+        const convos = await documentManager.getDocumentConversations(
+          documentId
+        );
+        if (convos && convos.length > 0) {
+          setConversations(
+            convos.map((c) => ({
+              id: c.id,
+              question: c.question,
+              answer: c.answer,
+              timestamp: c.createdAt
+                ? new Date(c.createdAt).getTime()
+                : new Date().getTime(),
+            }))
+          );
+        }
+      } catch (convoError) {
+        console.error("Error loading conversations:", convoError);
+        // Continue anyway - just won't have conversations history
+      }
+    } catch (error) {
+      console.error("Error loading document:", error);
+      showToast.error("Error", "Failed to load document");
+      navigation.goBack();
+    } finally {
+      setLoading(false);
+    }
+  };
 
   // Keyboard event listeners
   useEffect(() => {
@@ -99,29 +148,9 @@ export const DocumentDetailScreen = ({ navigation, route }) => {
     }
   }, [conversations]);
 
-  // Bu veriler normalde API'den gelecek
-  const documentDetails = {
-    title: "Financial Report Q4 2024",
-    type: "PDF",
-    pages: 15,
-    dateAnalyzed: "2024-02-14",
-    summary: "This financial report outlines the key performance indicators...",
-    keyInsights: [
-      "Revenue increased by 25% compared to Q3",
-      "Operating costs reduced by 12%",
-      "New market expansion contributed to 15% growth",
-      "Customer acquisition cost decreased by 18%",
-    ],
-    topics: [
-      { name: "Financial Performance", confidence: 0.95 },
-      { name: "Market Analysis", confidence: 0.88 },
-      { name: "Risk Assessment", confidence: 0.82 },
-    ],
-  };
-
   // Handle send message
   const handleSendMessage = async () => {
-    if (!question.trim() || sending) return;
+    if (!question.trim() || sending || !documentId) return;
 
     Keyboard.dismiss();
     setSending(true);
@@ -148,18 +177,24 @@ export const DocumentDetailScreen = ({ navigation, route }) => {
     setAiThinking(true);
 
     try {
-      // Simulate API call delay
-      await new Promise((resolve) => setTimeout(resolve, 2000));
-
-      // Create answer based on question
-      const answer = generateAnswer(newQuestion.question);
+      // Send question to Claude API
+      const response = await documentManager.askDocumentQuestion(
+        documentId,
+        newQuestion.question
+      );
 
       // Update conversation with answer
-      setConversations((prev) =>
-        prev.map((conv) =>
-          conv.id === newQuestion.id ? { ...conv, answer } : conv
-        )
-      );
+      if (response && response.answer) {
+        setConversations((prev) =>
+          prev.map((conv) =>
+            conv.id === newQuestion.id
+              ? { ...conv, answer: response.answer }
+              : conv
+          )
+        );
+      } else {
+        throw new Error("Failed to get answer");
+      }
 
       // Scroll to updated answer
       if (scrollViewRef.current) {
@@ -168,34 +203,24 @@ export const DocumentDetailScreen = ({ navigation, route }) => {
         }, 100);
       }
     } catch (error) {
-      console.error("Error generating answer:", error);
+      console.error("Error asking question:", error);
+      showToast.error("Error", "Failed to generate answer");
+
+      // Still show something
+      setConversations((prev) =>
+        prev.map((conv) =>
+          conv.id === newQuestion.id
+            ? {
+                ...conv,
+                answer:
+                  "I'm sorry, I had trouble processing that question. Please try again or ask in a different way.",
+              }
+            : conv
+        )
+      );
     } finally {
       setAiThinking(false);
       setSending(false);
-    }
-  };
-
-  // Simple answer generation based on question
-  const generateAnswer = (question) => {
-    const lowercaseQuestion = question.toLowerCase();
-
-    if (
-      lowercaseQuestion.includes("revenue") ||
-      lowercaseQuestion.includes("growth")
-    ) {
-      return "The revenue has increased by 25% compared to Q3, primarily driven by new market expansion which contributed to 15% of this growth.";
-    } else if (
-      lowercaseQuestion.includes("cost") ||
-      lowercaseQuestion.includes("expense")
-    ) {
-      return "Operating costs were reduced by 12% this quarter. Additionally, customer acquisition cost decreased by 18%, which is a significant improvement from previous quarters.";
-    } else if (
-      lowercaseQuestion.includes("market") ||
-      lowercaseQuestion.includes("expansion")
-    ) {
-      return "The new market expansion contributed to 15% growth. The company has successfully entered three new regional markets, with the Asian market showing particularly strong initial acceptance.";
-    } else {
-      return "Based on the financial report, the company had a strong Q4 with 25% revenue growth, 12% reduction in operating costs, and 18% decrease in customer acquisition costs. New market expansion was a key driver, contributing to 15% of overall growth.";
     }
   };
 
@@ -230,14 +255,27 @@ export const DocumentDetailScreen = ({ navigation, route }) => {
               { backgroundColor: "rgba(255,255,255,0.2)" },
             ]}
           >
-            <Ionicons name="document-text" size={32} color="white" />
+            <Ionicons
+              name={
+                document?.type?.includes("pdf")
+                  ? "document-text"
+                  : document?.type?.includes("image")
+                  ? "image"
+                  : "document"
+              }
+              size={32}
+              color="white"
+            />
           </View>
           <View style={styles.documentMeta}>
             <Text style={styles.documentTitle} color="white">
-              {documentDetails.title}
+              {document?.name || "Document"}
             </Text>
             <Text style={styles.documentSubtitle} color="white">
-              {documentDetails.type} • {documentDetails.pages} pages
+              {document?.type || "File"} •{" "}
+              {document?.createdAt
+                ? new Date(document.createdAt).toLocaleDateString()
+                : ""}
             </Text>
           </View>
         </View>
@@ -324,72 +362,270 @@ export const DocumentDetailScreen = ({ navigation, route }) => {
     </View>
   );
 
-  const renderSummary = () => (
-    <View style={[styles.section, { backgroundColor: theme.colors.surface }]}>
-      <Text style={[styles.sectionTitle, { color: theme.colors.text }]}>
-        Document Summary
-      </Text>
-      <Text style={[styles.summaryText, { color: theme.colors.text }]}>
-        {documentDetails.summary}
-      </Text>
+  const renderSummary = () => {
+    if (loading) {
+      return (
+        <View
+          style={[
+            styles.loadingContainer,
+            { backgroundColor: theme.colors.surface },
+          ]}
+        >
+          <ActivityIndicator size="large" color={theme.colors.primary} />
+          <Text style={{ color: theme.colors.textSecondary, marginTop: 16 }}>
+            Loading document information...
+          </Text>
+        </View>
+      );
+    }
 
-      <View style={styles.topicsContainer}>
-        <Text style={[styles.topicsTitle, { color: theme.colors.text }]}>
-          Main Topics
-        </Text>
-        {documentDetails.topics.map((topic, index) => (
-          <View
-            key={index}
-            style={[
-              styles.topicItem,
-              { backgroundColor: theme.colors.primary + "10" },
-            ]}
-          >
-            <Text style={{ color: theme.colors.text }}>{topic.name}</Text>
-            <View
-              style={[
-                styles.confidenceBadge,
-                { backgroundColor: theme.colors.primary + "20" },
-              ]}
-            >
-              <Text style={{ color: theme.colors.primary }}>
-                {Math.round(topic.confidence * 100)}%
+    // If no document is loaded or analysis is not available
+    if (!document || !document.analysisResult) {
+      return (
+        <View
+          style={[styles.section, { backgroundColor: theme.colors.surface }]}
+        >
+          <Text style={[styles.sectionTitle, { color: theme.colors.text }]}>
+            Document Summary
+          </Text>
+          <Text style={[styles.summaryText, { color: theme.colors.text }]}>
+            This document has not been analyzed yet or analysis information is
+            not available.
+          </Text>
+
+          <View style={styles.documentDetails}>
+            <View style={styles.detailItem}>
+              <Ionicons
+                name="folder-outline"
+                size={20}
+                color={theme.colors.primary}
+              />
+              <Text style={[styles.detailText, { color: theme.colors.text }]}>
+                Type: {document?.type || "Unknown"}
+              </Text>
+            </View>
+
+            <View style={styles.detailItem}>
+              <Ionicons
+                name="calendar-outline"
+                size={20}
+                color={theme.colors.primary}
+              />
+              <Text style={[styles.detailText, { color: theme.colors.text }]}>
+                Date:{" "}
+                {document?.createdAt
+                  ? new Date(document.createdAt).toLocaleDateString()
+                  : "Unknown"}
+              </Text>
+            </View>
+
+            <View style={styles.detailItem}>
+              <Ionicons
+                name="document-outline"
+                size={20}
+                color={theme.colors.primary}
+              />
+              <Text style={[styles.detailText, { color: theme.colors.text }]}>
+                Size:{" "}
+                {document?.size
+                  ? Math.round(document.size / 1024) + " KB"
+                  : "Unknown"}
               </Text>
             </View>
           </View>
-        ))}
-      </View>
-    </View>
-  );
 
-  const renderInsights = () => (
-    <View style={[styles.section, { backgroundColor: theme.colors.surface }]}>
-      <Text style={[styles.sectionTitle, { color: theme.colors.text }]}>
-        Key Insights
-      </Text>
-      {documentDetails.keyInsights.map((insight, index) => (
+          <Button
+            title="Analyze Document"
+            onPress={() =>
+              Alert.alert(
+                "Not Available",
+                "Document analysis is not available at this time."
+              )
+            }
+            theme={theme}
+            style={{ marginTop: 24 }}
+          />
+        </View>
+      );
+    }
+
+    // Extract summary from analysis result
+    let summary = "No summary available";
+    let topics = [];
+
+    try {
+      // Try to parse the analysis result and extract summary
+      if (
+        document.analysisResult.content &&
+        document.analysisResult.content[0]
+      ) {
+        summary = document.analysisResult.content[0].text;
+
+        // Extract main topics if available
+        const topicsMatch = summary.match(
+          /(?:main topics|key themes):(.*?)(?:\n\n|\n\d|\n$)/is
+        );
+        if (topicsMatch && topicsMatch[1]) {
+          const topicsText = topicsMatch[1].trim();
+          topics = topicsText
+            .split(/\n/)
+            .map((t) => ({
+              name: t.replace(/^\d+\.\s*|\*\s*|-\s*/g, "").trim(),
+              confidence: 0.8 + Math.random() * 0.2, // Just for display
+            }))
+            .filter((t) => t.name);
+        }
+      }
+    } catch (error) {
+      console.error("Error parsing analysis result:", error);
+    }
+
+    return (
+      <View style={[styles.section, { backgroundColor: theme.colors.surface }]}>
+        <Text style={[styles.sectionTitle, { color: theme.colors.text }]}>
+          Document Summary
+        </Text>
+        <Text style={[styles.summaryText, { color: theme.colors.text }]}>
+          {summary}
+        </Text>
+
+        {topics.length > 0 && (
+          <View style={styles.topicsContainer}>
+            <Text style={[styles.topicsTitle, { color: theme.colors.text }]}>
+              Main Topics
+            </Text>
+            {topics.map((topic, index) => (
+              <View
+                key={index}
+                style={[
+                  styles.topicItem,
+                  { backgroundColor: theme.colors.primary + "10" },
+                ]}
+              >
+                <Text style={{ color: theme.colors.text }}>{topic.name}</Text>
+                <View
+                  style={[
+                    styles.confidenceBadge,
+                    { backgroundColor: theme.colors.primary + "20" },
+                  ]}
+                >
+                  <Text style={{ color: theme.colors.primary }}>
+                    {Math.round(topic.confidence * 100)}%
+                  </Text>
+                </View>
+              </View>
+            ))}
+          </View>
+        )}
+      </View>
+    );
+  };
+
+  const renderInsights = () => {
+    if (loading) {
+      return (
         <View
-          key={index}
           style={[
-            styles.insightItem,
-            { backgroundColor: theme.colors.background },
+            styles.loadingContainer,
+            { backgroundColor: theme.colors.surface },
           ]}
         >
-          <View
-            style={[
-              styles.insightIcon,
-              { backgroundColor: theme.colors.primary + "15" },
-            ]}
-          >
-            <Ionicons name="bulb" size={20} color={theme.colors.primary} />
-          </View>
-          <Text style={[styles.insightText, { color: theme.colors.text }]}>
-            {insight}
+          <ActivityIndicator size="large" color={theme.colors.primary} />
+          <Text style={{ color: theme.colors.textSecondary, marginTop: 16 }}>
+            Loading insights...
           </Text>
         </View>
-      ))}
-    </View>
-  );
+      );
+    }
+
+    // If no document is loaded or analysis is not available
+    if (!document || !document.analysisResult) {
+      return (
+        <View
+          style={[styles.section, { backgroundColor: theme.colors.surface }]}
+        >
+          <Text style={[styles.sectionTitle, { color: theme.colors.text }]}>
+            Key Insights
+          </Text>
+          <Text style={[styles.summaryText, { color: theme.colors.text }]}>
+            No insights available for this document.
+          </Text>
+        </View>
+      );
+    }
+
+    // Extract insights from analysis result
+    let insights = [];
+
+    try {
+      // Try to parse the analysis result and extract insights
+      if (
+        document.analysisResult.content &&
+        document.analysisResult.content[0]
+      ) {
+        const analysisText = document.analysisResult.content[0].text;
+
+        // Try to find insights, key points, or similar sections
+        const insightsMatch = analysisText.match(
+          /(?:key points|key insights|main points|important points):(.*?)(?:\n\n|\n[A-Z]|\n$)/is
+        );
+        if (insightsMatch && insightsMatch[1]) {
+          const insightsText = insightsMatch[1].trim();
+          insights = insightsText
+            .split(/\n/)
+            .map((i) => i.replace(/^\d+\.\s*|\*\s*|-\s*/g, "").trim())
+            .filter((i) => i);
+        }
+
+        // If no insights found, try to extract some other meaningful content
+        if (insights.length === 0) {
+          // Just extract some paragraphs as insights
+          insights = analysisText
+            .split(/\n\n/)
+            .filter((p) => p.length > 30 && p.length < 300)
+            .slice(0, 4);
+        }
+      }
+    } catch (error) {
+      console.error("Error parsing insights:", error);
+    }
+
+    // If still no insights, provide a fallback
+    if (insights.length === 0) {
+      insights = [
+        "No specific insights could be extracted from this document.",
+      ];
+    }
+
+    return (
+      <View style={[styles.section, { backgroundColor: theme.colors.surface }]}>
+        <Text style={[styles.sectionTitle, { color: theme.colors.text }]}>
+          Key Insights
+        </Text>
+        {insights.map((insight, index) => (
+          <View
+            key={index}
+            style={[
+              styles.insightItem,
+              { backgroundColor: theme.colors.background },
+            ]}
+          >
+            <View
+              style={[
+                styles.insightIcon,
+                { backgroundColor: theme.colors.primary + "15" },
+              ]}
+            >
+              <Ionicons name="bulb" size={20} color={theme.colors.primary} />
+            </View>
+            <Text style={[styles.insightText, { color: theme.colors.text }]}>
+              {insight}
+            </Text>
+          </View>
+        ))}
+      </View>
+    );
+  };
 
   // Professionally redesigned Q&A section with chat interface
   const renderQA = () => (
@@ -398,255 +634,232 @@ export const DocumentDetailScreen = ({ navigation, route }) => {
       style={[styles.qaContainer, { backgroundColor: theme.colors.background }]}
       keyboardVerticalOffset={Platform.OS === "ios" ? 100 : 0}
     >
-      {/* Compact header floating at the top of chat */}
-      {/* <View
-        style={[
-          styles.qaCompactHeader,
-          { borderBottomColor: theme.colors.border },
-        ]}
-      >
-        <View style={styles.qaHeaderLeft}>
-          <View
-            style={[
-              styles.qaHeaderIconSmall,
-              { backgroundColor: theme.colors.primary + "15" },
-            ]}
-          >
-            <Ionicons
-              name="chatbubbles-outline"
-              size={18}
-              color={theme.colors.primary}
-            />
-          </View>
-          <Text
-            style={[styles.qaCompactTitle, { color: theme.colors.text }]}
-            numberOfLines={1}
-          >
-            Document AI Assistant
+      {loading ? (
+        <View
+          style={[
+            styles.loadingContainer,
+            { backgroundColor: theme.colors.surface },
+          ]}
+        >
+          <ActivityIndicator size="large" color={theme.colors.primary} />
+          <Text style={{ color: theme.colors.textSecondary, marginTop: 16 }}>
+            Loading conversation history...
           </Text>
-        </View>
-
-        {conversations.length > 0 && (
-          <TouchableOpacity
-            style={[styles.clearButton, { borderColor: theme.colors.border }]}
-            onPress={() => setConversations([])}
-          >
-            <Text style={{ color: theme.colors.textSecondary, fontSize: 12 }}>
-              Clear Chat
-            </Text>
-          </TouchableOpacity>
-        )}
-      </View> */}
-
-      {/* Chat conversation area - taking maximum space */}
-      {conversations.length === 0 ? (
-        <View style={styles.emptyChat}>
-          <View
-            style={[
-              styles.emptyIconContainer,
-              { backgroundColor: theme.colors.primary + "10" },
-            ]}
-          >
-            <Ionicons
-              name="chatbubbles"
-              size={38}
-              color={theme.colors.primary}
-            />
-          </View>
-          <Text style={[styles.emptyTitle, { color: theme.colors.text }]}>
-            Ask About This Document
-          </Text>
-          <Text
-            style={[
-              styles.emptySubtitle,
-              { color: theme.colors.textSecondary },
-            ]}
-          >
-            Get instant AI-powered answers to your questions about this
-            document's content
-          </Text>
-          <View style={styles.exampleContainer}>
-            <Text
-              style={[
-                styles.exampleTitle,
-                { color: theme.colors.textSecondary },
-              ]}
-            >
-              Try asking:
-            </Text>
-            {[
-              "What are the key financial highlights?",
-              "Which areas showed growth?",
-              "Summarize the main risks mentioned",
-            ].map((example, index) => (
-              <TouchableOpacity
-                key={index}
-                style={[
-                  styles.exampleItem,
-                  { backgroundColor: theme.colors.surface },
-                ]}
-                onPress={() => {
-                  setQuestion(example);
-                  setTimeout(() => {
-                    if (inputRef.current) inputRef.current.focus();
-                  }, 100);
-                }}
-              >
-                <Text style={{ color: theme.colors.primary }}>{example}</Text>
-              </TouchableOpacity>
-            ))}
-          </View>
         </View>
       ) : (
-        <ScrollView
-          ref={scrollViewRef}
-          style={styles.chatContainer}
-          contentContainerStyle={[
-            styles.chatContent,
-            { paddingBottom: keyboardVisible ? keyboardHeight + 20 : 80 },
-          ]}
-          showsVerticalScrollIndicator={false}
-        >
-          {conversations.map((item, index) => (
-            <View key={item.id} style={styles.messageGroup}>
-              {/* Show date separator for first message or when day changes */}
-              {index === 0 && (
-                <View style={styles.dateSeparator}>
-                  <View
-                    style={[
-                      styles.dateLine,
-                      { backgroundColor: theme.colors.border },
-                    ]}
-                  />
-                  <Text
-                    style={[
-                      styles.dateText,
-                      {
-                        color: theme.colors.textSecondary,
-                        backgroundColor: theme.colors.background,
-                      },
-                    ]}
-                  >
-                    Today
-                  </Text>
-                  <View
-                    style={[
-                      styles.dateLine,
-                      { backgroundColor: theme.colors.border },
-                    ]}
-                  />
-                </View>
-              )}
-
-              {/* User question */}
-              <View style={styles.userMessageContainer}>
-                <View
+        <>
+          {/* Chat conversation area - taking maximum space */}
+          {conversations.length === 0 ? (
+            <View style={styles.emptyChat}>
+              <View
+                style={[
+                  styles.emptyIconContainer,
+                  { backgroundColor: theme.colors.primary + "10" },
+                ]}
+              >
+                <Ionicons
+                  name="chatbubbles"
+                  size={38}
+                  color={theme.colors.primary}
+                />
+              </View>
+              <Text style={[styles.emptyTitle, { color: theme.colors.text }]}>
+                Ask About This Document
+              </Text>
+              <Text
+                style={[
+                  styles.emptySubtitle,
+                  { color: theme.colors.textSecondary },
+                ]}
+              >
+                Get instant AI-powered answers to your questions about this
+                document's content
+              </Text>
+              <View style={styles.exampleContainer}>
+                <Text
                   style={[
-                    styles.userMessage,
-                    { backgroundColor: theme.colors.primary },
+                    styles.exampleTitle,
+                    { color: theme.colors.textSecondary },
                   ]}
                 >
-                  <Text style={{ color: "white" }}>{item.question}</Text>
-                </View>
-              </View>
-
-              {/* AI response */}
-              <View style={styles.aiMessageContainer}>
-                {item.answer ? (
-                  <View
+                  Try asking:
+                </Text>
+                {[
+                  "What are the key financial highlights?",
+                  "Which areas showed growth?",
+                  "Summarize the main points",
+                ].map((example, index) => (
+                  <TouchableOpacity
+                    key={index}
                     style={[
-                      styles.aiMessage,
+                      styles.exampleItem,
                       { backgroundColor: theme.colors.surface },
                     ]}
+                    onPress={() => {
+                      setQuestion(example);
+                      setTimeout(() => {
+                        if (inputRef.current) inputRef.current.focus();
+                      }, 100);
+                    }}
                   >
-                    <Text style={{ color: theme.colors.text, lineHeight: 20 }}>
-                      {item.answer}
+                    <Text style={{ color: theme.colors.primary }}>
+                      {example}
                     </Text>
-                  </View>
-                ) : (
-                  <View
-                    style={[
-                      styles.aiTypingContainer,
-                      { backgroundColor: theme.colors.surface },
-                    ]}
-                  >
-                    <ActivityIndicator
-                      size="small"
-                      color={theme.colors.primary}
-                    />
-                    <Text
-                      style={[
-                        styles.aiTypingText,
-                        { color: theme.colors.textSecondary },
-                      ]}
-                    >
-                      AI is thinking...
-                    </Text>
-                  </View>
-                )}
+                  </TouchableOpacity>
+                ))}
               </View>
             </View>
-          ))}
-        </ScrollView>
-      )}
-
-      {/* Fixed input bar at the bottom */}
-      <Animated.View
-        style={[
-          styles.inputContainer,
-          {
-            backgroundColor: theme.colors.surface,
-            borderTopColor: theme.colors.border,
-            transform: [
-              {
-                translateY: fadeAnim.interpolate({
-                  inputRange: [0, 1],
-                  outputRange: [0, -keyboardHeight],
-                }),
-              },
-            ],
-            bottom: keyboardVisible ? 0 : 0,
-          },
-        ]}
-      >
-        <TextInput
-          ref={inputRef}
-          style={[
-            styles.textInput,
-            {
-              backgroundColor: theme.colors.background,
-              color: theme.colors.text,
-              borderColor: theme.colors.border,
-            },
-          ]}
-          placeholder="Ask a question about this document..."
-          placeholderTextColor={theme.colors.textSecondary}
-          value={question}
-          onChangeText={setQuestion}
-          multiline={true}
-          maxLength={200}
-          numberOfLines={1}
-          returnKeyType="default"
-        />
-        <TouchableOpacity
-          style={[
-            styles.sendButton,
-            {
-              backgroundColor: question.trim()
-                ? theme.colors.primary
-                : theme.colors.primary + "50",
-            },
-          ]}
-          onPress={handleSendMessage}
-          disabled={!question.trim() || sending}
-        >
-          {sending ? (
-            <ActivityIndicator size="small" color="white" />
           ) : (
-            <Ionicons name="send" size={18} color="white" />
+            <ScrollView
+              ref={scrollViewRef}
+              style={styles.chatContainer}
+              contentContainerStyle={[
+                styles.chatContent,
+                { paddingBottom: keyboardVisible ? keyboardHeight + 20 : 80 },
+              ]}
+              showsVerticalScrollIndicator={false}
+            >
+              <View style={styles.dateSeparator}>
+                <View
+                  style={[
+                    styles.dateLine,
+                    { backgroundColor: theme.colors.border },
+                  ]}
+                />
+                <Text
+                  style={[
+                    styles.dateText,
+                    {
+                      color: theme.colors.textSecondary,
+                      backgroundColor: theme.colors.background,
+                    },
+                  ]}
+                >
+                  Conversation
+                </Text>
+                <View
+                  style={[
+                    styles.dateLine,
+                    { backgroundColor: theme.colors.border },
+                  ]}
+                />
+              </View>
+
+              {conversations.map((item, index) => (
+                <View key={item.id || index} style={styles.messageGroup}>
+                  {/* User question */}
+                  <View style={styles.userMessageContainer}>
+                    <View
+                      style={[
+                        styles.userMessage,
+                        { backgroundColor: theme.colors.primary },
+                      ]}
+                    >
+                      <Text style={{ color: "white" }}>{item.question}</Text>
+                    </View>
+                  </View>
+
+                  {/* AI response */}
+                  <View style={styles.aiMessageContainer}>
+                    {item.answer ? (
+                      <View
+                        style={[
+                          styles.aiMessage,
+                          { backgroundColor: theme.colors.surface },
+                        ]}
+                      >
+                        <Text
+                          style={{ color: theme.colors.text, lineHeight: 20 }}
+                        >
+                          {item.answer}
+                        </Text>
+                      </View>
+                    ) : (
+                      <View
+                        style={[
+                          styles.aiTypingContainer,
+                          { backgroundColor: theme.colors.surface },
+                        ]}
+                      >
+                        <ActivityIndicator
+                          size="small"
+                          color={theme.colors.primary}
+                        />
+                        <Text
+                          style={[
+                            styles.aiTypingText,
+                            { color: theme.colors.textSecondary },
+                          ]}
+                        >
+                          AI is thinking...
+                        </Text>
+                      </View>
+                    )}
+                  </View>
+                </View>
+              ))}
+            </ScrollView>
           )}
-        </TouchableOpacity>
-      </Animated.View>
+
+          {/* Fixed input bar at the bottom */}
+          <Animated.View
+            style={[
+              styles.inputContainer,
+              {
+                backgroundColor: theme.colors.surface,
+                borderTopColor: theme.colors.border,
+                transform: [
+                  {
+                    translateY: fadeAnim.interpolate({
+                      inputRange: [0, 1],
+                      outputRange: [0, -keyboardHeight],
+                    }),
+                  },
+                ],
+                bottom: keyboardVisible ? 0 : 0,
+              },
+            ]}
+          >
+            <TextInput
+              ref={inputRef}
+              style={[
+                styles.textInput,
+                {
+                  backgroundColor: theme.colors.background,
+                  color: theme.colors.text,
+                  borderColor: theme.colors.border,
+                },
+              ]}
+              placeholder="Ask a question about this document..."
+              placeholderTextColor={theme.colors.textSecondary}
+              value={question}
+              onChangeText={setQuestion}
+              multiline={true}
+              maxLength={200}
+              numberOfLines={1}
+              returnKeyType="default"
+            />
+            <TouchableOpacity
+              style={[
+                styles.sendButton,
+                {
+                  backgroundColor: question.trim()
+                    ? theme.colors.primary
+                    : theme.colors.primary + "50",
+                },
+              ]}
+              onPress={handleSendMessage}
+              disabled={!question.trim() || sending}
+            >
+              {sending ? (
+                <ActivityIndicator size="small" color="white" />
+              ) : (
+                <Ionicons name="send" size={18} color="white" />
+              )}
+            </TouchableOpacity>
+          </Animated.View>
+        </>
+      )}
     </KeyboardAvoidingView>
   );
 
@@ -668,6 +881,25 @@ export const DocumentDetailScreen = ({ navigation, route }) => {
 };
 
 const styles = StyleSheet.create({
+  loadingContainer: {
+    padding: 20,
+    alignItems: "center",
+    justifyContent: "center",
+    borderRadius: 0,
+    minHeight: 200,
+  },
+  documentDetails: {
+    marginTop: 24,
+    gap: 12,
+  },
+  detailItem: {
+    flexDirection: "row",
+    alignItems: "center",
+    gap: 12,
+  },
+  detailText: {
+    fontSize: 16,
+  },
   container: {
     flex: 1,
   },
