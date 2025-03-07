@@ -6,93 +6,104 @@ import {
   TouchableOpacity,
   Dimensions,
   StatusBar,
-  Platform,
   TextInput,
   Keyboard,
-  KeyboardAvoidingView,
+  Share,
   ActivityIndicator,
   Animated,
-  Alert,
+  Image,
+  Platform,
 } from "react-native";
-import { SafeAreaView } from "react-native-safe-area-context";
 import { Text, Button } from "../../components/common";
 import { useTheme } from "../../hooks/useTheme";
-import { LanguageSwitcher } from "../../hooks/LanguageSwitcher";
 import { Ionicons } from "@expo/vector-icons";
 import { LinearGradient } from "expo-linear-gradient";
 import { documentManager } from "../../services/DocumentManager";
 import { showToast } from "../../utils/toast";
+import * as Haptics from "expo-haptics";
 
-const { width } = Dimensions.get("window");
+const { width, height } = Dimensions.get("window");
+const HEADER_HEIGHT = Platform.OS === "ios" ? 90 : 70;
+const HEADER_EXPANDED_HEIGHT = 220;
 
 export const DocumentDetailScreen = ({ navigation, route }) => {
   const { theme } = useTheme();
-  const { t } = LanguageSwitcher();
-  const [activeTab, setActiveTab] = useState("summary"); // summary, insights, qa
-
-  // Document states
   const { documentId } = route.params || {};
+  
+  // States
   const [document, setDocument] = useState(null);
   const [loading, setLoading] = useState(true);
-  const [documentContent, setDocumentContent] = useState(null);
-
-  // Q&A states
+  const [activeTab, setActiveTab] = useState("summary");
   const [question, setQuestion] = useState("");
   const [conversations, setConversations] = useState([]);
   const [sending, setSending] = useState(false);
   const [aiThinking, setAiThinking] = useState(false);
-  const [keyboardVisible, setKeyboardVisible] = useState(false);
-  const [keyboardHeight, setKeyboardHeight] = useState(0);
-
+  const [parsedAnalysis, setParsedAnalysis] = useState(null);
+  
+  // Animation values
+  const scrollY = useRef(new Animated.Value(0)).current;
   const scrollViewRef = useRef(null);
   const inputRef = useRef(null);
-  const fadeAnim = useRef(new Animated.Value(0)).current;
+  const headerHeight = scrollY.interpolate({
+    inputRange: [0, HEADER_EXPANDED_HEIGHT - HEADER_HEIGHT],
+    outputRange: [HEADER_EXPANDED_HEIGHT, HEADER_HEIGHT],
+    extrapolate: "clamp",
+  });
+  const headerTitleOpacity = scrollY.interpolate({
+    inputRange: [0, HEADER_EXPANDED_HEIGHT - HEADER_HEIGHT - 40, HEADER_EXPANDED_HEIGHT - HEADER_HEIGHT],
+    outputRange: [0, 0, 1],
+    extrapolate: "clamp",
+  });
+  const headerDetailOpacity = scrollY.interpolate({
+    inputRange: [0, HEADER_EXPANDED_HEIGHT - HEADER_HEIGHT],
+    outputRange: [1, 0],
+    extrapolate: "clamp",
+  });
 
-  // Load document data when the component mounts
+  // Load document when component mounts
   useEffect(() => {
     if (documentId) {
       loadDocument();
     } else {
       setLoading(false);
       showToast.error("Error", "No document ID provided");
+      navigation.goBack();
     }
   }, [documentId]);
 
-  // Load document data from Firebase
+  // Load document from server
   const loadDocument = async () => {
     try {
       setLoading(true);
+      const doc = await documentManager.getDocumentById(documentId);
 
-      // Get document by ID
-      const docData = await documentManager.getDocumentById(documentId);
-
-      if (!docData) {
+      if (!doc) {
         throw new Error("Document not found");
       }
 
-      console.log("Document loaded:", docData);
-      setDocument(docData);
+      console.log("Document loaded:", doc);
+      setDocument(doc);
 
-      // Get document conversations (Q&A history)
+      // Parse analysis content if available
+      if (doc.analysisResult && doc.analysisResult.content) {
+        const parsedContent = parseAnalysisContent(doc.analysisResult.content);
+        setParsedAnalysis(parsedContent);
+      }
+
+      // Load conversations
       try {
-        const convos = await documentManager.getDocumentConversations(
-          documentId
-        );
+        const convos = await documentManager.getDocumentConversations(documentId);
         if (convos && convos.length > 0) {
-          setConversations(
-            convos.map((c) => ({
-              id: c.id,
-              question: c.question,
-              answer: c.answer,
-              timestamp: c.createdAt
-                ? new Date(c.createdAt).getTime()
-                : new Date().getTime(),
-            }))
-          );
+          setConversations(convos.map((c) => ({
+            id: c.id,
+            question: c.question,
+            answer: c.answer,
+            timestamp: c.createdAt ? new Date(c.createdAt).getTime() : new Date().getTime(),
+          })));
         }
       } catch (convoError) {
         console.error("Error loading conversations:", convoError);
-        // Continue anyway - just won't have conversations history
+        // Continue anyway
       }
     } catch (error) {
       console.error("Error loading document:", error);
@@ -103,54 +114,90 @@ export const DocumentDetailScreen = ({ navigation, route }) => {
     }
   };
 
-  // Keyboard event listeners
-  useEffect(() => {
-    const keyboardWillShowListener = Keyboard.addListener(
-      Platform.OS === "ios" ? "keyboardWillShow" : "keyboardDidShow",
-      (e) => {
-        setKeyboardVisible(true);
-        setKeyboardHeight(e.endCoordinates.height);
+  // Parse Claude's analysis into structured content
+  const parseAnalysisContent = (content) => {
+    // Extract text from analysis content
+    const fullText = content
+      .filter((item) => item.type === "text")
+      .map((item) => item.text)
+      .join("\n\n");
 
-        Animated.timing(fadeAnim, {
-          toValue: 1,
-          duration: 250,
-          useNativeDriver: true,
-        }).start();
-      }
-    );
-
-    const keyboardWillHideListener = Keyboard.addListener(
-      Platform.OS === "ios" ? "keyboardWillHide" : "keyboardDidHide",
-      () => {
-        setKeyboardVisible(false);
-        setKeyboardHeight(0);
-
-        Animated.timing(fadeAnim, {
-          toValue: 0,
-          duration: 200,
-          useNativeDriver: true,
-        }).start();
-      }
-    );
-
-    return () => {
-      keyboardWillShowListener.remove();
-      keyboardWillHideListener.remove();
+    // Initialize structure
+    const parsedContent = {
+      summary: "",
+      keyPoints: [],
+      details: "",
+      recommendations: [],
     };
-  }, []);
 
-  // This verifies scroll to end when a new message is added
-  useEffect(() => {
-    if (conversations.length > 0 && scrollViewRef.current) {
-      setTimeout(() => {
-        scrollViewRef.current.scrollToEnd({ animated: true });
-      }, 100);
+    // Extract summary
+    const summaryMatch = fullText.match(
+      /(?:Özet|Summary):(.*?)(?:\n\n|\n(?:Ana|Key))/s
+    );
+    if (summaryMatch && summaryMatch[1]) {
+      parsedContent.summary = summaryMatch[1].trim();
+    } else {
+      // Fallback: take first paragraph
+      const firstParagraph = fullText.split(/\n\n/)[0];
+      parsedContent.summary = firstParagraph;
     }
-  }, [conversations]);
 
-  // Handle send message
+    // Extract key points
+    const keyPointsPattern =
+      /(?:Ana Noktalar|Ana Temalar|Key Points|Main Themes|Main Points):(.*?)(?:\n\n|\n(?:Detay|Detail|Özet|Sonuç|Öneri|Recom))/s;
+    const keyPointsMatch = fullText.match(keyPointsPattern);
+
+    if (keyPointsMatch && keyPointsMatch[1]) {
+      const keyPointsText = keyPointsMatch[1].trim();
+      parsedContent.keyPoints = keyPointsText
+        .split(/\n(?:\d+\.|•|\*|-)\s*/)
+        .filter((p) => p.trim().length > 0)
+        .map((p) => p.trim());
+    }
+
+    // If no key points found, try to extract lines that start with numbers
+    if (parsedContent.keyPoints.length === 0) {
+      const numberedPoints = fullText.match(/\n\d+\.\s*(.*?)(?=\n\d+\.|\n\n|$)/g);
+      if (numberedPoints) {
+        parsedContent.keyPoints = numberedPoints
+          .map((p) => p.replace(/\n\d+\.\s*/, "").trim())
+          .filter((p) => p.length > 0);
+      }
+    }
+
+    // Extract recommendations
+    const recommendationsPattern =
+      /(?:Öneriler|Tavsiyeler|Recommendations|Suggested|Actions):(.*?)(?:\n\n|\n(?:Sonuç|Conclusion|$))/s;
+    const recommendationsMatch = fullText.match(recommendationsPattern);
+
+    if (recommendationsMatch && recommendationsMatch[1]) {
+      const recommendationsText = recommendationsMatch[1].trim();
+      parsedContent.recommendations = recommendationsText
+        .split(/\n(?:\d+\.|•|\*|-)\s*/)
+        .filter((p) => p.trim().length > 0)
+        .map((p) => p.trim());
+    }
+
+    // Extract details
+    const detailsPattern =
+      /(?:Detaylar|Bilgiler|Details|Additional Information):(.*?)(?:\n\n|\n(?:Sonuç|Öneriler|Conclusion|Recommendations))/s;
+    const detailsMatch = fullText.match(detailsPattern);
+
+    if (detailsMatch && detailsMatch[1]) {
+      parsedContent.details = detailsMatch[1].trim();
+    }
+
+    return parsedContent;
+  };
+
+  // Handle sending a question
   const handleSendMessage = async () => {
     if (!question.trim() || sending || !documentId) return;
+
+    // Provide haptic feedback
+    if (Haptics?.impactAsync) {
+      Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Medium);
+    }
 
     Keyboard.dismiss();
     setSending(true);
@@ -177,7 +224,7 @@ export const DocumentDetailScreen = ({ navigation, route }) => {
     setAiThinking(true);
 
     try {
-      // Send question to Claude API
+      // Send question to API
       const response = await documentManager.askDocumentQuestion(
         documentId,
         newQuestion.question
@@ -206,7 +253,7 @@ export const DocumentDetailScreen = ({ navigation, route }) => {
       console.error("Error asking question:", error);
       showToast.error("Error", "Failed to generate answer");
 
-      // Still show something
+      // Show fallback response
       setConversations((prev) =>
         prev.map((conv) =>
           conv.id === newQuestion.id
@@ -224,31 +271,116 @@ export const DocumentDetailScreen = ({ navigation, route }) => {
     }
   };
 
+  // Share document
+  const shareDocument = async () => {
+    try {
+      if (!document) return;
+      
+      await Share.share({
+        title: document.name || "Document",
+        message: `Check out this document: ${document.name}\n\n${
+          parsedAnalysis?.summary || "No summary available"
+        }`,
+      });
+    } catch (error) {
+      console.error("Error sharing document:", error);
+      showToast.error("Error", "Failed to share document");
+    }
+  };
+
+  // Get document icon based on type
+  const getDocumentIcon = (type) => {
+    if (!type) return "document";
+
+    type = type.toLowerCase();
+    if (type.includes("pdf")) return "document-text";
+    if (type.includes("image")) return "image";
+    if (type.includes("word") || type.includes("doc")) return "document";
+
+    return "document";
+  };
+
+  // Format date string
+  const formatDate = (dateString) => {
+    if (!dateString) return "Unknown";
+
+    try {
+      const date = new Date(dateString);
+      return date.toLocaleDateString(undefined, {
+        year: "numeric",
+        month: "short",
+        day: "numeric",
+      });
+    } catch (error) {
+      return "Invalid date";
+    }
+  };
+
+  // Format file size
+  const formatFileSize = (bytes) => {
+    if (!bytes) return "Unknown";
+
+    if (bytes < 1024) return bytes + " B";
+    else if (bytes < 1024 * 1024) return (bytes / 1024).toFixed(1) + " KB";
+    else return (bytes / (1024 * 1024)).toFixed(1) + " MB";
+  };
+
+  // Header Component
   const renderHeader = () => (
-    <View style={styles.header}>
+    <Animated.View
+      style={[
+        styles.header,
+        {
+          height: headerHeight,
+          backgroundColor: theme.colors.primary,
+        },
+      ]}
+    >
       <LinearGradient
         colors={[theme.colors.primary, theme.colors.primaryDark]}
         style={styles.headerGradient}
         start={{ x: 0, y: 0 }}
         end={{ x: 1, y: 1 }}
       >
+        {/* Status Bar */}
+        <StatusBar barStyle="light-content" backgroundColor="transparent" translucent />
+        
+        {/* Back Button & Actions */}
         <View style={styles.headerTop}>
           <TouchableOpacity
-            onPress={() => navigation.goBack()}
             style={styles.backButton}
+            onPress={() => navigation.goBack()}
           >
             <Ionicons name="arrow-back" size={24} color="white" />
           </TouchableOpacity>
+          
+          <Animated.Text
+            style={[
+              styles.headerTitle,
+              { opacity: headerTitleOpacity, color: "white" },
+            ]}
+            numberOfLines={1}
+          >
+            {document?.name || "Document"}
+          </Animated.Text>
+          
           <View style={styles.headerActions}>
-            <TouchableOpacity style={styles.actionButton}>
+            <TouchableOpacity
+              style={styles.actionButton}
+              onPress={shareDocument}
+            >
               <Ionicons name="share-outline" size={24} color="white" />
-            </TouchableOpacity>
-            <TouchableOpacity style={styles.actionButton}>
-              <Ionicons name="download-outline" size={24} color="white" />
             </TouchableOpacity>
           </View>
         </View>
-        <View style={styles.documentInfo}>
+        
+        {/* Document Info (visible when expanded) */}
+        <Animated.View 
+          style={[
+            styles.documentInfo,
+            { opacity: headerDetailOpacity },
+          ]}
+        >
           <View
             style={[
               styles.documentIcon,
@@ -256,33 +388,27 @@ export const DocumentDetailScreen = ({ navigation, route }) => {
             ]}
           >
             <Ionicons
-              name={
-                document?.type?.includes("pdf")
-                  ? "document-text"
-                  : document?.type?.includes("image")
-                  ? "image"
-                  : "document"
-              }
+              name={getDocumentIcon(document?.type)}
               size={32}
               color="white"
             />
           </View>
+          
           <View style={styles.documentMeta}>
             <Text style={styles.documentTitle} color="white">
               {document?.name || "Document"}
             </Text>
             <Text style={styles.documentSubtitle} color="white">
-              {document?.type || "File"} •{" "}
-              {document?.createdAt
-                ? new Date(document.createdAt).toLocaleDateString()
-                : ""}
+              {document?.type || "File"} • {formatFileSize(document?.size)} •{" "}
+              {formatDate(document?.createdAt)}
             </Text>
           </View>
-        </View>
+        </Animated.View>
       </LinearGradient>
-    </View>
+    </Animated.View>
   );
 
+  // Tabs Component
   const renderTabs = () => (
     <View
       style={[styles.tabsContainer, { backgroundColor: theme.colors.surface }]}
@@ -311,6 +437,7 @@ export const DocumentDetailScreen = ({ navigation, route }) => {
           Summary
         </Text>
       </TouchableOpacity>
+      
       <TouchableOpacity
         style={[
           styles.tab,
@@ -335,6 +462,7 @@ export const DocumentDetailScreen = ({ navigation, route }) => {
           Key Insights
         </Text>
       </TouchableOpacity>
+      
       <TouchableOpacity
         style={[
           styles.tab,
@@ -362,6 +490,7 @@ export const DocumentDetailScreen = ({ navigation, route }) => {
     </View>
   );
 
+  // Summary Tab Content
   const renderSummary = () => {
     if (loading) {
       return (
@@ -379,8 +508,7 @@ export const DocumentDetailScreen = ({ navigation, route }) => {
       );
     }
 
-    // If no document is loaded or analysis is not available
-    if (!document || !document.analysisResult) {
+    if (!document || !parsedAnalysis) {
       return (
         <View
           style={[styles.section, { backgroundColor: theme.colors.surface }]}
@@ -414,7 +542,7 @@ export const DocumentDetailScreen = ({ navigation, route }) => {
               <Text style={[styles.detailText, { color: theme.colors.text }]}>
                 Date:{" "}
                 {document?.createdAt
-                  ? new Date(document.createdAt).toLocaleDateString()
+                  ? formatDate(document.createdAt)
                   : "Unknown"}
               </Text>
             </View>
@@ -426,58 +554,21 @@ export const DocumentDetailScreen = ({ navigation, route }) => {
                 color={theme.colors.primary}
               />
               <Text style={[styles.detailText, { color: theme.colors.text }]}>
-                Size:{" "}
-                {document?.size
-                  ? Math.round(document.size / 1024) + " KB"
-                  : "Unknown"}
+                Size: {formatFileSize(document?.size)}
               </Text>
             </View>
           </View>
 
           <Button
             title="Analyze Document"
-            onPress={() =>
-              Alert.alert(
-                "Not Available",
-                "Document analysis is not available at this time."
-              )
-            }
+            onPress={() => {
+              showToast.info("Info", "Document analysis in progress");
+            }}
             theme={theme}
             style={{ marginTop: 24 }}
           />
         </View>
       );
-    }
-
-    // Extract summary from analysis result
-    let summary = "No summary available";
-    let topics = [];
-
-    try {
-      // Try to parse the analysis result and extract summary
-      if (
-        document.analysisResult.content &&
-        document.analysisResult.content[0]
-      ) {
-        summary = document.analysisResult.content[0].text;
-
-        // Extract main topics if available
-        const topicsMatch = summary.match(
-          /(?:main topics|key themes):(.*?)(?:\n\n|\n\d|\n$)/is
-        );
-        if (topicsMatch && topicsMatch[1]) {
-          const topicsText = topicsMatch[1].trim();
-          topics = topicsText
-            .split(/\n/)
-            .map((t) => ({
-              name: t.replace(/^\d+\.\s*|\*\s*|-\s*/g, "").trim(),
-              confidence: 0.8 + Math.random() * 0.2, // Just for display
-            }))
-            .filter((t) => t.name);
-        }
-      }
-    } catch (error) {
-      console.error("Error parsing analysis result:", error);
     }
 
     return (
@@ -486,41 +577,54 @@ export const DocumentDetailScreen = ({ navigation, route }) => {
           Document Summary
         </Text>
         <Text style={[styles.summaryText, { color: theme.colors.text }]}>
-          {summary}
+          {parsedAnalysis.summary || "No summary available"}
         </Text>
 
-        {topics.length > 0 && (
-          <View style={styles.topicsContainer}>
-            <Text style={[styles.topicsTitle, { color: theme.colors.text }]}>
-              Main Topics
+        {parsedAnalysis.keyPoints.length > 0 && (
+          <View style={styles.keyPointsPreview}>
+            <Text style={[styles.keyPointsTitle, { color: theme.colors.text }]}>
+              Key Points
             </Text>
-            {topics.map((topic, index) => (
-              <View
-                key={index}
-                style={[
-                  styles.topicItem,
-                  { backgroundColor: theme.colors.primary + "10" },
-                ]}
-              >
-                <Text style={{ color: theme.colors.text }}>{topic.name}</Text>
+            {parsedAnalysis.keyPoints.slice(0, 3).map((point, index) => (
+              <View key={index} style={styles.keyPointItem}>
                 <View
                   style={[
-                    styles.confidenceBadge,
-                    { backgroundColor: theme.colors.primary + "20" },
+                    styles.bulletPoint,
+                    { backgroundColor: theme.colors.primary },
                   ]}
+                />
+                <Text
+                  style={[styles.keyPointText, { color: theme.colors.text }]}
                 >
-                  <Text style={{ color: theme.colors.primary }}>
-                    {Math.round(topic.confidence * 100)}%
-                  </Text>
-                </View>
+                  {point}
+                </Text>
               </View>
             ))}
+            {parsedAnalysis.keyPoints.length > 3 && (
+              <TouchableOpacity
+                style={[
+                  styles.seeMoreButton,
+                  { backgroundColor: theme.colors.primary + "15" },
+                ]}
+                onPress={() => setActiveTab("insights")}
+              >
+                <Text style={{ color: theme.colors.primary }}>
+                  See {parsedAnalysis.keyPoints.length - 3} more points
+                </Text>
+                <Ionicons
+                  name="chevron-forward"
+                  size={16}
+                  color={theme.colors.primary}
+                />
+              </TouchableOpacity>
+            )}
           </View>
         )}
       </View>
     );
   };
 
+  // Insights Tab Content
   const renderInsights = () => {
     if (loading) {
       return (
@@ -538,8 +642,7 @@ export const DocumentDetailScreen = ({ navigation, route }) => {
       );
     }
 
-    // If no document is loaded or analysis is not available
-    if (!document || !document.analysisResult) {
+    if (!document || !parsedAnalysis) {
       return (
         <View
           style={[styles.section, { backgroundColor: theme.colors.surface }]}
@@ -554,86 +657,106 @@ export const DocumentDetailScreen = ({ navigation, route }) => {
       );
     }
 
-    // Extract insights from analysis result
-    let insights = [];
-
-    try {
-      // Try to parse the analysis result and extract insights
-      if (
-        document.analysisResult.content &&
-        document.analysisResult.content[0]
-      ) {
-        const analysisText = document.analysisResult.content[0].text;
-
-        // Try to find insights, key points, or similar sections
-        const insightsMatch = analysisText.match(
-          /(?:key points|key insights|main points|important points):(.*?)(?:\n\n|\n[A-Z]|\n$)/is
-        );
-        if (insightsMatch && insightsMatch[1]) {
-          const insightsText = insightsMatch[1].trim();
-          insights = insightsText
-            .split(/\n/)
-            .map((i) => i.replace(/^\d+\.\s*|\*\s*|-\s*/g, "").trim())
-            .filter((i) => i);
-        }
-
-        // If no insights found, try to extract some other meaningful content
-        if (insights.length === 0) {
-          // Just extract some paragraphs as insights
-          insights = analysisText
-            .split(/\n\n/)
-            .filter((p) => p.length > 30 && p.length < 300)
-            .slice(0, 4);
-        }
-      }
-    } catch (error) {
-      console.error("Error parsing insights:", error);
-    }
-
-    // If still no insights, provide a fallback
-    if (insights.length === 0) {
-      insights = [
-        "No specific insights could be extracted from this document.",
-      ];
-    }
-
     return (
       <View style={[styles.section, { backgroundColor: theme.colors.surface }]}>
         <Text style={[styles.sectionTitle, { color: theme.colors.text }]}>
           Key Insights
         </Text>
-        {insights.map((insight, index) => (
+        
+        {parsedAnalysis.keyPoints.length > 0 ? (
+          parsedAnalysis.keyPoints.map((point, index) => (
+            <View
+              key={index}
+              style={[
+                styles.insightItem,
+                { backgroundColor: theme.colors.background },
+              ]}
+            >
+              <View
+                style={[
+                  styles.insightNumber,
+                  { backgroundColor: theme.colors.primary },
+                ]}
+              >
+                <Text style={styles.insightNumberText} color="white">
+                  {index + 1}
+                </Text>
+              </View>
+              <View style={styles.insightContent}>
+                <Text
+                  style={[styles.insightText, { color: theme.colors.text }]}
+                >
+                  {point}
+                </Text>
+              </View>
+            </View>
+          ))
+        ) : (
           <View
-            key={index}
             style={[
-              styles.insightItem,
+              styles.emptyInsights,
               { backgroundColor: theme.colors.background },
             ]}
           >
-            <View
+            <Ionicons
+              name="bulb-outline"
+              size={32}
+              color={theme.colors.textSecondary}
+            />
+            <Text
               style={[
-                styles.insightIcon,
-                { backgroundColor: theme.colors.primary + "15" },
+                styles.emptyInsightsText,
+                { color: theme.colors.textSecondary },
               ]}
             >
-              <Ionicons name="bulb" size={20} color={theme.colors.primary} />
-            </View>
-            <Text style={[styles.insightText, { color: theme.colors.text }]}>
-              {insight}
+              No key insights extracted from this document
             </Text>
           </View>
-        ))}
+        )}
+
+        {parsedAnalysis.recommendations.length > 0 && (
+          <View style={styles.recommendationsSection}>
+            <Text
+              style={[
+                styles.recommendationsTitle,
+                { color: theme.colors.text },
+              ]}
+            >
+              Recommendations
+            </Text>
+            {parsedAnalysis.recommendations.map((rec, index) => (
+              <View
+                key={index}
+                style={[
+                  styles.recommendationItem,
+                  { backgroundColor: theme.colors.success + "10" },
+                ]}
+              >
+                <Ionicons
+                  name="checkmark-circle"
+                  size={20}
+                  color={theme.colors.success}
+                  style={styles.recommendationIcon}
+                />
+                <Text
+                  style={[
+                    styles.recommendationText,
+                    { color: theme.colors.text },
+                  ]}
+                >
+                  {rec}
+                </Text>
+              </View>
+            ))}
+          </View>
+        )}
       </View>
     );
   };
 
-  // Professionally redesigned Q&A section with chat interface
+  // Q&A Tab Content
   const renderQA = () => (
-    <KeyboardAvoidingView
-      behavior={Platform.OS === "ios" ? "padding" : null}
-      style={[styles.qaContainer, { backgroundColor: theme.colors.background }]}
-      keyboardVerticalOffset={Platform.OS === "ios" ? 100 : 0}
-    >
+    <View style={[styles.qaContainer, { backgroundColor: theme.colors.background }]}>
       {loading ? (
         <View
           style={[
@@ -648,7 +771,7 @@ export const DocumentDetailScreen = ({ navigation, route }) => {
         </View>
       ) : (
         <>
-          {/* Chat conversation area - taking maximum space */}
+          {/* Chat conversation area */}
           {conversations.length === 0 ? (
             <View style={styles.emptyChat}>
               <View
@@ -658,13 +781,13 @@ export const DocumentDetailScreen = ({ navigation, route }) => {
                 ]}
               >
                 <Ionicons
-                  name="chatbubbles"
+                  name="chatbubbles-outline"
                   size={38}
                   color={theme.colors.primary}
                 />
               </View>
               <Text style={[styles.emptyTitle, { color: theme.colors.text }]}>
-                Ask About This Document
+                Ask Questions About This Document
               </Text>
               <Text
                 style={[
@@ -672,8 +795,7 @@ export const DocumentDetailScreen = ({ navigation, route }) => {
                   { color: theme.colors.textSecondary },
                 ]}
               >
-                Get instant AI-powered answers to your questions about this
-                document's content
+                Get instant AI-powered answers about this document's content
               </Text>
               <View style={styles.exampleContainer}>
                 <Text
@@ -685,9 +807,9 @@ export const DocumentDetailScreen = ({ navigation, route }) => {
                   Try asking:
                 </Text>
                 {[
-                  "What are the key financial highlights?",
-                  "Which areas showed growth?",
-                  "Summarize the main points",
+                  "What are the key points in this document?",
+                  "Summarize the main conclusion",
+                  "What are the recommendations?",
                 ].map((example, index) => (
                   <TouchableOpacity
                     key={index}
@@ -715,36 +837,10 @@ export const DocumentDetailScreen = ({ navigation, route }) => {
               style={styles.chatContainer}
               contentContainerStyle={[
                 styles.chatContent,
-                { paddingBottom: keyboardVisible ? keyboardHeight + 20 : 80 },
+                { paddingBottom: 100 },
               ]}
               showsVerticalScrollIndicator={false}
             >
-              <View style={styles.dateSeparator}>
-                <View
-                  style={[
-                    styles.dateLine,
-                    { backgroundColor: theme.colors.border },
-                  ]}
-                />
-                <Text
-                  style={[
-                    styles.dateText,
-                    {
-                      color: theme.colors.textSecondary,
-                      backgroundColor: theme.colors.background,
-                    },
-                  ]}
-                >
-                  Conversation
-                </Text>
-                <View
-                  style={[
-                    styles.dateLine,
-                    { backgroundColor: theme.colors.border },
-                  ]}
-                />
-              </View>
-
               {conversations.map((item, index) => (
                 <View key={item.id || index} style={styles.messageGroup}>
                   {/* User question */}
@@ -755,7 +851,7 @@ export const DocumentDetailScreen = ({ navigation, route }) => {
                         { backgroundColor: theme.colors.primary },
                       ]}
                     >
-                      <Text style={{ color: "white" }}>{item.question}</Text>
+                      <Text style={styles.messageText} color="white">{item.question}</Text>
                     </View>
                   </View>
 
@@ -769,7 +865,10 @@ export const DocumentDetailScreen = ({ navigation, route }) => {
                         ]}
                       >
                         <Text
-                          style={{ color: theme.colors.text, lineHeight: 20 }}
+                          style={[
+                            styles.messageText, 
+                            { color: theme.colors.text }
+                          ]}
                         >
                           {item.answer}
                         </Text>
@@ -802,21 +901,12 @@ export const DocumentDetailScreen = ({ navigation, route }) => {
           )}
 
           {/* Fixed input bar at the bottom */}
-          <Animated.View
+          <View
             style={[
               styles.inputContainer,
               {
                 backgroundColor: theme.colors.surface,
                 borderTopColor: theme.colors.border,
-                transform: [
-                  {
-                    translateY: fadeAnim.interpolate({
-                      inputRange: [0, 1],
-                      outputRange: [0, -keyboardHeight],
-                    }),
-                  },
-                ],
-                bottom: keyboardVisible ? 0 : 0,
               },
             ]}
           >
@@ -857,67 +947,77 @@ export const DocumentDetailScreen = ({ navigation, route }) => {
                 <Ionicons name="send" size={18} color="white" />
               )}
             </TouchableOpacity>
-          </Animated.View>
+          </View>
         </>
       )}
-    </KeyboardAvoidingView>
+    </View>
   );
 
-  return (
-    <View
-      style={[styles.container, { backgroundColor: theme.colors.background }]}
-    >
-      <StatusBar barStyle="light-content" />
-      <SafeAreaView edges={[""]} style={{ flex: 1 }}>
-        {renderHeader()}
-        {renderTabs()}
+  // Content based on active tab
+  const renderActiveTabContent = () => {
+    switch (activeTab) {
+      case "summary":
+        return renderSummary();
+      case "insights":
+        return renderInsights();
+      case "qa":
+        return renderQA();
+      default:
+        return renderSummary();
+    }
+  };
 
-        {activeTab === "summary" && renderSummary()}
-        {activeTab === "insights" && renderInsights()}
-        {activeTab === "qa" && renderQA()}
-      </SafeAreaView>
+  // Main render
+  return (
+    <View style={[styles.container, { backgroundColor: theme.colors.background }]}>
+      {renderHeader()}
+      
+      <Animated.ScrollView
+        contentContainerStyle={{ paddingTop: HEADER_EXPANDED_HEIGHT }}
+        scrollEventThrottle={16}
+        onScroll={Animated.event(
+          [{ nativeEvent: { contentOffset: { y: scrollY } } }],
+          { useNativeDriver: false }
+        )}
+        showsVerticalScrollIndicator={false}
+      >
+        {renderTabs()}
+        {renderActiveTabContent()}
+      </Animated.ScrollView>
     </View>
   );
 };
 
 const styles = StyleSheet.create({
-  loadingContainer: {
-    padding: 20,
-    alignItems: "center",
-    justifyContent: "center",
-    borderRadius: 0,
-    minHeight: 200,
-  },
-  documentDetails: {
-    marginTop: 24,
-    gap: 12,
-  },
-  detailItem: {
-    flexDirection: "row",
-    alignItems: "center",
-    gap: 12,
-  },
-  detailText: {
-    fontSize: 16,
-  },
   container: {
     flex: 1,
   },
-  content: {
-    flexGrow: 1,
-  },
+  // Header Styles
   header: {
-    height: 220,
+    position: "absolute",
+    top: 0,
+    left: 0,
+    right: 0,
+    zIndex: 10,
+    elevation: 10,
   },
   headerGradient: {
     flex: 1,
-    padding: 20,
+    paddingTop: Platform.OS === "ios" ? 50 : 40,
   },
   headerTop: {
     flexDirection: "row",
-    justifyContent: "space-between",
     alignItems: "center",
-    marginTop: Platform.OS === "ios" ? 40 : 20,
+    justifyContent: "space-between",
+    paddingHorizontal: 16,
+  },
+  headerTitle: {
+    fontSize: 18,
+    fontWeight: "600",
+    position: "absolute",
+    left: 60,
+    right: 60,
+    textAlign: "center",
   },
   backButton: {
     width: 40,
@@ -942,8 +1042,8 @@ const styles = StyleSheet.create({
   documentInfo: {
     flexDirection: "row",
     alignItems: "center",
-    marginTop: 24,
-    gap: 16,
+    paddingHorizontal: 16,
+    paddingTop: 20,
   },
   documentIcon: {
     width: 64,
@@ -951,6 +1051,7 @@ const styles = StyleSheet.create({
     borderRadius: 16,
     alignItems: "center",
     justifyContent: "center",
+    marginRight: 16,
   },
   documentMeta: {
     flex: 1,
@@ -964,27 +1065,43 @@ const styles = StyleSheet.create({
     fontSize: 14,
     opacity: 0.9,
   },
+  
+  // Tabs Styles
   tabsContainer: {
     flexDirection: "row",
-    paddingHorizontal: 20,
-    marginTop: -20,
     borderTopLeftRadius: 20,
     borderTopRightRadius: 20,
+    marginTop: -20,
+    shadowColor: "#000",
+    shadowOffset: { width: 0, height: -2 },
+    shadowOpacity: 0.05,
+    shadowRadius: 3,
+    elevation: 3,
   },
   tab: {
     flex: 1,
     paddingVertical: 16,
     alignItems: "center",
-    borderBottomWidth: 2,
-    borderBottomColor: "transparent",
   },
   tabText: {
     fontSize: 14,
     fontWeight: "600",
   },
+  
+  // Content Styles
   section: {
     padding: 20,
-    borderRadius: 0,
+    marginHorizontal: 16,
+    marginVertical: 10,
+    borderRadius: 16,
+    shadowColor: "#000",
+    shadowOffset: {
+      width: 0,
+      height: 2,
+    },
+    shadowOpacity: 0.05,
+    shadowRadius: 3.84,
+    elevation: 3,
   },
   sectionTitle: {
     fontSize: 20,
@@ -996,87 +1113,149 @@ const styles = StyleSheet.create({
     lineHeight: 24,
     marginBottom: 24,
   },
-  topicsContainer: {
+  
+  // Loading Container
+  loadingContainer: {
+    padding: 40,
+    margin: 16,
+    borderRadius: 16,
+    alignItems: "center",
+    justifyContent: "center",
+    shadowColor: "#000",
+    shadowOffset: {
+      width: 0,
+      height: 2,
+    },
+    shadowOpacity: 0.05,
+    shadowRadius: 3.84,
+    elevation: 3,
+  },
+  
+  // Document Details
+  documentDetails: {
+    marginTop: 24,
     gap: 12,
   },
-  topicsTitle: {
-    fontSize: 16,
-    fontWeight: "600",
-    marginBottom: 8,
-  },
-  topicItem: {
+  detailItem: {
     flexDirection: "row",
     alignItems: "center",
-    justifyContent: "space-between",
-    padding: 12,
-    borderRadius: 12,
+    gap: 12,
   },
-  confidenceBadge: {
-    paddingHorizontal: 8,
-    paddingVertical: 4,
-    borderRadius: 8,
+  detailText: {
+    fontSize: 16,
   },
-  insightItem: {
-    flexDirection: "row",
-    alignItems: "flex-start",
-    padding: 16,
-    borderRadius: 12,
+  
+  // Key Points Preview
+  keyPointsPreview: {
+    marginTop: 20,
+    borderTopWidth: 1,
+    borderTopColor: "rgba(0,0,0,0.05)",
+    paddingTop: 20,
+  },
+  keyPointsTitle: {
+    fontSize: 18,
+    fontWeight: "600",
     marginBottom: 12,
   },
-  insightIcon: {
-    width: 32,
-    height: 32,
-    borderRadius: 16,
+  keyPointItem: {
+    flexDirection: "row",
+    marginBottom: 12,
+    alignItems: "flex-start",
+  },
+  bulletPoint: {
+    width: 8,
+    height: 8,
+    borderRadius: 4,
+    marginTop: 8,
+    marginRight: 10,
+  },
+  keyPointText: {
+    flex: 1,
+    fontSize: 15,
+    lineHeight: 22,
+  },
+  seeMoreButton: {
+    flexDirection: "row",
+    alignItems: "center",
+    paddingVertical: 8,
+    paddingHorizontal: 16,
+    borderRadius: 20,
+    alignSelf: "flex-start",
+    gap: 8,
+  },
+  
+  // Insights Tab
+  insightItem: {
+    flexDirection: "row",
+    marginBottom: 12,
+    borderRadius: 12,
+    overflow: "hidden",
+  },
+  insightNumber: {
+    width: 30,
     alignItems: "center",
     justifyContent: "center",
-    marginRight: 12,
+    paddingVertical: 10,
+  },
+  insightNumberText: {
+    fontSize: 14,
+    fontWeight: "bold",
+  },
+  insightContent: {
+    flex: 1,
+    padding: 10,
+    paddingLeft: 12,
   },
   insightText: {
-    flex: 1,
-    fontSize: 14,
-    lineHeight: 20,
+    fontSize: 15,
+    lineHeight: 22,
   },
-
-  // Professional Q&A styles
-  qaContainer: {
-    flex: 1,
-    position: "relative",
-  },
-  qaCompactHeader: {
-    flexDirection: "row",
-    justifyContent: "space-between",
-    alignItems: "center",
-    paddingHorizontal: 16,
-    paddingVertical: 10,
-    borderBottomWidth: StyleSheet.hairlineWidth,
-  },
-  qaHeaderLeft: {
-    flexDirection: "row",
-    alignItems: "center",
-  },
-  qaHeaderIconSmall: {
-    width: 32,
-    height: 32,
-    borderRadius: 16,
+  emptyInsights: {
+    padding: 32,
+    borderRadius: 12,
     alignItems: "center",
     justifyContent: "center",
-    marginRight: 8,
   },
-  qaCompactTitle: {
-    fontSize: 15,
+  emptyInsightsText: {
+    marginTop: 16,
+    textAlign: "center",
+  },
+  recommendationsSection: {
+    marginTop: 24,
+  },
+  recommendationsTitle: {
+    fontSize: 18,
     fontWeight: "600",
+    marginBottom: 12,
   },
-  clearButton: {
-    paddingHorizontal: 10,
-    paddingVertical: 5,
+  recommendationItem: {
+    flexDirection: "row",
+    padding: 12,
     borderRadius: 12,
-    borderWidth: 1,
+    marginBottom: 8,
+    alignItems: "flex-start",
+  },
+  recommendationIcon: {
+    marginRight: 10,
+    marginTop: 2,
+  },
+  recommendationText: {
+    flex: 1,
+    fontSize: 15,
+    lineHeight: 22,
+  },
+  
+  // Q&A Tab
+  qaContainer: {
+    flex: 1,
+    minHeight: height - HEADER_EXPANDED_HEIGHT - 100,
   },
   emptyChat: {
     flex: 1,
     alignItems: "center",
     justifyContent: "center",
     padding: 24,
+    minHeight: 400,
   },
   emptyIconContainer: {
     width: 80,
@@ -1116,22 +1295,10 @@ const styles = StyleSheet.create({
   },
   chatContainer: {
     flex: 1,
-  },
-  chatContent: {
     padding: 16,
   },
-  dateSeparator: {
-    flexDirection: "row",
-    alignItems: "center",
-    marginVertical: 16,
-  },
-  dateLine: {
-    flex: 1,
-    height: StyleSheet.hairlineWidth,
-  },
-  dateText: {
-    paddingHorizontal: 8,
-    fontSize: 12,
+  chatContent: {
+    paddingBottom: 100,
   },
   messageGroup: {
     marginBottom: 16,
@@ -1145,7 +1312,10 @@ const styles = StyleSheet.create({
     padding: 12,
     borderRadius: 18,
     borderBottomRightRadius: 4,
-    minWidth: 80,
+  },
+  messageText: {
+    fontSize: 15,
+    lineHeight: 22,
   },
   aiMessageContainer: {
     alignItems: "flex-start",
@@ -1160,7 +1330,6 @@ const styles = StyleSheet.create({
     shadowOpacity: 0.05,
     shadowRadius: 2,
     elevation: 1,
-    minWidth: 80,
   },
   aiTypingContainer: {
     flexDirection: "row",
@@ -1183,13 +1352,11 @@ const styles = StyleSheet.create({
     flexDirection: "row",
     alignItems: "center",
     padding: 12,
-    paddingBottom: Platform.OS === "ios" ? 24 : 12,
     borderTopWidth: StyleSheet.hairlineWidth,
     position: "absolute",
     left: 0,
     right: 0,
     bottom: 0,
-    zIndex: 100,
   },
   textInput: {
     flex: 1,
@@ -1198,10 +1365,9 @@ const styles = StyleSheet.create({
     borderRadius: 20,
     paddingHorizontal: 16,
     paddingVertical: 8,
-    paddingTop: 8,
-    paddingRight: 40,
+    paddingRight: 50,
     borderWidth: StyleSheet.hairlineWidth,
-    fontSize: 14,
+    fontSize: 15,
   },
   sendButton: {
     width: 36,
@@ -1210,7 +1376,7 @@ const styles = StyleSheet.create({
     justifyContent: "center",
     alignItems: "center",
     position: "absolute",
-    right: 16,
-    bottom: Platform.OS === "ios" ? 27 : 14,
+    right: 22,
+    bottom: 19,
   },
 });

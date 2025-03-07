@@ -1,16 +1,16 @@
-// HistoryScreen.js - Kullanıcının dökümanlarını gösteren ekran
-import React, { useState, useEffect } from "react";
+import React, { useState, useEffect, useCallback } from "react";
 import {
   View,
-  ScrollView,
   StyleSheet,
   TouchableOpacity,
   RefreshControl,
   SectionList,
   ActivityIndicator,
+  Alert,
+  TextInput,
 } from "react-native";
 import { SafeAreaView } from "react-native-safe-area-context";
-import { Text } from "../../components/common";
+import { Text, Button } from "../../components/common";
 import { useTheme } from "../../hooks/useTheme";
 import { Ionicons } from "@expo/vector-icons";
 import { showToast } from "../../utils/toast";
@@ -22,47 +22,55 @@ export const HistoryScreen = ({ navigation }) => {
   const { user } = useAuth();
   const [loading, setLoading] = useState(true);
   const [refreshing, setRefreshing] = useState(false);
-  const [histories, setHistories] = useState([]);
-  const [selectedFilter, setSelectedFilter] = useState("all");
+  const [error, setError] = useState(null);
   const [documents, setDocuments] = useState([]);
+  const [groupedDocuments, setGroupedDocuments] = useState([]);
+  const [searchQuery, setSearchQuery] = useState("");
+  const [selectedFilter, setSelectedFilter] = useState("all"); // 'all', 'pdf', 'image', 'document'
 
+  // Load documents when component mounts or user changes
   useEffect(() => {
     if (user?.uid) {
-      loadHistory();
+      loadDocuments();
     } else {
       setLoading(false);
-      setHistories([]);
+      setError("Please log in to view your document history");
     }
   }, [user]);
 
-  const loadHistory = async () => {
+  // Load documents from the server
+  const loadDocuments = async () => {
     setLoading(true);
+    setError(null);
+
     try {
       if (!user?.uid) {
         throw new Error("User not authenticated");
       }
 
-      console.log("Loading documents for user:", user.uid);
-
-      // Load user documents from Firebase
-      const userDocuments = await documentManager.getUserDocuments(user.uid);
-      console.log(`Loaded ${userDocuments.length} documents`);
-
-      // Store the raw documents for filtering
+      // Load user documents
+      const userDocuments = await documentManager.getUserDocuments();
       setDocuments(userDocuments);
 
-      // Group documents by date
+      // Group documents for display
       const grouped = groupDocumentsByDate(userDocuments);
-      setHistories(grouped);
+      setGroupedDocuments(grouped);
     } catch (error) {
-      console.error("Error loading history:", error);
+      console.error("Error loading document history:", error);
+      setError(error.message || "Failed to load document history");
       showToast.error("Error", "Failed to load document history");
     } finally {
       setLoading(false);
     }
   };
 
-  // Helper function to group documents by date
+  // Pull-to-refresh handler
+  const onRefresh = useCallback(() => {
+    setRefreshing(true);
+    loadDocuments().finally(() => setRefreshing(false));
+  }, [user]);
+
+  // Group documents by date (Today, Yesterday, This Week, Earlier)
   const groupDocumentsByDate = (docs) => {
     if (!docs || docs.length === 0) return [];
 
@@ -90,59 +98,43 @@ export const HistoryScreen = ({ navigation }) => {
     const earlierDocs = [];
 
     sortedDocs.forEach((doc) => {
-      // Convert document date
+      // Skip documents that don't match the filter
+      if (selectedFilter !== "all") {
+        const docType = (doc.type || "").toLowerCase();
+        if (
+          (selectedFilter === "pdf" && !docType.includes("pdf")) ||
+          (selectedFilter === "image" && !docType.includes("image")) ||
+          (selectedFilter === "document" &&
+            !(docType.includes("doc") || docType.includes("word")))
+        ) {
+          return;
+        }
+      }
+
+      // Skip documents that don't match the search
+      if (searchQuery) {
+        const docName = (doc.name || "").toLowerCase();
+        if (!docName.includes(searchQuery.toLowerCase())) {
+          return;
+        }
+      }
+
+      // Get document date
       const docDate = doc.createdAt ? new Date(doc.createdAt) : new Date(0);
       docDate.setHours(0, 0, 0, 0);
 
-      // Determine action type
-      let action = "upload";
-      if (doc.status === "analyzed") {
-        action = "analyze";
-      } else if (doc.type?.toLowerCase().includes("image")) {
-        action = "scan";
-      }
-
-      // Format relative time
-      const timeAgo = getRelativeTimeString(doc.createdAt);
-
-      // Get appropriate icon
-      let icon = "document-text-outline";
-      if (doc.type?.toLowerCase().includes("pdf")) {
-        icon = "document-text-outline";
-      } else if (doc.type?.toLowerCase().includes("image")) {
-        icon = "image-outline";
-      } else if (
-        doc.type?.toLowerCase().includes("word") ||
-        doc.type?.toLowerCase().includes("docx")
-      ) {
-        icon = "document-outline";
-      } else if (
-        doc.name?.toLowerCase().includes("invoice") ||
-        doc.name?.toLowerCase().includes("receipt")
-      ) {
-        icon = "receipt-outline";
-      }
-
-      // Create history item
-      const historyItem = {
-        id: doc.id,
-        title: doc.name || "Document",
-        type: doc.type || "File",
-        action,
-        time: timeAgo,
-        icon,
-        originalDoc: doc,
-      };
+      // Format the document item
+      const formattedItem = formatDocumentItem(doc);
 
       // Add to appropriate group
       if (docDate.getTime() === today.getTime()) {
-        todayDocs.push(historyItem);
+        todayDocs.push(formattedItem);
       } else if (docDate.getTime() === yesterday.getTime()) {
-        yesterdayDocs.push(historyItem);
+        yesterdayDocs.push(formattedItem);
       } else if (docDate >= thisWeekStart) {
-        thisWeekDocs.push(historyItem);
+        thisWeekDocs.push(formattedItem);
       } else {
-        earlierDocs.push(historyItem);
+        earlierDocs.push(formattedItem);
       }
     });
 
@@ -168,136 +160,182 @@ export const HistoryScreen = ({ navigation }) => {
     return sections;
   };
 
-  // Helper function to format relative time
-  const getRelativeTimeString = (dateString) => {
-    if (!dateString) return "Unknown";
+  // Format document item for display
+  const formatDocumentItem = (doc) => {
+    // Determine document icon based on type
+    let icon = "document-text-outline";
+    const docType = (doc.type || "").toLowerCase();
 
-    const date = new Date(dateString);
-    const now = new Date();
-    const diffSeconds = Math.floor((now - date) / 1000);
+    if (docType.includes("pdf")) {
+      icon = "document-text-outline";
+    } else if (
+      docType.includes("image") ||
+      docType.includes("jpg") ||
+      docType.includes("png")
+    ) {
+      icon = "image-outline";
+    } else if (docType.includes("word") || docType.includes("doc")) {
+      icon = "document-outline";
+    } else if (
+      doc.name?.toLowerCase().includes("invoice") ||
+      doc.name?.toLowerCase().includes("receipt")
+    ) {
+      icon = "receipt-outline";
+    }
 
-    if (diffSeconds < 60) {
-      return "Just now";
-    } else if (diffSeconds < 3600) {
-      const mins = Math.floor(diffSeconds / 60);
-      return `${mins} ${mins === 1 ? "min" : "mins"} ago`;
-    } else if (diffSeconds < 86400) {
-      const hours = Math.floor(diffSeconds / 3600);
-      return `${hours} ${hours === 1 ? "hour" : "hours"} ago`;
-    } else if (diffSeconds < 604800) {
-      const days = Math.floor(diffSeconds / 86400);
-      return `${days} ${days === 1 ? "day" : "days"} ago`;
-    } else {
+    // Format file size
+    const formatFileSize = (bytes) => {
+      if (!bytes) return "Unknown size";
+      if (bytes < 1024) return `${bytes} B`;
+      if (bytes < 1024 * 1024) return `${(bytes / 1024).toFixed(1)} KB`;
+      return `${(bytes / (1024 * 1024)).toFixed(1)} MB`;
+    };
+
+    // Format relative time
+    const getRelativeTime = (dateString) => {
+      if (!dateString) return "Unknown";
+
+      const date = new Date(dateString);
+      const now = new Date();
+      const diffSeconds = Math.floor((now - date) / 1000);
+
+      if (diffSeconds < 60) return "Just now";
+      if (diffSeconds < 3600) return `${Math.floor(diffSeconds / 60)}m ago`;
+      if (diffSeconds < 86400) return `${Math.floor(diffSeconds / 3600)}h ago`;
+      if (diffSeconds < 604800)
+        return `${Math.floor(diffSeconds / 86400)}d ago`;
+
       return date.toLocaleDateString();
-    }
+    };
+
+    // Return formatted document item
+    return {
+      id: doc.id,
+      title: doc.name || "Unnamed Document",
+      type: doc.type || "Unknown type",
+      size: formatFileSize(doc.size),
+      time: getRelativeTime(doc.createdAt),
+      icon,
+      status: doc.status || "uploaded",
+      originalDoc: doc,
+    };
   };
 
-  const onRefresh = React.useCallback(() => {
-    setRefreshing(true);
-    loadHistory().finally(() => setRefreshing(false));
-  }, [user]);
-
-  const getActionColor = (action) => {
-    switch (action) {
-      case "upload":
-        return theme.colors.primary;
-      case "scan":
-        return theme.colors.warning;
-      case "analyze":
-        return theme.colors.success;
-      default:
-        return theme.colors.textSecondary;
-    }
+  // Delete document
+  const handleDeleteDocument = (docId) => {
+    Alert.alert(
+      "Delete Document",
+      "Are you sure you want to delete this document? This cannot be undone.",
+      [
+        { text: "Cancel", style: "cancel" },
+        {
+          text: "Delete",
+          style: "destructive",
+          onPress: async () => {
+            try {
+              await documentManager.deleteDocument(docId);
+              showToast.success("Success", "Document deleted successfully");
+              loadDocuments();
+            } catch (error) {
+              console.error("Error deleting document:", error);
+              showToast.error("Error", "Failed to delete document");
+            }
+          },
+        },
+      ]
+    );
   };
 
-  const getActionIcon = (action) => {
-    switch (action) {
-      case "upload":
-        return "cloud-upload-outline";
-      case "scan":
-        return "scan-outline";
-      case "analyze":
-        return "analytics-outline";
-      default:
-        return "ellipsis-horizontal-outline";
-    }
-  };
+  // Update filtered documents when search query or filter changes
+  useEffect(() => {
+    const filtered = groupDocumentsByDate(documents);
+    setGroupedDocuments(filtered);
+  }, [searchQuery, selectedFilter, documents]);
 
-  const filters = [
-    { id: "all", label: "All Activity", icon: "apps-outline" },
-    { id: "upload", label: "Uploads", icon: "cloud-upload-outline" },
-    { id: "scan", label: "Scans", icon: "scan-outline" },
-    { id: "analyze", label: "Analyses", icon: "analytics-outline" },
-  ];
-
+  // Render header
   const renderHeader = () => (
     <View style={styles.header}>
-      <Text
-        variant="h1"
-        style={[styles.headerTitle, { color: theme.colors.text }]}
-      >
-        History
+      <Text style={[styles.headerTitle, { color: theme.colors.text }]}>
+        Document History
       </Text>
-      <View style={styles.headerButtons}>
+
+      <View style={styles.headerActions}>
         <TouchableOpacity
-          style={[styles.iconButton, { backgroundColor: theme.colors.surface }]}
+          style={[
+            styles.actionButton,
+            { backgroundColor: theme.colors.surface },
+          ]}
+          onPress={() => navigation.navigate("Documents")}
         >
-          <Ionicons
-            name="calendar-outline"
-            size={22}
-            color={theme.colors.text}
-          />
-        </TouchableOpacity>
-        <TouchableOpacity
-          style={[styles.iconButton, { backgroundColor: theme.colors.surface }]}
-        >
-          <Ionicons name="filter-outline" size={22} color={theme.colors.text} />
+          <Ionicons name="add-outline" size={22} color={theme.colors.text} />
         </TouchableOpacity>
       </View>
     </View>
   );
 
-  const renderFilters = () => (
-    <ScrollView
-      horizontal
-      showsHorizontalScrollIndicator={false}
-      contentContainerStyle={styles.filtersContainer}
-    >
-      {filters.map((filter) => (
-        <TouchableOpacity
-          key={filter.id}
-          style={[
-            styles.filterChip,
-            {
-              backgroundColor:
-                selectedFilter === filter.id
-                  ? theme.colors.primary
-                  : theme.colors.surface,
-            },
-          ]}
-          onPress={() => setSelectedFilter(filter.id)}
-        >
+  // Render search bar
+  const renderSearchBar = () => (
+    <View style={[styles.searchBar, { backgroundColor: theme.colors.surface }]}>
+      <Ionicons name="search" size={20} color={theme.colors.textSecondary} />
+      <TextInput
+        style={[styles.searchInput, { color: theme.colors.text }]}
+        placeholder="Search documents..."
+        placeholderTextColor={theme.colors.textSecondary}
+        value={searchQuery}
+        onChangeText={setSearchQuery}
+      />
+      {searchQuery ? (
+        <TouchableOpacity onPress={() => setSearchQuery("")}>
           <Ionicons
-            name={filter.icon}
-            size={18}
-            color={selectedFilter === filter.id ? "white" : theme.colors.text}
+            name="close-circle"
+            size={20}
+            color={theme.colors.textSecondary}
           />
-          <Text
-            style={[
-              styles.filterLabel,
-              {
-                color:
-                  selectedFilter === filter.id ? "white" : theme.colors.text,
-              },
-            ]}
-          >
-            {filter.label}
-          </Text>
         </TouchableOpacity>
-      ))}
-    </ScrollView>
+      ) : null}
+    </View>
   );
 
+  // Render filter chips
+  const renderFilterChips = () => {
+    const filters = [
+      { id: "all", label: "All" },
+      { id: "pdf", label: "PDFs" },
+      { id: "document", label: "Documents" },
+      { id: "image", label: "Images" },
+    ];
+
+    return (
+      <View style={styles.filtersContainer}>
+        {filters.map((filter) => (
+          <TouchableOpacity
+            key={filter.id}
+            style={[
+              styles.filterChip,
+              {
+                backgroundColor:
+                  selectedFilter === filter.id
+                    ? theme.colors.primary
+                    : theme.colors.surface,
+              },
+            ]}
+            onPress={() => setSelectedFilter(filter.id)}
+          >
+            <Text
+              style={{
+                color:
+                  selectedFilter === filter.id ? "white" : theme.colors.text,
+              }}
+            >
+              {filter.label}
+            </Text>
+          </TouchableOpacity>
+        ))}
+      </View>
+    );
+  };
+
+  // Render section header
   const renderSectionHeader = ({ section: { title } }) => (
     <Text
       style={[
@@ -312,68 +350,110 @@ export const HistoryScreen = ({ navigation }) => {
     </Text>
   );
 
-  const renderItem = ({ item }) => {
-    // Filter items based on selected filter
-    if (selectedFilter !== "all" && item.action !== selectedFilter) {
-      return null;
-    }
+  // Render document item
+  const renderDocumentItem = ({ item }) => (
+    <TouchableOpacity
+      style={[styles.documentItem, { backgroundColor: theme.colors.surface }]}
+      onPress={() =>
+        navigation.navigate("DocumentDetail", { documentId: item.id })
+      }
+    >
+      <View style={styles.documentContent}>
+        <View
+          style={[
+            styles.documentIcon,
+            { backgroundColor: theme.colors.primary + "15" },
+          ]}
+        >
+          <Ionicons name={item.icon} size={24} color={theme.colors.primary} />
+        </View>
 
-    return (
-      <TouchableOpacity
-        style={[styles.historyItem, { backgroundColor: theme.colors.surface }]}
-        onPress={() =>
-          navigation.navigate("DocumentDetail", { documentId: item.id })
-        }
-      >
-        <View style={styles.itemContent}>
-          <View
-            style={[
-              styles.documentIcon,
-              { backgroundColor: theme.colors.primary + "15" },
-            ]}
+        <View style={styles.documentInfo}>
+          <Text
+            style={[styles.documentTitle, { color: theme.colors.text }]}
+            numberOfLines={1}
           >
-            <Ionicons name={item.icon} size={24} color={theme.colors.primary} />
-          </View>
+            {item.title}
+          </Text>
 
-          <View style={styles.itemDetails}>
-            <Text style={[styles.itemTitle, { color: theme.colors.text }]}>
-              {item.title}
-            </Text>
-            <Text
-              style={[styles.itemMeta, { color: theme.colors.textSecondary }]}
-            >
-              {item.type} • {item.time}
-            </Text>
-          </View>
-
-          <View
-            style={[
-              styles.actionBadge,
-              { backgroundColor: getActionColor(item.action) + "15" },
-            ]}
-          >
-            <Ionicons
-              name={getActionIcon(item.action)}
-              size={14}
-              color={getActionColor(item.action)}
-            />
+          <View style={styles.documentMeta}>
             <Text
               style={[
-                styles.actionText,
-                { color: getActionColor(item.action) },
+                styles.documentType,
+                { color: theme.colors.textSecondary },
               ]}
             >
-              {item.action.charAt(0).toUpperCase() + item.action.slice(1)}
+              {item.type}
+            </Text>
+            <Text
+              style={[
+                styles.metaSeparator,
+                { color: theme.colors.textSecondary },
+              ]}
+            >
+              •
+            </Text>
+            <Text
+              style={[
+                styles.documentSize,
+                { color: theme.colors.textSecondary },
+              ]}
+            >
+              {item.size}
+            </Text>
+            <Text
+              style={[
+                styles.metaSeparator,
+                { color: theme.colors.textSecondary },
+              ]}
+            >
+              •
+            </Text>
+            <Text
+              style={[
+                styles.documentTime,
+                { color: theme.colors.textSecondary },
+              ]}
+            >
+              {item.time}
             </Text>
           </View>
         </View>
-      </TouchableOpacity>
-    );
-  };
 
+        <View style={styles.documentActions}>
+          <TouchableOpacity
+            style={styles.actionIcon}
+            onPress={() => handleDeleteDocument(item.id)}
+          >
+            <Ionicons
+              name="trash-outline"
+              size={20}
+              color={theme.colors.error}
+            />
+          </TouchableOpacity>
+        </View>
+      </View>
+
+      {/* Status Badge */}
+      {item.status === "analyzed" && (
+        <View
+          style={[
+            styles.statusBadge,
+            { backgroundColor: theme.colors.success + "20" },
+          ]}
+        >
+          <Text style={[styles.statusText, { color: theme.colors.success }]}>
+            Analyzed
+          </Text>
+        </View>
+      )}
+    </TouchableOpacity>
+  );
+
+  // Render empty state
   const renderEmptyState = () => (
     <View
-      style={[styles.emptyState, { backgroundColor: theme.colors.surface }]}
+      style={[styles.emptyContainer, { backgroundColor: theme.colors.surface }]}
     >
       <View
         style={[
@@ -381,24 +461,69 @@ export const HistoryScreen = ({ navigation }) => {
           { backgroundColor: theme.colors.primary + "15" },
         ]}
       >
-        <Ionicons name="time-outline" size={40} color={theme.colors.primary} />
+        <Ionicons name="document-text" size={40} color={theme.colors.primary} />
       </View>
+
       <Text style={[styles.emptyTitle, { color: theme.colors.text }]}>
-        No History Yet
+        No Documents Found
       </Text>
+
       <Text
-        style={[styles.emptyDescription, { color: theme.colors.textSecondary }]}
+        style={[styles.emptySubtitle, { color: theme.colors.textSecondary }]}
       >
-        Your document activity will appear here
+        {searchQuery || selectedFilter !== "all"
+          ? "Try changing your search or filters"
+          : "Your document history will appear here"}
       </Text>
+
+      <Button
+        title="Upload a Document"
+        onPress={() => navigation.navigate("Documents")}
+        theme={theme}
+        style={styles.uploadButton}
+      />
     </View>
   );
 
+  // Render error state
+  const renderErrorState = () => (
+    <View
+      style={[styles.emptyContainer, { backgroundColor: theme.colors.surface }]}
+    >
+      <View
+        style={[
+          styles.emptyIcon,
+          { backgroundColor: theme.colors.error + "15" },
+        ]}
+      >
+        <Ionicons name="alert-circle" size={40} color={theme.colors.error} />
+      </View>
+
+      <Text style={[styles.emptyTitle, { color: theme.colors.text }]}>
+        Something Went Wrong
+      </Text>
+
+      <Text
+        style={[styles.emptySubtitle, { color: theme.colors.textSecondary }]}
+      >
+        {error || "Failed to load your document history"}
+      </Text>
+
+      <Button
+        title="Try Again"
+        onPress={loadDocuments}
+        theme={theme}
+        style={styles.uploadButton}
+      />
+    </View>
+  );
+
+  // Render loading state
   const renderLoading = () => (
     <View style={styles.loadingContainer}>
       <ActivityIndicator size="large" color={theme.colors.primary} />
       <Text style={[styles.loadingText, { color: theme.colors.textSecondary }]}>
-        Loading history...
+        Loading documents...
       </Text>
     </View>
   );
@@ -409,17 +534,20 @@ export const HistoryScreen = ({ navigation }) => {
       edges={["top"]}
     >
       {renderHeader()}
-      {renderFilters()}
+      {renderSearchBar()}
+      {renderFilterChips()}
 
       {loading ? (
         renderLoading()
-      ) : histories.length > 0 ? (
+      ) : error ? (
+        renderErrorState()
+      ) : groupedDocuments.length > 0 ? (
         <SectionList
-          sections={histories}
+          sections={groupedDocuments}
           keyExtractor={(item) => item.id}
-          renderItem={renderItem}
+          renderItem={renderDocumentItem}
           renderSectionHeader={renderSectionHeader}
-          contentContainerStyle={styles.historyList}
+          contentContainerStyle={styles.listContent}
           stickySectionHeadersEnabled={true}
           refreshControl={
             <RefreshControl
@@ -430,18 +558,7 @@ export const HistoryScreen = ({ navigation }) => {
           }
         />
       ) : (
-        <ScrollView
-          contentContainerStyle={styles.emptyContainer}
-          refreshControl={
-            <RefreshControl
-              refreshing={refreshing}
-              onRefresh={onRefresh}
-              tintColor={theme.colors.primary}
-            />
-          }
-        >
-          {renderEmptyState()}
-        </ScrollView>
+        renderEmptyState()
       )}
     </SafeAreaView>
   );
@@ -453,118 +570,143 @@ const styles = StyleSheet.create({
   },
   header: {
     flexDirection: "row",
-    justifyContent: "space-between",
     alignItems: "center",
+    justifyContent: "space-between",
     paddingHorizontal: 20,
-    paddingTop: 10,
-    paddingBottom: 10,
+    paddingVertical: 16,
   },
   headerTitle: {
     fontSize: 28,
     fontWeight: "700",
   },
-  headerButtons: {
+  headerActions: {
     flexDirection: "row",
-    gap: 12,
+    gap: 10,
   },
-  iconButton: {
+  actionButton: {
     width: 40,
     height: 40,
-    borderRadius: 12,
+    borderRadius: 20,
     alignItems: "center",
     justifyContent: "center",
+  },
+  searchBar: {
+    flexDirection: "row",
+    alignItems: "center",
+    marginHorizontal: 20,
+    paddingHorizontal: 16,
+    height: 48,
+    borderRadius: 24,
+    marginBottom: 16,
+  },
+  searchInput: {
+    flex: 1,
+    marginLeft: 10,
+    fontSize: 16,
   },
   filtersContainer: {
     flexDirection: "row",
     paddingHorizontal: 20,
-    paddingTop: 8,
-    paddingBottom: 16,
-    gap: 12,
+    gap: 10,
+    marginBottom: 16,
   },
   filterChip: {
-    flexDirection: "row",
-    alignItems: "center",
     paddingHorizontal: 16,
-    justifyContent: "center",
-    height: 40,
+    paddingVertical: 8,
     borderRadius: 20,
-    gap: 8,
-  },
-  filterLabel: {
-    fontSize: 14,
-    fontWeight: "500",
   },
   sectionHeader: {
+    paddingHorizontal: 20,
+    paddingVertical: 10,
     fontSize: 14,
     fontWeight: "600",
-    paddingHorizontal: 20,
-    paddingVertical: 8,
+    textTransform: "uppercase",
   },
-  historyList: {
-    paddingBottom: 20,
+  listContent: {
+    paddingBottom: 24,
   },
-  historyItem: {
-    marginHorizontal: 16,
+  documentItem: {
+    marginHorizontal: 20,
     marginVertical: 6,
-    borderRadius: 12,
+    borderRadius: 16,
     overflow: "hidden",
-  },
-  itemContent: {
-    flexDirection: "row",
-    alignItems: "center",
     padding: 16,
   },
-  documentIcon: {
-    width: 44,
-    height: 44,
-    borderRadius: 22,
-    alignItems: "center",
-    justifyContent: "center",
-  },
-  itemDetails: {
-    flex: 1,
-    marginLeft: 16,
-  },
-  itemTitle: {
-    fontSize: 16,
-    fontWeight: "600",
-    marginBottom: 4,
-  },
-  itemMeta: {
-    fontSize: 13,
-  },
-  actionBadge: {
+  documentContent: {
     flexDirection: "row",
     alignItems: "center",
+  },
+  documentIcon: {
+    width: 50,
+    height: 50,
+    borderRadius: 12,
+    alignItems: "center",
+    justifyContent: "center",
+    marginRight: 16,
+  },
+  documentInfo: {
+    flex: 1,
+  },
+  documentTitle: {
+    fontSize: 16,
+    fontWeight: "600",
+    marginBottom: 6,
+  },
+  documentMeta: {
+    flexDirection: "row",
+    alignItems: "center",
+    flexWrap: "wrap",
+  },
+  documentType: {
+    fontSize: 13,
+  },
+  documentSize: {
+    fontSize: 13,
+  },
+  documentTime: {
+    fontSize: 13,
+  },
+  metaSeparator: {
+    marginHorizontal: 6,
+    fontSize: 13,
+  },
+  documentActions: {
+    flexDirection: "row",
+    alignItems: "center",
+    marginLeft: 10,
+  },
+  actionIcon: {
+    padding: 5,
+  },
+  statusBadge: {
+    position: "absolute",
+    top: 10,
+    right: 10,
     paddingHorizontal: 10,
     paddingVertical: 4,
     borderRadius: 12,
-    marginLeft: 8,
-    gap: 4,
   },
-  actionText: {
+  statusText: {
     fontSize: 12,
     fontWeight: "600",
   },
   loadingContainer: {
     flex: 1,
-    alignItems: "center",
     justifyContent: "center",
-    paddingVertical: 40,
-    gap: 16,
+    alignItems: "center",
+    padding: 20,
   },
   loadingText: {
-    fontSize: 14,
+    fontSize: 16,
+    marginTop: 12,
   },
   emptyContainer: {
-    flexGrow: 1,
-    padding: 20,
-    justifyContent: "center",
-  },
-  emptyState: {
-    padding: 32,
-    borderRadius: 16,
+    flex: 1,
     alignItems: "center",
+    justifyContent: "center",
+    padding: 32,
+    margin: 20,
+    borderRadius: 20,
   },
   emptyIcon: {
     width: 80,
@@ -580,8 +722,13 @@ const styles = StyleSheet.create({
     marginBottom: 8,
     textAlign: "center",
   },
-  emptyDescription: {
-    fontSize: 14,
+  emptySubtitle: {
+    fontSize: 15,
     textAlign: "center",
+    marginBottom: 24,
+    lineHeight: 22,
+  },
+  uploadButton: {
+    minWidth: 200,
   },
 });

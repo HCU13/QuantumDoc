@@ -1,22 +1,37 @@
 // services/DocumentManager.js
-import { firebaseStorage } from "./FirebaseStorage";
-import { claudeService } from "./ClaudeService";
+import { FIREBASE_APP, FIRESTORE_DB } from "../../FirebaseConfig";
+import {
+  getStorage,
+  ref,
+  uploadBytesResumable,
+  getDownloadURL,
+} from "firebase/storage";
 import {
   collection,
+  addDoc,
+  serverTimestamp,
   query,
   where,
-  getDocs,
   orderBy,
   limit,
+  getDocs,
   doc,
   getDoc,
+  updateDoc,
 } from "firebase/firestore";
-import { FIRESTORE_DB } from "../../FirebaseConfig";
 import * as FileSystem from "expo-file-system";
-import * as DocumentPicker from "expo-document-picker";
-import * as ImagePicker from "expo-image-picker";
-import * as ImageManipulator from "expo-image-manipulator";
-import { Platform } from "react-native";
+import { getAuth } from "firebase/auth";
+import axios from "axios";
+import { showToast } from "../utils/toast";
+
+// Initialize Firebase Storage
+const storage = getStorage(FIREBASE_APP);
+
+// Anthropic API configuration
+const CLAUDE_API_KEY =
+  "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";
+const CLAUDE_API_URL = "https://api.anthropic.com/v1/messages";
+const CLAUDE_MODEL = "claude-3-haiku-20240307"; // Using Haiku for cost-effective, faster responses
 
 export const documentManager = {
   /**
@@ -25,14 +40,12 @@ export const documentManager = {
    */
   pickDocument: async () => {
     try {
-      console.log("Opening document picker");
       const result = await DocumentPicker.getDocumentAsync({
         type: [
           "application/pdf",
           "application/msword",
           "application/vnd.openxmlformats-officedocument.wordprocessingml.document",
-          "image/jpeg",
-          "image/png",
+          "image/*",
           "text/plain",
         ],
         copyToCacheDirectory: true,
@@ -43,7 +56,6 @@ export const documentManager = {
         return null;
       }
 
-      console.log("Document selected:", result.assets[0].name);
       return result.assets[0];
     } catch (error) {
       console.error("Error picking document:", error);
@@ -52,84 +64,23 @@ export const documentManager = {
   },
 
   /**
-   * Scan a document with camera
-   * @returns {Promise<Object>} - Captured document info
-   */
-  scanDocument: async () => {
-    try {
-      // Request camera permission
-      const { status } = await ImagePicker.requestCameraPermissionsAsync();
-      if (status !== "granted") {
-        throw new Error("Camera permission is required");
-      }
-
-      console.log("Opening camera");
-      // Take a picture
-      const result = await ImagePicker.launchCameraAsync({
-        mediaTypes: ImagePicker.MediaTypeOptions.Images,
-        quality: 1,
-        allowsEditing: true,
-        aspect: [4, 3],
-      });
-
-      if (result.canceled) {
-        console.log("Camera capture canceled");
-        return null;
-      }
-
-      console.log("Image captured");
-      // Optimize the image for document processing
-      const processedImage = await ImageManipulator.manipulateAsync(
-        result.assets[0].uri,
-        [{ resize: { width: 1600 } }],
-        { compress: 0.8, format: ImageManipulator.SaveFormat.JPEG }
-      );
-
-      console.log("Image processed");
-      const fileSize = await this.getFileSize(processedImage.uri);
-
-      return {
-        uri: processedImage.uri,
-        name: `scan_${new Date().toISOString()}.jpg`,
-        type: "image/jpeg",
-        size: fileSize,
-      };
-    } catch (error) {
-      console.error("Error scanning document:", error);
-      throw error;
-    }
-  },
-
-  /**
-   * Get file size from URI
-   * @param {string} uri - File URI
-   * @returns {Promise<number>} - File size in bytes
-   */
-  getFileSize: async (uri) => {
-    try {
-      const fileInfo = await FileSystem.getInfoAsync(uri);
-      return fileInfo.size;
-    } catch (error) {
-      console.error("Error getting file size:", error);
-      return 0;
-    }
-  },
-
-  /**
    * Process a document (upload, analyze with Claude)
    * @param {Object} file - File object with uri, name, type
-   * @param {string} userId - User ID
-   * @param {Function} onProgress - Progress callback
-   * @returns {Promise<Object>} - Processed document data
+   * @param {Function} onProgress - Progress callback (0-100, status)
+   * @returns {Promise<Object>} - Processed document with analysis
    */
-  processDocument: async (file, userId, onProgress = () => {}) => {
+  processDocument: async (file, onProgress = () => {}) => {
     try {
       // Update progress
       onProgress(0, "preparing");
-      console.log("Starting document processing", {
-        fileName: file.name,
-        fileType: file.type,
-      });
+      console.log("Starting document processing", { fileName: file.name });
+
+      // Get current user
+      const auth = getAuth();
+      if (!auth.currentUser) {
+        throw new Error("User not authenticated");
+      }
+      const userId = auth.currentUser.uid;
 
       // Generate a unique file name
       const timestamp = new Date().getTime();
@@ -138,90 +89,123 @@ export const documentManager = {
 
       // Upload to Firebase Storage
       onProgress(10, "uploading");
-      console.log("Uploading document to Firebase Storage");
+      console.log("Uploading to Firebase Storage");
 
-      const { downloadUrl, storageRef, size } =
-        await firebaseStorage.uploadDocument(
-          file.uri,
-          safeFileName,
-          userId,
-          file.type,
-          (progress) => onProgress(10 + progress * 0.3, "uploading")
-        );
+      const { downloadUrl, storagePath, size } = await uploadFile(
+        file.uri,
+        safeFileName,
+        userId,
+        file.type,
+        (progress) => onProgress(10 + progress * 0.3, "uploading")
+      );
 
       // Save document metadata to Firestore
       onProgress(40, "saving");
-      console.log("Saving document metadata to Firestore");
+      console.log("Saving document metadata");
 
       const documentData = {
         name: file.name || "Unnamed Document",
-        originalName: file.name || "Unnamed Document",
-        fileName: safeFileName,
-        type: file.type || "application/octet-stream", // default type if undefined
+        type: file.type || "application/octet-stream",
         size: file.size || size || 0,
         userId,
-        storageRef,
+        storagePath,
         downloadUrl,
         status: "uploaded",
-        fileExtension: fileExtension || "unknown",
-        createdAt: new Date().toISOString(),
+        fileExtension,
+        createdAt: serverTimestamp(),
       };
 
-      const documentId = await firebaseStorage.saveDocumentMetadata(
+      const docRef = await addDoc(
+        collection(FIRESTORE_DB, "documents"),
         documentData
       );
-
+      const documentId = docRef.id;
       console.log("Document saved with ID:", documentId);
 
-      // Only proceed with Claude API if it's a text document we can analyze
-      if (
-        ["pdf", "docx", "doc", "txt"].includes(fileExtension) ||
-        file.type.startsWith("application/pdf") ||
-        file.type.includes("document")
-      ) {
-        // Process with Claude API
-        onProgress(50, "analyzing");
-        console.log("Sending document to Claude API for analysis");
+      // Process with Claude API
+      onProgress(50, "analyzing");
+      console.log("Analyzing with Claude API");
 
-        try {
-          const analysisResult = await claudeService.processDocument({
-            id: documentId,
-            userId,
-            fileUrl: downloadUrl,
-            mimeType: file.type,
-          });
+      try {
+        // Read the file content
+        let fileContent = "";
 
-          // Update document status
-          onProgress(90, "finalizing");
-          await firebaseStorage.updateDocumentMetadata(documentId, {
-            status: "analyzed",
-            analysisId: analysisResult?.id || "",
-          });
-
-          documentData.analysisResult = analysisResult;
-        } catch (analysisError) {
-          console.error("Error during document analysis:", analysisError);
-          // Still continue - we'll just mark it as uploaded without analysis
-          await firebaseStorage.updateDocumentMetadata(documentId, {
-            status: "upload_only",
-            analysisError: analysisError.message,
-          });
+        // For text files, read content directly
+        if (file.type === "text/plain") {
+          const content = await FileSystem.readAsStringAsync(file.uri);
+          fileContent = content;
+        } else {
+          // For other files, we'll provide the download URL to Claude
+          fileContent = `File URL: ${downloadUrl}\nFile Type: ${file.type}\nFile Name: ${file.name}`;
         }
-      } else {
-        // Skip analysis for non-document files
-        console.log("Skipping analysis for non-document file");
-        await firebaseStorage.updateDocumentMetadata(documentId, {
-          status: "upload_only",
+
+        // Prepare the prompt for Claude
+        const prompt = `
+          Please analyze this document and provide:
+          1. A detailed summary (2-3 paragraphs)
+          2. 5-7 key points or main themes
+          3. Any important details or data points
+          4. Action items or recommendations if applicable
+          
+          File information: 
+          ${fileContent}
+          
+          Organize your response in clearly labeled sections.
+        `;
+
+        // Call Claude API
+        const analysisResult = await callClaudeAPI(prompt);
+        onProgress(80, "finalizing");
+
+        // Extract the analysis text
+        const analysisText = analysisResult.content[0].text;
+
+        // Parse the analysis into structured format
+        const parsedAnalysis = parseAnalysisContent(analysisText);
+
+        // Update document with analysis result
+        await updateDoc(doc(FIRESTORE_DB, "documents", documentId), {
+          status: "analyzed",
+          analysis: {
+            fullText: analysisText,
+            summary: parsedAnalysis.summary,
+            keyPoints: parsedAnalysis.keyPoints,
+            details: parsedAnalysis.details,
+            recommendations: parsedAnalysis.recommendations,
+            analyzed_at: serverTimestamp(),
+          },
         });
+
+        // Complete
+        onProgress(100, "complete");
+
+        // Return the document with analysis
+        return {
+          id: documentId,
+          ...documentData,
+          analysis: {
+            fullText: analysisText,
+            ...parsedAnalysis,
+          },
+        };
+      } catch (analysisError) {
+        console.error("Error analyzing document:", analysisError);
+
+        // Update document status to indicate analysis failure
+        await updateDoc(doc(FIRESTORE_DB, "documents", documentId), {
+          status: "analysis_failed",
+          error: analysisError.message,
+        });
+
+        // Still return the document, just without analysis
+        onProgress(100, "upload_only");
+        return {
+          id: documentId,
+          ...documentData,
+          status: "upload_only",
+          error: "Analysis failed: " + analysisError.message,
+        };
       }
-
-      onProgress(100, "complete");
-
-      // Return the processed document data
-      return {
-        id: documentId,
-        ...documentData,
-      };
     } catch (error) {
       console.error("Error processing document:", error);
       throw error;
@@ -230,13 +214,18 @@ export const documentManager = {
 
   /**
    * Get user's documents
-   * @param {string} userId - User ID
-   * @param {number} limitCount - Number of documents to retrieve
-   * @returns {Promise<Array>} - User documents
+   * @param {number} limit - Max number of documents to retrieve
+   * @returns {Promise<Array>} - Array of user documents
    */
-  getUserDocuments: async (userId, limitCount = 20) => {
+  getUserDocuments: async (limitCount = 20) => {
     try {
-      console.log("Getting user documents", { userId });
+      const auth = getAuth();
+      if (!auth.currentUser) {
+        throw new Error("User not authenticated");
+      }
+      const userId = auth.currentUser.uid;
+
+      console.log("Getting user documents");
       const q = query(
         collection(FIRESTORE_DB, "documents"),
         where("userId", "==", userId),
@@ -254,40 +243,6 @@ export const documentManager = {
       return documents;
     } catch (error) {
       console.error("Error getting user documents:", error);
-      throw error;
-    }
-  },
-
-  /**
-   * Ask a question about a document
-   * @param {string} documentId - Document ID
-   * @param {string} question - User's question
-   * @returns {Promise<Object>} - Answer information
-   */
-  askDocumentQuestion: async (documentId, question) => {
-    try {
-      console.log("Asking question about document", { documentId, question });
-
-      // Get document
-      const document = await this.getDocumentById(documentId);
-      if (!document) {
-        throw new Error("Document not found");
-      }
-
-      // Send question to Claude API
-      const answer = await claudeService.askDocumentQuestion(
-        documentId,
-        question
-      );
-
-      return {
-        question,
-        answer: answer.answer,
-        documentId,
-        documentName: document.name,
-      };
-    } catch (error) {
-      console.error("Error asking document question:", error);
       throw error;
     }
   },
@@ -320,32 +275,244 @@ export const documentManager = {
   },
 
   /**
-   * Get document conversation history
+   * Ask a question about a document
    * @param {string} documentId - Document ID
-   * @returns {Promise<Array>} - Conversation history
+   * @param {string} question - User's question
+   * @returns {Promise<Object>} - Answer to the question
    */
-  getDocumentConversations: async (documentId) => {
-    return await claudeService.getDocumentConversations(documentId);
-  },
-
-  /**
-   * Delete a document
-   * @param {string} documentId - Document ID
-   * @returns {Promise<void>}
-   */
-  deleteDocument: async (documentId) => {
+  askDocumentQuestion: async (documentId, question) => {
     try {
-      console.log("Deleting document", { documentId });
-      const document = await this.getDocumentById(documentId);
+      console.log("Asking question:", question);
+
+      // Get document
+      const document = await documentManager.getDocumentById(documentId);
       if (!document) {
         throw new Error("Document not found");
       }
 
-      await firebaseStorage.deleteDocument(documentId, document.storageRef);
-      console.log("Document deleted successfully");
+      // Get document analysis if available
+      let context = "";
+      if (document.analysis && document.analysis.fullText) {
+        context = document.analysis.fullText;
+      } else {
+        context = `Document: ${document.name} (No full analysis available)`;
+      }
+
+      // Prepare the prompt for Claude
+      const prompt = `
+        Answer the following question about this document:
+        
+        Question: ${question}
+        
+        Document content: ${context}
+        
+        Provide a detailed answer based only on the document content. If you cannot answer based on the information available, please say so clearly.
+      `;
+
+      // Call Claude API
+      const result = await callClaudeAPI(prompt);
+
+      // Extract the answer
+      const answer = result.content[0].text;
+
+      // Save the question and answer to Firestore
+      await addDoc(collection(FIRESTORE_DB, "document_conversations"), {
+        documentId,
+        question,
+        answer,
+        createdAt: serverTimestamp(),
+        userId: getAuth().currentUser?.uid,
+      });
+
+      return { answer, question, documentId };
     } catch (error) {
-      console.error("Error deleting document:", error);
+      console.error("Error asking document question:", error);
       throw error;
     }
   },
+
+  /**
+   * Get conversations for a document
+   * @param {string} documentId - Document ID
+   * @returns {Promise<Array>} - Array of conversations
+   */
+  getDocumentConversations: async (documentId) => {
+    try {
+      const q = query(
+        collection(FIRESTORE_DB, "document_conversations"),
+        where("documentId", "==", documentId),
+        orderBy("createdAt", "desc")
+      );
+
+      const querySnapshot = await getDocs(q);
+      return querySnapshot.docs.map((doc) => ({
+        id: doc.id,
+        ...doc.data(),
+      }));
+    } catch (error) {
+      console.error("Error getting conversations:", error);
+      return [];
+    }
+  },
 };
+
+/**
+ * Call Claude API
+ * @param {string} prompt - The prompt to send to Claude
+ * @returns {Promise<Object>} - Claude's response
+ */
+async function callClaudeAPI(prompt) {
+  try {
+    const response = await axios.post(
+      CLAUDE_API_URL,
+      {
+        model: CLAUDE_MODEL,
+        max_tokens: 2000,
+        temperature: 0.2,
+        messages: [
+          {
+            role: "user",
+            content: prompt,
+          },
+        ],
+      },
+      {
+        headers: {
+          "Content-Type": "application/json",
+          "x-api-key": CLAUDE_API_KEY,
+          "anthropic-version": "2023-06-01",
+        },
+        timeout: 60000, // 1 minute timeout
+      }
+    );
+
+    return response.data;
+  } catch (error) {
+    console.error("Claude API error:", error.response?.data || error.message);
+    throw new Error(
+      "Failed to analyze with Claude: " +
+        (error.response?.data?.error?.message || error.message)
+    );
+  }
+}
+
+/**
+ * Upload a file to Firebase Storage
+ * @param {string} uri - File URI
+ * @param {string} fileName - File name
+ * @param {string} userId - User ID
+ * @param {string} mimeType - File MIME type
+ * @param {Function} onProgress - Progress callback
+ * @returns {Promise<Object>} - Upload result
+ */
+async function uploadFile(uri, fileName, userId, mimeType, onProgress) {
+  try {
+    // Check if file exists
+    const fileInfo = await FileSystem.getInfoAsync(uri);
+    if (!fileInfo.exists) {
+      throw new Error("File not found");
+    }
+
+    // Create blob from file
+    const response = await fetch(uri);
+    const blob = await response.blob();
+
+    // Create storage reference
+    const storagePath = `documents/${userId}/${fileName}`;
+    const storageRef = ref(storage, storagePath);
+
+    // Upload task
+    const uploadTask = uploadBytesResumable(storageRef, blob);
+
+    return new Promise((resolve, reject) => {
+      uploadTask.on(
+        "state_changed",
+        (snapshot) => {
+          const progress =
+            (snapshot.bytesTransferred / snapshot.totalBytes) * 100;
+          console.log(`Upload progress: ${progress.toFixed(1)}%`);
+          onProgress(progress);
+        },
+        (error) => {
+          console.error("Upload error:", error);
+          reject(error);
+        },
+        async () => {
+          try {
+            const downloadUrl = await getDownloadURL(uploadTask.snapshot.ref);
+            resolve({
+              downloadUrl,
+              storagePath,
+              size: fileInfo.size,
+            });
+          } catch (urlError) {
+            reject(urlError);
+          }
+        }
+      );
+    });
+  } catch (error) {
+    console.error("File upload error:", error);
+    throw error;
+  }
+}
+
+/**
+ * Parse analysis content into structured format
+ * @param {string} text - Raw analysis text
+ * @returns {Object} - Structured analysis
+ */
+function parseAnalysisContent(text) {
+  const result = {
+    summary: "",
+    keyPoints: [],
+    details: "",
+    recommendations: [],
+  };
+
+  // Extract summary (usually first part or after "Summary:" heading)
+  const summaryMatch = text.match(
+    /(?:Summary|SUMMARY):(.*?)(?:\n\n|\n#|\n(?:Key Points|KEY POINTS))/s
+  );
+  if (summaryMatch && summaryMatch[1]) {
+    result.summary = summaryMatch[1].trim();
+  } else {
+    // Fallback: take first paragraph
+    const firstPara = text.split(/\n\n/)[0];
+    result.summary = firstPara;
+  }
+
+  // Extract key points
+  const keyPointsMatch = text.match(
+    /(?:Key Points|KEY POINTS|Main Themes|MAIN THEMES):(.*?)(?:\n\n|\n#|\n(?:Details|DETAILS|Important|IMPORTANT|Action|ACTION))/s
+  );
+  if (keyPointsMatch && keyPointsMatch[1]) {
+    const keyPointsText = keyPointsMatch[1].trim();
+    result.keyPoints = keyPointsText
+      .split(/\n(?:-|\*|\d+\.)\s*/)
+      .filter((line) => line.trim().length > 0)
+      .map((line) => line.trim());
+  }
+
+  // Extract details
+  const detailsMatch = text.match(
+    /(?:Details|DETAILS|Important Details|IMPORTANT DETAILS):(.*?)(?:\n\n|\n#|\n(?:Action|ACTION|Recommendations|RECOMMENDATIONS))/s
+  );
+  if (detailsMatch && detailsMatch[1]) {
+    result.details = detailsMatch[1].trim();
+  }
+
+  // Extract recommendations
+  const recommendationsMatch = text.match(
+    /(?:Action Items|ACTION ITEMS|Recommendations|RECOMMENDATIONS):(.*?)(?:\n\n|\n#|\n(?:Conclusion|CONCLUSION|$))/s
+  );
+  if (recommendationsMatch && recommendationsMatch[1]) {
+    const recommendationsText = recommendationsMatch[1].trim();
+    result.recommendations = recommendationsText
+      .split(/\n(?:-|\*|\d+\.)\s*/)
+      .filter((line) => line.trim().length > 0)
+      .map((line) => line.trim());
+  }
+
+  return result;
+}
