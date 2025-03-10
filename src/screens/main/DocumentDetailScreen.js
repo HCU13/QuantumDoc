@@ -1,990 +1,944 @@
-import React, { useState, useRef, useEffect } from "react";
+// src/screens/main/DocumentDetailScreen.js
+import React, { useState, useEffect, useRef } from "react";
 import {
   View,
-  ScrollView,
   StyleSheet,
+  ScrollView,
+  Image,
+  Alert,
+  TextInput,
+  KeyboardAvoidingView,
+  Platform,
+  FlatList,
   TouchableOpacity,
+  Linking,
+  Share,
+  SafeAreaView,
+  Animated,
   Dimensions,
   StatusBar,
-  TextInput,
-  Keyboard,
-  Share,
-  ActivityIndicator,
-  Animated,
-  Image,
-  Platform,
 } from "react-native";
-import { Text, Button } from "../../components/common";
-import { useTheme } from "../../hooks/useTheme";
-import { Ionicons } from "@expo/vector-icons";
 import { LinearGradient } from "expo-linear-gradient";
-import { documentManager } from "../../services/DocumentManager";
-import { showToast } from "../../utils/toast";
-import * as Haptics from "expo-haptics";
+import { Ionicons } from "@expo/vector-icons";
+import { useTheme } from "../../context/ThemeContext";
+import { useTokens } from "../../context/TokenContext";
+import { useLocalization } from "../../context/LocalizationContext";
+import { Text } from "../../components/Text";
+import { Button } from "../../components/Button";
+import { Card } from "../../components/Card";
+import { Badge } from "../../components/Badge";
+import { Loading } from "../../components/Loading";
+import { documentApi } from "../../api/documentApi";
+import { BlurView } from "expo-blur";
 
 const { width, height } = Dimensions.get("window");
-const HEADER_HEIGHT = Platform.OS === "ios" ? 90 : 70;
-const HEADER_EXPANDED_HEIGHT = 220;
+const AnimatedBlurView = Animated.createAnimatedComponent(BlurView);
 
-export const DocumentDetailScreen = ({ navigation, route }) => {
-  const { theme } = useTheme();
-  const { documentId } = route.params || {};
-  
-  // States
+const DocumentDetailScreen = ({ route, navigation }) => {
+  const { documentId, newDocument } = route.params;
+  const { theme, isDark } = useTheme();
+  const { t } = useLocalization();
+  const { hasEnoughTokens, useTokens, TOKEN_COSTS } = useTokens();
+
+  const scrollViewRef = useRef(null);
   const [document, setDocument] = useState(null);
   const [loading, setLoading] = useState(true);
   const [activeTab, setActiveTab] = useState("summary");
-  const [question, setQuestion] = useState("");
+  const [analyzing, setAnalyzing] = useState(false);
   const [conversations, setConversations] = useState([]);
+  const [question, setQuestion] = useState("");
+  const [askingQuestion, setAskingQuestion] = useState(false);
+  const [freeQuestionsCount, setFreeQuestionsCount] = useState(3);
   const [sending, setSending] = useState(false);
-  const [aiThinking, setAiThinking] = useState(false);
-  const [parsedAnalysis, setParsedAnalysis] = useState(null);
-  
-  // Animation values
+
+  // Animations
+  const fadeAnim = useRef(new Animated.Value(0)).current;
+  const headerAnimation = useRef(new Animated.Value(0)).current;
   const scrollY = useRef(new Animated.Value(0)).current;
-  const scrollViewRef = useRef(null);
-  const inputRef = useRef(null);
-  const headerHeight = scrollY.interpolate({
-    inputRange: [0, HEADER_EXPANDED_HEIGHT - HEADER_HEIGHT],
-    outputRange: [HEADER_EXPANDED_HEIGHT, HEADER_HEIGHT],
-    extrapolate: "clamp",
-  });
-  const headerTitleOpacity = scrollY.interpolate({
-    inputRange: [0, HEADER_EXPANDED_HEIGHT - HEADER_HEIGHT - 40, HEADER_EXPANDED_HEIGHT - HEADER_HEIGHT],
-    outputRange: [0, 0, 1],
-    extrapolate: "clamp",
-  });
-  const headerDetailOpacity = scrollY.interpolate({
-    inputRange: [0, HEADER_EXPANDED_HEIGHT - HEADER_HEIGHT],
-    outputRange: [1, 0],
-    extrapolate: "clamp",
-  });
 
-  // Load document when component mounts
+  // Start entrance animations
   useEffect(() => {
-    if (documentId) {
-      loadDocument();
-    } else {
-      setLoading(false);
-      showToast.error("Error", "No document ID provided");
-      navigation.goBack();
-    }
-  }, [documentId]);
+    Animated.timing(fadeAnim, {
+      toValue: 1,
+      duration: 600,
+      useNativeDriver: true,
+    }).start();
 
-  // Load document from server
+    // For new documents, animate header indicator
+    if (newDocument) {
+      Animated.loop(
+        Animated.sequence([
+          Animated.timing(headerAnimation, {
+            toValue: 1,
+            duration: 1000,
+            useNativeDriver: true,
+          }),
+          Animated.timing(headerAnimation, {
+            toValue: 0.3,
+            duration: 1000,
+            useNativeDriver: true,
+          }),
+        ])
+      ).start();
+    }
+  }, [newDocument]);
+
+  // Header animations based on scroll
+  const headerOpacity = scrollY.interpolate({
+    inputRange: [0, 200],
+    outputRange: [0, 1],
+    extrapolate: "clamp",
+  });
+
+  const imageScale = scrollY.interpolate({
+    inputRange: [-100, 0],
+    outputRange: [1.2, 1],
+    extrapolateLeft: "extend",
+    extrapolateRight: "clamp",
+  });
+
+  // Load document
   const loadDocument = async () => {
     try {
       setLoading(true);
-      const doc = await documentManager.getDocumentById(documentId);
-
-      if (!doc) {
-        throw new Error("Document not found");
-      }
-
-      console.log("Document loaded:", doc);
+      const doc = await documentApi.getDocumentById(documentId);
       setDocument(doc);
 
-      // Parse analysis content if available
-      if (doc.analysisResult && doc.analysisResult.content) {
-        const parsedContent = parseAnalysisContent(doc.analysisResult.content);
-        setParsedAnalysis(parsedContent);
-      }
+      // Load document conversations
+      const convs = await documentApi.getDocumentConversations(documentId);
+      setConversations(convs);
 
-      // Load conversations
-      try {
-        const convos = await documentManager.getDocumentConversations(documentId);
-        if (convos && convos.length > 0) {
-          setConversations(convos.map((c) => ({
-            id: c.id,
-            question: c.question,
-            answer: c.answer,
-            timestamp: c.createdAt ? new Date(c.createdAt).getTime() : new Date().getTime(),
-          })));
-        }
-      } catch (convoError) {
-        console.error("Error loading conversations:", convoError);
-        // Continue anyway
-      }
+      // Calculate free questions
+      const usedQuestions = convs.length;
+      setFreeQuestionsCount(Math.max(0, 3 - usedQuestions));
     } catch (error) {
       console.error("Error loading document:", error);
-      showToast.error("Error", "Failed to load document");
-      navigation.goBack();
+      Alert.alert(t("errors.somethingWentWrong"));
     } finally {
       setLoading(false);
     }
   };
 
-  // Parse Claude's analysis into structured content
-  const parseAnalysisContent = (content) => {
-    // Extract text from analysis content
-    const fullText = content
-      .filter((item) => item.type === "text")
-      .map((item) => item.text)
-      .join("\n\n");
+  // Initial loading
+  useEffect(() => {
+    loadDocument();
+  }, [documentId]);
 
-    // Initialize structure
-    const parsedContent = {
-      summary: "",
-      keyPoints: [],
-      details: "",
-      recommendations: [],
-    };
+  // Analyze document
+  const analyzeDocument = async () => {
+    try {
+      const canAnalyze = hasEnoughTokens(TOKEN_COSTS.DOCUMENT_ANALYSIS);
 
-    // Extract summary
-    const summaryMatch = fullText.match(
-      /(?:Özet|Summary):(.*?)(?:\n\n|\n(?:Ana|Key))/s
-    );
-    if (summaryMatch && summaryMatch[1]) {
-      parsedContent.summary = summaryMatch[1].trim();
-    } else {
-      // Fallback: take first paragraph
-      const firstParagraph = fullText.split(/\n\n/)[0];
-      parsedContent.summary = firstParagraph;
-    }
-
-    // Extract key points
-    const keyPointsPattern =
-      /(?:Ana Noktalar|Ana Temalar|Key Points|Main Themes|Main Points):(.*?)(?:\n\n|\n(?:Detay|Detail|Özet|Sonuç|Öneri|Recom))/s;
-    const keyPointsMatch = fullText.match(keyPointsPattern);
-
-    if (keyPointsMatch && keyPointsMatch[1]) {
-      const keyPointsText = keyPointsMatch[1].trim();
-      parsedContent.keyPoints = keyPointsText
-        .split(/\n(?:\d+\.|•|\*|-)\s*/)
-        .filter((p) => p.trim().length > 0)
-        .map((p) => p.trim());
-    }
-
-    // If no key points found, try to extract lines that start with numbers
-    if (parsedContent.keyPoints.length === 0) {
-      const numberedPoints = fullText.match(/\n\d+\.\s*(.*?)(?=\n\d+\.|\n\n|$)/g);
-      if (numberedPoints) {
-        parsedContent.keyPoints = numberedPoints
-          .map((p) => p.replace(/\n\d+\.\s*/, "").trim())
-          .filter((p) => p.length > 0);
+      if (!canAnalyze) {
+        navigation.navigate("TokenStore");
+        return;
       }
+
+      setAnalyzing(true);
+      await useTokens(TOKEN_COSTS.DOCUMENT_ANALYSIS, "analysis", documentId);
+      const updatedDoc = await documentApi.analyzeDocument(documentId);
+      setDocument(updatedDoc);
+
+      Alert.alert("Success", "Document analysis completed");
+      setActiveTab("summary");
+    } catch (error) {
+      console.error("Error analyzing document:", error);
+      Alert.alert(t("errors.analysisFailed"));
+    } finally {
+      setAnalyzing(false);
     }
-
-    // Extract recommendations
-    const recommendationsPattern =
-      /(?:Öneriler|Tavsiyeler|Recommendations|Suggested|Actions):(.*?)(?:\n\n|\n(?:Sonuç|Conclusion|$))/s;
-    const recommendationsMatch = fullText.match(recommendationsPattern);
-
-    if (recommendationsMatch && recommendationsMatch[1]) {
-      const recommendationsText = recommendationsMatch[1].trim();
-      parsedContent.recommendations = recommendationsText
-        .split(/\n(?:\d+\.|•|\*|-)\s*/)
-        .filter((p) => p.trim().length > 0)
-        .map((p) => p.trim());
-    }
-
-    // Extract details
-    const detailsPattern =
-      /(?:Detaylar|Bilgiler|Details|Additional Information):(.*?)(?:\n\n|\n(?:Sonuç|Öneriler|Conclusion|Recommendations))/s;
-    const detailsMatch = fullText.match(detailsPattern);
-
-    if (detailsMatch && detailsMatch[1]) {
-      parsedContent.details = detailsMatch[1].trim();
-    }
-
-    return parsedContent;
   };
 
-  // Handle sending a question
-  const handleSendMessage = async () => {
-    if (!question.trim() || sending || !documentId) return;
-
-    // Provide haptic feedback
-    if (Haptics?.impactAsync) {
-      Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Medium);
-    }
-
-    Keyboard.dismiss();
-    setSending(true);
-
-    // Create new question
-    const newQuestion = {
-      id: `q-${Date.now()}`,
-      question: question.trim(),
-      timestamp: new Date().getTime(),
-    };
-
-    // Add question to conversations
-    setConversations((prev) => [...prev, newQuestion]);
-    setQuestion("");
-
-    // Scroll to bottom
-    if (scrollViewRef.current) {
-      setTimeout(() => {
-        scrollViewRef.current.scrollToEnd({ animated: true });
-      }, 100);
-    }
-
-    // Simulate AI thinking
-    setAiThinking(true);
-
-    try {
-      // Send question to API
-      const response = await documentManager.askDocumentQuestion(
-        documentId,
-        newQuestion.question
-      );
-
-      // Update conversation with answer
-      if (response && response.answer) {
-        setConversations((prev) =>
-          prev.map((conv) =>
-            conv.id === newQuestion.id
-              ? { ...conv, answer: response.answer }
-              : conv
-          )
-        );
-      } else {
-        throw new Error("Failed to get answer");
-      }
-
-      // Scroll to updated answer
-      if (scrollViewRef.current) {
-        setTimeout(() => {
-          scrollViewRef.current.scrollToEnd({ animated: true });
-        }, 100);
-      }
-    } catch (error) {
-      console.error("Error asking question:", error);
-      showToast.error("Error", "Failed to generate answer");
-
-      // Show fallback response
-      setConversations((prev) =>
-        prev.map((conv) =>
-          conv.id === newQuestion.id
-            ? {
-                ...conv,
-                answer:
-                  "I'm sorry, I had trouble processing that question. Please try again or ask in a different way.",
-              }
-            : conv
-        )
-      );
-    } finally {
-      setAiThinking(false);
-      setSending(false);
-    }
+  // Delete document
+  const deleteDocument = async () => {
+    Alert.alert(t("document.delete"), t("document.deleteConfirm"), [
+      {
+        text: t("common.cancel"),
+        style: "cancel",
+      },
+      {
+        text: t("common.delete"),
+        style: "destructive",
+        onPress: async () => {
+          try {
+            setLoading(true);
+            await documentApi.deleteDocument(documentId);
+            navigation.goBack();
+            Alert.alert("Success", "Document deleted successfully");
+          } catch (error) {
+            console.error("Error deleting document:", error);
+            Alert.alert(t("errors.somethingWentWrong"));
+            setLoading(false);
+          }
+        },
+      },
+    ]);
   };
 
   // Share document
   const shareDocument = async () => {
     try {
-      if (!document) return;
-      
+      if (!document?.downloadUrl) {
+        Alert.alert("Error", "No document URL available");
+        return;
+      }
+
       await Share.share({
-        title: document.name || "Document",
-        message: `Check out this document: ${document.name}\n\n${
-          parsedAnalysis?.summary || "No summary available"
-        }`,
+        message: `Check out this document: ${document.name}\n${document.downloadUrl}`,
       });
     } catch (error) {
       console.error("Error sharing document:", error);
-      showToast.error("Error", "Failed to share document");
     }
   };
 
-  // Get document icon based on type
-  const getDocumentIcon = (type) => {
-    if (!type) return "document";
+  // Ask question
+  const askQuestion = async () => {
+    if (!question.trim()) return;
 
-    type = type.toLowerCase();
+    try {
+      setSending(true);
+      setAskingQuestion(true);
+
+      // Check if token needed
+      const needsToken = freeQuestionsCount <= 0;
+
+      if (needsToken) {
+        const canAsk = hasEnoughTokens(TOKEN_COSTS.QUESTION);
+
+        if (!canAsk) {
+          navigation.navigate("TokenStore");
+          setAskingQuestion(false);
+          setSending(false);
+          return;
+        }
+
+        await useTokens(TOKEN_COSTS.QUESTION, "question", documentId);
+      }
+
+      // Send question
+      const result = await documentApi.askDocumentQuestion(
+        documentId,
+        question
+      );
+
+      // Add new conversation
+      const newConversation = {
+        id: Date.now().toString(), // Temporary ID
+        question: result.question,
+        answer: result.answer,
+        createdAt: new Date(),
+      };
+
+      setConversations([newConversation, ...conversations]);
+
+      // Update free questions count
+      if (freeQuestionsCount > 0) {
+        setFreeQuestionsCount(freeQuestionsCount - 1);
+      }
+
+      // Clear question
+      setQuestion("");
+    } catch (error) {
+      console.error("Error asking question:", error);
+      Alert.alert(t("errors.somethingWentWrong"));
+    } finally {
+      setAskingQuestion(false);
+      setSending(false);
+    }
+  };
+
+  if (loading) {
+    return <Loading fullScreen type="logo" iconName="document-text" />;
+  }
+
+  if (!document) {
+    return (
+      <SafeAreaView
+        style={{ flex: 1, backgroundColor: theme.colors.background }}
+      >
+        <View style={styles.container}>
+          <View style={styles.header}>
+            <TouchableOpacity
+              style={styles.backButton}
+              onPress={() => navigation.goBack()}
+            >
+              <Ionicons name="arrow-back" size={24} color={theme.colors.text} />
+            </TouchableOpacity>
+            <Text variant="h2">{t("document.details")}</Text>
+            <View style={{ width: 40 }} />
+          </View>
+
+          <View style={styles.errorContainer}>
+            <Ionicons
+              name="alert-circle-outline"
+              size={60}
+              color={theme.colors.error}
+            />
+            <Text variant="h3" style={{ textAlign: "center", marginTop: 16 }}>
+              {t("errors.somethingWentWrong")}
+            </Text>
+            <Button
+              title={t("common.back")}
+              onPress={() => navigation.goBack()}
+              style={{ marginTop: 20 }}
+            />
+          </View>
+        </View>
+      </SafeAreaView>
+    );
+  }
+
+  // Get document type icon
+  const getDocumentTypeIcon = () => {
+    const type = document.type?.toLowerCase() || "";
+
     if (type.includes("pdf")) return "document-text";
     if (type.includes("image")) return "image";
     if (type.includes("word") || type.includes("doc")) return "document";
-
-    return "document";
+    return "document-outline";
   };
 
-  // Format date string
-  const formatDate = (dateString) => {
-    if (!dateString) return "Unknown";
-
-    try {
-      const date = new Date(dateString);
-      return date.toLocaleDateString(undefined, {
-        year: "numeric",
-        month: "short",
-        day: "numeric",
-      });
-    } catch (error) {
-      return "Invalid date";
-    }
+  // Format date
+  const formatDate = (timestamp) => {
+    if (!timestamp) return "Unknown";
+    const date = new Date(timestamp);
+    return date.toLocaleDateString();
   };
 
   // Format file size
   const formatFileSize = (bytes) => {
-    if (!bytes) return "Unknown";
+    if (!bytes) return "Unknown size";
 
-    if (bytes < 1024) return bytes + " B";
-    else if (bytes < 1024 * 1024) return (bytes / 1024).toFixed(1) + " KB";
-    else return (bytes / (1024 * 1024)).toFixed(1) + " MB";
+    if (bytes < 1024) return `${bytes} B`;
+    if (bytes < 1024 * 1024) return `${(bytes / 1024).toFixed(1)} KB`;
+    return `${(bytes / (1024 * 1024)).toFixed(1)} MB`;
   };
 
-  // Header Component
+  // Render functions
   const renderHeader = () => (
-    <Animated.View
-      style={[
-        styles.header,
-        {
-          height: headerHeight,
-          backgroundColor: theme.colors.primary,
-        },
-      ]}
-    >
-      <LinearGradient
-        colors={[theme.colors.primary, theme.colors.primaryDark]}
-        style={styles.headerGradient}
-        start={{ x: 0, y: 0 }}
-        end={{ x: 1, y: 1 }}
+    <>
+      {/* Animated header that appears when scrolling */}
+      <Animated.View
+        style={[
+          styles.animatedHeader,
+          {
+            backgroundColor: theme.colors.background,
+            borderBottomColor: theme.colors.border,
+            opacity: headerOpacity,
+          },
+        ]}
       >
-        {/* Status Bar */}
-        <StatusBar barStyle="light-content" backgroundColor="transparent" translucent />
-        
-        {/* Back Button & Actions */}
-        <View style={styles.headerTop}>
+        <View style={styles.headerContentCompact}>
           <TouchableOpacity
             style={styles.backButton}
             onPress={() => navigation.goBack()}
           >
-            <Ionicons name="arrow-back" size={24} color="white" />
+            <Ionicons name="arrow-back" size={24} color={theme.colors.text} />
           </TouchableOpacity>
-          
-          <Animated.Text
-            style={[
-              styles.headerTitle,
-              { opacity: headerTitleOpacity, color: "white" },
-            ]}
+
+          <Text
+            variant="subtitle1"
             numberOfLines={1}
+            style={styles.headerTitle}
           >
-            {document?.name || "Document"}
-          </Animated.Text>
-          
-          <View style={styles.headerActions}>
-            <TouchableOpacity
-              style={styles.actionButton}
-              onPress={shareDocument}
-            >
-              <Ionicons name="share-outline" size={24} color="white" />
-            </TouchableOpacity>
-          </View>
-        </View>
-        
-        {/* Document Info (visible when expanded) */}
-        <Animated.View 
-          style={[
-            styles.documentInfo,
-            { opacity: headerDetailOpacity },
-          ]}
-        >
-          <View
-            style={[
-              styles.documentIcon,
-              { backgroundColor: "rgba(255,255,255,0.2)" },
-            ]}
+            {document.name}
+          </Text>
+
+          <TouchableOpacity
+            style={styles.menuButton}
+            onPress={() => {
+              Alert.alert(document.name, "", [
+                {
+                  text: t("document.share"),
+                  onPress: shareDocument,
+                },
+                {
+                  text: t("document.delete"),
+                  style: "destructive",
+                  onPress: deleteDocument,
+                },
+                {
+                  text: t("common.cancel"),
+                  style: "cancel",
+                },
+              ]);
+            }}
           >
             <Ionicons
-              name={getDocumentIcon(document?.type)}
-              size={32}
-              color="white"
+              name="ellipsis-vertical"
+              size={24}
+              color={theme.colors.text}
+            />
+          </TouchableOpacity>
+        </View>
+      </Animated.View>
+
+      {/* Main expandable header */}
+      <View style={styles.header}>
+        <TouchableOpacity
+          style={styles.backButton}
+          onPress={() => navigation.goBack()}
+        >
+          <Ionicons name="arrow-back" size={24} color={theme.colors.text} />
+        </TouchableOpacity>
+
+        <Text variant="h3" numberOfLines={1} style={styles.title}>
+          {document.name}
+        </Text>
+
+        <TouchableOpacity
+          style={styles.menuButton}
+          onPress={() => {
+            Alert.alert(document.name, "", [
+              {
+                text: t("document.share"),
+                onPress: shareDocument,
+              },
+              {
+                text: t("document.delete"),
+                style: "destructive",
+                onPress: deleteDocument,
+              },
+              {
+                text: t("common.cancel"),
+                style: "cancel",
+              },
+            ]);
+          }}
+        >
+          <Ionicons
+            name="ellipsis-vertical"
+            size={24}
+            color={theme.colors.text}
+          />
+        </TouchableOpacity>
+      </View>
+    </>
+  );
+
+  const renderDocumentImage = () => {
+    if (!document.type?.includes("image") || !document.downloadUrl) return null;
+
+    return (
+      <View style={styles.imageContainer}>
+        <Animated.Image
+          source={{ uri: document.downloadUrl }}
+          style={[styles.documentImage, { transform: [{ scale: imageScale }] }]}
+          resizeMode="cover"
+        />
+
+        {/* Image overlay gradient */}
+        <LinearGradient
+          colors={["transparent", theme.colors.background]}
+          style={styles.imageOverlay}
+        />
+
+        {/* New document indicator */}
+        {newDocument && (
+          <Animated.View
+            style={[
+              styles.newDocIndicator,
+              {
+                opacity: headerAnimation,
+                backgroundColor: theme.colors.primary,
+              },
+            ]}
+          >
+            <Text variant="caption" weight="semibold" color="#FFFFFF">
+              NEW
+            </Text>
+          </Animated.View>
+        )}
+      </View>
+    );
+  };
+
+  const renderDocumentInfo = () => (
+    <Animated.View style={[styles.infoContainer, { opacity: fadeAnim }]}>
+      <Card style={styles.infoCard} variant="bordered">
+        <View style={styles.infoRow}>
+          <View style={styles.infoItem}>
+            <Text
+              variant="caption"
+              color={theme.colors.textSecondary}
+              style={styles.infoLabel}
+            >
+              {t("document.documentType")}
+            </Text>
+            <View style={styles.infoValueContainer}>
+              <Ionicons
+                name={getDocumentTypeIcon()}
+                size={16}
+                color={theme.colors.primary}
+                style={styles.infoIcon}
+              />
+              <Text variant="body2">
+                {document.type?.split("/").pop().toUpperCase() || "Unknown"}
+              </Text>
+            </View>
+          </View>
+
+          <View style={styles.infoItem}>
+            <Text
+              variant="caption"
+              color={theme.colors.textSecondary}
+              style={styles.infoLabel}
+            >
+              {t("document.documentSize")}
+            </Text>
+            <View style={styles.infoValueContainer}>
+              <Ionicons
+                name="resize"
+                size={16}
+                color={theme.colors.primary}
+                style={styles.infoIcon}
+              />
+              <Text variant="body2">{formatFileSize(document.size)}</Text>
+            </View>
+          </View>
+        </View>
+
+        <View style={styles.infoRow}>
+          <View style={styles.infoItem}>
+            <Text
+              variant="caption"
+              color={theme.colors.textSecondary}
+              style={styles.infoLabel}
+            >
+              {t("document.uploadDate")}
+            </Text>
+            <View style={styles.infoValueContainer}>
+              <Ionicons
+                name="calendar"
+                size={16}
+                color={theme.colors.primary}
+                style={styles.infoIcon}
+              />
+              <Text variant="body2">{formatDate(document.createdAt)}</Text>
+            </View>
+          </View>
+
+          <View style={styles.infoItem}>
+            <Text
+              variant="caption"
+              color={theme.colors.textSecondary}
+              style={styles.infoLabel}
+            >
+              Status
+            </Text>
+            <Badge
+              label={document.status === "analyzed" ? "Analyzed" : "Uploaded"}
+              type={document.status === "analyzed" ? "success" : "info"}
+              icon={
+                document.status === "analyzed"
+                  ? "checkmark-circle"
+                  : "cloud-done"
+              }
             />
           </View>
-          
-          <View style={styles.documentMeta}>
-            <Text style={styles.documentTitle} color="white">
-              {document?.name || "Document"}
-            </Text>
-            <Text style={styles.documentSubtitle} color="white">
-              {document?.type || "File"} • {formatFileSize(document?.size)} •{" "}
-              {formatDate(document?.createdAt)}
-            </Text>
-          </View>
-        </Animated.View>
-      </LinearGradient>
+        </View>
+      </Card>
     </Animated.View>
   );
 
-  // Tabs Component
   const renderTabs = () => (
-    <View
-      style={[styles.tabsContainer, { backgroundColor: theme.colors.surface }]}
+    <Animated.View
+      style={[
+        styles.tabContainer,
+        {
+          opacity: fadeAnim,
+          borderBottomColor: theme.colors.border,
+        },
+      ]}
     >
       <TouchableOpacity
         style={[
           styles.tab,
           activeTab === "summary" && {
-            borderBottomColor: theme.colors.primary,
             borderBottomWidth: 2,
+            borderBottomColor: theme.colors.primary,
           },
         ]}
         onPress={() => setActiveTab("summary")}
       >
+        <Ionicons
+          name="document-text"
+          size={20}
+          color={
+            activeTab === "summary"
+              ? theme.colors.primary
+              : theme.colors.textSecondary
+          }
+          style={styles.tabIcon}
+        />
         <Text
-          style={[
-            styles.tabText,
-            {
-              color:
-                activeTab === "summary"
-                  ? theme.colors.primary
-                  : theme.colors.textSecondary,
-            },
-          ]}
+          variant="body2"
+          weight={activeTab === "summary" ? "semibold" : "regular"}
+          color={
+            activeTab === "summary"
+              ? theme.colors.primary
+              : theme.colors.textSecondary
+          }
         >
-          Summary
+          {t("document.summary")}
         </Text>
       </TouchableOpacity>
-      
+
       <TouchableOpacity
         style={[
           styles.tab,
-          activeTab === "insights" && {
-            borderBottomColor: theme.colors.primary,
+          activeTab === "ask" && {
             borderBottomWidth: 2,
+            borderBottomColor: theme.colors.primary,
           },
         ]}
-        onPress={() => setActiveTab("insights")}
+        onPress={() => setActiveTab("ask")}
       >
+        <Ionicons
+          name="chatbubble"
+          size={20}
+          color={
+            activeTab === "ask"
+              ? theme.colors.primary
+              : theme.colors.textSecondary
+          }
+          style={styles.tabIcon}
+        />
         <Text
-          style={[
-            styles.tabText,
-            {
-              color:
-                activeTab === "insights"
-                  ? theme.colors.primary
-                  : theme.colors.textSecondary,
-            },
-          ]}
+          variant="body2"
+          weight={activeTab === "ask" ? "semibold" : "regular"}
+          color={
+            activeTab === "ask"
+              ? theme.colors.primary
+              : theme.colors.textSecondary
+          }
         >
-          Key Insights
+          {t("document.askQuestion")}
         </Text>
       </TouchableOpacity>
-      
-      <TouchableOpacity
-        style={[
-          styles.tab,
-          activeTab === "qa" && {
-            borderBottomColor: theme.colors.primary,
-            borderBottomWidth: 2,
-          },
-        ]}
-        onPress={() => setActiveTab("qa")}
-      >
-        <Text
-          style={[
-            styles.tabText,
-            {
-              color:
-                activeTab === "qa"
-                  ? theme.colors.primary
-                  : theme.colors.textSecondary,
-            },
-          ]}
-        >
-          Q&A
-        </Text>
-      </TouchableOpacity>
-    </View>
+    </Animated.View>
   );
 
-  // Summary Tab Content
-  const renderSummary = () => {
-    if (loading) {
-      return (
-        <View
-          style={[
-            styles.loadingContainer,
-            { backgroundColor: theme.colors.surface },
-          ]}
-        >
-          <ActivityIndicator size="large" color={theme.colors.primary} />
-          <Text style={{ color: theme.colors.textSecondary, marginTop: 16 }}>
-            Loading document information...
-          </Text>
-        </View>
-      );
-    }
-
-    if (!document || !parsedAnalysis) {
-      return (
-        <View
-          style={[styles.section, { backgroundColor: theme.colors.surface }]}
-        >
-          <Text style={[styles.sectionTitle, { color: theme.colors.text }]}>
-            Document Summary
-          </Text>
-          <Text style={[styles.summaryText, { color: theme.colors.text }]}>
-            This document has not been analyzed yet or analysis information is
-            not available.
-          </Text>
-
-          <View style={styles.documentDetails}>
-            <View style={styles.detailItem}>
-              <Ionicons
-                name="folder-outline"
-                size={20}
-                color={theme.colors.primary}
-              />
-              <Text style={[styles.detailText, { color: theme.colors.text }]}>
-                Type: {document?.type || "Unknown"}
-              </Text>
-            </View>
-
-            <View style={styles.detailItem}>
-              <Ionicons
-                name="calendar-outline"
-                size={20}
-                color={theme.colors.primary}
-              />
-              <Text style={[styles.detailText, { color: theme.colors.text }]}>
-                Date:{" "}
-                {document?.createdAt
-                  ? formatDate(document.createdAt)
-                  : "Unknown"}
-              </Text>
-            </View>
-
-            <View style={styles.detailItem}>
-              <Ionicons
-                name="document-outline"
-                size={20}
-                color={theme.colors.primary}
-              />
-              <Text style={[styles.detailText, { color: theme.colors.text }]}>
-                Size: {formatFileSize(document?.size)}
-              </Text>
-            </View>
-          </View>
-
-          <Button
-            title="Analyze Document"
-            onPress={() => {
-              showToast.info("Info", "Document analysis in progress");
-            }}
-            theme={theme}
-            style={{ marginTop: 24 }}
-          />
-        </View>
-      );
-    }
-
-    return (
-      <View style={[styles.section, { backgroundColor: theme.colors.surface }]}>
-        <Text style={[styles.sectionTitle, { color: theme.colors.text }]}>
-          Document Summary
-        </Text>
-        <Text style={[styles.summaryText, { color: theme.colors.text }]}>
-          {parsedAnalysis.summary || "No summary available"}
-        </Text>
-
-        {parsedAnalysis.keyPoints.length > 0 && (
-          <View style={styles.keyPointsPreview}>
-            <Text style={[styles.keyPointsTitle, { color: theme.colors.text }]}>
-              Key Points
-            </Text>
-            {parsedAnalysis.keyPoints.slice(0, 3).map((point, index) => (
-              <View key={index} style={styles.keyPointItem}>
-                <View
-                  style={[
-                    styles.bulletPoint,
-                    { backgroundColor: theme.colors.primary },
-                  ]}
-                />
-                <Text
-                  style={[styles.keyPointText, { color: theme.colors.text }]}
-                >
-                  {point}
-                </Text>
-              </View>
-            ))}
-            {parsedAnalysis.keyPoints.length > 3 && (
-              <TouchableOpacity
-                style={[
-                  styles.seeMoreButton,
-                  { backgroundColor: theme.colors.primary + "15" },
-                ]}
-                onPress={() => setActiveTab("insights")}
-              >
-                <Text style={{ color: theme.colors.primary }}>
-                  See {parsedAnalysis.keyPoints.length - 3} more points
-                </Text>
-                <Ionicons
-                  name="chevron-forward"
-                  size={16}
-                  color={theme.colors.primary}
-                />
-              </TouchableOpacity>
-            )}
-          </View>
-        )}
-      </View>
-    );
-  };
-
-  // Insights Tab Content
-  const renderInsights = () => {
-    if (loading) {
-      return (
-        <View
-          style={[
-            styles.loadingContainer,
-            { backgroundColor: theme.colors.surface },
-          ]}
-        >
-          <ActivityIndicator size="large" color={theme.colors.primary} />
-          <Text style={{ color: theme.colors.textSecondary, marginTop: 16 }}>
-            Loading insights...
-          </Text>
-        </View>
-      );
-    }
-
-    if (!document || !parsedAnalysis) {
-      return (
-        <View
-          style={[styles.section, { backgroundColor: theme.colors.surface }]}
-        >
-          <Text style={[styles.sectionTitle, { color: theme.colors.text }]}>
-            Key Insights
-          </Text>
-          <Text style={[styles.summaryText, { color: theme.colors.text }]}>
-            No insights available for this document.
-          </Text>
-        </View>
-      );
-    }
-
-    return (
-      <View style={[styles.section, { backgroundColor: theme.colors.surface }]}>
-        <Text style={[styles.sectionTitle, { color: theme.colors.text }]}>
-          Key Insights
-        </Text>
-        
-        {parsedAnalysis.keyPoints.length > 0 ? (
-          parsedAnalysis.keyPoints.map((point, index) => (
-            <View
-              key={index}
-              style={[
-                styles.insightItem,
-                { backgroundColor: theme.colors.background },
-              ]}
-            >
-              <View
-                style={[
-                  styles.insightNumber,
-                  { backgroundColor: theme.colors.primary },
-                ]}
-              >
-                <Text style={styles.insightNumberText} color="white">
-                  {index + 1}
-                </Text>
-              </View>
-              <View style={styles.insightContent}>
-                <Text
-                  style={[styles.insightText, { color: theme.colors.text }]}
-                >
-                  {point}
-                </Text>
-              </View>
-            </View>
-          ))
-        ) : (
-          <View
-            style={[
-              styles.emptyInsights,
-              { backgroundColor: theme.colors.background },
-            ]}
+  const renderContent = () => {
+    if (activeTab === "summary") {
+      // If document not yet analyzed, show analysis button
+      if (document.status !== "analyzed") {
+        return (
+          <Animated.View
+            style={[styles.noAnalysisContainer, { opacity: fadeAnim }]}
           >
-            <Ionicons
-              name="bulb-outline"
-              size={32}
-              color={theme.colors.textSecondary}
-            />
-            <Text
-              style={[
-                styles.emptyInsightsText,
-                { color: theme.colors.textSecondary },
-              ]}
+            <Card
+              style={styles.noAnalysisCard}
+              variant={isDark ? "default" : "bordered"}
             >
-              No key insights extracted from this document
-            </Text>
-          </View>
-        )}
-
-        {parsedAnalysis.recommendations.length > 0 && (
-          <View style={styles.recommendationsSection}>
-            <Text
-              style={[
-                styles.recommendationsTitle,
-                { color: theme.colors.text },
-              ]}
-            >
-              Recommendations
-            </Text>
-            {parsedAnalysis.recommendations.map((rec, index) => (
-              <View
-                key={index}
-                style={[
-                  styles.recommendationItem,
-                  { backgroundColor: theme.colors.success + "10" },
-                ]}
-              >
-                <Ionicons
-                  name="checkmark-circle"
-                  size={20}
-                  color={theme.colors.success}
-                  style={styles.recommendationIcon}
-                />
-                <Text
-                  style={[
-                    styles.recommendationText,
-                    { color: theme.colors.text },
-                  ]}
-                >
-                  {rec}
-                </Text>
-              </View>
-            ))}
-          </View>
-        )}
-      </View>
-    );
-  };
-
-  // Q&A Tab Content
-  const renderQA = () => (
-    <View style={[styles.qaContainer, { backgroundColor: theme.colors.background }]}>
-      {loading ? (
-        <View
-          style={[
-            styles.loadingContainer,
-            { backgroundColor: theme.colors.surface },
-          ]}
-        >
-          <ActivityIndicator size="large" color={theme.colors.primary} />
-          <Text style={{ color: theme.colors.textSecondary, marginTop: 16 }}>
-            Loading conversation history...
-          </Text>
-        </View>
-      ) : (
-        <>
-          {/* Chat conversation area */}
-          {conversations.length === 0 ? (
-            <View style={styles.emptyChat}>
-              <View
-                style={[
-                  styles.emptyIconContainer,
-                  { backgroundColor: theme.colors.primary + "10" },
-                ]}
-              >
-                <Ionicons
-                  name="chatbubbles-outline"
-                  size={38}
-                  color={theme.colors.primary}
-                />
-              </View>
-              <Text style={[styles.emptyTitle, { color: theme.colors.text }]}>
-                Ask Questions About This Document
+              <Ionicons
+                name="analytics-outline"
+                size={60}
+                color={theme.colors.primary}
+                style={styles.noAnalysisIcon}
+              />
+              <Text variant="subtitle1" style={styles.noAnalysisText}>
+                {t("document.noAnalysis")}
               </Text>
               <Text
-                style={[
-                  styles.emptySubtitle,
-                  { color: theme.colors.textSecondary },
-                ]}
+                variant="body2"
+                color={theme.colors.textSecondary}
+                style={styles.noAnalysisDescription}
               >
-                Get instant AI-powered answers about this document's content
+                Analyze this document with AI to get a summary, key points, and
+                insights.
               </Text>
-              <View style={styles.exampleContainer}>
-                <Text
-                  style={[
-                    styles.exampleTitle,
-                    { color: theme.colors.textSecondary },
-                  ]}
-                >
-                  Try asking:
-                </Text>
-                {[
-                  "What are the key points in this document?",
-                  "Summarize the main conclusion",
-                  "What are the recommendations?",
-                ].map((example, index) => (
-                  <TouchableOpacity
-                    key={index}
-                    style={[
-                      styles.exampleItem,
-                      { backgroundColor: theme.colors.surface },
-                    ]}
-                    onPress={() => {
-                      setQuestion(example);
-                      setTimeout(() => {
-                        if (inputRef.current) inputRef.current.focus();
-                      }, 100);
-                    }}
-                  >
-                    <Text style={{ color: theme.colors.primary }}>
-                      {example}
-                    </Text>
-                  </TouchableOpacity>
-                ))}
-              </View>
-            </View>
-          ) : (
-            <ScrollView
-              ref={scrollViewRef}
-              style={styles.chatContainer}
-              contentContainerStyle={[
-                styles.chatContent,
-                { paddingBottom: 100 },
-              ]}
-              showsVerticalScrollIndicator={false}
-            >
-              {conversations.map((item, index) => (
-                <View key={item.id || index} style={styles.messageGroup}>
-                  {/* User question */}
-                  <View style={styles.userMessageContainer}>
+              <Button
+                title={t("document.analyze")}
+                onPress={analyzeDocument}
+                loading={analyzing}
+                icon="analytics"
+                gradient={true}
+                style={styles.analyzeButton}
+              />
+            </Card>
+          </Animated.View>
+        );
+      }
+
+      // Analyzed document content
+      const analysis = document.analysis || {};
+
+      return (
+        <Animated.View style={[styles.summaryContainer, { opacity: fadeAnim }]}>
+          {/* Summary Section */}
+          <View style={styles.summarySection}>
+            <Text variant="h4" style={styles.sectionTitle}>
+              {t("document.summary")}
+            </Text>
+            <Card style={styles.summaryCard}>
+              <Text style={styles.summaryText}>
+                {analysis.summary || t("document.noSummary")}
+              </Text>
+            </Card>
+          </View>
+
+          {/* Key Points */}
+          {analysis.keyPoints && analysis.keyPoints.length > 0 && (
+            <View style={styles.summarySection}>
+              <Text variant="h4" style={styles.sectionTitle}>
+                {t("document.keyPoints")}
+              </Text>
+              <Card style={styles.summaryCard}>
+                {analysis.keyPoints.map((point, index) => (
+                  <View key={index} style={styles.keyPointItem}>
                     <View
                       style={[
-                        styles.userMessage,
+                        styles.bulletPoint,
+                        { backgroundColor: theme.colors.primary },
+                      ]}
+                    />
+                    <Text style={styles.keyPointText}>{point}</Text>
+                  </View>
+                ))}
+              </Card>
+            </View>
+          )}
+
+          {/* Details */}
+          {analysis.details && (
+            <View style={styles.summarySection}>
+              <Text variant="h4" style={styles.sectionTitle}>
+                Details
+              </Text>
+              <Card style={styles.summaryCard}>
+                <Text style={styles.summaryText}>{analysis.details}</Text>
+              </Card>
+            </View>
+          )}
+
+          {/* Recommendations */}
+          {analysis.recommendations && analysis.recommendations.length > 0 && (
+            <View style={styles.summarySection}>
+              <Text variant="h4" style={styles.sectionTitle}>
+                Recommendations
+              </Text>
+              <Card style={styles.summaryCard}>
+                {analysis.recommendations.map((rec, index) => (
+                  <View key={index} style={styles.keyPointItem}>
+                    <View
+                      style={[
+                        styles.bulletPoint,
+                        { backgroundColor: theme.colors.success },
+                      ]}
+                    />
+                    <Text style={styles.keyPointText}>{rec}</Text>
+                  </View>
+                ))}
+              </Card>
+            </View>
+          )}
+        </Animated.View>
+      );
+    } else if (activeTab === "ask") {
+      return (
+        <KeyboardAvoidingView
+          style={{ flex: 1 }}
+          behavior={Platform.OS === "ios" ? "padding" : null}
+          keyboardVerticalOffset={Platform.OS === "ios" ? 90 : 0}
+        >
+          <Animated.View style={[styles.askContainer, { opacity: fadeAnim }]}>
+            {/* Conversations */}
+            <FlatList
+              data={conversations}
+              keyExtractor={(item) => item.id}
+              renderItem={({ item }) => (
+                <Card
+                  style={styles.conversationCard}
+                  variant={isDark ? "default" : "bordered"}
+                >
+                  <View style={styles.questionContainer}>
+                    <View
+                      style={[
+                        styles.avatarContainer,
+                        { backgroundColor: theme.colors.textSecondary },
+                      ]}
+                    >
+                      <Ionicons name="person" size={16} color="#FFFFFF" />
+                    </View>
+                    <Text variant="subtitle2" style={styles.questionText}>
+                      {item.question}
+                    </Text>
+                  </View>
+
+                  <View style={styles.answerContainer}>
+                    <View
+                      style={[
+                        styles.avatarContainer,
                         { backgroundColor: theme.colors.primary },
                       ]}
                     >
-                      <Text style={styles.messageText} color="white">{item.question}</Text>
+                      <Ionicons name="chatbubble" size={16} color="#FFFFFF" />
                     </View>
+                    <Text variant="body2" style={styles.answerText}>
+                      {item.answer}
+                    </Text>
                   </View>
-
-                  {/* AI response */}
-                  <View style={styles.aiMessageContainer}>
-                    {item.answer ? (
-                      <View
-                        style={[
-                          styles.aiMessage,
-                          { backgroundColor: theme.colors.surface },
-                        ]}
-                      >
-                        <Text
-                          style={[
-                            styles.messageText, 
-                            { color: theme.colors.text }
-                          ]}
-                        >
-                          {item.answer}
-                        </Text>
-                      </View>
-                    ) : (
-                      <View
-                        style={[
-                          styles.aiTypingContainer,
-                          { backgroundColor: theme.colors.surface },
-                        ]}
-                      >
-                        <ActivityIndicator
-                          size="small"
-                          color={theme.colors.primary}
-                        />
-                        <Text
-                          style={[
-                            styles.aiTypingText,
-                            { color: theme.colors.textSecondary },
-                          ]}
-                        >
-                          AI is thinking...
-                        </Text>
-                      </View>
-                    )}
-                  </View>
+                </Card>
+              )}
+              inverted
+              contentContainerStyle={styles.conversationsList}
+              ListEmptyComponent={
+                <View style={styles.emptyConversation}>
+                  <Card
+                    style={styles.emptyConversationCard}
+                    variant={isDark ? "default" : "bordered"}
+                  >
+                    <Ionicons
+                      name="chatbubble-ellipses-outline"
+                      size={60}
+                      color={theme.colors.textSecondary}
+                    />
+                    <Text
+                      variant="subtitle1"
+                      color={theme.colors.textSecondary}
+                      style={styles.emptyConversationText}
+                    >
+                      Ask your first question about this document
+                    </Text>
+                    <Text
+                      variant="body2"
+                      color={theme.colors.textTertiary}
+                      style={styles.emptyConversationDescription}
+                    >
+                      Your first 3 questions are free. Additional questions cost
+                      0.2 tokens each.
+                    </Text>
+                  </Card>
                 </View>
-              ))}
-            </ScrollView>
-          )}
+              }
+            />
 
-          {/* Fixed input bar at the bottom */}
-          <View
-            style={[
-              styles.inputContainer,
-              {
-                backgroundColor: theme.colors.surface,
-                borderTopColor: theme.colors.border,
-              },
-            ]}
-          >
-            <TextInput
-              ref={inputRef}
+            {/* Question input area */}
+            <View
               style={[
-                styles.textInput,
+                styles.inputContainer,
                 {
                   backgroundColor: theme.colors.background,
-                  color: theme.colors.text,
-                  borderColor: theme.colors.border,
+                  borderTopColor: theme.colors.border,
                 },
               ]}
-              placeholder="Ask a question about this document..."
-              placeholderTextColor={theme.colors.textSecondary}
-              value={question}
-              onChangeText={setQuestion}
-              multiline={true}
-              maxLength={200}
-              numberOfLines={1}
-              returnKeyType="default"
-            />
-            <TouchableOpacity
-              style={[
-                styles.sendButton,
-                {
-                  backgroundColor: question.trim()
-                    ? theme.colors.primary
-                    : theme.colors.primary + "50",
-                },
-              ]}
-              onPress={handleSendMessage}
-              disabled={!question.trim() || sending}
             >
-              {sending ? (
-                <ActivityIndicator size="small" color="white" />
+              {freeQuestionsCount > 0 ? (
+                <Badge
+                  label={`${freeQuestionsCount} free questions left`}
+                  type="info"
+                  icon="information-circle"
+                  style={styles.freeQuestionsBadge}
+                />
               ) : (
-                <Ionicons name="send" size={18} color="white" />
+                <Badge
+                  label={`${TOKEN_COSTS.QUESTION} tokens per question`}
+                  type="warning"
+                  icon="key"
+                  style={styles.freeQuestionsBadge}
+                />
               )}
-            </TouchableOpacity>
-          </View>
-        </>
-      )}
-    </View>
-  );
 
-  // Content based on active tab
-  const renderActiveTabContent = () => {
-    switch (activeTab) {
-      case "summary":
-        return renderSummary();
-      case "insights":
-        return renderInsights();
-      case "qa":
-        return renderQA();
-      default:
-        return renderSummary();
+              <View
+                style={[
+                  styles.inputRow,
+                  {
+                    backgroundColor: isDark
+                      ? theme.colors.card
+                      : theme.colors.border + "30",
+                    borderColor: isFocused
+                      ? theme.colors.primary
+                      : "transparent",
+                  },
+                ]}
+              >
+                <TextInput
+                  style={[styles.input, { color: theme.colors.text }]}
+                  placeholder={t("document.askPlaceholder")}
+                  placeholderTextColor={theme.colors.textSecondary}
+                  value={question}
+                  onChangeText={setQuestion}
+                  multiline
+                  onFocus={() => setIsFocused(true)}
+                  onBlur={() => setIsFocused(false)}
+                />
+
+                <TouchableOpacity
+                  style={[
+                    styles.sendButton,
+                    {
+                      backgroundColor: question.trim()
+                        ? theme.colors.primary
+                        : theme.colors.border,
+                    },
+                  ]}
+                  onPress={askQuestion}
+                  disabled={!question.trim() || askingQuestion}
+                >
+                  {askingQuestion ? (
+                    <ActivityIndicator size="small" color="#FFFFFF" />
+                  ) : (
+                    <Ionicons name="send" size={20} color="#FFFFFF" />
+                  )}
+                </TouchableOpacity>
+              </View>
+            </View>
+          </Animated.View>
+        </KeyboardAvoidingView>
+      );
     }
   };
 
-  // Main render
   return (
-    <View style={[styles.container, { backgroundColor: theme.colors.background }]}>
+    <SafeAreaView
+      style={{
+        flex: 1,
+        backgroundColor: theme.colors.background,
+        paddingTop: Platform.OS === "android" ? StatusBar.currentHeight : 0,
+      }}
+    >
+      <StatusBar
+        barStyle={isDark ? "light-content" : "dark-content"}
+        backgroundColor="transparent"
+        translucent
+      />
+
       {renderHeader()}
-      
+
       <Animated.ScrollView
-        contentContainerStyle={{ paddingTop: HEADER_EXPANDED_HEIGHT }}
-        scrollEventThrottle={16}
+        ref={scrollViewRef}
         onScroll={Animated.event(
           [{ nativeEvent: { contentOffset: { y: scrollY } } }],
           { useNativeDriver: false }
         )}
+        scrollEventThrottle={16}
+        contentContainerStyle={styles.scrollContent}
         showsVerticalScrollIndicator={false}
       >
+        {renderDocumentImage()}
+        {renderDocumentInfo()}
         {renderTabs()}
-        {renderActiveTabContent()}
+
+        {analyzing ? (
+          <View style={styles.loadingContainer}>
+            <Loading text={t("document.processingDocument")} type="pulse" />
+          </View>
+        ) : (
+          renderContent()
+        )}
       </Animated.ScrollView>
-    </View>
+
+      {/* Sending indicator */}
+      {sending && (
+        <View style={styles.sendingOverlay}>
+          <Card style={styles.sendingCard}>
+            <ActivityIndicator color={theme.colors.primary} />
+            <Text style={styles.sendingText}>{t("document.thinking")}</Text>
+          </Card>
+        </View>
+      )}
+    </SafeAreaView>
   );
 };
 
@@ -992,391 +946,278 @@ const styles = StyleSheet.create({
   container: {
     flex: 1,
   },
-  // Header Styles
+  scrollContent: {
+    flexGrow: 1,
+    paddingBottom: 120,
+  },
   header: {
+    flexDirection: "row",
+    alignItems: "center",
+    justifyContent: "space-between",
+    paddingHorizontal: 16,
+    paddingVertical: 12,
+    zIndex: 10,
+  },
+  animatedHeader: {
     position: "absolute",
     top: 0,
     left: 0,
     right: 0,
-    zIndex: 10,
-    elevation: 10,
+    height: 60,
+    zIndex: 999,
+    borderBottomWidth: 1,
+    paddingTop: Platform.OS === "android" ? StatusBar.currentHeight : 0,
   },
-  headerGradient: {
+  headerContentCompact: {
     flex: 1,
-    paddingTop: Platform.OS === "ios" ? 50 : 40,
-  },
-  headerTop: {
     flexDirection: "row",
     alignItems: "center",
     justifyContent: "space-between",
     paddingHorizontal: 16,
   },
-  headerTitle: {
-    fontSize: 18,
-    fontWeight: "600",
-    position: "absolute",
-    left: 60,
-    right: 60,
+  backButton: {
+    padding: 8,
+    borderRadius: 20,
+  },
+  menuButton: {
+    padding: 8,
+    borderRadius: 20,
+  },
+  title: {
+    flex: 1,
     textAlign: "center",
   },
-  backButton: {
-    width: 40,
-    height: 40,
-    borderRadius: 20,
-    alignItems: "center",
-    justifyContent: "center",
-    backgroundColor: "rgba(255,255,255,0.2)",
+  headerTitle: {
+    flex: 1,
+    textAlign: "center",
   },
-  headerActions: {
-    flexDirection: "row",
-    gap: 12,
+  imageContainer: {
+    height: 240,
+    width: "100%",
+    marginBottom: 16,
+    position: "relative",
   },
-  actionButton: {
-    width: 40,
-    height: 40,
-    borderRadius: 20,
-    alignItems: "center",
-    justifyContent: "center",
-    backgroundColor: "rgba(255,255,255,0.2)",
+  documentImage: {
+    width: "100%",
+    height: "100%",
   },
-  documentInfo: {
-    flexDirection: "row",
-    alignItems: "center",
+  imageOverlay: {
+    position: "absolute",
+    bottom: 0,
+    left: 0,
+    right: 0,
+    height: 80,
+  },
+  newDocIndicator: {
+    position: "absolute",
+    top: 16,
+    right: 16,
+    paddingHorizontal: 12,
+    paddingVertical: 4,
+    borderRadius: 12,
+  },
+  infoContainer: {
     paddingHorizontal: 16,
-    paddingTop: 20,
+    marginBottom: 20,
   },
-  documentIcon: {
-    width: 64,
-    height: 64,
-    borderRadius: 16,
-    alignItems: "center",
-    justifyContent: "center",
-    marginRight: 16,
+  infoCard: {
+    padding: 16,
   },
-  documentMeta: {
+  infoRow: {
+    flexDirection: "row",
+    justifyContent: "space-between",
+    marginBottom: 16,
+  },
+  infoItem: {
     flex: 1,
   },
-  documentTitle: {
-    fontSize: 24,
-    fontWeight: "700",
-    marginBottom: 4,
+  infoLabel: {
+    marginBottom: 6,
   },
-  documentSubtitle: {
-    fontSize: 14,
-    opacity: 0.9,
-  },
-  
-  // Tabs Styles
-  tabsContainer: {
+  infoValueContainer: {
     flexDirection: "row",
-    borderTopLeftRadius: 20,
-    borderTopRightRadius: 20,
-    marginTop: -20,
-    shadowColor: "#000",
-    shadowOffset: { width: 0, height: -2 },
-    shadowOpacity: 0.05,
-    shadowRadius: 3,
-    elevation: 3,
+    alignItems: "center",
+  },
+  infoIcon: {
+    marginRight: 8,
+  },
+  tabContainer: {
+    flexDirection: "row",
+    paddingHorizontal: 16,
+    borderBottomWidth: 1,
   },
   tab: {
     flex: 1,
-    paddingVertical: 16,
+    paddingVertical: 12,
     alignItems: "center",
+    flexDirection: "row",
+    justifyContent: "center",
   },
-  tabText: {
-    fontSize: 14,
-    fontWeight: "600",
+  tabIcon: {
+    marginRight: 6,
   },
-  
-  // Content Styles
-  section: {
-    padding: 20,
-    marginHorizontal: 16,
-    marginVertical: 10,
-    borderRadius: 16,
-    shadowColor: "#000",
-    shadowOffset: {
-      width: 0,
-      height: 2,
-    },
-    shadowOpacity: 0.05,
-    shadowRadius: 3.84,
-    elevation: 3,
+  noAnalysisContainer: {
+    padding: 16,
   },
-  sectionTitle: {
-    fontSize: 20,
-    fontWeight: "700",
+  noAnalysisCard: {
+    alignItems: "center",
+    padding: 24,
+  },
+  noAnalysisIcon: {
     marginBottom: 16,
   },
-  summaryText: {
-    fontSize: 16,
-    lineHeight: 24,
+  noAnalysisText: {
+    textAlign: "center",
+    marginBottom: 8,
+  },
+  noAnalysisDescription: {
+    textAlign: "center",
+    marginBottom: 24,
+    paddingHorizontal: 16,
+  },
+  analyzeButton: {
+    minWidth: 180,
+  },
+  summaryContainer: {
+    padding: 16,
+  },
+  summarySection: {
     marginBottom: 24,
   },
-  
-  // Loading Container
-  loadingContainer: {
-    padding: 40,
-    margin: 16,
-    borderRadius: 16,
-    alignItems: "center",
-    justifyContent: "center",
-    shadowColor: "#000",
-    shadowOffset: {
-      width: 0,
-      height: 2,
-    },
-    shadowOpacity: 0.05,
-    shadowRadius: 3.84,
-    elevation: 3,
-  },
-  
-  // Document Details
-  documentDetails: {
-    marginTop: 24,
-    gap: 12,
-  },
-  detailItem: {
-    flexDirection: "row",
-    alignItems: "center",
-    gap: 12,
-  },
-  detailText: {
-    fontSize: 16,
-  },
-  
-  // Key Points Preview
-  keyPointsPreview: {
-    marginTop: 20,
-    borderTopWidth: 1,
-    borderTopColor: "rgba(0,0,0,0.05)",
-    paddingTop: 20,
-  },
-  keyPointsTitle: {
-    fontSize: 18,
-    fontWeight: "600",
+  sectionTitle: {
     marginBottom: 12,
+  },
+  summaryCard: {
+    padding: 16,
+  },
+  summaryText: {
+    lineHeight: 24,
   },
   keyPointItem: {
     flexDirection: "row",
     marginBottom: 12,
-    alignItems: "flex-start",
   },
   bulletPoint: {
     width: 8,
     height: 8,
     borderRadius: 4,
     marginTop: 8,
-    marginRight: 10,
+    marginRight: 12,
   },
   keyPointText: {
     flex: 1,
-    fontSize: 15,
-    lineHeight: 22,
+    lineHeight: 24,
   },
-  seeMoreButton: {
-    flexDirection: "row",
-    alignItems: "center",
-    paddingVertical: 8,
-    paddingHorizontal: 16,
-    borderRadius: 20,
-    alignSelf: "flex-start",
-    gap: 8,
-  },
-  
-  // Insights Tab
-  insightItem: {
-    flexDirection: "row",
-    marginBottom: 12,
-    borderRadius: 12,
-    overflow: "hidden",
-  },
-  insightNumber: {
-    width: 30,
-    alignItems: "center",
-    justifyContent: "center",
-    paddingVertical: 10,
-  },
-  insightNumberText: {
-    fontSize: 14,
-    fontWeight: "bold",
-  },
-  insightContent: {
+  askContainer: {
     flex: 1,
-    padding: 10,
-    paddingLeft: 12,
+    justifyContent: "space-between",
   },
-  insightText: {
-    fontSize: 15,
-    lineHeight: 22,
+  conversationsList: {
+    padding: 16,
   },
-  emptyInsights: {
-    padding: 32,
-    borderRadius: 12,
+  conversationCard: {
+    marginBottom: 16,
+    padding: 16,
+  },
+  questionContainer: {
+    flexDirection: "row",
+    marginBottom: 16,
+  },
+  avatarContainer: {
+    width: 32,
+    height: 32,
+    borderRadius: 16,
+    justifyContent: "center",
+    alignItems: "center",
+    marginRight: 12,
+  },
+  questionText: {
+    flex: 1,
+  },
+  answerContainer: {
+    flexDirection: "row",
+  },
+  answerText: {
+    flex: 1,
+    lineHeight: 24,
+  },
+  emptyConversation: {
     alignItems: "center",
     justifyContent: "center",
+    padding: 16,
   },
-  emptyInsightsText: {
+  emptyConversationCard: {
+    alignItems: "center",
+    padding: 24,
+  },
+  emptyConversationText: {
     marginTop: 16,
     textAlign: "center",
   },
-  recommendationsSection: {
-    marginTop: 24,
-  },
-  recommendationsTitle: {
-    fontSize: 18,
-    fontWeight: "600",
-    marginBottom: 12,
-  },
-  recommendationItem: {
-    flexDirection: "row",
-    padding: 12,
-    borderRadius: 12,
-    marginBottom: 8,
-    alignItems: "flex-start",
-  },
-  recommendationIcon: {
-    marginRight: 10,
-    marginTop: 2,
-  },
-  recommendationText: {
-    flex: 1,
-    fontSize: 15,
-    lineHeight: 22,
-  },
-  
-  // Q&A Tab
-  qaContainer: {
-    flex: 1,
-    minHeight: height - HEADER_EXPANDED_HEIGHT - 100,
-  },
-  emptyChat: {
-    flex: 1,
-    alignItems: "center",
-    justifyContent: "center",
-    padding: 24,
-    minHeight: 400,
-  },
-  emptyIconContainer: {
-    width: 80,
-    height: 80,
-    borderRadius: 40,
-    alignItems: "center",
-    justifyContent: "center",
-    marginBottom: 16,
-  },
-  emptyTitle: {
-    fontSize: 20,
-    fontWeight: "700",
+  emptyConversationDescription: {
     textAlign: "center",
-    marginBottom: 8,
-  },
-  emptySubtitle: {
-    fontSize: 14,
-    textAlign: "center",
-    marginBottom: 24,
-    maxWidth: "80%",
-  },
-  exampleContainer: {
-    width: "100%",
-    maxWidth: 320,
-    alignItems: "flex-start",
-  },
-  exampleTitle: {
-    marginBottom: 8,
-    fontSize: 14,
-  },
-  exampleItem: {
+    marginTop: 8,
     paddingHorizontal: 16,
-    paddingVertical: 10,
-    borderRadius: 16,
-    marginBottom: 8,
-    width: "100%",
-  },
-  chatContainer: {
-    flex: 1,
-    padding: 16,
-  },
-  chatContent: {
-    paddingBottom: 100,
-  },
-  messageGroup: {
-    marginBottom: 16,
-  },
-  userMessageContainer: {
-    alignItems: "flex-end",
-    marginBottom: 8,
-  },
-  userMessage: {
-    maxWidth: "80%",
-    padding: 12,
-    borderRadius: 18,
-    borderBottomRightRadius: 4,
-  },
-  messageText: {
-    fontSize: 15,
-    lineHeight: 22,
-  },
-  aiMessageContainer: {
-    alignItems: "flex-start",
-  },
-  aiMessage: {
-    maxWidth: "85%",
-    padding: 12,
-    borderRadius: 18,
-    borderBottomLeftRadius: 4,
-    shadowColor: "#000",
-    shadowOffset: { width: 0, height: 1 },
-    shadowOpacity: 0.05,
-    shadowRadius: 2,
-    elevation: 1,
-  },
-  aiTypingContainer: {
-    flexDirection: "row",
-    alignItems: "center",
-    padding: 12,
-    borderRadius: 18,
-    borderBottomLeftRadius: 4,
-    shadowColor: "#000",
-    shadowOffset: { width: 0, height: 1 },
-    shadowOpacity: 0.05,
-    shadowRadius: 2,
-    elevation: 1,
-  },
-  aiTypingText: {
-    marginLeft: 8,
-    fontSize: 12,
-    fontStyle: "italic",
   },
   inputContainer: {
+    padding: 16,
+    borderTopWidth: 1,
+  },
+  freeQuestionsBadge: {
+    marginBottom: 12,
+  },
+  inputRow: {
     flexDirection: "row",
     alignItems: "center",
-    padding: 12,
-    borderTopWidth: StyleSheet.hairlineWidth,
-    position: "absolute",
-    left: 0,
-    right: 0,
-    bottom: 0,
-  },
-  textInput: {
-    flex: 1,
-    minHeight: 40,
-    maxHeight: 100,
-    borderRadius: 20,
+    borderRadius: 24,
     paddingHorizontal: 16,
-    paddingVertical: 8,
-    paddingRight: 50,
-    borderWidth: StyleSheet.hairlineWidth,
-    fontSize: 15,
+    borderWidth: 2,
+  },
+  input: {
+    flex: 1,
+    paddingVertical: 12,
+    maxHeight: 100,
+    fontSize: 16,
   },
   sendButton: {
-    width: 36,
-    height: 36,
-    borderRadius: 18,
+    width: 40,
+    height: 40,
+    borderRadius: 20,
     justifyContent: "center",
     alignItems: "center",
+    marginLeft: 8,
+  },
+  loadingContainer: {
+    flex: 1,
+    justifyContent: "center",
+    alignItems: "center",
+    padding: 40,
+  },
+  errorContainer: {
+    flex: 1,
+    justifyContent: "center",
+    alignItems: "center",
+    padding: 24,
+  },
+  sendingOverlay: {
     position: "absolute",
-    right: 22,
-    bottom: 19,
+    bottom: 100,
+    left: 0,
+    right: 0,
+    alignItems: "center",
+    justifyContent: "center",
+    zIndex: 1000,
+  },
+  sendingCard: {
+    flexDirection: "row",
+    alignItems: "center",
+    paddingHorizontal: 16,
+    paddingVertical: 12,
+    borderRadius: 24,
+  },
+  sendingText: {
+    marginLeft: 12,
   },
 });
+
+export default DocumentDetailScreen;

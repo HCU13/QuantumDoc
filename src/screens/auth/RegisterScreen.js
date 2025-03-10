@@ -1,428 +1,612 @@
-import React, { useState } from "react";
+// src/screens/auth/RegisterScreen.js
+import React, { useState, useEffect, useRef } from "react";
 import {
   View,
   StyleSheet,
+  TouchableOpacity,
   KeyboardAvoidingView,
   Platform,
   ScrollView,
-  TouchableOpacity,
+  SafeAreaView,
   StatusBar,
-  Alert,
+  Animated,
+  Dimensions,
+  ImageBackground
 } from "react-native";
-import { SafeAreaView } from "react-native-safe-area-context";
-import { Text, Input, Button } from "../../components/common";
-import { useTheme } from "../../hooks/useTheme";
-import { useTranslation } from "react-i18next";
+import { LinearGradient } from "expo-linear-gradient";
 import { Ionicons } from "@expo/vector-icons";
-import { createUserWithEmailAndPassword, updateProfile } from "firebase/auth";
-import { FIREBASE_AUTH, FIRESTORE_DB } from "../../../FirebaseConfig";
-import { collection, addDoc, serverTimestamp } from "firebase/firestore";
-import { showToast } from "../../utils/toast";
-import * as SecureStore from "expo-secure-store";
-import { useAuth } from "../../hooks/useAuth";
+import { BlurView } from "expo-blur";
+import { useTheme } from "../../context/ThemeContext";
+import { useAuth } from "../../context/AuthContext";
+import { useLocalization } from "../../context/LocalizationContext";
+import { Text } from "../../components/Text";
+import { Input } from "../../components/Input";
+import { Button } from "../../components/Button";
+import { Card } from "../../components/Card";
+import { Loading } from "../../components/Loading";
+import LottieView from 'lottie-react-native';
 
-export const RegisterScreen = ({ navigation }) => {
-  const { theme } = useTheme();
-  const { t } = useTranslation();
-  const { saveUser } = useAuth();
-  const [formData, setFormData] = useState({
-    fullName: "",
-    email: "",
-    password: "",
-    confirmPassword: "",
-  });
-  const [loading, setLoading] = useState(false);
-  const [showPassword, setShowPassword] = useState(false);
-  const [showConfirmPassword, setShowConfirmPassword] = useState(false);
-  const auth = FIREBASE_AUTH;
+const { width, height } = Dimensions.get('window');
+
+const RegisterScreen = ({ navigation }) => {
+  const { theme, isDark } = useTheme();
+  const { register, loading } = useAuth();
+  const { t } = useLocalization();
+
+  const [fullName, setFullName] = useState("");
+  const [email, setEmail] = useState("");
+  const [password, setPassword] = useState("");
+  const [confirmPassword, setConfirmPassword] = useState("");
   const [errors, setErrors] = useState({});
+  const [currentStep, setCurrentStep] = useState(1); // 1: Basic info, 2: Password
 
-  const validateEmail = (email) => {
-    const re = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
-    return re.test(email);
+  // Animations
+  const fadeAnim = useRef(new Animated.Value(0)).current;
+  const slideAnim = useRef(new Animated.Value(50)).current;
+  const formFade = useRef(new Animated.Value(1)).current;
+  const formSlide = useRef(new Animated.Value(0)).current;
+
+  // Refs
+  const lottieRef = useRef(null);
+
+  // Start entrance animations
+  useEffect(() => {
+    Animated.parallel([
+      Animated.timing(fadeAnim, {
+        toValue: 1,
+        duration: 800,
+        useNativeDriver: true,
+      }),
+      Animated.timing(slideAnim, {
+        toValue: 0,
+        duration: 800,
+        useNativeDriver: true,
+      }),
+    ]).start();
+
+    // Start Lottie animation
+    if (lottieRef.current) {
+      setTimeout(() => {
+        lottieRef.current.play();
+      }, 500);
+    }
+  }, []);
+
+  // Animate between registration steps
+  const animateToNextStep = () => {
+    // Fade out current form
+    Animated.parallel([
+      Animated.timing(formFade, {
+        toValue: 0,
+        duration: 300,
+        useNativeDriver: true,
+      }),
+      Animated.timing(formSlide, {
+        toValue: -50,
+        duration: 300,
+        useNativeDriver: true,
+      }),
+    ]).start(() => {
+      // Change to next step
+      setCurrentStep(2);
+      
+      // Reset animation values
+      formFade.setValue(0);
+      formSlide.setValue(50);
+      
+      // Fade in new form
+      Animated.parallel([
+        Animated.timing(formFade, {
+          toValue: 1,
+          duration: 300,
+          useNativeDriver: true,
+        }),
+        Animated.timing(formSlide, {
+          toValue: 0,
+          duration: 300,
+          useNativeDriver: true,
+        }),
+      ]).start();
+    });
   };
 
-  const validateForm = () => {
+  // Animate back to previous step
+  const animateToPrevStep = () => {
+    // Fade out current form
+    Animated.parallel([
+      Animated.timing(formFade, {
+        toValue: 0,
+        duration: 300,
+        useNativeDriver: true,
+      }),
+      Animated.timing(formSlide, {
+        toValue: 50,
+        duration: 300,
+        useNativeDriver: true,
+      }),
+    ]).start(() => {
+      // Change to prev step
+      setCurrentStep(1);
+      
+      // Reset animation values
+      formFade.setValue(0);
+      formSlide.setValue(-50);
+      
+      // Fade in new form
+      Animated.parallel([
+        Animated.timing(formFade, {
+          toValue: 1,
+          duration: 300,
+          useNativeDriver: true,
+        }),
+        Animated.timing(formSlide, {
+          toValue: 0,
+          duration: 300,
+          useNativeDriver: true,
+        }),
+      ]).start();
+    });
+  };
+
+  // Form validation
+  const validateFirstStepForm = () => {
     const newErrors = {};
-    let isValid = true;
 
-    // Check required fields
-    if (!formData.fullName.trim()) {
-      newErrors.fullName = t("auth.errors.required-name") || "Name is required";
-      isValid = false;
+    // Name validation
+    if (!fullName.trim()) {
+      newErrors.fullName = "Please enter your name";
     }
 
-    if (!formData.email.trim()) {
-      newErrors.email = t("auth.errors.invalid-email") || "Email is required";
-      isValid = false;
-    } else if (!validateEmail(formData.email)) {
-      newErrors.email = t("auth.errors.invalid-email") || "Email is invalid";
-      isValid = false;
-    }
-
-    if (!formData.password) {
-      newErrors.password =
-        t("auth.errors.required-password") || "Password is required";
-      isValid = false;
-    } else if (formData.password.length < 6) {
-      newErrors.password =
-        t("auth.errors.weak-password") ||
-        "Password must be at least 6 characters";
-      isValid = false;
-    }
-
-    if (formData.password !== formData.confirmPassword) {
-      newErrors.confirmPassword =
-        t("auth.errors.password-mismatch") || "Passwords don't match";
-      isValid = false;
+    // Email validation
+    if (!email) {
+      newErrors.email = "Email is required";
+    } else if (!/\S+@\S+\.\S+/.test(email)) {
+      newErrors.email = "Please enter a valid email";
     }
 
     setErrors(newErrors);
-    return isValid;
+    return Object.keys(newErrors).length === 0;
   };
 
+  const validateSecondStepForm = () => {
+    const newErrors = {};
+
+    // Password validation
+    if (!password) {
+      newErrors.password = "Password is required";
+    } else if (password.length < 6) {
+      newErrors.password = "Password must be at least 6 characters";
+    }
+
+    // Password confirmation validation
+    if (password !== confirmPassword) {
+      newErrors.confirmPassword = "Passwords don't match";
+    }
+
+    setErrors(newErrors);
+    return Object.keys(newErrors).length === 0;
+  };
+
+  // Handle next step button press
+  const handleNextStep = () => {
+    if (validateFirstStepForm()) {
+      animateToNextStep();
+    }
+  };
+
+  // Handle registration
   const handleRegister = async () => {
-    // Validate form
-    if (!validateForm()) {
-      return;
-    }
-
-    setLoading(true);
-    try {
-      // Create user with Firebase Authentication
-      const response = await createUserWithEmailAndPassword(
-        auth,
-        formData.email,
-        formData.password
-      );
-
-      const user = response.user;
-
-      // Update user profile with full name
-      await updateProfile(user, {
-        displayName: formData.fullName,
-      });
-
-      // Add user to Firestore database
-      const userDocRef = await addDoc(collection(FIRESTORE_DB, "users"), {
-        uid: user.uid,
-        fullName: formData.fullName,
-        email: formData.email,
-        createdAt: serverTimestamp(),
-        lastLogin: serverTimestamp(),
-      });
-
-      console.log("User registered with ID: ", userDocRef.id);
-
-      // Kullanıcı bilgilerini SecureStore'a kaydet
-      await saveUser(user);
-
-      console.log("User registered and data saved to SecureStore");
-
-      // Başarı bildirimi
-      showToast.success(
-        "Registration Successful",
-        "Your account has been created successfully"
-      );
-
-      // Ana ekrana yönlendir
-      navigation.reset({
-        index: 0,
-        routes: [{ name: "MainNavigator" }],
-      });
-    } catch (error) {
-      console.error("Registration error:", error);
-      // Handle specific error codes
-      const errorCode = error.code || "auth/unknown-error";
-
-      if (errorCode === "auth/email-already-in-use") {
-        setErrors({
-          ...errors,
-          email:
-            t("auth.errors.email-already-in-use") || "Email already in use",
-        });
-      } else {
-        // Show general error
-        setErrors({
-          ...errors,
-          general: t(`auth.errors.${errorCode}`) || error.message,
-        });
+    if (validateSecondStepForm()) {
+      try {
+        await register(email, password, fullName);
+        // Registration successful - AuthContext will automatically log in
+      } catch (error) {
+        console.error("Registration error", error);
+        // Toast message shown in AuthContext
       }
-    } finally {
-      setLoading(false);
     }
   };
 
-  const updateFormData = (key, value) => {
-    setFormData((prev) => ({
-      ...prev,
-      [key]: value,
-    }));
-  };
+  // Render step indicators
+  const renderStepIndicators = () => (
+    <View style={styles.stepIndicators}>
+      <View 
+        style={[
+          styles.stepIndicator, 
+          { 
+            backgroundColor: currentStep >= 1 
+              ? theme.colors.primary 
+              : theme.colors.border 
+          }
+        ]}
+      >
+        <Text 
+          variant="caption" 
+          color="#ffffff"
+        >
+          1
+        </Text>
+      </View>
+      <View 
+        style={[
+          styles.stepConnector, 
+          { backgroundColor: currentStep > 1 ? theme.colors.primary : theme.colors.border }
+        ]}
+      />
+      <View 
+        style={[
+          styles.stepIndicator, 
+          { 
+            backgroundColor: currentStep >= 2 
+              ? theme.colors.primary 
+              : theme.colors.border 
+          }
+        ]}
+      >
+        <Text 
+          variant="caption" 
+          color="#ffffff"
+        >
+          2
+        </Text>
+      </View>
+    </View>
+  );
 
   return (
-    <SafeAreaView
-      style={[styles.container, { backgroundColor: theme.colors.background }]}
-      edges={["top"]}
-    >
-      <StatusBar barStyle={theme.isDark ? "light-content" : "dark-content"} />
+    <SafeAreaView style={{ flex: 1, backgroundColor: theme.colors.background }}>
+      <StatusBar
+        barStyle={isDark ? "light-content" : "dark-content"}
+        backgroundColor="transparent"
+        translucent
+      />
+
       <KeyboardAvoidingView
-        behavior={Platform.OS === "ios" ? "padding" : "height"}
-        style={styles.keyboardView}
+        style={{ flex: 1 }}
+        behavior={Platform.OS === "ios" ? "padding" : undefined}
+        keyboardVerticalOffset={Platform.OS === "ios" ? 0 : 0}
       >
-        <ScrollView contentContainerStyle={styles.scrollContent}>
-          <View style={styles.header}>
+        <LinearGradient
+          colors={isDark 
+            ? [theme.colors.background, theme.colors.background] 
+            : [theme.colors.background, theme.colors.card]}
+          style={styles.gradient}
+        >
+          {/* Header with Back Button */}
+          <Animated.View 
+            style={[
+              styles.header,
+              {
+                opacity: fadeAnim,
+              }
+            ]}
+          >
             <TouchableOpacity
+              style={styles.backButton}
               onPress={() => navigation.goBack()}
-              style={[
-                styles.backButton,
-                { backgroundColor: theme.colors.surface },
-              ]}
             >
               <Ionicons name="arrow-back" size={24} color={theme.colors.text} />
             </TouchableOpacity>
-
-            <Text
-              variant="h1"
-              style={[styles.title, { color: theme.colors.text }]}
-            >
-              {t("auth.registerTitle")}
+            <Text variant="h2" style={styles.headerTitle}>
+              {t("auth.register")}
             </Text>
-            <Text
-              style={[styles.subtitle, { color: theme.colors.textSecondary }]}
+            <View style={{ width: 40 }} />
+          </Animated.View>
+
+          <ScrollView
+            contentContainerStyle={styles.scrollContainer}
+            showsVerticalScrollIndicator={false}
+          >
+            {/* Create Account Animation */}
+            <Animated.View 
+              style={[
+                styles.animationContainer,
+                {
+                  opacity: fadeAnim,
+                  transform: [{ translateY: slideAnim }]
+                }
+              ]}
             >
-              {t("auth.registerSubtitle")}
-            </Text>
-          </View>
-
-          <View style={styles.form}>
-            <Input
-              placeholder={t("auth.fullName") || "Full Name"}
-              value={formData.fullName}
-              onChangeText={(value) => updateFormData("fullName", value)}
-              theme={theme}
-              icon="person-outline"
-              error={errors.fullName}
-            />
-
-            <Input
-              placeholder={t("auth.email") || "Email"}
-              value={formData.email}
-              onChangeText={(value) => updateFormData("email", value)}
-              keyboardType="email-address"
-              autoCapitalize="none"
-              theme={theme}
-              icon="mail-outline"
-              error={errors.email}
-            />
-
-            <Input
-              placeholder={t("auth.password") || "Password"}
-              value={formData.password}
-              onChangeText={(value) => updateFormData("password", value)}
-              secureTextEntry={!showPassword}
-              theme={theme}
-              icon="lock-closed-outline"
-              rightIcon={showPassword ? "eye-off-outline" : "eye-outline"}
-              onRightIconPress={() => setShowPassword(!showPassword)}
-              error={errors.password}
-            />
-
-            <Input
-              placeholder={t("auth.confirmPassword") || "Confirm Password"}
-              value={formData.confirmPassword}
-              onChangeText={(value) => updateFormData("confirmPassword", value)}
-              secureTextEntry={!showConfirmPassword}
-              theme={theme}
-              icon="lock-closed-outline"
-              rightIcon={
-                showConfirmPassword ? "eye-off-outline" : "eye-outline"
-              }
-              onRightIconPress={() =>
-                setShowConfirmPassword(!showConfirmPassword)
-              }
-              error={errors.confirmPassword}
-            />
-
-            <Text
-              style={[styles.termsText, { color: theme.colors.textSecondary }]}
-            >
-              {t("auth.termsText")}{" "}
-              <Text style={{ color: theme.colors.primary }}>
-                {t("auth.termsLink")}
-              </Text>{" "}
-              {t("common.and")}{" "}
-              <Text style={{ color: theme.colors.primary }}>
-                {t("auth.privacyLink")}
-              </Text>
-            </Text>
-
-            <Button
-              title={t("common.register")}
-              onPress={handleRegister}
-              loading={loading}
-              theme={theme}
-              style={styles.registerButton}
-            />
-
-            <View style={styles.divider}>
-              <View
-                style={[
-                  styles.dividerLine,
-                  { backgroundColor: theme.colors.border },
-                ]}
+              <LottieView
+                ref={lottieRef}
+                source={require("../../assets/animations/create-account.json")}
+                style={styles.animation}
+                loop
               />
               <Text
-                style={[
-                  styles.dividerText,
-                  { color: theme.colors.textSecondary },
-                ]}
+                variant="body1"
+                color={theme.colors.textSecondary}
+                style={styles.subtitle}
+                centered
               >
-                {t("common.or")}
+                Create an account to get started with DocAI
               </Text>
-              <View
-                style={[
-                  styles.dividerLine,
-                  { backgroundColor: theme.colors.border },
-                ]}
-              />
-            </View>
+            </Animated.View>
 
-            <View style={styles.socialButtons}>
-              <TouchableOpacity
-                style={[
-                  styles.socialButton,
-                  { backgroundColor: theme.colors.surface },
-                ]}
-                onPress={() => {
-                  /* Google registration */
-                }}
-              >
-                <Ionicons
-                  name="logo-google"
-                  size={24}
-                  color={theme.colors.text}
-                />
-              </TouchableOpacity>
-              <TouchableOpacity
-                style={[
-                  styles.socialButton,
-                  { backgroundColor: theme.colors.surface },
-                ]}
-                onPress={() => {
-                  /* Apple registration */
-                }}
-              >
-                <Ionicons
-                  name="logo-apple"
-                  size={24}
-                  color={theme.colors.text}
-                />
-              </TouchableOpacity>
-            </View>
+            {/* Step Indicators */}
+            <Animated.View
+              style={[
+                styles.stepsContainer,
+                {
+                  opacity: fadeAnim,
+                  transform: [{ translateY: slideAnim }]
+                }
+              ]}
+            >
+              {renderStepIndicators()}
+            </Animated.View>
 
-            <View style={styles.footer}>
-              <Text style={{ color: theme.colors.textSecondary }}>
-                {t("auth.alreadyHaveAccount")}
-              </Text>
-              <TouchableOpacity onPress={() => navigation.navigate("Login")}>
-                <Text
-                  style={[styles.loginText, { color: theme.colors.primary }]}
+            {/* Registration Form */}
+            <Animated.View
+              style={[
+                styles.formContainer,
+                {
+                  opacity: Animated.multiply(fadeAnim, formFade),
+                  transform: [
+                    { translateY: Animated.add(slideAnim, formSlide) }
+                  ]
+                }
+              ]}
+            >
+              <Card 
+                style={styles.formCard}
+                elevated={true}
+              >
+                {currentStep === 1 ? (
+                  /* Step 1: Basic Information */
+                  <View style={styles.formStep}>
+                    <Text 
+                      variant="subtitle1"
+                      weight="semibold"
+                      style={styles.formTitle}
+                    >
+                      Tell us about yourself
+                    </Text>
+
+                    <Input
+                      label="Full Name"
+                      value={fullName}
+                      onChangeText={setFullName}
+                      placeholder="John Doe"
+                      icon="person"
+                      error={errors.fullName}
+                      variant="outline"
+                      animatedLabel={true}
+                    />
+
+                    <Input
+                      label="Email Address"
+                      value={email}
+                      onChangeText={setEmail}
+                      placeholder="email@example.com"
+                      keyboardType="email-address"
+                      autoCapitalize="none"
+                      icon="mail"
+                      error={errors.email}
+                      variant="outline"
+                      animatedLabel={true}
+                    />
+
+                    <Button
+                      title="Continue"
+                      onPress={handleNextStep}
+                      style={styles.actionButton}
+                      gradient={true}
+                      rightIcon="arrow-forward"
+                    />
+                  </View>
+                ) : (
+                  /* Step 2: Password */
+                  <View style={styles.formStep}>
+                    <Text 
+                      variant="subtitle1"
+                      weight="semibold"
+                      style={styles.formTitle}
+                    >
+                      Set up your password
+                    </Text>
+
+                    <Input
+                      label="Password"
+                      value={password}
+                      onChangeText={setPassword}
+                      placeholder="••••••••"
+                      secureTextEntry
+                      icon="lock-closed"
+                      error={errors.password}
+                      variant="outline"
+                      animatedLabel={true}
+                    />
+
+                    <Input
+                      label="Confirm Password"
+                      value={confirmPassword}
+                      onChangeText={setConfirmPassword}
+                      placeholder="••••••••"
+                      secureTextEntry
+                      icon="lock-closed"
+                      error={errors.confirmPassword}
+                      variant="outline"
+                      animatedLabel={true}
+                    />
+
+                    <View style={styles.passwordRequirements}>
+                      <Text 
+                        variant="caption" 
+                        color={theme.colors.textSecondary}
+                      >
+                        Password should be at least 6 characters
+                      </Text>
+                    </View>
+
+                    <View style={styles.twoButtonContainer}>
+                      <Button
+                        title="Back"
+                        onPress={animateToPrevStep}
+                        style={styles.backStepButton}
+                        type="outline"
+                      />
+                      <Button
+                        title="Create Account"
+                        onPress={handleRegister}
+                        style={styles.createButton}
+                        gradient={true}
+                        loading={loading}
+                      />
+                    </View>
+                  </View>
+                )}
+              </Card>
+            </Animated.View>
+
+            {/* Sign in link */}
+            <Animated.View
+              style={[
+                styles.signInContainer,
+                {
+                  opacity: fadeAnim,
+                  transform: [{ translateY: slideAnim }]
+                }
+              ]}
+            >
+              <TouchableOpacity
+                style={styles.signInLink}
+                onPress={() => navigation.navigate("Login")}
+              >
+                <Text 
+                  variant="body2" 
+                  color={theme.colors.textSecondary}
                 >
-                  {t("common.login")}
+                  {t("auth.alreadyHaveAccount")}{" "}
+                  <Text 
+                    variant="body2"
+                    color={theme.colors.primary}
+                    weight="semibold"
+                  >
+                    {t("auth.loginInstead")}
+                  </Text>
                 </Text>
               </TouchableOpacity>
-            </View>
-          </View>
-        </ScrollView>
+            </Animated.View>
+          </ScrollView>
+        </LinearGradient>
       </KeyboardAvoidingView>
+
+      {/* Full screen loading indicator */}
+      {loading && (
+        <Loading 
+          fullScreen 
+          text="Creating your account..." 
+          type="logo"
+          blur={true}
+          iconName="person-add"
+        />
+      )}
     </SafeAreaView>
   );
 };
+
 const styles = StyleSheet.create({
-  container: {
+  gradient: {
     flex: 1,
   },
-  keyboardView: {
-    flex: 1,
-  },
-  scrollContent: {
+  scrollContainer: {
     flexGrow: 1,
-    padding: 24,
+    paddingBottom: 40,
   },
   header: {
-    marginBottom: 32,
+    flexDirection: "row",
+    alignItems: "center",
+    justifyContent: "space-between",
+    paddingHorizontal: 20,
+    paddingTop: Platform.OS === "android" ? StatusBar.currentHeight + 10 : 10,
+    paddingBottom: 10,
   },
   backButton: {
-    width: 40,
-    height: 40,
-    borderRadius: 12,
-    alignItems: "center",
-    justifyContent: "center",
-    marginBottom: 24,
+    padding: 8,
   },
-  title: {
-    fontSize: 32,
-    fontWeight: "700",
-    marginBottom: 8,
+  headerTitle: {
+    flex: 1,
+    textAlign: "center",
+    marginBottom: 0,
+  },
+  animationContainer: {
+    alignItems: "center",
+    paddingHorizontal: 20,
+    paddingTop: 10,
+    marginBottom: 20,
+  },
+  animation: {
+    width: 160,
+    height: 160,
   },
   subtitle: {
-    fontSize: 16,
-    lineHeight: 24,
-  },
-  form: {
-    gap: 16,
-  },
-  termsText: {
-    fontSize: 14,
-    lineHeight: 20,
     textAlign: "center",
-    marginTop: 8,
+    maxWidth: "80%",
+    marginTop: 10,
   },
-  registerButton: {
-    marginTop: 8,
+  stepsContainer: {
+    alignItems: "center",
+    marginBottom: 20,
   },
-  divider: {
+  stepIndicators: {
     flexDirection: "row",
     alignItems: "center",
-    marginVertical: 24,
+    justifyContent: "center",
   },
-  dividerLine: {
+  stepIndicator: {
+    width: 30,
+    height: 30,
+    borderRadius: 15,
+    alignItems: "center",
+    justifyContent: "center",
+  },
+  stepConnector: {
+    height: 2,
+    width: 50,
+  },
+  formContainer: {
+    paddingHorizontal: 24,
+  },
+  formCard: {
+    paddingHorizontal: 24,
+    paddingVertical: 30,
+    borderRadius: 20,
+  },
+  formStep: {
+    alignItems: "stretch",
+  },
+  formTitle: {
+    marginBottom: 20,
+    textAlign: "center",
+  },
+  actionButton: {
+    marginTop: 24,
+  },
+  passwordRequirements: {
+    marginTop: 10,
+    marginBottom: 20,
+  },
+  twoButtonContainer: {
+    flexDirection: "row",
+    justifyContent: "space-between",
+    marginTop: 10,
+  },
+  backStepButton: {
     flex: 1,
-    height: 1,
+    marginRight: 10,
   },
-  dividerText: {
-    paddingHorizontal: 16,
-    fontSize: 14,
+  createButton: {
+    flex: 1,
   },
-  socialButtons: {
-    flexDirection: "row",
-    justifyContent: "center",
-    gap: 16,
-  },
-  socialButton: {
-    width: 56,
-    height: 56,
-    borderRadius: 16,
-    alignItems: "center",
-    justifyContent: "center",
-    shadowColor: "#000",
-    shadowOffset: {
-      width: 0,
-      height: 2,
-    },
-    shadowOpacity: 0.1,
-    shadowRadius: 4,
-    elevation: 3,
-  },
-  footer: {
-    flexDirection: "row",
-    justifyContent: "center",
+  signInContainer: {
     alignItems: "center",
     marginTop: 24,
-    gap: 4,
+    paddingHorizontal: 24,
   },
-  loginText: {
-    fontWeight: "600",
+  signInLink: {
+    padding: 10,
   },
 });
+
+export default RegisterScreen;

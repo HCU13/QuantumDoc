@@ -1,4 +1,6 @@
 import { registerRootComponent } from "expo";
-import App from "./src/app";
+import App from "./App";
 
+// registerRootComponent calls AppRegistry.registerComponent('main', () => App);
+// Bileşen kaydını gerçekleştirir
 registerRootComponent(App);

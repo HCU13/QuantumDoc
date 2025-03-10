@@ -1,356 +1,504 @@
-// ProfileScreen.js - Düzeltilmiş versiyon
-import React, { useState } from "react";
+// src/screens/main/ProfileScreen.js
+import React, { useState, useEffect } from "react";
 import {
   View,
-  ScrollView,
   StyleSheet,
   TouchableOpacity,
-  Image,
   Switch,
+  ScrollView,
   Alert,
+  Modal,
+  SafeAreaView,
+  Linking,
   StatusBar,
+  Animated,
   Platform,
-  Dimensions,
+  Image,
 } from "react-native";
-import { Text, Button } from "../../components/common";
-import { useTheme } from "../../hooks/useTheme";
-import { LanguageSwitcher } from "../../hooks/LanguageSwitcher";
+import { LinearGradient } from "expo-linear-gradient";
 import { Ionicons } from "@expo/vector-icons";
-import AsyncStorage from "@react-native-async-storage/async-storage";
-import { useAuth } from "../../hooks/useAuth";
-import { showToast } from "../../utils/toast";
-const STATUSBAR_HEIGHT = Platform.OS === "ios" ? 44 : StatusBar.currentHeight;
-const { width } = Dimensions.get("window");
+import { useTheme } from "../../context/ThemeContext";
+import { useAuth } from "../../context/AuthContext";
+import { useTokens } from "../../context/TokenContext";
+import {
+  useLocalization,
+  SUPPORTED_LANGUAGES,
+} from "../../context/LocalizationContext";
+import { Text } from "../../components/Text";
+import { Card } from "../../components/Card";
+import { Avatar } from "../../components/Avatar";
+import { Button } from "../../components/Button";
+import { Loading } from "../../components/Loading";
+import { Badge } from "../../components/Badge";
+import { logoutUser } from "../../utils/revenuecat";
 
-export const ProfileScreen = ({ navigation }) => {
-  const { theme, switchTheme } = useTheme();
-  const { t, changeLanguage, currentLanguage } = LanguageSwitcher();
-  const [tokenCount, setTokenCount] = useState(5);
-  const [notificationsEnabled, setNotificationsEnabled] = useState(true);
-  const { signOut } = useAuth();
-  // Çıkış fonksiyonuconst
+const ProfileScreen = ({ navigation }) => {
+  const { theme, toggleTheme, isDark } = useTheme();
+  const { user, signOut, loading } = useAuth();
+  const { tokens, subscription } = useTokens();
+  const { t, currentLanguage, changeLanguage, getCurrentLanguageName } =
+    useLocalization();
+
+  const [languageModalVisible, setLanguageModalVisible] = useState(false);
+
+  // Animations
+  const fadeAnim = React.useRef(new Animated.Value(0)).current;
+  const slideAnim = React.useRef(new Animated.Value(30)).current;
+
+  useEffect(() => {
+    // Start entrance animations
+    Animated.parallel([
+      Animated.timing(fadeAnim, {
+        toValue: 1,
+        duration: 600,
+        useNativeDriver: true,
+      }),
+      Animated.timing(slideAnim, {
+        toValue: 0,
+        duration: 600,
+        useNativeDriver: true,
+      }),
+    ]).start();
+  }, []);
+
+  // Sign out
   const handleSignOut = () => {
-    Alert.alert("Çıkış Yap", "Çıkış yapmak istediğinize emin misiniz?", [
-      { text: "İptal", style: "cancel" },
+    Alert.alert(t("profile.signOut"), t("profile.signOutConfirm"), [
       {
-        text: "Çıkış Yap",
-        style: "destructive",
+        text: t("common.cancel"),
+        style: "cancel",
+      },
+      {
+        text: t("profile.signOut"),
         onPress: async () => {
-          // Doğrudan çıkış yap
-          await signOut();
-          navigation.reset({
-            index: 0,
-            routes: [{ name: "Auth" }], // Auth navigator'a yönlendir
-          });
+          try {
+            // Log out from RevenueCat
+            await logoutUser();
+            // Log out from Firebase
+            await signOut();
+          } catch (error) {
+            console.error("Sign out error:", error);
+          }
         },
       },
     ]);
   };
-  // Hesap silme fonksiyonu
-  const deleteAccount = () => {
-    Alert.alert(
-      "Hesabı Sil",
-      "Hesabınızı silmek istediğinize emin misiniz? Bu işlem geri alınamaz.",
-      [
-        { text: "İptal", style: "cancel" },
-        {
-          text: "Hesabı Sil",
-          style: "destructive",
-          onPress: handleSignOut,
-        },
-      ]
-    );
+
+  // Open help link
+  const openHelpLink = () => {
+    Linking.openURL("https://www.docai.app/help");
   };
 
-  const renderHeader = () => (
-    <View style={styles.headerContainer}>
-      <StatusBar
-        barStyle="light-content"
-        backgroundColor={theme.colors.primary}
-        translucent={true}
-      />
+  // Change language
+  const handleLanguageChange = async (langCode) => {
+    await changeLanguage(langCode);
+    setLanguageModalVisible(false);
+  };
 
-      <View
-        style={[
-          styles.header,
-          {
-            backgroundColor: theme.colors.primary,
-            paddingTop: STATUSBAR_HEIGHT + 10,
-          },
-        ]}
-      >
-        <View style={styles.profileInfo}>
-          <Image
-            source={{ uri: "https://i.pravatar.cc/150" }}
-            style={styles.avatar}
-          />
-
-          <View style={styles.userInfo}>
-            <Text style={styles.userName} color="white">
-              John Doe
-            </Text>
-            <Text style={styles.userEmail} color="white">
-              john.doe@example.com
-            </Text>
-
-            <TouchableOpacity
-              style={styles.tokenContainer}
-              onPress={() => navigation.navigate("Premium")}
-            >
-              <Ionicons name="flash" size={16} color="#FFD700" />
-              <Text style={styles.tokenText} color="white">
-                {tokenCount} token
-              </Text>
-              <Ionicons name="chevron-forward" size={12} color="white" />
-            </TouchableOpacity>
-          </View>
-        </View>
-      </View>
-    </View>
-  );
-
-  const menuItems = [
-    {
-      id: "tokens",
-      title: "Token Satın Al",
-      description: "Daha fazla döküman için token ekle",
-      icon: "flash",
-      color: "#FFD700",
-      action: () => navigation.navigate("Premium"),
-    },
-    {
-      id: "account",
-      title: "Hesap Ayarları",
-      description: "Profil bilgilerini düzenle",
-      icon: "person-circle",
-      color: theme.colors.primary,
-      action: () => navigation.navigate("AccountSettings"),
-    },
-    {
-      id: "help",
-      title: "Yardım ve Destek",
-      description: "SSS, iletişim",
-      icon: "help-circle",
-      color: theme.colors.success,
-      action: () => navigation.navigate("HelpSupport"),
-    },
-  ];
-
-  const renderMenuItem = (item) => (
-    <TouchableOpacity
-      key={item.id}
-      style={[
-        styles.menuItem,
-        {
-          backgroundColor: theme.colors.surface,
-          shadowColor: theme.isDark ? "transparent" : "#000",
-        },
-      ]}
-      onPress={item.action}
+  // Language selection modal
+  const renderLanguageModal = () => (
+    <Modal
+      visible={languageModalVisible}
+      transparent={true}
+      animationType="fade"
+      onRequestClose={() => setLanguageModalVisible(false)}
     >
-      <View style={styles.menuLeft}>
-        <View style={[styles.menuIcon, { backgroundColor: item.color + "15" }]}>
-          <Ionicons name={item.icon} size={22} color={item.color} />
-        </View>
-        <View style={styles.menuTexts}>
-          <Text style={[styles.menuTitle, { color: theme.colors.text }]}>
-            {item.title}
-          </Text>
-          <Text
-            style={[
-              styles.menuDescription,
-              { color: theme.colors.textSecondary },
-            ]}
-          >
-            {item.description}
-          </Text>
-        </View>
-      </View>
-      <Ionicons
-        name="chevron-forward"
-        size={20}
-        color={theme.colors.textSecondary}
-      />
-    </TouchableOpacity>
-  );
-
-  const renderSettings = () => (
-    <View style={styles.settingsSection}>
-      <Text style={[styles.sectionTitle, { color: theme.colors.text }]}>
-        Menü
-      </Text>
-
-      <View style={styles.menuList}>{menuItems.map(renderMenuItem)}</View>
-
-      <Text style={[styles.sectionTitle, { color: theme.colors.text }]}>
-        Ayarlar
-      </Text>
-
-      <View style={styles.quickSettings}>
-        {/* Tema değiştirme */}
-        <TouchableOpacity
-          style={[
-            styles.settingItem,
-            {
-              backgroundColor: theme.colors.surface,
-              shadowColor: theme.isDark ? "transparent" : "#000",
-            },
-          ]}
-          onPress={switchTheme}
-        >
-          <View style={styles.settingLeft}>
-            <View
-              style={[
-                styles.settingIcon,
-                { backgroundColor: theme.colors.primary + "15" },
-              ]}
-            >
-              <Ionicons
-                name={theme.isDark ? "moon" : "sunny"}
-                size={22}
-                color={theme.colors.primary}
-              />
-            </View>
-            <Text style={{ color: theme.colors.text }}>Karanlık Mod</Text>
-          </View>
-          <Switch
-            value={theme.isDark}
-            onValueChange={switchTheme}
-            trackColor={{
-              false: "#e9e9ea",
-              true: theme.colors.primary,
-            }}
-            thumbColor={
-              Platform.OS === "ios"
-                ? "#ffffff"
-                : theme.isDark
-                ? "#ffffff"
-                : "#f4f3f4"
-            }
-            ios_backgroundColor="#e9e9ea"
-          />
-        </TouchableOpacity>
-
-        {/* Dil seçimi */}
-        <TouchableOpacity
-          style={[
-            styles.settingItem,
-            {
-              backgroundColor: theme.colors.surface,
-              shadowColor: theme.isDark ? "transparent" : "#000",
-            },
-          ]}
-          onPress={() => {
-            changeLanguage(currentLanguage === "en" ? "tr" : "en");
-          }}
-        >
-          <View style={styles.settingLeft}>
-            <View
-              style={[
-                styles.settingIcon,
-                { backgroundColor: theme.colors.secondary + "15" },
-              ]}
-            >
-              <Ionicons
-                name="language"
-                size={22}
-                color={theme.colors.secondary}
-              />
-            </View>
-            <Text style={{ color: theme.colors.text }}>Dil</Text>
-          </View>
-          <View style={styles.settingRight}>
-            <Text style={{ color: theme.colors.textSecondary }}>
-              {currentLanguage === "en" ? "English" : "Türkçe"}
-            </Text>
-            <Ionicons
-              name="chevron-forward"
-              size={20}
-              color={theme.colors.textSecondary}
-            />
-          </View>
-        </TouchableOpacity>
-
-        {/* Bildirimler */}
-        <TouchableOpacity
-          style={[
-            styles.settingItem,
-            {
-              backgroundColor: theme.colors.surface,
-              shadowColor: theme.isDark ? "transparent" : "#000",
-            },
-          ]}
-          onPress={() => setNotificationsEnabled(!notificationsEnabled)}
-        >
-          <View style={styles.settingLeft}>
-            <View
-              style={[
-                styles.settingIcon,
-                { backgroundColor: theme.colors.info + "15" },
-              ]}
-            >
-              <Ionicons
-                name="notifications"
-                size={22}
-                color={theme.colors.info}
-              />
-            </View>
-            <Text style={{ color: theme.colors.text }}>Bildirimler</Text>
-          </View>
-          <Switch
-            value={notificationsEnabled}
-            onValueChange={setNotificationsEnabled}
-            trackColor={{
-              false: "#e9e9ea",
-              true: theme.colors.info,
-            }}
-            thumbColor={
-              Platform.OS === "ios"
-                ? "#ffffff"
-                : notificationsEnabled
-                ? "#ffffff"
-                : "#f4f3f4"
-            }
-            ios_backgroundColor="#e9e9ea"
-          />
-        </TouchableOpacity>
-      </View>
-
-      {/* Çıkış butonu */}
-      <Button
-        title="Çıkış Yap"
-        onPress={handleSignOut}
-        type="secondary"
-        theme={theme}
-        style={styles.signOutButton}
-      />
-
-      {/* Hesap silme butonu */}
-      <TouchableOpacity
-        style={[
-          styles.deleteAccountButton,
-          { borderColor: theme.colors.error },
-        ]}
-        onPress={deleteAccount}
+      <View
+        style={[styles.modalOverlay, { backgroundColor: "rgba(0,0,0,0.5)" }]}
       >
-        <Text style={{ color: theme.colors.error }}>Hesabımı Sil</Text>
-      </TouchableOpacity>
-    </View>
+        <Card style={styles.modalContainer} variant="default" elevated={true}>
+          <Text variant="h3" style={styles.modalTitle}>
+            {t("profile.language")}
+          </Text>
+
+          {SUPPORTED_LANGUAGES.map((lang) => (
+            <TouchableOpacity
+              key={lang.code}
+              style={[
+                styles.languageItem,
+                currentLanguage === lang.code && {
+                  backgroundColor: theme.colors.primary + "15",
+                },
+              ]}
+              onPress={() => handleLanguageChange(lang.code)}
+            >
+              <Text variant="body1">{t(`languages.${lang.code}`)}</Text>
+              {currentLanguage === lang.code && (
+                <Ionicons
+                  name="checkmark"
+                  size={24}
+                  color={theme.colors.primary}
+                />
+              )}
+            </TouchableOpacity>
+          ))}
+
+          <Button
+            title={t("common.cancel")}
+            onPress={() => setLanguageModalVisible(false)}
+            type="outline"
+            style={styles.cancelButton}
+          />
+        </Card>
+      </View>
+    </Modal>
   );
 
   return (
-    <View
-      style={[styles.container, { backgroundColor: theme.colors.background }]}
+    <SafeAreaView
+      style={{
+        flex: 1,
+        backgroundColor: theme.colors.background,
+        paddingTop: Platform.OS === "android" ? StatusBar.currentHeight : 0,
+      }}
     >
-      {renderHeader()}
-      <ScrollView
-        style={styles.scrollView}
-        showsVerticalScrollIndicator={false}
-        contentContainerStyle={styles.scrollContent}
-      >
-        {renderSettings()}
+      <StatusBar
+        barStyle={isDark ? "light-content" : "dark-content"}
+        backgroundColor="transparent"
+        translucent
+      />
+
+      <ScrollView style={styles.container} showsVerticalScrollIndicator={false}>
+        {/* Header */}
+        <Animated.View
+          style={[
+            styles.header,
+            {
+              opacity: fadeAnim,
+            },
+          ]}
+        >
+          <LinearGradient
+            colors={
+              isDark
+                ? [theme.colors.primary + "30", theme.colors.background]
+                : [theme.colors.primary + "15", theme.colors.background]
+            }
+            style={styles.headerGradient}
+          >
+            <Text variant="h2" style={styles.headerTitle}>
+              {t("profile.myProfile")}
+            </Text>
+          </LinearGradient>
+        </Animated.View>
+
+        {/* Profile Card */}
+        <Animated.View
+          style={[
+            {
+              opacity: fadeAnim,
+              transform: [{ translateY: slideAnim }],
+            },
+          ]}
+        >
+          <Card style={styles.profileCard} elevated={true}>
+            <View style={styles.profileHeader}>
+              <Avatar source={user?.photoURL} size={80} style={styles.avatar} />
+              <View style={styles.profileInfo}>
+                <Text variant="h3" style={styles.profileName}>
+                  {user?.displayName || "User"}
+                </Text>
+                <Text variant="body2" color={theme.colors.textSecondary}>
+                  {user?.email}
+                </Text>
+              </View>
+            </View>
+
+            <View style={styles.tokenInfo}>
+              <View style={styles.tokenDisplay}>
+                <View
+                  style={[
+                    styles.tokenIconContainer,
+                    { backgroundColor: theme.colors.primary + "20" },
+                  ]}
+                >
+                  <Ionicons name="key" size={20} color={theme.colors.primary} />
+                </View>
+                <View>
+                  <Text variant="caption" color={theme.colors.textSecondary}>
+                    {t("tokens.yourBalance")}
+                  </Text>
+                  <Text variant="h3" style={styles.tokenCount}>
+                    {tokens} tokens
+                  </Text>
+                </View>
+              </View>
+              <TouchableOpacity
+                style={[
+                  styles.tokenButton,
+                  { backgroundColor: theme.colors.primary },
+                ]}
+                onPress={() => navigation.navigate("TokenStore")}
+              >
+                <Text variant="body2" weight="medium" color="#FFFFFF">
+                  {t("tokens.buyTokens")}
+                </Text>
+              </TouchableOpacity>
+            </View>
+
+            {subscription?.active && (
+              <View
+                style={[
+                  styles.subscriptionBanner,
+                  { backgroundColor: theme.colors.success + "15" },
+                ]}
+              >
+                <Ionicons name="star" size={20} color={theme.colors.success} />
+                <Text
+                  style={[
+                    styles.subscriptionText,
+                    { color: theme.colors.success },
+                  ]}
+                >
+                  Premium Subscription Active
+                </Text>
+              </View>
+            )}
+          </Card>
+        </Animated.View>
+
+        {/* Settings Card */}
+        <Animated.View
+          style={[
+            {
+              opacity: fadeAnim,
+              transform: [{ translateY: slideAnim }],
+            },
+          ]}
+        >
+          <Card style={styles.settingsCard} elevated={false} variant="bordered">
+            <Text
+              variant="subtitle1"
+              weight="semibold"
+              style={styles.settingsTitle}
+            >
+              {t("profile.accountSettings")}
+            </Text>
+
+            {/* Language Setting */}
+            <TouchableOpacity
+              style={[
+                styles.settingItem,
+                { borderBottomColor: theme.colors.border },
+              ]}
+              onPress={() => setLanguageModalVisible(true)}
+            >
+              <View style={styles.settingLeft}>
+                <View
+                  style={[
+                    styles.settingIconContainer,
+                    { backgroundColor: theme.colors.primary + "15" },
+                  ]}
+                >
+                  <Ionicons
+                    name="language"
+                    size={22}
+                    color={theme.colors.primary}
+                  />
+                </View>
+                <View style={styles.settingTextContainer}>
+                  <Text variant="body1">{t("profile.language")}</Text>
+                  <Text variant="caption" color={theme.colors.textSecondary}>
+                    Change application language
+                  </Text>
+                </View>
+              </View>
+              <View style={styles.settingRight}>
+                <Text
+                  variant="body2"
+                  color={theme.colors.textSecondary}
+                  style={styles.settingValue}
+                >
+                  {getCurrentLanguageName()}
+                </Text>
+                <Ionicons
+                  name="chevron-forward"
+                  size={20}
+                  color={theme.colors.textSecondary}
+                />
+              </View>
+            </TouchableOpacity>
+
+            {/* Theme Setting */}
+            <View
+              style={[
+                styles.settingItem,
+                { borderBottomColor: theme.colors.border },
+              ]}
+            >
+              <View style={styles.settingLeft}>
+                <View
+                  style={[
+                    styles.settingIconContainer,
+                    {
+                      backgroundColor:
+                        (isDark
+                          ? theme.colors.secondary
+                          : theme.colors.primary) + "15",
+                    },
+                  ]}
+                >
+                  <Ionicons
+                    name={isDark ? "moon" : "sunny"}
+                    size={22}
+                    color={
+                      isDark ? theme.colors.secondary : theme.colors.primary
+                    }
+                  />
+                </View>
+                <View style={styles.settingTextContainer}>
+                  <Text variant="body1">
+                    {isDark ? t("profile.darkMode") : t("profile.lightMode")}
+                  </Text>
+                  <Text variant="caption" color={theme.colors.textSecondary}>
+                    Change application theme
+                  </Text>
+                </View>
+              </View>
+              <Switch
+                value={isDark}
+                onValueChange={toggleTheme}
+                trackColor={{
+                  false: theme.colors.border,
+                  true: theme.colors.primary + "70",
+                }}
+                thumbColor={isDark ? theme.colors.primary : "#FFFFFF"}
+                ios_backgroundColor={theme.colors.border}
+                style={styles.switch}
+              />
+            </View>
+
+            {/* Token History */}
+            <TouchableOpacity
+              style={styles.settingItem}
+              onPress={() =>
+                navigation.navigate("TokenStore", { tab: "history" })
+              }
+            >
+              <View style={styles.settingLeft}>
+                <View
+                  style={[
+                    styles.settingIconContainer,
+                    { backgroundColor: theme.colors.primary + "15" },
+                  ]}
+                >
+                  <Ionicons
+                    name="list"
+                    size={22}
+                    color={theme.colors.primary}
+                  />
+                </View>
+                <View style={styles.settingTextContainer}>
+                  <Text variant="body1">{t("profile.tokenHistory")}</Text>
+                  <Text variant="caption" color={theme.colors.textSecondary}>
+                    View your token usage history
+                  </Text>
+                </View>
+              </View>
+              <Ionicons
+                name="chevron-forward"
+                size={20}
+                color={theme.colors.textSecondary}
+              />
+            </TouchableOpacity>
+          </Card>
+        </Animated.View>
+
+        {/* Support and About Card */}
+        <Animated.View
+          style={[
+            {
+              opacity: fadeAnim,
+              transform: [{ translateY: slideAnim }],
+            },
+          ]}
+        >
+          <Card style={styles.supportCard} elevated={false} variant="bordered">
+            <TouchableOpacity
+              style={[
+                styles.settingItem,
+                { borderBottomColor: theme.colors.border },
+              ]}
+              onPress={openHelpLink}
+            >
+              <View style={styles.settingLeft}>
+                <View
+                  style={[
+                    styles.settingIconContainer,
+                    { backgroundColor: theme.colors.info + "15" },
+                  ]}
+                >
+                  <Ionicons
+                    name="help-circle"
+                    size={22}
+                    color={theme.colors.info}
+                  />
+                </View>
+                <View style={styles.settingTextContainer}>
+                  <Text variant="body1">{t("profile.help")}</Text>
+                  <Text variant="caption" color={theme.colors.textSecondary}>
+                    Get help and support
+                  </Text>
+                </View>
+              </View>
+              <Ionicons
+                name="chevron-forward"
+                size={20}
+                color={theme.colors.textSecondary}
+              />
+            </TouchableOpacity>
+
+            <TouchableOpacity style={styles.settingItem}>
+              <View style={styles.settingLeft}>
+                <View
+                  style={[
+                    styles.settingIconContainer,
+                    { backgroundColor: theme.colors.secondary + "15" },
+                  ]}
+                >
+                  <Ionicons
+                    name="information-circle"
+                    size={22}
+                    color={theme.colors.secondary}
+                  />
+                </View>
+                <View style={styles.settingTextContainer}>
+                  <Text variant="body1">{t("profile.about")}</Text>
+                  <Text variant="caption" color={theme.colors.textSecondary}>
+                    About DocAI and its features
+                  </Text>
+                </View>
+              </View>
+              <Badge label="v1.0.0" type="secondary" size="sm" />
+            </TouchableOpacity>
+          </Card>
+        </Animated.View>
+
+        {/* Sign Out Button */}
+        <Animated.View
+          style={[
+            {
+              opacity: fadeAnim,
+              transform: [{ translateY: slideAnim }],
+            },
+          ]}
+        >
+          <Button
+            title={t("profile.signOut")}
+            onPress={handleSignOut}
+            type="outline"
+            style={styles.signOutButton}
+            loading={loading}
+            icon="log-out"
+          />
+        </Animated.View>
       </ScrollView>
-    </View>
+
+      {renderLanguageModal()}
+
+      {/* Loading Indicator */}
+      {loading && <Loading fullScreen type="logo" />}
+    </SafeAreaView>
   );
 };
 
@@ -358,155 +506,159 @@ const styles = StyleSheet.create({
   container: {
     flex: 1,
   },
-  headerContainer: {
-    zIndex: 10,
-    elevation: 10,
-    shadowColor: "#000",
-    shadowOffset: { width: 0, height: 2 },
-    shadowOpacity: 0.2,
-    shadowRadius: 3,
-  },
   header: {
-    padding: 20,
-    paddingBottom: 30,
-    borderBottomLeftRadius: 20,
-    borderBottomRightRadius: 20,
+    marginBottom: 16,
   },
-  profileInfo: {
+  headerGradient: {
+    paddingHorizontal: 20,
+    paddingTop: 12,
+    paddingBottom: 24,
+  },
+  headerTitle: {
+    marginBottom: 0,
+  },
+  profileCard: {
+    margin: 16,
+    marginTop: 0,
+    marginBottom: 24,
+    padding: 20,
+  },
+  profileHeader: {
     flexDirection: "row",
     alignItems: "center",
-    gap: 16,
   },
   avatar: {
-    width: 70,
-    height: 70,
-    borderRadius: 35,
-    borderWidth: 3,
-    borderColor: "rgba(255, 255, 255, 0.5)",
+    marginRight: 16,
   },
-  userInfo: {
+  profileInfo: {
     flex: 1,
   },
-  userName: {
-    fontSize: 20,
-    fontWeight: "bold",
+  profileName: {
     marginBottom: 4,
   },
-  userEmail: {
-    fontSize: 14,
-    opacity: 0.9,
-    marginBottom: 8,
-  },
-  tokenContainer: {
+  tokenInfo: {
     flexDirection: "row",
+    justifyContent: "space-between",
     alignItems: "center",
-    gap: 5,
-    backgroundColor: "rgba(255, 255, 255, 0.2)",
-    paddingHorizontal: 10,
-    paddingVertical: 5,
-    borderRadius: 20,
-    alignSelf: "flex-start",
-  },
-  tokenText: {
-    fontSize: 14,
-    fontWeight: "600",
-  },
-  scrollView: {
-    flex: 1,
-    marginTop: -20,
-  },
-  scrollContent: {
-    paddingTop: 30,
-    paddingBottom: 40,
-  },
-  settingsSection: {
-    paddingHorizontal: 20,
-  },
-  sectionTitle: {
-    fontSize: 18,
-    fontWeight: "700",
-    marginBottom: 16,
     marginTop: 24,
   },
-  menuList: {
-    gap: 12,
-  },
-  menuItem: {
+  tokenDisplay: {
     flexDirection: "row",
     alignItems: "center",
-    justifyContent: "space-between",
-    padding: 16,
-    borderRadius: 12,
-    shadowOffset: { width: 0, height: 2 },
-    shadowOpacity: 0.05,
-    shadowRadius: 3,
-    elevation: 2,
   },
-  menuLeft: {
-    flexDirection: "row",
-    alignItems: "center",
-    gap: 16,
-    flex: 1,
-  },
-  menuIcon: {
-    width: 44,
-    height: 44,
-    borderRadius: 22,
-    alignItems: "center",
-    justifyContent: "center",
-  },
-  menuTexts: {
-    flex: 1,
-  },
-  menuTitle: {
-    fontSize: 16,
-    fontWeight: "600",
-    marginBottom: 4,
-  },
-  menuDescription: {
-    fontSize: 13,
-  },
-  quickSettings: {
-    gap: 12,
-    marginBottom: 24,
-  },
-  settingItem: {
-    flexDirection: "row",
-    alignItems: "center",
-    justifyContent: "space-between",
-    padding: 16,
-    borderRadius: 12,
-    shadowOffset: { width: 0, height: 2 },
-    shadowOpacity: 0.05,
-    shadowRadius: 3,
-    elevation: 2,
-  },
-  settingLeft: {
-    flexDirection: "row",
-    alignItems: "center",
-    gap: 16,
-  },
-  settingIcon: {
+  tokenIconContainer: {
     width: 40,
     height: 40,
     borderRadius: 20,
     alignItems: "center",
     justifyContent: "center",
+    marginRight: 12,
+  },
+  tokenCount: {
+    marginBottom: 0,
+  },
+  tokenButton: {
+    paddingHorizontal: 16,
+    paddingVertical: 8,
+    borderRadius: 16,
+  },
+  subscriptionBanner: {
+    flexDirection: "row",
+    alignItems: "center",
+    justifyContent: "center",
+    padding: 12,
+    borderRadius: 12,
+    marginTop: 20,
+  },
+  subscriptionText: {
+    marginLeft: 8,
+    fontWeight: "600",
+  },
+  settingsCard: {
+    margin: 16,
+    marginTop: 0,
+    marginBottom: 16,
+    padding: 0,
+    overflow: "hidden",
+  },
+  settingsTitle: {
+    padding: 16,
+    borderBottomWidth: 1,
+    borderBottomColor: "#E0E0E0",
+  },
+  settingItem: {
+    flexDirection: "row",
+    justifyContent: "space-between",
+    alignItems: "center",
+    paddingVertical: 16,
+    paddingHorizontal: 16,
+    borderBottomWidth: 1,
+  },
+  settingLeft: {
+    flexDirection: "row",
+    alignItems: "center",
+    flex: 1,
+  },
+  settingIconContainer: {
+    width: 40,
+    height: 40,
+    borderRadius: 20,
+    alignItems: "center",
+    justifyContent: "center",
+    marginRight: 12,
+  },
+  settingTextContainer: {
+    flex: 1,
   },
   settingRight: {
     flexDirection: "row",
     alignItems: "center",
-    gap: 8,
+  },
+  settingValue: {
+    marginRight: 8,
+  },
+  switch: {
+    transform: [{ scale: 0.8 }],
+  },
+  supportCard: {
+    margin: 16,
+    marginTop: 0,
+    marginBottom: 24,
+    padding: 0,
+    overflow: "hidden",
   },
   signOutButton: {
-    marginBottom: 16,
+    margin: 16,
+    marginTop: 0,
+    marginBottom: 40,
   },
-  deleteAccountButton: {
-    alignItems: "center",
+  modalOverlay: {
+    flex: 1,
     justifyContent: "center",
-    padding: 12,
-    borderRadius: 8,
-    borderWidth: 1,
+    alignItems: "center",
+  },
+  modalContainer: {
+    width: "80%",
+    borderRadius: 20,
+    padding: 24,
+    alignItems: "center",
+  },
+  modalTitle: {
     marginBottom: 24,
   },
+  languageItem: {
+    flexDirection: "row",
+    justifyContent: "space-between",
+    alignItems: "center",
+    width: "100%",
+    padding: 16,
+    borderRadius: 12,
+    marginBottom: 8,
+  },
+  cancelButton: {
+    marginTop: 16,
+    minWidth: 150,
+  },
 });
+
+export default ProfileScreen;

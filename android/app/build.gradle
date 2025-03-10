@@ -86,9 +86,9 @@ android {
     buildToolsVersion rootProject.ext.buildToolsVersion
     compileSdk rootProject.ext.compileSdkVersion
 
-    namespace 'com.firebase.quantumdoc'
+    namespace 'com.trooper13.quantumdoc'
     defaultConfig {
-        applicationId 'com.firebase.quantumdoc'
+        applicationId 'com.trooper13.quantumdoc'
         minSdkVersion rootProject.ext.minSdkVersion
         targetSdkVersion rootProject.ext.targetSdkVersion
         versionCode 1

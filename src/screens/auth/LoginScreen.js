@@ -1,357 +1,353 @@
-// LoginScreen.js
-import React, { useState } from "react";
+// src/screens/auth/LoginScreen.js
+import React, { useState, useEffect } from "react";
 import {
   View,
   StyleSheet,
+  TouchableOpacity,
   KeyboardAvoidingView,
   Platform,
   ScrollView,
-  TouchableOpacity,
-  Image,
+  SafeAreaView,
   StatusBar,
+  Dimensions,
+  ImageBackground,
+  Animated,
 } from "react-native";
-import { SafeAreaView } from "react-native-safe-area-context";
-import { Text, Input, Button } from "../../components/common";
-import { useTheme } from "../../hooks/useTheme";
-import { useTranslation } from "react-i18next";
+import { LinearGradient } from "expo-linear-gradient";
 import { Ionicons } from "@expo/vector-icons";
-import { FIREBASE_AUTH } from "../../../FirebaseConfig";
-import { signInWithEmailAndPassword } from "firebase/auth";
-import * as SecureStore from "expo-secure-store";
-import { showToast } from "../../utils/toast";
-import { useAuth } from "../../hooks/useAuth";
+import { useTheme } from "../../context/ThemeContext";
+import { useAuth } from "../../context/AuthContext";
+import { useLocalization } from "../../context/LocalizationContext";
+import { Text } from "../../components/Text";
+import { Input } from "../../components/Input";
+import { Button } from "../../components/Button";
+import { Card } from "../../components/Card";
+import { Loading } from "../../components/Loading";
 
-export const LoginScreen = ({ navigation }) => {
-  const { theme } = useTheme();
-  const { t } = useTranslation();
-  const { saveUser } = useAuth();
-  const [email, setEmail] = useState("trooper1803@gmail.com");
-  const [password, setPassword] = useState("123123123");
-  const [loading, setLoading] = useState(false);
-  const [showPassword, setShowPassword] = useState(false);
-  const auth = FIREBASE_AUTH;
-  const [error, setError] = useState("");
+const { width, height } = Dimensions.get("window");
 
-  const validateEmail = (email) => {
-    const re = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
-    return re.test(email);
+const LoginScreen = ({ navigation }) => {
+  const { theme, isDark } = useTheme();
+  const { login, loading } = useAuth();
+  const { t } = useLocalization();
+
+  const [email, setEmail] = useState("");
+  const [password, setPassword] = useState("");
+  const [errors, setErrors] = useState({});
+
+  // Animations
+  const fadeAnim = React.useRef(new Animated.Value(0)).current;
+  const slideAnim = React.useRef(new Animated.Value(50)).current;
+
+  useEffect(() => {
+    // Start entrance animations
+    Animated.parallel([
+      Animated.timing(fadeAnim, {
+        toValue: 1,
+        duration: 800,
+        useNativeDriver: true,
+      }),
+      Animated.timing(slideAnim, {
+        toValue: 0,
+        duration: 800,
+        useNativeDriver: true,
+      }),
+    ]).start();
+  }, []);
+
+  // Form validation
+  const validateForm = () => {
+    const newErrors = {};
+
+    // Email validation
+    if (!email) {
+      newErrors.email = "auth.invalidEmail";
+    } else if (!/\S+@\S+\.\S+/.test(email)) {
+      newErrors.email = "auth.invalidEmail";
+    }
+
+    // Password validation
+    if (!password) {
+      newErrors.password = "auth.passwordRequired";
+    } else if (password.length < 6) {
+      newErrors.password = "auth.passwordTooShort";
+    }
+
+    setErrors(newErrors);
+    return Object.keys(newErrors).length === 0;
   };
 
+  // Login function
   const handleLogin = async () => {
-    // Reset error state
-    setError("");
-
-    // Validate inputs
-    if (!email) {
-      setError(t("auth.errors.missing-email") || "Please enter your email");
-      return;
-    }
-
-    if (!validateEmail(email)) {
-      setError(t("auth.errors.invalid-email") || "Please enter a valid email");
-      return;
-    }
-
-    if (!password) {
-      setError(
-        t("auth.errors.missing-password") || "Please enter your password"
-      );
-      return;
-    }
+    if (!validateForm()) return;
 
     try {
-      setLoading(true);
-      // Try to sign in with Firebase Authentication
-      const response = await signInWithEmailAndPassword(auth, email, password);
-      const userData = response.user;
-
-      console.log("Login successful, saving user data");
-
-      // Kullanıcı bilgilerini kaydet - artık SecureStore kullanıyor
-      const saved = await saveUser(userData);
-      if (!saved) {
-        console.error("Failed to save user data");
-        showToast.error("Login Error", "Failed to save login session");
-        return;
-      }
-
-      // Başarılı giriş
-      console.log("User data saved, navigating to MainNavigator");
-
-      // Ana ekrana yönlendir
-      navigation.reset({
-        index: 0,
-        routes: [{ name: "MainNavigator" }],
-      });
+      await login(email, password);
+      // Login successful - RootNavigator will redirect to main screen
     } catch (error) {
-      console.log("Login error:", error);
-      // Handle specific Firebase auth errors
-      const errorCode = error.code || "auth/unknown-error";
-      setError(
-        t(`auth.errors.${errorCode}`) || error.message || "Login failed"
-      );
-
-      // Show error toast for better visibility
-      showToast.error(
-        t("auth.loginFailedTitle") || "Login Failed",
-        t(`auth.errors.${errorCode}`) || error.message
-      );
-    } finally {
-      setLoading(false);
+      console.error("Login error", error);
+      // Toast message shown in AuthContext
     }
   };
 
   return (
-    <SafeAreaView
-      style={[styles.container, { backgroundColor: theme.colors.background }]}
-      edges={["top"]}
-    >
-      <StatusBar barStyle={theme.isDark ? "light-content" : "dark-content"} />
+    <SafeAreaView style={{ flex: 1, backgroundColor: theme.colors.background }}>
+      <StatusBar
+        barStyle={isDark ? "light-content" : "dark-content"}
+        backgroundColor="transparent"
+        translucent
+      />
+
       <KeyboardAvoidingView
-        behavior={Platform.OS === "ios" ? "padding" : "height"}
-        style={styles.keyboardView}
+        style={{ flex: 1 }}
+        behavior={Platform.OS === "ios" ? "padding" : undefined}
+        keyboardVerticalOffset={Platform.OS === "ios" ? 0 : 0}
       >
-        <ScrollView contentContainerStyle={styles.scrollContent}>
-          <View style={styles.header}>
-            <View style={styles.logoContainer}>
+        <LinearGradient
+          colors={
+            isDark
+              ? [theme.colors.background, theme.colors.background]
+              : [theme.colors.background, theme.colors.card]
+          }
+          style={styles.gradient}
+        >
+          <ScrollView
+            contentContainerStyle={styles.scrollContainer}
+            showsVerticalScrollIndicator={false}
+          >
+            {/* Header with Logo and Brand */}
+            <Animated.View
+              style={[
+                styles.header,
+                {
+                  opacity: fadeAnim,
+                  transform: [{ translateY: slideAnim }],
+                },
+              ]}
+            >
               <View
                 style={[
-                  styles.logoBackground,
-                  { backgroundColor: theme.colors.primary },
+                  styles.logoContainer,
+                  {
+                    backgroundColor: theme.colors.primary + "15",
+                  },
                 ]}
               >
-                <Ionicons name="document-text" size={40} color="white" />
+                <LinearGradient
+                  colors={[theme.colors.primary, theme.colors.secondary]}
+                  style={styles.logoGradient}
+                >
+                  <Ionicons name="document-text" size={48} color="white" />
+                </LinearGradient>
               </View>
-              <Text
-                style={[styles.appName, { color: theme.colors.text }]}
-                variant="h1"
-              >
+
+              <Text variant="h1" style={styles.title} weight="bold">
                 DocAI
               </Text>
+
               <Text
-                style={[
-                  styles.appSubtitle,
-                  { color: theme.colors.textSecondary },
-                ]}
+                variant="subtitle1"
+                color={theme.colors.textSecondary}
+                style={styles.subtitle}
+                centered
               >
-                Your AI Document Assistant
+                {t("onboarding.welcome.description")}
               </Text>
-            </View>
-          </View>
+            </Animated.View>
 
-          <View style={styles.form}>
-            <Input
-              placeholder={t("auth.email")}
-              value={email}
-              onChangeText={setEmail}
-              keyboardType="email-address"
-              autoCapitalize="none"
-              theme={theme}
-              icon="mail-outline"
-            />
-
-            <Input
-              placeholder={t("auth.password")}
-              value={password}
-              onChangeText={setPassword}
-              secureTextEntry={!showPassword}
-              theme={theme}
-              icon="lock-closed-outline"
-              rightIcon={showPassword ? "eye-off-outline" : "eye-outline"}
-              onRightIconPress={() => setShowPassword(!showPassword)}
-              style={styles.passwordInput}
-              error={error}
-            />
-
-            <TouchableOpacity
-              onPress={() => navigation.navigate("ForgotPassword")}
-              style={styles.forgotPassword}
+            {/* Login Form */}
+            <Animated.View
+              style={[
+                styles.formContainer,
+                {
+                  opacity: fadeAnim,
+                  transform: [{ translateY: slideAnim }],
+                },
+              ]}
             >
-              <Text
-                style={[
-                  styles.forgotPasswordText,
-                  { color: theme.colors.primary },
-                ]}
-              >
-                {t("auth.forgotPassword")}
-              </Text>
-            </TouchableOpacity>
+              <Card style={styles.formCard} elevated={true} variant="default">
+                <Text variant="h2" style={styles.formTitle} centered>
+                  {t("auth.login")}
+                </Text>
 
-            <Button
-              title={t("common.login")}
-              onPress={handleLogin}
-              loading={loading}
-              theme={theme}
-              style={styles.loginButton}
-            />
-
-            <View style={styles.divider}>
-              <View
-                style={[
-                  styles.dividerLine,
-                  { backgroundColor: theme.colors.border },
-                ]}
-              />
-              <Text
-                style={[
-                  styles.dividerText,
-                  { color: theme.colors.textSecondary },
-                ]}
-              >
-                {t("common.or")}
-              </Text>
-              <View
-                style={[
-                  styles.dividerLine,
-                  { backgroundColor: theme.colors.border },
-                ]}
-              />
-            </View>
-
-            <View style={styles.socialButtons}>
-              <TouchableOpacity
-                style={[
-                  styles.socialButton,
-                  { backgroundColor: theme.colors.surface },
-                ]}
-                onPress={() => {
-                  //google
-                }}
-              >
-                <Ionicons
-                  name="logo-google"
-                  size={24}
-                  color={theme.colors.text}
+                <Input
+                  label={t("auth.email")}
+                  value={email}
+                  onChangeText={setEmail}
+                  placeholder="email@example.com"
+                  keyboardType="email-address"
+                  autoCapitalize="none"
+                  icon="mail"
+                  error={errors.email ? t(errors.email) : null}
+                  variant="outline"
+                  animatedLabel={true}
                 />
-              </TouchableOpacity>
-              <TouchableOpacity
-                style={[
-                  styles.socialButton,
-                  { backgroundColor: theme.colors.surface },
-                ]}
-                onPress={() => {
-                  /* Apple login */
-                }}
-              >
-                <Ionicons
-                  name="logo-apple"
-                  size={24}
-                  color={theme.colors.text}
-                />
-              </TouchableOpacity>
-            </View>
-          </View>
 
-          <View style={styles.footer}>
-            <Text style={{ color: theme.colors.textSecondary }}>
-              {t("auth.noAccount")}
-            </Text>
-            <TouchableOpacity onPress={() => navigation.navigate("Register")}>
-              <Text
-                style={[styles.registerText, { color: theme.colors.primary }]}
-              >
-                {t("common.register")}
-              </Text>
-            </TouchableOpacity>
-          </View>
-        </ScrollView>
+                <Input
+                  label={t("auth.password")}
+                  value={password}
+                  onChangeText={setPassword}
+                  placeholder="••••••••"
+                  secureTextEntry
+                  icon="lock-closed"
+                  error={errors.password ? t(errors.password) : null}
+                  variant="outline"
+                  animatedLabel={true}
+                />
+
+                <TouchableOpacity
+                  style={styles.forgotPassword}
+                  onPress={() => navigation.navigate("ForgotPassword")}
+                >
+                  <Text
+                    variant="body2"
+                    color={theme.colors.primary}
+                    style={styles.forgotPasswordText}
+                  >
+                    {t("auth.forgotPassword")}
+                  </Text>
+                </TouchableOpacity>
+
+                <Button
+                  title={t("auth.login")}
+                  onPress={handleLogin}
+                  style={styles.loginButton}
+                  loading={loading}
+                  gradient={true}
+                  size="lg"
+                  fullWidth
+                />
+
+                <View
+                  style={[
+                    styles.divider,
+                    { backgroundColor: theme.colors.border },
+                  ]}
+                >
+                  <Text
+                    variant="caption"
+                    color={theme.colors.textSecondary}
+                    style={styles.dividerText}
+                  >
+                    {t("common.or")}
+                  </Text>
+                </View>
+
+                <TouchableOpacity
+                  style={styles.registerLink}
+                  onPress={() => navigation.navigate("Register")}
+                >
+                  <Text variant="body2" color={theme.colors.textSecondary}>
+                    {t("auth.dontHaveAccount")}{" "}
+                    <Text
+                      variant="body2"
+                      color={theme.colors.primary}
+                      weight="semibold"
+                    >
+                      {t("auth.registerInstead")}
+                    </Text>
+                  </Text>
+                </TouchableOpacity>
+              </Card>
+            </Animated.View>
+          </ScrollView>
+        </LinearGradient>
       </KeyboardAvoidingView>
+
+      {/* Full screen loading indicator */}
+      {loading && (
+        <Loading
+          fullScreen
+          text={t("common.loading")}
+          type="logo"
+          blur={true}
+          iconName="document-text"
+        />
+      )}
     </SafeAreaView>
   );
 };
 
 const styles = StyleSheet.create({
-  container: {
+  gradient: {
     flex: 1,
   },
-  keyboardView: {
-    flex: 1,
-  },
-  scrollContent: {
+  scrollContainer: {
     flexGrow: 1,
-    padding: 24,
+    paddingTop: StatusBar.currentHeight || 0,
+    paddingBottom: 24,
   },
   header: {
     alignItems: "center",
-    marginVertical: 40,
+    justifyContent: "center",
+    paddingTop: height * 0.08,
+    paddingBottom: height * 0.04,
   },
   logoContainer: {
-    alignItems: "center",
-  },
-  logoBackground: {
-    width: 80,
-    height: 80,
+    width: 100,
+    height: 100,
     borderRadius: 20,
-    alignItems: "center",
     justifyContent: "center",
-    marginBottom: 16,
+    alignItems: "center",
+    marginBottom: 24,
+    overflow: "hidden",
   },
-  appName: {
-    fontSize: 32,
-    fontWeight: "700",
-    marginBottom: 8,
+  logoGradient: {
+    width: "100%",
+    height: "100%",
+    justifyContent: "center",
+    alignItems: "center",
   },
-  appSubtitle: {
-    fontSize: 16,
+  title: {
+    marginBottom: 12,
   },
-  form: {
-    gap: 16,
+  subtitle: {
+    maxWidth: "80%",
+    textAlign: "center",
+    marginBottom: 10,
+    lineHeight: 24,
   },
-  passwordInput: {
-    marginBottom: 4,
+  formContainer: {
+    paddingHorizontal: 24,
+    paddingTop: 10,
+  },
+  formCard: {
+    paddingHorizontal: 24,
+    paddingVertical: 32,
+    borderRadius: 20,
+  },
+  formTitle: {
+    marginBottom: 28,
+    textAlign: "center",
   },
   forgotPassword: {
     alignSelf: "flex-end",
+    marginTop: 8,
     marginBottom: 24,
   },
   forgotPasswordText: {
     fontSize: 14,
-    fontWeight: "600",
   },
   loginButton: {
-    marginBottom: 24,
+    marginTop: 8,
   },
   divider: {
-    flexDirection: "row",
-    alignItems: "center",
-    marginBottom: 24,
-  },
-  dividerLine: {
-    flex: 1,
     height: 1,
+    width: "100%",
+    marginVertical: 24,
+    position: "relative",
   },
   dividerText: {
-    marginHorizontal: 16,
-    fontSize: 14,
+    position: "absolute",
+    top: -10,
+    left: "50%",
+    backgroundColor: "white",
+    paddingHorizontal: 10,
+    transform: [{ translateX: -20 }],
   },
-  socialButtons: {
-    flexDirection: "row",
-    justifyContent: "center",
-    gap: 16,
-    marginBottom: 32,
-  },
-  socialButton: {
-    width: 56,
-    height: 56,
-    borderRadius: 16,
+  registerLink: {
     alignItems: "center",
-    justifyContent: "center",
-    shadowColor: "#000",
-    shadowOffset: {
-      width: 0,
-      height: 2,
-    },
-    shadowOpacity: 0.1,
-    shadowRadius: 4,
-    elevation: 3,
-  },
-  footer: {
-    flexDirection: "row",
-    justifyContent: "center",
-    alignItems: "center",
-    gap: 4,
-  },
-  registerText: {
-    fontWeight: "600",
   },
 });
+
+export default LoginScreen;

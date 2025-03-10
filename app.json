@@ -1,27 +1,23 @@
 {
   "expo": {
-    "name": "QuantumDoc",
+    "name": "quantumdoc",
     "slug": "quantumdoc",
     "version": "1.0.0",
-    "owner": "trooper13",
     "orientation": "portrait",
     "icon": "./assets/images/icon.png",
     "scheme": "myapp",
     "userInterfaceStyle": "automatic",
+    "newArchEnabled": true,
     "ios": {
       "supportsTablet": true,
-      "newArchEnabled": true,
-      "bundleIdentifier": "com.firebase.quantumdoc",
-      "googleServicesFile": "./GoogleService-Info.plist"
+      "bundleIdentifier": "com.trooper13.quantumdoc"
     },
     "android": {
       "adaptiveIcon": {
         "foregroundImage": "./assets/images/adaptive-icon.png",
         "backgroundColor": "#ffffff"
       },
-      "googleServicesFile": "./GoogleService.json",
-      "newArchEnabled": true,
-      "package": "com.firebase.quantumdoc"
+      "package": "com.trooper13.quantumdoc"
     },
     "web": {
       "bundler": "metro",
@@ -38,27 +34,18 @@
           "resizeMode": "contain",
           "backgroundColor": "#ffffff"
         }
-      ],
-      [
-        "expo-camera",
-        {
-          "cameraPermission": "Allow $(PRODUCT_NAME) to access your camera",
-          "microphonePermission": "Allow $(PRODUCT_NAME) to access your microphone",
-          "recordAudioAndroid": true
-        }
-      ],
-      [
-        "expo-build-properties",
-        {
-          "ios": {
-            "deploymentTarget": "15.1",
-            "useFrameworks": "static"
-          }
-        }
       ]
     ],
     "experiments": {
       "typedRoutes": true
+    },
+    "extra": {
+      "router": {
+        "origin": false
+      },
+      "eas": {
+        "projectId": "1583e350-3ac6-459b-9c69-5b7180b879c7"
+      }
     }
   }
 }

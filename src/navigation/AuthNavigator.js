@@ -1,17 +1,27 @@
 import React from "react";
-import { createNativeStackNavigator } from "@react-navigation/native-stack";
-import { LoginScreen } from "../screens/auth/LoginScreen";
-import { RegisterScreen } from "../screens/auth/RegisterScreen";
-import { ForgotPasswordScreen } from "../screens/auth/ForgotPasswordScreen";
+import { createStackNavigator } from "@react-navigation/stack";
+import LoginScreen from "../screens/auth/LoginScreen";
+import RegisterScreen from "../screens/auth/RegisterScreen";
+import ForgotPasswordScreen from "../screens/auth/ForgotPasswordScreen";
 
-const Stack = createNativeStackNavigator();
+const Stack = createStackNavigator();
 
-export const AuthNavigator = () => {
+/**
+ * Kimlik doğrulama navigasyonu
+ * Login, Register ve ForgotPassword ekranlarını içerir
+ */
+function AuthNavigator() {
   return (
     <Stack.Navigator
+      initialRouteName="Login"
       screenOptions={{
         headerShown: false,
-        presentation: "modal",
+        cardStyle: { backgroundColor: "white" },
+        // Ekranlar arası geçiş animasyonu
+        transitionSpec: {
+          open: { animation: "timing", config: { duration: 300 } },
+          close: { animation: "timing", config: { duration: 300 } },
+        },
       }}
     >
       <Stack.Screen name="Login" component={LoginScreen} />
@@ -19,4 +29,6 @@ export const AuthNavigator = () => {
       <Stack.Screen name="ForgotPassword" component={ForgotPasswordScreen} />
     </Stack.Navigator>
   );
-};
+}
+
+export default AuthNavigator;
