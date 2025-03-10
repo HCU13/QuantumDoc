@@ -1,314 +1,220 @@
-// src/components/Button.js
 import React from "react";
 import {
   TouchableOpacity,
   Text,
   StyleSheet,
-  View,
   ActivityIndicator,
-  Animated,
-  Pressable,
+  View,
 } from "react-native";
 import { LinearGradient } from "expo-linear-gradient";
-import { Ionicons } from "@expo/vector-icons";
-import { useTheme } from "../context/ThemeContext";
-import { useLocalization } from "../context/LocalizationContext";
 
 /**
- * Modern Button component with various styles and states
+ * Button Component
  *
- * @param {string} title - Button text
+ * @param {string} label - Button text
  * @param {function} onPress - Press handler
- * @param {string} type - Button type (primary, secondary, outline, ghost, danger)
- * @param {string} size - Button size (sm, md, lg)
- * @param {boolean} loading - Loading state
- * @param {boolean} disabled - Disabled state
- * @param {Object} style - Custom style properties
- * @param {Object} textStyle - Text style properties
- * @param {Node} icon - Button icon (optional)
- * @param {Node} rightIcon - Right side icon (optional)
+ * @param {string} variant - Button style variant ('primary', 'secondary', 'outline', 'text')
+ * @param {string} size - Button size ('small', 'medium', 'large')
+ * @param {boolean} loading - Show loading indicator
+ * @param {boolean} disabled - Disable button
+ * @param {boolean} gradient - Use gradient background
+ * @param {Object} style - Additional style overrides
+ * @param {Object} textStyle - Style for button text
+ * @param {string} leftIcon - Icon component to show on left side
+ * @param {string} rightIcon - Icon component to show on right side
  * @param {boolean} fullWidth - Whether button should take full width
- * @param {boolean} gradient - Whether to use gradient background
- * @param {string} gradientDirection - Gradient direction (horizontal, vertical)
  */
-export const Button = ({
-  title,
+const Button = ({
+  label,
   onPress,
-  type = "primary",
-  size = "md",
+  variant = "primary",
+  size = "medium",
   loading = false,
   disabled = false,
+  gradient = false,
   style,
   textStyle,
-  icon,
+  leftIcon,
   rightIcon,
   fullWidth = false,
-  gradient = false,
-  gradientDirection = "horizontal",
   ...props
 }) => {
-  const { theme } = useTheme();
-  const { t } = useLocalization();
-
-  // Fade animation for press state
-  const animatedValue = React.useRef(new Animated.Value(0)).current;
-
-  const handlePressIn = () => {
-    Animated.timing(animatedValue, {
-      toValue: 1,
-      duration: 150,
-      useNativeDriver: true,
-    }).start();
+  // Define base colors
+  const colors = {
+    primary: {
+      background: "#5D5FEF",
+      text: "#FFFFFF",
+      border: "transparent",
+      gradient: ["#5D5FEF", "#7879F1"],
+    },
+    secondary: {
+      background: "#61DAFB",
+      text: "#0A1128",
+      border: "transparent",
+      gradient: ["#61DAFB", "#39C4E3"],
+    },
+    success: {
+      background: "#10B981",
+      text: "#FFFFFF",
+      border: "transparent",
+      gradient: ["#10B981", "#34D399"],
+    },
+    danger: {
+      background: "#EF4444",
+      text: "#FFFFFF",
+      border: "transparent",
+      gradient: ["#EF4444", "#F87171"],
+    },
+    outline: {
+      background: "transparent",
+      text: "#5D5FEF",
+      border: "#5D5FEF",
+    },
+    text: {
+      background: "transparent",
+      text: "#5D5FEF",
+      border: "transparent",
+    },
   };
 
-  const handlePressOut = () => {
-    Animated.timing(animatedValue, {
-      toValue: 0,
-      duration: 200,
-      useNativeDriver: true,
-    }).start();
+  // Define sizes
+  const sizes = {
+    small: {
+      paddingVertical: 8,
+      paddingHorizontal: 16,
+      fontSize: 14,
+    },
+    medium: {
+      paddingVertical: 12,
+      paddingHorizontal: 20,
+      fontSize: 16,
+    },
+    large: {
+      paddingVertical: 16,
+      paddingHorizontal: 24,
+      fontSize: 18,
+    },
   };
 
-  const opacityInterpolation = animatedValue.interpolate({
-    inputRange: [0, 1],
-    outputRange: [1, 0.8],
-  });
+  // Determine current styles based on variant and size
+  const currentColor = colors[variant] || colors.primary;
+  const currentSize = sizes[size] || sizes.medium;
 
-  const scaleInterpolation = animatedValue.interpolate({
-    inputRange: [0, 1],
-    outputRange: [1, 0.98],
-  });
+  // Render the button with or without gradient
+  const renderButtonContent = () => (
+    <>
+      {loading ? (
+        <ActivityIndicator
+          color={currentColor.text}
+          size={size === "large" ? "large" : "small"}
+        />
+      ) : (
+        <View style={styles.contentContainer}>
+          {leftIcon && <View style={styles.leftIcon}>{leftIcon}</View>}
 
-  // Translate title if it's a translation key
-  const buttonTitle =
-    title?.startsWith("common.") || title?.startsWith("button.")
-      ? t(title)
-      : title;
+          <Text
+            style={[
+              styles.label,
+              {
+                color: currentColor.text,
+                fontSize: currentSize.fontSize,
+              },
+              textStyle,
+            ]}
+          >
+            {label}
+          </Text>
 
-  // Get button styling based on type
-  const getButtonColors = () => {
-    switch (type) {
-      case "primary":
-        return {
-          background: gradient ? null : theme.colors.primary,
-          border: "transparent",
-          text: theme.colors.textInverted,
-          gradientColors: [
-            theme.colors.gradientStart,
-            theme.colors.gradientEnd,
-          ],
-        };
-      case "secondary":
-        return {
-          background: theme.colors.primaryLight,
-          border: "transparent",
-          text: theme.colors.textInverted,
-          gradientColors: [theme.colors.primaryLight, theme.colors.secondary],
-        };
-      case "outline":
-        return {
-          background: "transparent",
-          border: theme.colors.primary,
-          text: theme.colors.primary,
-          gradientColors: null,
-        };
-      case "ghost":
-        return {
-          background: "transparent",
-          border: "transparent",
-          text: theme.colors.primary,
-          gradientColors: null,
-        };
-      case "danger":
-        return {
-          background: theme.colors.error,
-          border: "transparent",
-          text: theme.colors.textInverted,
-          gradientColors: [theme.colors.error, "#F43F5E"],
-        };
-      default:
-        return {
-          background: theme.colors.primary,
-          border: "transparent",
-          text: theme.colors.textInverted,
-          gradientColors: [
-            theme.colors.gradientStart,
-            theme.colors.gradientEnd,
-          ],
-        };
-    }
-  };
-
-  // Size-based styles
-  const getSizeStyles = () => {
-    switch (size) {
-      case "sm":
-        return {
-          height: 36,
-          paddingHorizontal: 16,
-          fontSize: theme.typography.fontSize.sm,
-          iconSize: 16,
-        };
-      case "lg":
-        return {
-          height: 52,
-          paddingHorizontal: 24,
-          fontSize: theme.typography.fontSize.lg,
-          iconSize: 24,
-        };
-      case "md":
-      default:
-        return {
-          height: 44,
-          paddingHorizontal: 20,
-          fontSize: theme.typography.fontSize.md,
-          iconSize: 20,
-        };
-    }
-  };
-
-  const buttonColors = getButtonColors();
-  const sizeStyles = getSizeStyles();
-
-  // Button content component to handle both regular and gradient buttons
-  const ButtonContent = ({ children }) => {
-    if (gradient && buttonColors.gradientColors && !disabled) {
-      return (
-        <LinearGradient
-          colors={buttonColors.gradientColors}
-          start={
-            gradientDirection === "horizontal" ? { x: 0, y: 0 } : { x: 0, y: 0 }
-          }
-          end={
-            gradientDirection === "horizontal" ? { x: 1, y: 0 } : { x: 0, y: 1 }
-          }
-          style={[styles.gradientContainer]}
-        >
-          {children}
-        </LinearGradient>
-      );
-    }
-
-    return <>{children}</>;
-  };
-
-  // Loading indicator with correct color
-  const LoadingIndicator = () => (
-    <ActivityIndicator
-      size="small"
-      color={buttonColors.text}
-      style={styles.loadingIndicator}
-    />
+          {rightIcon && <View style={styles.rightIcon}>{rightIcon}</View>}
+        </View>
+      )}
+    </>
   );
 
-  // Icon with proper sizing based on button size
-  const IconComponent = ({ ionIconName, position }) => {
-    if (!ionIconName) return null;
-
+  // If gradient is true and we're using a variant that supports gradients
+  if (
+    gradient &&
+    currentColor.gradient &&
+    !disabled &&
+    variant !== "outline" &&
+    variant !== "text"
+  ) {
     return (
-      <Ionicons
-        name={ionIconName}
-        size={sizeStyles.iconSize}
-        color={buttonColors.text}
-        style={[position === "left" ? styles.leftIcon : styles.rightIcon]}
-      />
+      <TouchableOpacity
+        onPress={!disabled && !loading ? onPress : null}
+        disabled={disabled || loading}
+        style={[styles.button, fullWidth && styles.fullWidth, style]}
+        activeOpacity={0.7}
+        {...props}
+      >
+        <LinearGradient
+          colors={currentColor.gradient}
+          start={{ x: 0, y: 0 }}
+          end={{ x: 1, y: 0 }}
+          style={[
+            styles.gradient,
+            {
+              paddingVertical: currentSize.paddingVertical,
+              paddingHorizontal: currentSize.paddingHorizontal,
+              opacity: disabled ? 0.6 : 1,
+            },
+          ]}
+        >
+          {renderButtonContent()}
+        </LinearGradient>
+      </TouchableOpacity>
     );
-  };
+  }
 
+  // Regular button without gradient
   return (
-    <Pressable
+    <TouchableOpacity
       onPress={!disabled && !loading ? onPress : null}
-      onPressIn={handlePressIn}
-      onPressOut={handlePressOut}
-      style={({ pressed }) => [
-        styles.buttonWrapper,
-        fullWidth && styles.fullWidth,
-      ]}
       disabled={disabled || loading}
+      style={[
+        styles.button,
+        {
+          backgroundColor: currentColor.background,
+          paddingVertical: currentSize.paddingVertical,
+          paddingHorizontal: currentSize.paddingHorizontal,
+          borderWidth: variant === "outline" ? 1.5 : 0,
+          borderColor: currentColor.border,
+          opacity: disabled ? 0.6 : 1,
+        },
+        fullWidth && styles.fullWidth,
+        style,
+      ]}
+      activeOpacity={0.7}
       {...props}
     >
-      <Animated.View
-        style={[
-          styles.button,
-          {
-            height: sizeStyles.height,
-            paddingHorizontal: sizeStyles.paddingHorizontal,
-            backgroundColor: disabled
-              ? theme.colors.disabled
-              : type === "ghost" || type === "outline"
-              ? "transparent"
-              : buttonColors.background,
-            borderColor: disabled ? theme.colors.border : buttonColors.border,
-            borderWidth: type === "outline" ? 1.5 : 0,
-            borderRadius: theme.borderRadius.md,
-            opacity: disabled ? 0.7 : opacityInterpolation,
-            transform: [{ scale: scaleInterpolation }],
-          },
-          fullWidth && styles.fullWidth,
-          style,
-        ]}
-      >
-        <ButtonContent>
-          <View style={styles.contentContainer}>
-            {loading ? (
-              <LoadingIndicator />
-            ) : (
-              <>
-                {icon && <IconComponent ionIconName={icon} position="left" />}
-
-                <Text
-                  style={[
-                    styles.text,
-                    {
-                      fontSize: sizeStyles.fontSize,
-                      fontWeight: theme.typography.fontWeight.semibold,
-                      color: disabled
-                        ? theme.colors.disabledText
-                        : buttonColors.text,
-                    },
-                    textStyle,
-                  ]}
-                  numberOfLines={1}
-                >
-                  {buttonTitle}
-                </Text>
-
-                {rightIcon && (
-                  <IconComponent ionIconName={rightIcon} position="right" />
-                )}
-              </>
-            )}
-          </View>
-        </ButtonContent>
-      </Animated.View>
-    </Pressable>
+      {renderButtonContent()}
+    </TouchableOpacity>
   );
 };
 
 const styles = StyleSheet.create({
-  buttonWrapper: {
-    overflow: "hidden",
-  },
   button: {
-    flexDirection: "row",
+    borderRadius: 12,
     alignItems: "center",
     justifyContent: "center",
-    overflow: "hidden",
   },
-  gradientContainer: {
-    flex: 1,
+  gradient: {
+    borderRadius: 12,
     alignItems: "center",
     justifyContent: "center",
     width: "100%",
-    height: "100%",
   },
   contentContainer: {
     flexDirection: "row",
     alignItems: "center",
     justifyContent: "center",
   },
-  text: {
+  label: {
+    fontWeight: "600",
     textAlign: "center",
+  },
+  fullWidth: {
+    width: "100%",
   },
   leftIcon: {
     marginRight: 8,
@@ -316,10 +222,6 @@ const styles = StyleSheet.create({
   rightIcon: {
     marginLeft: 8,
   },
-  loadingIndicator: {
-    padding: 4,
-  },
-  fullWidth: {
-    width: "100%",
-  },
 });
+
+export default Button;

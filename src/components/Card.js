@@ -1,179 +1,115 @@
-// src/components/Card.js
 import React from "react";
-import {
-  View,
-  StyleSheet,
-  TouchableOpacity,
-  Animated,
-  Pressable,
-  Platform,
-} from "react-native";
-import { BlurView } from "expo-blur";
-import { useTheme } from "../context/ThemeContext";
+import { View, StyleSheet, TouchableOpacity } from "react-native";
+import { LinearGradient } from "expo-linear-gradient";
 
 /**
- * Modern Card component with various styles and interactive states
+ * Card Component
  *
- * @param {Node} children - Card content
- * @param {function} onPress - Press handler (optional)
- * @param {Object} style - Custom style properties
- * @param {Object} contentStyle - Content style properties
- * @param {boolean} elevated - Whether to apply elevation shadow
- * @param {boolean} glassmorphism - Whether to use glassmorphism effect
- * @param {string} variant - Card variant (default, flat, bordered)
- * @param {number} intensity - Blur intensity for glassmorphism (0-100)
+ * @param {ReactNode} children - Card content
+ * @param {function} onPress - Press handler if card is clickable
+ * @param {string} variant - Card style variant ('default', 'outlined', 'elevated', 'gradient')
+ * @param {Object} style - Additional styles
+ * @param {Array} gradientColors - Colors for gradient background
+ * @param {boolean} shadow - Whether to add shadow (only applies to 'default' and 'elevated')
+ * @param {number} radius - Border radius override
  */
-export const Card = ({
+const Card = ({
   children,
   onPress,
-  style,
-  contentStyle,
-  elevated = true,
-  glassmorphism = false,
   variant = "default",
-  intensity = 30,
+  style,
+  gradientColors = ["#5D5FEF20", "#61DAFB10"],
+  shadow = true,
+  radius = 16,
   ...props
 }) => {
-  const { theme, isDark } = useTheme();
-
-  // Animation for press feedback
-  const animatedValue = React.useRef(new Animated.Value(0)).current;
-
-  const handlePressIn = () => {
-    if (onPress) {
-      Animated.timing(animatedValue, {
-        toValue: 1,
-        duration: 150,
-        useNativeDriver: true,
-      }).start();
-    }
-  };
-
-  const handlePressOut = () => {
-    if (onPress) {
-      Animated.timing(animatedValue, {
-        toValue: 0,
-        duration: 200,
-        useNativeDriver: true,
-      }).start();
-    }
-  };
-
-  // Interpolate animation values
-  const scaleInterpolation = animatedValue.interpolate({
-    inputRange: [0, 1],
-    outputRange: [1, 0.98],
-  });
-
-  // Determine card styling based on variant
+  // Card styles based on variant
   const getCardStyles = () => {
     switch (variant) {
-      case "flat":
+      case "outlined":
         return {
-          backgroundColor: theme.colors.card,
-          borderWidth: 0,
-          ...(!elevated && { shadowOpacity: 0, elevation: 0 }),
-        };
-      case "bordered":
-        return {
-          backgroundColor: theme.colors.card,
+          backgroundColor: "transparent",
           borderWidth: 1.5,
-          borderColor: theme.colors.border,
-          ...(!elevated && { shadowOpacity: 0, elevation: 0 }),
+          borderColor: "#E2E8F0",
+          ...(!shadow && { elevation: 0, shadowOpacity: 0 }),
+        };
+      case "elevated":
+        return {
+          backgroundColor: "#FFFFFF",
+          shadowColor: "#000",
+          shadowOffset: { width: 0, height: 4 },
+          shadowOpacity: 0.1,
+          shadowRadius: 8,
+          elevation: 4,
+        };
+      case "gradient":
+        return {
+          backgroundColor: "transparent",
+          overflow: "hidden",
+          ...(!shadow && { elevation: 0, shadowOpacity: 0 }),
         };
       default:
         return {
-          backgroundColor: theme.colors.card,
-          borderWidth: 0,
+          backgroundColor: "#FFFFFF",
+          ...(shadow
+            ? {
+                shadowColor: "#000",
+                shadowOffset: { width: 0, height: 2 },
+                shadowOpacity: 0.05,
+                shadowRadius: 5,
+                elevation: 2,
+              }
+            : { elevation: 0, shadowOpacity: 0 }),
         };
     }
   };
 
-  // Get shadow styles based on elevation and theme
-  const shadowStyles = elevated
-    ? isDark
-      ? {
-          shadowColor: "#000000",
-          shadowOffset: { width: 0, height: 4 },
-          shadowOpacity: 0.3,
-          shadowRadius: 8,
-          elevation: 6,
-        }
-      : theme.shadows.md
-    : {};
+  // Render as TouchableOpacity if onPress is provided
+  const CardContainer = onPress ? TouchableOpacity : View;
 
-  const cardStyles = getCardStyles();
-
-  // Wrapper component to apply blur effect for glassmorphism
-  const CardWrapper = ({ children }) => {
-    if (glassmorphism && Platform.OS !== "web") {
-      return (
-        <BlurView
-          intensity={intensity}
-          tint={isDark ? "dark" : "light"}
-          style={[
-            styles.blurContainer,
-            {
-              borderRadius: theme.borderRadius.lg,
-              borderColor: theme.colors.border,
-              borderWidth: 0.5,
-              overflow: "hidden",
-            },
-          ]}
+  // For gradient cards
+  if (variant === "gradient") {
+    return (
+      <CardContainer
+        style={[styles.card, getCardStyles(), { borderRadius: radius }, style]}
+        onPress={onPress}
+        activeOpacity={0.7}
+        {...props}
+      >
+        <LinearGradient
+          colors={gradientColors}
+          style={styles.gradientBackground}
+          start={{ x: 0, y: 0 }}
+          end={{ x: 1, y: 1 }}
         >
           {children}
-        </BlurView>
-      );
-    }
+        </LinearGradient>
+      </CardContainer>
+    );
+  }
 
-    return <>{children}</>;
-  };
-
-  // Main card render
+  // Regular cards
   return (
-    <Pressable
+    <CardContainer
+      style={[styles.card, getCardStyles(), { borderRadius: radius }, style]}
       onPress={onPress}
-      onPressIn={handlePressIn}
-      onPressOut={handlePressOut}
-      disabled={!onPress}
-      style={[styles.cardWrapper]}
+      activeOpacity={0.7}
       {...props}
     >
-      <Animated.View
-        style={[
-          styles.card,
-          {
-            borderRadius: theme.borderRadius.lg,
-            backgroundColor: glassmorphism
-              ? "transparent"
-              : cardStyles.backgroundColor,
-            borderWidth: cardStyles.borderWidth,
-            borderColor: cardStyles.borderColor,
-            transform: onPress ? [{ scale: scaleInterpolation }] : undefined,
-          },
-          shadowStyles,
-          style,
-        ]}
-      >
-        <CardWrapper>
-          <View style={[styles.content, contentStyle]}>{children}</View>
-        </CardWrapper>
-      </Animated.View>
-    </Pressable>
+      {children}
+    </CardContainer>
   );
 };
 
 const styles = StyleSheet.create({
-  cardWrapper: {
-    marginVertical: 6,
-  },
   card: {
+    borderRadius: 16,
     overflow: "hidden",
   },
-  content: {
-    padding: 16,
-  },
-  blurContainer: {
-    overflow: "hidden",
+  gradientBackground: {
+    width: "100%",
+    height: "100%",
   },
 });
+
+export default Card;

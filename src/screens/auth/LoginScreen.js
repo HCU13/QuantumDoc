@@ -1,230 +1,186 @@
-// src/screens/auth/LoginScreen.js
 import React, { useState, useEffect } from "react";
 import {
   View,
   StyleSheet,
-  TouchableOpacity,
+  SafeAreaView,
   KeyboardAvoidingView,
   Platform,
-  SafeAreaView,
-  StatusBar,
-  Dimensions,
-  Keyboard,
+  TouchableOpacity,
   Image,
+  ScrollView,
+  Dimensions,
 } from "react-native";
 import { LinearGradient } from "expo-linear-gradient";
-import { Ionicons } from "@expo/vector-icons";
-import { useTheme } from "../../context/ThemeContext";
-import { useAuth } from "../../context/AuthContext";
-import { useLocalization } from "../../context/LocalizationContext";
-import { Text } from "../../components/Text";
-import { Input } from "../../components/Input"; // Yeni Input bileşeni
-import { Button } from "../../components/Button";
+import { Text, Input, Button, Card } from "../../components";
+import { useAuth } from "../../context/AuthContext"; // AuthContext'i import et
 
 const { width, height } = Dimensions.get("window");
 
 const LoginScreen = ({ navigation }) => {
-  // Context Hooks
-  const { theme, isDark } = useTheme();
-  const { login, loading } = useAuth();
-  const { t } = useLocalization();
+  const { login } = useAuth(); // useAuth hook'undan login fonksiyonunu al
 
-  // State
+  // State for form fields and validation
   const [email, setEmail] = useState("trooper1803@gmail.com");
   const [password, setPassword] = useState("123123123");
+  const [isLoading, setIsLoading] = useState(false);
   const [errors, setErrors] = useState({});
-  const [keyboardOpen, setKeyboardOpen] = useState(false);
 
-  // Klavye açık/kapalı durumunu takip et
-  useEffect(() => {
-    const keyboardDidShowListener = Keyboard.addListener(
-      'keyboardDidShow',
-      () => setKeyboardOpen(true)
-    );
-    const keyboardDidHideListener = Keyboard.addListener(
-      'keyboardDidHide',
-      () => setKeyboardOpen(false)
-    );
-
-    return () => {
-      keyboardDidShowListener.remove();
-      keyboardDidHideListener.remove();
-    };
-  }, []);
-
-  // Form validation
+  // Simple validation function
   const validateForm = () => {
     const newErrors = {};
 
     // Email validation
     if (!email) {
-      newErrors.email = "auth.invalidEmail";
+      newErrors.email = "Email is required";
     } else if (!/\S+@\S+\.\S+/.test(email)) {
-      newErrors.email = "auth.invalidEmail";
+      newErrors.email = "Email is invalid";
     }
 
     // Password validation
     if (!password) {
-      newErrors.password = "auth.passwordRequired";
+      newErrors.password = "Password is required";
     } else if (password.length < 6) {
-      newErrors.password = "auth.passwordTooShort";
+      newErrors.password = "Password must be at least 6 characters";
     }
 
     setErrors(newErrors);
     return Object.keys(newErrors).length === 0;
   };
 
-  // Login function
+  // Handle login - Orijinal koddan alınan versiyonla güncellendi
   const handleLogin = async () => {
-    if (!validateForm()) return;
+    if (validateForm()) {
+      try {
+        setIsLoading(true);
 
-    try {
-      await login(email, password);
-      // RootNavigator will redirect to main screen after successful login
-    } catch (error) {
-      console.error("Login error", error);
-      // Toast message is handled in AuthContext
+        // Firebase ile giriş yap
+        await login(email, password);
+        // NOT: AuthContext içinde zaten showToast ile başarılı mesajı gösteriliyor
+        // ve kullanıcı bilgisi AuthProvider içinde ayarlanıyor
+
+        // Navigasyon AppNavigator tarafından otomatik yapılacak,
+        // ama manuel olarak da yönlendirebiliriz:
+        // navigation.replace('MainNavigator');
+      } catch (error) {
+        console.error("Login error:", error);
+        // Hata mesajı AuthContext içinde showToast ile gösteriliyor
+        // ama ekranda da göstermek istiyorsak:
+        setErrors({ general: error.message || "Login failed" });
+      } finally {
+        setIsLoading(false);
+      }
     }
   };
 
-  // Logo bileşeni - klavye açık olduğunda gizlenir
-  const renderLogo = () => {
-    if (keyboardOpen) return null;
-    
-    return (
-      <View style={styles.logoContainer}>
-        <View style={[styles.logoBox, { backgroundColor: theme.colors.primary + "15" }]}>
-          <LinearGradient
-            colors={[theme.colors.primary, theme.colors.secondary]}
-            style={styles.logoGradient}
-          >
-            <Ionicons name="document-text" size={40} color="white" />
-          </LinearGradient>
-        </View>
-
-        <Text variant="h1" style={styles.title} weight="bold">
-          DocAI
-        </Text>
-
-        <Text
-          variant="subtitle1"
-          color={theme.colors.textSecondary}
-          style={styles.subtitle}
-          centered
-        >
-          {t("onboarding.welcome.description")}
-        </Text>
-      </View>
-    );
-  };
-
   return (
-    <SafeAreaView style={[styles.container, { backgroundColor: theme.colors.background }]}>
-      <StatusBar
-        barStyle={isDark ? "light-content" : "dark-content"}
-        backgroundColor="transparent"
-        translucent
-      />
-
+    <SafeAreaView style={styles.container}>
       <KeyboardAvoidingView
-        style={styles.keyboardAvoidingView}
         behavior={Platform.OS === "ios" ? "padding" : "height"}
-        keyboardVerticalOffset={Platform.OS === "ios" ? 0 : 20}
+        style={styles.keyboardAvoidingView}
       >
-        <LinearGradient
-          colors={
-            isDark
-              ? [theme.colors.background, theme.colors.background]
-              : [theme.colors.background, theme.colors.surface]
-          }
-          style={styles.gradient}
+        <ScrollView
+          contentContainerStyle={styles.scrollContent}
+          keyboardShouldPersistTaps="handled"
         >
-          <View style={styles.content}>
-            {renderLogo()}
-
-            <View style={styles.formContainer}>
-              <Text variant="h2" style={styles.formTitle}>
-                {t("auth.login")}
+          {/* Top Gradient Background */}
+          <LinearGradient
+            colors={["#5D5FEF", "#61DAFB"]}
+            start={{ x: 0, y: 0 }}
+            end={{ x: 1, y: 0 }}
+            style={styles.topGradient}
+          >
+            {/* App Logo */}
+            <View style={styles.logoContainer}>
+              <View style={styles.logoBackground}>
+                <Text style={styles.logoText}>🤖</Text>
+              </View>
+              <Text variant="h2" color="#FFFFFF" style={styles.appName}>
+                QuantumDoc
               </Text>
+              <Text variant="body2" color="#FFFFFF" style={styles.appTagline}>
+                AI-Powered Document Analysis
+              </Text>
+            </View>
+          </LinearGradient>
 
-              {/* Email Input */}
-              <Input
-                label={t("auth.email")}
-                value={email}
-                onChangeText={setEmail}
-                placeholder="email@example.com"
-                keyboardType="email-address"
-                autoCapitalize="none"
-                icon="mail-outline"
-                error={errors.email ? t(errors.email) : null}
-              />
+          {/* Login Card */}
+          <Card style={styles.loginCard}>
+            <Text variant="h3" style={styles.loginTitle}>
+              Welcome Back
+            </Text>
+            <Text variant="body2" color="#64748B" style={styles.loginSubtitle}>
+              Sign in to continue to your account
+            </Text>
 
-              {/* Password Input */}
-              <Input
-                label={t("auth.password")}
-                value={password}
-                onChangeText={setPassword}
-                placeholder="••••••••"
-                secureTextEntry
-                icon="lock-closed-outline"
-                error={errors.password ? t(errors.password) : null}
-              />
+            {/* Error message if login fails */}
+            {errors.general && (
+              <View style={styles.errorContainer}>
+                <Text variant="body2" color="#EF4444">
+                  {errors.general}
+                </Text>
+              </View>
+            )}
 
-              {/* Forgot Password Link */}
-              <TouchableOpacity
-                style={styles.forgotPassword}
-                onPress={() => navigation.navigate("ForgotPassword")}
-              >
-                <Text
-                  variant="body2"
-                  color={theme.colors.primary}
-                  style={styles.forgotPasswordText}
-                >
-                  {t("auth.forgotPassword")}
+            {/* Email Input */}
+            <Input
+              label="Email"
+              value={email}
+              onChangeText={setEmail}
+              placeholder="email@example.com"
+              keyboardType="email-address"
+              autoCapitalize="none"
+              error={!!errors.email}
+              errorText={errors.email}
+              leftIcon={<Text>📧</Text>}
+              style={styles.input}
+            />
+
+            {/* Password Input */}
+            <Input
+              label="Password"
+              value={password}
+              onChangeText={setPassword}
+              placeholder="••••••••"
+              secureTextEntry
+              error={!!errors.password}
+              errorText={errors.password}
+              leftIcon={<Text>🔒</Text>}
+              style={styles.input}
+            />
+
+            {/* Forgot Password Link */}
+            <TouchableOpacity
+              style={styles.forgotPasswordLink}
+              onPress={() => navigation.navigate("ForgotPassword")}
+            >
+              <Text variant="body2" color="#5D5FEF">
+                Forgot Password?
+              </Text>
+            </TouchableOpacity>
+
+            {/* Login Button */}
+            <Button
+              label="Sign In"
+              onPress={handleLogin}
+              loading={isLoading}
+              gradient={true}
+              style={styles.loginButton}
+            />
+
+            {/* Register Link */}
+            <View style={styles.registerContainer}>
+              <Text variant="body2" color="#64748B">
+                Don't have an account?{" "}
+              </Text>
+              <TouchableOpacity onPress={() => navigation.navigate("Register")}>
+                <Text variant="body2" color="#5D5FEF" weight="semibold">
+                  Sign Up
                 </Text>
               </TouchableOpacity>
-
-              {/* Login Button */}
-              <Button
-                title={t("auth.login")}
-                onPress={handleLogin}
-                style={styles.loginButton}
-                loading={loading}
-                gradient={true}
-                fullWidth
-              />
-
-              {/* Register Link */}
-              <View style={styles.registerContainer}>
-                <Text variant="body2" color={theme.colors.textSecondary}>
-                  {t("auth.dontHaveAccount")}{" "}
-                </Text>
-                <TouchableOpacity onPress={() => navigation.navigate("Register")}>
-                  <Text
-                    variant="body2"
-                    color={theme.colors.primary}
-                    weight="semibold"
-                  >
-                    {t("auth.registerInstead")}
-                  </Text>
-                </TouchableOpacity>
-              </View>
             </View>
-          </View>
-        </LinearGradient>
+          </Card>
+        </ScrollView>
       </KeyboardAvoidingView>
-
-      {/* Full screen loading indicator */}
-      {loading && (
-        <View style={styles.loadingOverlay}>
-          <LinearGradient
-            colors={[theme.colors.primary, theme.colors.secondary]}
-            style={styles.loadingIndicator}
-          >
-            <Ionicons name="document-text" size={28} color="white" />
-          </LinearGradient>
-        </View>
-      )}
     </SafeAreaView>
   );
 };
@@ -232,83 +188,76 @@ const LoginScreen = ({ navigation }) => {
 const styles = StyleSheet.create({
   container: {
     flex: 1,
+    backgroundColor: "#F8FAFC",
   },
   keyboardAvoidingView: {
     flex: 1,
   },
-  gradient: {
-    flex: 1,
+  scrollContent: {
+    flexGrow: 1,
   },
-  content: {
-    flex: 1,
-    paddingHorizontal: 20,
+  topGradient: {
+    height: height * 0.35,
+    width: "100%",
     justifyContent: "center",
+    alignItems: "center",
+    paddingHorizontal: 24,
   },
   logoContainer: {
     alignItems: "center",
-    marginBottom: 30,
-  },
-  logoBox: {
-    width: 70,
-    height: 70,
-    borderRadius: 16,
     justifyContent: "center",
+  },
+  logoBackground: {
+    width: 80,
+    height: 80,
+    borderRadius: 20,
+    backgroundColor: "rgba(255, 255, 255, 0.2)",
     alignItems: "center",
-    overflow: "hidden",
+    justifyContent: "center",
     marginBottom: 16,
   },
-  logoGradient: {
-    width: "100%",
-    height: "100%",
-    justifyContent: "center",
-    alignItems: "center",
+  logoText: {
+    fontSize: 40,
   },
-  title: {
+  appName: {
     marginBottom: 8,
   },
-  subtitle: {
-    maxWidth: "80%",
-    textAlign: "center",
-    marginBottom: 6,
-    lineHeight: 20,
+  appTagline: {
+    opacity: 0.9,
   },
-  formContainer: {
-    width: "100%",
+  loginCard: {
+    marginTop: -height * 0.08,
+    marginHorizontal: 24,
+    marginBottom: 24,
+    padding: 24,
+    borderRadius: 24,
   },
-  formTitle: {
-    marginBottom: 20,
-    fontSize: 22,
-    textAlign: "center",
+  loginTitle: {
+    marginBottom: 8,
   },
-  forgotPassword: {
+  loginSubtitle: {
+    marginBottom: 24,
+  },
+  errorContainer: {
+    backgroundColor: "#FEE2E2",
+    padding: 12,
+    borderRadius: 8,
+    marginBottom: 16,
+  },
+  input: {
+    marginBottom: 16,
+  },
+  forgotPasswordLink: {
     alignSelf: "flex-end",
-    marginTop: 4,
-    marginBottom: 20,
-  },
-  forgotPasswordText: {
-    fontSize: 13,
+    marginBottom: 24,
   },
   loginButton: {
-    marginBottom: 20,
-    height: 44,
+    marginBottom: 16,
   },
   registerContainer: {
     flexDirection: "row",
     justifyContent: "center",
-    alignItems: "center",
-  },
-  loadingOverlay: {
-    ...StyleSheet.absoluteFillObject,
-    backgroundColor: "rgba(0,0,0,0.4)",
-    justifyContent: "center",
-    alignItems: "center",
-  },
-  loadingIndicator: {
-    width: 60,
-    height: 60,
-    borderRadius: 30,
-    justifyContent: "center",
-    alignItems: "center",
+    marginTop: 8,
   },
 });
 

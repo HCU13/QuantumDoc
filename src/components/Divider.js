@@ -1,64 +1,66 @@
-// src/components/Divider.js
 import React from "react";
 import { View, StyleSheet } from "react-native";
-import { useTheme } from "../context/ThemeContext";
-import { Text } from "./Text";
+import Text from "./Text";
 
 /**
- * Divider bileşeni
- * İçerik arasına ayırıcı/bölücü çizgi ekleme
+ * Divider Component
  *
- * @param {string} text - Ayırıcı ortasında gösterilecek metin (isteğe bağlı)
- * @param {number} thickness - Çizgi kalınlığı
- * @param {string} orientation - Yönlendirme (horizontal, vertical)
- * @param {Object} style - Özel stil özellikleri
+ * @param {string} text - Optional text to display in the middle of divider
+ * @param {string} orientation - Divider orientation ('horizontal', 'vertical')
+ * @param {number} thickness - Divider line thickness
+ * @param {string} color - Divider color
+ * @param {Object} style - Additional style overrides
  */
-export const Divider = ({
+const Divider = ({
   text,
-  thickness = 1,
   orientation = "horizontal",
+  thickness = 1,
+  color = "#E2E8F0",
   style,
+  ...props
 }) => {
-  const { theme } = useTheme();
-
-  // Text yoksa basit bir ayırıcı çizgi göster
+  // Simple line divider (no text)
   if (!text) {
     return (
       <View
         style={[
-          styles.divider,
-          orientation === "vertical" && styles.verticalDivider,
-          { backgroundColor: theme.colors.border, height: thickness },
+          orientation === "horizontal"
+            ? [styles.horizontal, { height: thickness }]
+            : [styles.vertical, { width: thickness }],
+          { backgroundColor: color },
           style,
         ]}
+        {...props}
       />
     );
   }
 
-  // Text varsa, metni ortada gösteren bir ayırıcı göster
+  // Divider with text (only for horizontal orientation)
   return (
-    <View style={[styles.container, style]}>
+    <View style={[styles.textContainer, style]} {...props}>
       <View
         style={[
           styles.line,
-          { backgroundColor: theme.colors.border, height: thickness },
-        ]}
-      />
-      <Text
-        style={[
-          styles.text,
           {
-            color: theme.colors.textSecondary,
-            backgroundColor: theme.colors.background,
+            height: thickness,
+            backgroundColor: color,
           },
         ]}
-      >
-        {text}
-      </Text>
+      />
+
+      <View style={styles.textWrapper}>
+        <Text variant="caption" color="#64748B" style={styles.text}>
+          {text}
+        </Text>
+      </View>
+
       <View
         style={[
           styles.line,
-          { backgroundColor: theme.colors.border, height: thickness },
+          {
+            height: thickness,
+            backgroundColor: color,
+          },
         ]}
       />
     </View>
@@ -66,24 +68,29 @@ export const Divider = ({
 };
 
 const styles = StyleSheet.create({
-  divider: {
-    marginVertical: 10,
+  horizontal: {
+    width: "100%",
+    marginVertical: 12,
   },
-  verticalDivider: {
+  vertical: {
     height: "100%",
-    width: 1,
-    marginHorizontal: 10,
+    marginHorizontal: 12,
   },
-  container: {
+  textContainer: {
     flexDirection: "row",
     alignItems: "center",
-    marginVertical: 10,
+    width: "100%",
+    marginVertical: 12,
   },
   line: {
     flex: 1,
   },
+  textWrapper: {
+    paddingHorizontal: 12,
+  },
   text: {
-    paddingHorizontal: 10,
-    fontSize: 14,
+    textAlign: "center",
   },
 });
+
+export default Divider;

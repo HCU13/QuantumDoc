@@ -1,4 +1,3 @@
-// src/screens/main/ScanScreen.js
 import React, { useState, useEffect, useRef } from "react";
 import {
   View,
@@ -11,13 +10,13 @@ import {
   Dimensions,
   Platform,
   Easing,
-  ImageBackground,
 } from "react-native";
 import { Camera } from "expo-camera";
 import * as ImageManipulator from "expo-image-manipulator";
-import { Ionicons } from "@expo/vector-icons";
+import * as Haptics from "expo-haptics";
 import { LinearGradient } from "expo-linear-gradient";
 import { BlurView } from "expo-blur";
+import { Ionicons } from "@expo/vector-icons";
 import { useTheme } from "../../context/ThemeContext";
 import { useTokens } from "../../context/TokenContext";
 import { useLocalization } from "../../context/LocalizationContext";
@@ -26,10 +25,6 @@ import { Button } from "../../components/Button";
 import { Card } from "../../components/Card";
 import { Badge } from "../../components/Badge";
 import { Loading } from "../../components/Loading";
-import { documentApi } from "../../api/documentApi";
-import { ocrApi } from "../../api/ocrApi";
-import { MotiView } from "moti";
-import LottieView from "lottie-react-native";
 import Svg, {
   Path,
   Rect,
@@ -44,6 +39,7 @@ const SCAN_AREA_ASPECT_RATIO = 1.414; // A4 aspect ratio
 // Calculate scan area dimensions
 const scanAreaWidth = width - SCAN_AREA_PADDING * 2;
 const scanAreaHeight = scanAreaWidth * SCAN_AREA_ASPECT_RATIO;
+
 const ScanScreen = ({ navigation }) => {
   const { theme, isDark } = useTheme();
   const { useTokens, TOKEN_COSTS } = useTokens();
@@ -51,8 +47,7 @@ const ScanScreen = ({ navigation }) => {
 
   // Refs
   const cameraRef = useRef(null);
-  const lottieRef = useRef(null);
-  const scanAnimation = useRef(null);
+  const confettiRef = useRef(null);
 
   // State
   const [hasPermission, setHasPermission] = useState(null);
@@ -78,6 +73,8 @@ const ScanScreen = ({ navigation }) => {
   const captureScale = useRef(new Animated.Value(1)).current;
   const previewFade = useRef(new Animated.Value(0)).current;
   const enhancementAnim = useRef(new Animated.Value(0)).current;
+  const fadeAnim = useRef(new Animated.Value(0)).current;
+  const slideAnim = useRef(new Animated.Value(30)).current;
 
   // Get camera permission
   useEffect(() => {
@@ -102,16 +99,21 @@ const ScanScreen = ({ navigation }) => {
     }
   }, [scanStage]);
 
-  // Camera entrance animation
+  // Start entrance animations
   useEffect(() => {
-    if (scanStage === "initial" && hasPermission) {
-      setTimeout(() => {
-        if (lottieRef.current) {
-          lottieRef.current.play();
-        }
-      }, 500);
-    }
-  }, [scanStage, hasPermission]);
+    Animated.parallel([
+      Animated.timing(fadeAnim, {
+        toValue: 1,
+        duration: 600,
+        useNativeDriver: true,
+      }),
+      Animated.timing(slideAnim, {
+        toValue: 0,
+        duration: 600,
+        useNativeDriver: true,
+      }),
+    ]).start();
+  }, []);
 
   // Scan line animation
   const startScanLineAnimation = () => {
@@ -354,31 +356,69 @@ const ScanScreen = ({ navigation }) => {
       <View
         style={[styles.container, { backgroundColor: theme.colors.background }]}
       >
-        <View style={styles.permissionErrorContainer}>
-          {/* <LottieView
-            source={require("../../assets/animations/camera-permission.json")}
-            style={styles.permissionLottie}
-            autoPlay
-            loop
-          /> */}
-          <Text variant="h3" style={styles.permissionErrorTitle}>
-            Camera Access Needed
-          </Text>
-          <Text
-            variant="body1"
-            color={theme.colors.textSecondary}
-            style={styles.permissionErrorText}
-          >
-            {t("errors.cameraPermission")}
-          </Text>
-          <Button
-            title="Go Back"
-            onPress={() => navigation.goBack()}
-            style={styles.permissionBackButton}
-            icon="arrow-back"
-            gradient={true}
-          />
-        </View>
+        <LinearGradient
+          colors={
+            isDark
+              ? [theme.colors.primary + "80", theme.colors.background]
+              : [theme.colors.primary + "40", theme.colors.background]
+          }
+          style={styles.headerGradient}
+        >
+          <View style={styles.header}>
+            <TouchableOpacity
+              style={styles.backButton}
+              onPress={() => navigation.goBack()}
+            >
+              <Ionicons name="arrow-back" size={24} color={theme.colors.text} />
+            </TouchableOpacity>
+
+            <Text variant="h3">{t("document.scanDocument")}</Text>
+
+            <View style={{ width: 40 }} />
+          </View>
+        </LinearGradient>
+
+        <Animated.View
+          style={[
+            styles.permissionErrorContainer,
+            {
+              opacity: fadeAnim,
+              transform: [{ translateY: slideAnim }],
+            },
+          ]}
+        >
+          <Card style={styles.permissionErrorCard} elevated={true}>
+            <Ionicons
+              name="camera-off"
+              size={60}
+              color={theme.colors.error}
+              style={styles.permissionErrorIcon}
+            />
+            <Text
+              variant="h3"
+              style={[
+                styles.permissionErrorTitle,
+                { color: theme.colors.text },
+              ]}
+            >
+              Camera Access Needed
+            </Text>
+            <Text
+              variant="body1"
+              color={theme.colors.textSecondary}
+              style={styles.permissionErrorText}
+            >
+              {t("errors.cameraPermission")}
+            </Text>
+            <Button
+              title="Go Back"
+              onPress={() => navigation.goBack()}
+              style={styles.permissionBackButton}
+              icon="arrow-back"
+              gradient={true}
+            />
+          </Card>
+        </Animated.View>
       </View>
     );
   };
@@ -403,7 +443,15 @@ const ScanScreen = ({ navigation }) => {
           {/* Camera content */}
           <View style={styles.cameraContent}>
             {/* Header */}
-            <View style={styles.header}>
+            <View
+              style={[
+                styles.header,
+                {
+                  marginTop:
+                    Platform.OS === "android" ? StatusBar.currentHeight : 0,
+                },
+              ]}
+            >
               <TouchableOpacity
                 style={styles.backButton}
                 onPress={() => navigation.goBack()}
@@ -464,7 +512,7 @@ const ScanScreen = ({ navigation }) => {
                     styles.scanLine,
                     {
                       width: scanAreaWidth - 20,
-                      backgroundColor: theme.colors.primary + "30",
+                      backgroundColor: theme.colors.primary + "60",
                       transform: [
                         {
                           translateY: scanLineAnim.interpolate({
@@ -536,17 +584,13 @@ const ScanScreen = ({ navigation }) => {
                 <BlurView intensity={80} tint="dark" style={styles.statusBlur}>
                   {scanStage === "initial" && (
                     <View style={styles.statusContent}>
-                      <MotiView
-                        from={{ opacity: 0.5, scale: 0.9 }}
-                        animate={{ opacity: 1, scale: 1 }}
-                        transition={{
-                          type: "timing",
-                          duration: 1000,
-                          loop: true,
-                        }}
+                      <Animated.View
                         style={[
                           styles.statusIcon,
-                          { backgroundColor: theme.colors.info + "30" },
+                          {
+                            backgroundColor: theme.colors.info + "30",
+                            transform: [{ scale: pulseAnim }],
+                          },
                         ]}
                       >
                         <Ionicons
@@ -554,7 +598,7 @@ const ScanScreen = ({ navigation }) => {
                           size={16}
                           color={theme.colors.info}
                         />
-                      </MotiView>
+                      </Animated.View>
                       <Text
                         variant="caption"
                         color="#FFFFFF"
@@ -566,17 +610,13 @@ const ScanScreen = ({ navigation }) => {
                   )}
                   {scanStage === "detecting" && (
                     <View style={styles.statusContent}>
-                      <MotiView
-                        from={{ opacity: 0.5, scale: 0.9 }}
-                        animate={{ opacity: 1, scale: 1 }}
-                        transition={{
-                          type: "timing",
-                          duration: 500,
-                          loop: true,
-                        }}
+                      <Animated.View
                         style={[
                           styles.statusIcon,
-                          { backgroundColor: theme.colors.primary + "30" },
+                          {
+                            backgroundColor: theme.colors.primary + "30",
+                            transform: [{ scale: pulseAnim }],
+                          },
                         ]}
                       >
                         <Ionicons
@@ -584,7 +624,7 @@ const ScanScreen = ({ navigation }) => {
                           size={16}
                           color={theme.colors.primary}
                         />
-                      </MotiView>
+                      </Animated.View>
                       <Text
                         variant="caption"
                         color="#FFFFFF"
@@ -624,21 +664,15 @@ const ScanScreen = ({ navigation }) => {
             {/* Capture button area */}
             <View style={styles.captureArea}>
               <View style={styles.captureContainer}>
-                <MotiView
-                  from={{ opacity: 0, scale: 0.8 }}
-                  animate={{ opacity: 1, scale: 1 }}
-                  transition={{ type: "timing", duration: 800 }}
-                >
-                  <Animated.View
-                    style={[
-                      styles.captureOuterRing,
-                      {
-                        borderColor: theme.colors.primary + "50",
-                        transform: [{ scale: pulseAnim }],
-                      },
-                    ]}
-                  />
-                </MotiView>
+                <Animated.View
+                  style={[
+                    styles.captureOuterRing,
+                    {
+                      borderColor: theme.colors.primary + "50",
+                      transform: [{ scale: pulseAnim }],
+                    },
+                  ]}
+                />
 
                 <Animated.View
                   style={[
@@ -689,7 +723,15 @@ const ScanScreen = ({ navigation }) => {
       <View
         style={[styles.container, { backgroundColor: theme.colors.background }]}
       >
-        <View style={styles.previewHeader}>
+        <View
+          style={[
+            styles.previewHeader,
+            {
+              paddingTop:
+                Platform.OS === "android" ? StatusBar.currentHeight + 10 : 10,
+            },
+          ]}
+        >
           <TouchableOpacity
             style={styles.previewBackButton}
             onPress={retakePicture}
@@ -779,27 +821,29 @@ const ScanScreen = ({ navigation }) => {
               },
             ]}
           >
-            <View style={styles.adjustmentsContent}>
-              <Badge
-                label="Auto Enhanced"
-                type="primary"
-                icon="wand"
-                size="sm"
-              />
+            <Card style={styles.adjustmentsCard} elevated={true}>
+              <View style={styles.adjustmentsContent}>
+                <Badge
+                  label="Auto Enhanced"
+                  type="primary"
+                  icon="wand"
+                  size="sm"
+                />
 
-              <View style={styles.adjustmentsTip}>
-                <View style={styles.tipIcon}>
-                  <Ionicons
-                    name="bulb"
-                    size={14}
-                    color={theme.colors.warning}
-                  />
+                <View style={styles.adjustmentsTip}>
+                  <View style={styles.tipIcon}>
+                    <Ionicons
+                      name="bulb"
+                      size={14}
+                      color={theme.colors.warning}
+                    />
+                  </View>
+                  <Text variant="caption" color={theme.colors.textSecondary}>
+                    Document has been optimized for better readability
+                  </Text>
                 </View>
-                <Text variant="caption" color={theme.colors.textSecondary}>
-                  Document has been optimized for better readability
-                </Text>
               </View>
-            </View>
+            </Card>
           </Animated.View>
         </View>
 
@@ -829,15 +873,38 @@ const ScanScreen = ({ navigation }) => {
       <View
         style={[styles.container, { backgroundColor: theme.colors.background }]}
       >
-        <View style={styles.processingContainer}>
-          <Card style={styles.processingCard}>
-            {/* <LottieView
-              source={require("../../assets/animations/document-scanning.json")}
-              style={styles.processingLottie}
-              autoPlay
-              loop
-            /> */}
+        <LinearGradient
+          colors={
+            isDark
+              ? [theme.colors.primary + "80", theme.colors.background]
+              : [theme.colors.primary + "40", theme.colors.background]
+          }
+          style={styles.headerGradient}
+        >
+          <View style={styles.header}>
+            <TouchableOpacity
+              style={styles.backButton}
+              onPress={() => navigation.goBack()}
+            >
+              <Ionicons name="arrow-back" size={24} color={theme.colors.text} />
+            </TouchableOpacity>
 
+            <Text variant="h3">{t("document.scanDocument")}</Text>
+
+            <View style={{ width: 40 }} />
+          </View>
+        </LinearGradient>
+
+        <Animated.View
+          style={[
+            styles.processingContainer,
+            {
+              opacity: fadeAnim,
+              transform: [{ translateY: slideAnim }],
+            },
+          ]}
+        >
+          <Card style={styles.processingCard} elevated={true}>
             <Text variant="h3" style={styles.processingTitle}>
               Processing Document
             </Text>
@@ -852,7 +919,17 @@ const ScanScreen = ({ navigation }) => {
                   ]}
                 >
                   <View style={styles.processingStepHeader}>
-                    <View style={styles.processingStepNumber}>
+                    <View
+                      style={[
+                        styles.processingStepNumber,
+                        {
+                          backgroundColor:
+                            index <= processingStep
+                              ? theme.colors.primary
+                              : theme.colors.textTertiary,
+                        },
+                      ]}
+                    >
                       {index < processingStep ? (
                         <Ionicons name="checkmark" size={12} color="#FFFFFF" />
                       ) : (
@@ -905,14 +982,25 @@ const ScanScreen = ({ navigation }) => {
               This may take a few seconds, please wait...
             </Text>
           </Card>
-        </View>
+        </Animated.View>
       </View>
     );
   };
 
   // Main render
   if (hasPermission === null) {
-    return <Loading fullScreen type="logo" iconName="camera" />;
+    return (
+      <View
+        style={[styles.container, { backgroundColor: theme.colors.background }]}
+      >
+        <StatusBar
+          barStyle={isDark ? "light-content" : "dark-content"}
+          backgroundColor="transparent"
+          translucent
+        />
+        <Loading fullScreen iconName="camera" />
+      </View>
+    );
   }
 
   if (hasPermission === false) {
@@ -933,7 +1021,16 @@ const ScanScreen = ({ navigation }) => {
 const styles = StyleSheet.create({
   container: {
     flex: 1,
-    backgroundColor: "#000",
+  },
+  headerGradient: {
+    paddingTop: Platform.OS === "android" ? StatusBar.currentHeight : 0,
+    paddingBottom: 20,
+    paddingHorizontal: 16,
+  },
+  header: {
+    flexDirection: "row",
+    justifyContent: "space-between",
+    alignItems: "center",
   },
   cameraContainer: {
     flex: 1,
@@ -950,21 +1047,14 @@ const styles = StyleSheet.create({
     backgroundColor: "white",
     zIndex: 1,
   },
-  header: {
-    flexDirection: "row",
-    justifyContent: "space-between",
-    padding: 20,
-    marginTop: StatusBar.currentHeight || 40,
-    zIndex: 10,
-  },
   backButton: {
     borderRadius: 25,
     overflow: "hidden",
   },
   blurButton: {
-    width: 50,
-    height: 50,
-    borderRadius: 25,
+    width: 46,
+    height: 46,
+    borderRadius: 23,
     alignItems: "center",
     justifyContent: "center",
   },
@@ -973,7 +1063,7 @@ const styles = StyleSheet.create({
   },
   controlButton: {
     marginLeft: 10,
-    borderRadius: 25,
+    borderRadius: 23,
     overflow: "hidden",
   },
   scanAreaContainer: {
@@ -1075,16 +1165,16 @@ const styles = StyleSheet.create({
     marginBottom: 16,
   },
   captureOuterRing: {
-    width: 90,
-    height: 90,
-    borderRadius: 45,
+    width: 86,
+    height: 86,
+    borderRadius: 43,
     borderWidth: 2,
     position: "absolute",
   },
   captureButton: {
-    width: 70,
-    height: 70,
-    borderRadius: 35,
+    width: 68,
+    height: 68,
+    borderRadius: 34,
     backgroundColor: "rgba(255, 255, 255, 0.2)",
     alignItems: "center",
     justifyContent: "center",
@@ -1092,7 +1182,7 @@ const styles = StyleSheet.create({
   captureTouchable: {
     width: "100%",
     height: "100%",
-    borderRadius: 35,
+    borderRadius: 34,
     overflow: "hidden",
   },
   captureGradient: {
@@ -1117,8 +1207,6 @@ const styles = StyleSheet.create({
     justifyContent: "space-between",
     alignItems: "center",
     paddingHorizontal: 20,
-    paddingTop:
-      Platform.OS === "ios" ? 50 : 20 + (StatusBar.currentHeight || 0),
     paddingBottom: 20,
   },
   previewBackButton: {
@@ -1170,6 +1258,10 @@ const styles = StyleSheet.create({
   adjustmentsContainer: {
     marginTop: 16,
   },
+  adjustmentsCard: {
+    padding: 16,
+    borderRadius: 16,
+  },
   adjustmentsContent: {
     flexDirection: "column",
     alignItems: "flex-start",
@@ -1203,15 +1295,9 @@ const styles = StyleSheet.create({
     padding: 20,
   },
   processingCard: {
-    padding: 24,
+    padding: 20,
     width: "100%",
-    maxWidth: 500,
-  },
-  processingLottie: {
-    width: 150,
-    height: 150,
-    alignSelf: "center",
-    marginBottom: 16,
+    borderRadius: 16,
   },
   processingTitle: {
     textAlign: "center",
@@ -1233,7 +1319,6 @@ const styles = StyleSheet.create({
     width: 20,
     height: 20,
     borderRadius: 10,
-    backgroundColor: "#6C7280",
     alignItems: "center",
     justifyContent: "center",
     marginRight: 12,
@@ -1257,19 +1342,21 @@ const styles = StyleSheet.create({
     justifyContent: "center",
     alignItems: "center",
     padding: 24,
-    backgroundColor: "#000",
   },
-  permissionLottie: {
-    width: 200,
-    height: 200,
-    marginBottom: 24,
+  permissionErrorCard: {
+    padding: 24,
+    borderRadius: 16,
+    alignItems: "center",
+    width: "90%",
+  },
+  permissionErrorIcon: {
+    marginBottom: 16,
   },
   permissionErrorTitle: {
-    color: "white",
     marginBottom: 12,
+    textAlign: "center",
   },
   permissionErrorText: {
-    color: "rgba(255, 255, 255, 0.7)",
     textAlign: "center",
     marginBottom: 32,
   },

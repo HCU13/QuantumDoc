@@ -14,32 +14,22 @@ import {
   limit,
   getDocs,
 } from "firebase/firestore";
-// import Purchases from "react-native-purchases";
 import { FIRESTORE_DB } from "../../firebase/FirebaseConfig";
 import { useAuth } from "./AuthContext";
-import { showToast } from "../utils/toast";
 
-// Token context oluşturma
+// Token context creation
 const TokenContext = createContext(null);
 
-// Token maliyetleri için sabitler
+// Token cost constants
 export const TOKEN_COSTS = {
-  DOCUMENT_ANALYSIS: 1, // Temel analiz (1-5 sayfa)
-  LARGE_DOCUMENT: 2, // Büyük belgeler (5+ sayfa)
-  QUESTION: 0.2, // İlk 3 ücretsiz sorudan sonra her soru için
-};
-
-// RevenueCat paket isimleri
-export const PACKAGES = {
-  TOKENS_20: "tokens_20", // 20 token ($4.99)
-  TOKENS_50: "tokens_50", // 50 token ($9.99)
-  TOKENS_120: "tokens_120", // 120 token ($19.99)
-  SUBSCRIPTION: "sub_monthly", // Aylık abonelik ($9.99/ay, 50 token/ay)
+  DOCUMENT_ANALYSIS: 1, // Basic analysis (1-5 pages)
+  LARGE_DOCUMENT: 2, // Large documents (5+ pages)
+  QUESTION: 0.2, // Each question after first 3 free
 };
 
 /**
- * Token yönetim Provider bileşeni
- * Kullanıcı token bakiyesini ve satın alma işlemlerini yönetir
+ * Token management Provider component
+ * Manages user token balance and purchases
  */
 export function TokenProvider({ children }) {
   const { user } = useAuth();
@@ -49,7 +39,7 @@ export function TokenProvider({ children }) {
   const [tokenHistory, setTokenHistory] = useState([]);
   const [subscription, setSubscription] = useState(null);
 
-  // Kullanıcı değiştiğinde token bakiyesini yükle
+  // Load token balance when user changes
   useEffect(() => {
     if (user) {
       loadTokenBalance();
@@ -63,7 +53,7 @@ export function TokenProvider({ children }) {
   }, [user]);
 
   /**
-   * Kullanıcının token bakiyesini Firestore'dan yükler
+   * Load user's token balance from Firestore
    */
   const loadTokenBalance = async () => {
     try {
@@ -77,7 +67,7 @@ export function TokenProvider({ children }) {
         setTokens(userData.tokens || 0);
         setFreeTrialUsed(userData.freeTrialUsed || false);
 
-        // Token geçmişini yükle
+        // Load token history
         try {
           const historySnapshot = await getDocs(
             query(
@@ -99,9 +89,9 @@ export function TokenProvider({ children }) {
           console.error("Error loading token history:", historyError);
         }
       } else {
-        // Kullanıcı belgesi yoksa oluştur
+        // Create user document if it doesn't exist
         await setDoc(userRef, {
-          tokens: 5, // 5 ücretsiz token ile başla
+          tokens: 5, // Start with 5 free tokens
           freeTrialUsed: false,
           createdAt: serverTimestamp(),
         });
@@ -110,50 +100,38 @@ export function TokenProvider({ children }) {
       }
     } catch (error) {
       console.error("Error loading token balance:", error);
-      showToast("error", "Failed to load token balance");
     } finally {
       setLoading(false);
     }
   };
 
   /**
-   * RevenueCat abonelik durumunu kontrol eder
+   * Check subscription status
    */
   const checkSubscription = async () => {
     try {
-      const customerInfo = await Purchases.getCustomerInfo();
-
-      // Aktif abonelik kontrolü
-      const activeSubscription =
-        Object.values(customerInfo.entitlements.active).length > 0;
-
-      if (activeSubscription) {
-        setSubscription({
-          active: true,
-          expirationDate: customerInfo.latestExpirationDate,
-        });
-      } else {
-        setSubscription(null);
-      }
+      // For simplicity, we're using a mock subscription checker here
+      // In a real app, you would integrate with a service like RevenueCat
+      setSubscription(null);
     } catch (error) {
       console.error("Error checking subscription:", error);
     }
   };
 
   /**
-   * Kullanıcının bir işlem için yeterli tokeni olup olmadığını kontrol eder
-   * @param {number} cost - İşlem maliyeti
-   * @returns {boolean} - Yeterli token var mı
+   * Check if user has enough tokens for an operation
+   * @param {number} cost - Operation cost
+   * @returns {boolean} - Whether user has enough tokens
    */
   const hasEnoughTokens = (cost) => {
     if (!user) return false;
 
-    // Ücretsiz deneme kullanılabilirse izin ver
+    // Allow if free trial available
     if (!freeTrialUsed && cost === TOKEN_COSTS.DOCUMENT_ANALYSIS) {
       return true;
     }
 
-    // Aktif abonelik varsa her zaman izin ver
+    // Always allow if user has active subscription
     if (subscription?.active) {
       return true;
     }
@@ -162,11 +140,11 @@ export function TokenProvider({ children }) {
   };
 
   /**
-   * Bir işlem için token kullanır
-   * @param {number} cost - İşlem maliyeti
-   * @param {string} operationType - İşlem türü ('analysis', 'question', vb.)
-   * @param {string} documentId - İlgili belge ID'si (varsa)
-   * @returns {Promise<boolean>} - İşlem başarılı mı
+   * Use tokens for an operation
+   * @param {number} cost - Operation cost
+   * @param {string} operationType - Operation type ('analysis', 'question', etc.)
+   * @param {string} documentId - Related document ID (if any)
+   * @returns {Promise<boolean>} - Whether operation was successful
    */
   const useTokens = async (cost, operationType, documentId = null) => {
     if (!user) {
@@ -176,9 +154,9 @@ export function TokenProvider({ children }) {
     try {
       setLoading(true);
 
-      // Ücretsiz deneme kullanımı
+      // Free trial usage
       if (!freeTrialUsed && cost === TOKEN_COSTS.DOCUMENT_ANALYSIS) {
-        // Ücretsiz deneme durumunu güncelle
+        // Update free trial status
         const userRef = doc(FIRESTORE_DB, "users", user.uid);
         await updateDoc(userRef, {
           freeTrialUsed: true,
@@ -186,7 +164,7 @@ export function TokenProvider({ children }) {
 
         setFreeTrialUsed(true);
 
-        // Ücretsiz deneme kullanımını logla
+        // Log free trial usage
         await addDoc(collection(FIRESTORE_DB, "tokenHistory"), {
           userId: user.uid,
           amount: 0,
@@ -199,9 +177,9 @@ export function TokenProvider({ children }) {
         return true;
       }
 
-      // Aktif abonelik kontrolü
+      // Check for active subscription
       if (subscription?.active) {
-        // Abonelik ile kullanım, token düşürme yok sadece kayıt
+        // Log usage with subscription (no token deduction)
         await addDoc(collection(FIRESTORE_DB, "tokenHistory"), {
           userId: user.uid,
           amount: 0,
@@ -215,21 +193,21 @@ export function TokenProvider({ children }) {
         return true;
       }
 
-      // Yeterli token kontrolü
+      // Check if user has enough tokens
       if (tokens < cost) {
         throw new Error("Not enough tokens");
       }
 
-      // Token bakiyesini güncelle
+      // Update token balance
       const userRef = doc(FIRESTORE_DB, "users", user.uid);
       await updateDoc(userRef, {
         tokens: increment(-cost),
       });
 
-      // Yerel durumu güncelle
+      // Update local state
       setTokens((prevTokens) => prevTokens - cost);
 
-      // Token kullanımını logla
+      // Log token usage
       await addDoc(collection(FIRESTORE_DB, "tokenHistory"), {
         userId: user.uid,
         amount: -cost,
@@ -242,7 +220,6 @@ export function TokenProvider({ children }) {
       return true;
     } catch (error) {
       console.error("Error using tokens:", error);
-      showToast("error", error.message || "Failed to use tokens");
       throw error;
     } finally {
       setLoading(false);
@@ -250,91 +227,9 @@ export function TokenProvider({ children }) {
   };
 
   /**
-   * Token satın alma işlevselliği (RevenueCat ile)
-   * @param {string} packageId - Satın alınacak paket kimliği
-   * @returns {Promise<boolean>} - İşlem başarılı mı
-   */
-  const purchaseTokens = async (packageId) => {
-    if (!user) {
-      throw new Error("User not authenticated");
-    }
-
-    try {
-      setLoading(true);
-
-      // RevenueCat ile satın alma işlemi
-      const purchaseInfo = await Purchases.purchasePackage(packageId);
-
-      // Satın alma başarılı mı kontrol et
-      if (purchaseInfo?.customerInfo?.entitlements?.active) {
-        // Paket ID'ye göre token miktarını belirle
-        let tokensToAdd = 0;
-
-        switch (packageId) {
-          case PACKAGES.TOKENS_20:
-            tokensToAdd = 20;
-            break;
-          case PACKAGES.TOKENS_50:
-            tokensToAdd = 50;
-            break;
-          case PACKAGES.TOKENS_120:
-            tokensToAdd = 120;
-            break;
-          case PACKAGES.SUBSCRIPTION:
-            // Abonelik için aylık token eklemesi
-            tokensToAdd = 50;
-            await checkSubscription(); // Abonelik durumunu güncelle
-            break;
-        }
-
-        if (tokensToAdd > 0) {
-          // Token bakiyesini güncelle
-          const userRef = doc(FIRESTORE_DB, "users", user.uid);
-          await updateDoc(userRef, {
-            tokens: increment(tokensToAdd),
-          });
-
-          // Yerel durumu güncelle
-          setTokens((prevTokens) => prevTokens + tokensToAdd);
-
-          // Token eklemeyi logla
-          await addDoc(collection(FIRESTORE_DB, "tokenHistory"), {
-            userId: user.uid,
-            amount: tokensToAdd,
-            operationType: "purchase",
-            description: `Purchased ${tokensToAdd} tokens`,
-            timestamp: serverTimestamp(),
-          });
-        }
-
-        showToast("success", "Purchase successful");
-        return true;
-      } else {
-        throw new Error("Purchase failed or was cancelled");
-      }
-    } catch (error) {
-      console.error("Purchase error:", error);
-
-      // RevenueCat hatalarını yönet
-      if (error.userCancelled) {
-        showToast("info", "Purchase cancelled");
-      } else {
-        showToast(
-          "error",
-          "Purchase failed: " + (error.message || "Unknown error")
-        );
-      }
-
-      throw error;
-    } finally {
-      setLoading(false);
-    }
-  };
-
-  /**
-   * Token işlemi için açıklama döndürür
-   * @param {string} operationType - İşlem türü
-   * @returns {string} - İşlem açıklaması
+   * Get description for an operation type
+   * @param {string} operationType - Operation type
+   * @returns {string} - Operation description
    */
   const getOperationDescription = (operationType) => {
     switch (operationType) {
@@ -359,9 +254,9 @@ export function TokenProvider({ children }) {
         tokenHistory,
         hasEnoughTokens,
         useTokens,
-        purchaseTokens,
         refreshBalance: loadTokenBalance,
         refreshSubscription: checkSubscription,
+        TOKEN_COSTS,
       }}
     >
       {children}
@@ -369,7 +264,7 @@ export function TokenProvider({ children }) {
   );
 }
 
-// Token context'i hook'unu dışa aktar
+// Export the token context hook
 export function useTokens() {
   const context = useContext(TokenContext);
   if (!context) {

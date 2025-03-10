@@ -1,80 +1,111 @@
-// src/components/EmptyState.js
 import React from "react";
-import { View, StyleSheet } from "react-native";
-import { Ionicons } from "@expo/vector-icons";
-import { Text } from "./Text";
-import { Button } from "./Button";
-import { useTheme } from "../context/ThemeContext";
-import { useLocalization } from "../context/LocalizationContext";
+import { View, StyleSheet, Image } from "react-native";
+import Text from "./Text";
+import Button from "./Button";
 
 /**
- * EmptyState bileşeni
- * Veri olmadığı durumlarda görüntülenecek boş durum
+ * EmptyState Component
  *
- * @param {string} icon - İkon adı (Ionicons)
- * @param {string} title - Başlık metni
- * @param {string} description - Açıklama metni
- * @param {string} actionText - Eylem düğmesi metni
- * @param {function} onAction - Eylem düğmesi tıklama işleyicisi
- * @param {Object} style - Özel stil özellikleri
+ * @param {string} title - Title text
+ * @param {string} message - Description message
+ * @param {string|Object} image - Image source (require or URI)
+ * @param {string} actionLabel - Action button text
+ * @param {function} onAction - Action button press handler
+ * @param {string} variant - Style variant ('default', 'compact', 'minimal')
+ * @param {Object} style - Additional style overrides
  */
-export const EmptyState = ({
-  icon = "document-outline",
-  title = "No Data Yet",
-  description = "There's nothing to show here yet",
-  actionText,
+const EmptyState = ({
+  title,
+  message,
+  image,
+  actionLabel,
   onAction,
+  variant = "default",
   style,
+  ...props
 }) => {
-  const { theme } = useTheme();
-  const { t } = useLocalization();
+  // Default placeholder image if none provided
+  // const defaultImage = require("../assets/images/empty-state.png"); // You should create this asset
 
-  // Çeviri desteği
-  const translatedTitle =
-    title?.startsWith("common.") || title?.startsWith("empty.")
-      ? t(title)
-      : title;
+  // Determine variant styles
+  const getVariantStyles = () => {
+    switch (variant) {
+      case "compact":
+        return {
+          container: {
+            padding: 16,
+          },
+          image: {
+            width: 80,
+            height: 80,
+            marginBottom: 16,
+          },
+        };
+      case "minimal":
+        return {
+          container: {
+            padding: 12,
+          },
+          image: null, // No image for minimal variant
+        };
+      default:
+        return {
+          container: {
+            padding: 24,
+          },
+          image: {
+            width: 120,
+            height: 120,
+            marginBottom: 24,
+          },
+        };
+    }
+  };
 
-  const translatedDescription =
-    description?.startsWith("common.") || description?.startsWith("empty.")
-      ? t(description)
-      : description;
-
-  const translatedActionText =
-    actionText?.startsWith("common.") || actionText?.startsWith("button.")
-      ? t(actionText)
-      : actionText;
+  const variantStyles = getVariantStyles();
 
   return (
-    <View
-      style={[
-        styles.container,
-        { backgroundColor: theme.colors.surface },
-        style,
-      ]}
-    >
-      <View
-        style={[
-          styles.iconContainer,
-          { backgroundColor: theme.colors.primary + "15" }, // %15 opaklıkta primary rengi
-        ]}
+    <View style={[styles.container, variantStyles.container, style]} {...props}>
+      {/* Image (if variant includes image and image is provided) */}
+      {/* {variantStyles.image && image && (
+        <Image
+          source={
+            typeof image === "string" ? { uri: image } : image || defaultImage
+          }
+          style={[styles.image, variantStyles.image]}
+          resizeMode="contain"
+        />
+      )} */}
+
+      {/* Title */}
+      <Text
+        variant={variant === "minimal" ? "subtitle2" : "h3"}
+        align="center"
+        style={styles.title}
       >
-        <Ionicons name={icon} size={38} color={theme.colors.primary} />
-      </View>
-
-      <Text variant="h2" style={[styles.title, { color: theme.colors.text }]}>
-        {translatedTitle}
+        {title}
       </Text>
 
-      <Text style={[styles.description, { color: theme.colors.textSecondary }]}>
-        {translatedDescription}
-      </Text>
+      {/* Message */}
+      {message && (
+        <Text
+          variant="body2"
+          color="#64748B"
+          align="center"
+          style={styles.message}
+        >
+          {message}
+        </Text>
+      )}
 
-      {actionText && onAction && (
+      {/* Action Button */}
+      {actionLabel && onAction && (
         <Button
-          title={translatedActionText}
+          label={actionLabel}
           onPress={onAction}
-          style={styles.button}
+          variant="primary"
+          size={variant === "minimal" ? "small" : "medium"}
+          style={styles.action}
         />
       )}
     </View>
@@ -83,28 +114,24 @@ export const EmptyState = ({
 
 const styles = StyleSheet.create({
   container: {
-    padding: 24,
-    borderRadius: 16,
-    alignItems: "center",
-    margin: 16,
-  },
-  iconContainer: {
-    width: 72,
-    height: 72,
-    borderRadius: 36,
     alignItems: "center",
     justifyContent: "center",
-    marginBottom: 16,
+    borderRadius: 16,
+    backgroundColor: "#F8FAFC",
+  },
+  image: {
+    marginBottom: 24,
   },
   title: {
-    textAlign: "center",
+    marginBottom: 8,
   },
-  description: {
-    textAlign: "center",
-    marginBottom: 20,
-    maxWidth: "80%",
+  message: {
+    marginBottom: 24,
+    paddingHorizontal: 16,
   },
-  button: {
-    minWidth: 200,
+  action: {
+    minWidth: 140,
   },
 });
+
+export default EmptyState;

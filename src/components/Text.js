@@ -1,138 +1,121 @@
-// src/components/Text.js
 import React from "react";
 import { Text as RNText, StyleSheet } from "react-native";
-import { useTheme } from "../context/ThemeContext";
-import { useLocalization } from "../context/LocalizationContext";
 
 /**
- * Modern Text component with typography system and theme integration
+ * Text Component - Typography system
  *
- * @param {Node} children - Text content
- * @param {string} variant - Text variant (h1, h2, h3, h4, subtitle1, subtitle2, body1, body2, caption, overline)
- * @param {string} weight - Font weight (regular, medium, semibold, bold)
- * @param {string} color - Custom color value
- * @param {Object} style - Custom style properties
- * @param {boolean} translate - Whether to translate content
- * @param {string} i18nKey - Translation key (required if translate=true)
- * @param {boolean} centered - Whether text should be centered
- * @param {string} alignment - Text alignment (left, center, right, justified)
+ * @param {ReactNode} children - Text content
+ * @param {string} variant - Text style variant ('h1', 'h2', 'h3', 'subtitle1', 'body1', 'body2', 'caption')
+ * @param {string} weight - Font weight ('regular', 'medium', 'semibold', 'bold')
+ * @param {string} color - Text color (defaults to theme colors based on variant)
+ * @param {Object} style - Additional style overrides
+ * @param {string} align - Text alignment ('left', 'center', 'right')
  */
-export const Text = ({
+const Text = ({
   children,
   variant = "body1",
   weight,
   color,
   style,
-  translate = false,
-  i18nKey,
-  centered = false,
-  alignment,
+  align = "left",
   ...props
 }) => {
-  const { theme } = useTheme();
-  const { t } = useLocalization();
+  // Theme colors
+  const colors = {
+    // Dark text colors
+    heading: "#0F172A", // Slate 900
+    body: "#334155", // Slate 700
+    secondary: "#64748B", // Slate 500
+    muted: "#94A3B8", // Slate 400
 
-  // Translate content if requested
-  const content = translate && i18nKey ? t(i18nKey) : children;
+    // Brand/accent colors
+    primary: "#5D5FEF", // Primary brand
+    secondary: "#61DAFB", // Secondary brand
+    success: "#10B981", // Green
+    error: "#EF4444", // Red
+    warning: "#F59E0B", // Amber
+    info: "#3B82F6", // Blue
+  };
 
-  // If children is a string and starts with common., translate it
-  const finalContent =
-    typeof content === "string" && content.startsWith("common.")
-      ? t(content)
-      : content;
+  // Font weights
+  const fontWeights = {
+    regular: "400",
+    medium: "500",
+    semibold: "600",
+    bold: "700",
+  };
 
-  // Define variant styles with the typography system
-  const getVariantStyle = () => {
+  // Typography variants
+  const getTypographyStyles = () => {
     switch (variant) {
       case "h1":
         return {
-          fontSize: theme.typography.fontSize.xxxl,
-          fontWeight: theme.typography.fontWeight.bold,
-          lineHeight:
-            theme.typography.fontSize.xxxl * theme.typography.lineHeight.tight,
+          fontSize: 32,
+          lineHeight: 40,
+          fontWeight: fontWeights.bold,
+          color: colors.heading,
           letterSpacing: -0.5,
           marginVertical: 8,
         };
       case "h2":
         return {
-          fontSize: theme.typography.fontSize.xxl,
-          fontWeight: theme.typography.fontWeight.bold,
-          lineHeight:
-            theme.typography.fontSize.xxl * theme.typography.lineHeight.tight,
+          fontSize: 24,
+          lineHeight: 32,
+          fontWeight: fontWeights.bold,
+          color: colors.heading,
           letterSpacing: -0.3,
           marginVertical: 6,
         };
       case "h3":
         return {
-          fontSize: theme.typography.fontSize.xl,
-          fontWeight: theme.typography.fontWeight.semibold,
-          lineHeight:
-            theme.typography.fontSize.xl * theme.typography.lineHeight.tight,
+          fontSize: 20,
+          lineHeight: 28,
+          fontWeight: fontWeights.semibold,
+          color: colors.heading,
           letterSpacing: -0.2,
-          marginVertical: 4,
-        };
-      case "h4":
-        return {
-          fontSize: theme.typography.fontSize.lg,
-          fontWeight: theme.typography.fontWeight.semibold,
-          lineHeight:
-            theme.typography.fontSize.lg * theme.typography.lineHeight.tight,
-          letterSpacing: 0,
           marginVertical: 4,
         };
       case "subtitle1":
         return {
-          fontSize: theme.typography.fontSize.md,
-          fontWeight: theme.typography.fontWeight.medium,
-          lineHeight:
-            theme.typography.fontSize.md * theme.typography.lineHeight.normal,
-          letterSpacing: 0.1,
+          fontSize: 18,
+          lineHeight: 26,
+          fontWeight: fontWeights.semibold,
+          color: colors.heading,
         };
       case "subtitle2":
         return {
-          fontSize: theme.typography.fontSize.sm,
-          fontWeight: theme.typography.fontWeight.medium,
-          lineHeight:
-            theme.typography.fontSize.sm * theme.typography.lineHeight.normal,
-          letterSpacing: 0.1,
+          fontSize: 16,
+          lineHeight: 24,
+          fontWeight: fontWeights.medium,
+          color: colors.heading,
         };
       case "body1":
         return {
-          fontSize: theme.typography.fontSize.md,
-          fontWeight: theme.typography.fontWeight.regular,
-          lineHeight:
-            theme.typography.fontSize.md * theme.typography.lineHeight.relaxed,
+          fontSize: 16,
+          lineHeight: 24,
+          fontWeight: fontWeights.regular,
+          color: colors.body,
         };
       case "body2":
         return {
-          fontSize: theme.typography.fontSize.sm,
-          fontWeight: theme.typography.fontWeight.regular,
-          lineHeight:
-            theme.typography.fontSize.sm * theme.typography.lineHeight.relaxed,
+          fontSize: 14,
+          lineHeight: 20,
+          fontWeight: fontWeights.regular,
+          color: colors.body,
         };
       case "caption":
         return {
-          fontSize: theme.typography.fontSize.xs,
-          fontWeight: theme.typography.fontWeight.regular,
-          lineHeight:
-            theme.typography.fontSize.xs * theme.typography.lineHeight.normal,
-          letterSpacing: 0.4,
-        };
-      case "overline":
-        return {
-          fontSize: theme.typography.fontSize.xs,
-          fontWeight: theme.typography.fontWeight.medium,
-          lineHeight:
-            theme.typography.fontSize.xs * theme.typography.lineHeight.normal,
-          letterSpacing: 1.5,
-          textTransform: "uppercase",
+          fontSize: 12,
+          lineHeight: 16,
+          fontWeight: fontWeights.regular,
+          color: colors.secondary,
         };
       default:
         return {
-          fontSize: theme.typography.fontSize.md,
-          fontWeight: theme.typography.fontWeight.regular,
-          lineHeight:
-            theme.typography.fontSize.md * theme.typography.lineHeight.normal,
+          fontSize: 16,
+          lineHeight: 24,
+          fontWeight: fontWeights.regular,
+          color: colors.body,
         };
     }
   };
@@ -140,100 +123,23 @@ export const Text = ({
   // Get font weight if explicitly specified
   const getFontWeight = () => {
     if (!weight) return {};
-
-    switch (weight) {
-      case "regular":
-        return { fontWeight: theme.typography.fontWeight.regular };
-      case "medium":
-        return { fontWeight: theme.typography.fontWeight.medium };
-      case "semibold":
-        return { fontWeight: theme.typography.fontWeight.semibold };
-      case "bold":
-        return { fontWeight: theme.typography.fontWeight.bold };
-      default:
-        return {};
-    }
-  };
-
-  // Get text alignment
-  const getTextAlignment = () => {
-    if (centered) return { textAlign: "center" };
-    if (!alignment) return {};
-
-    return { textAlign: alignment };
-  };
-
-  // Get text color
-  const getTextColor = () => {
-    if (color) return { color };
-
-    // Default colors based on variant
-    switch (variant) {
-      case "h1":
-      case "h2":
-      case "h3":
-      case "h4":
-        return { color: theme.colors.text };
-      case "subtitle1":
-      case "subtitle2":
-        return { color: theme.colors.text };
-      case "body1":
-      case "body2":
-        return { color: theme.colors.text };
-      case "caption":
-      case "overline":
-        return { color: theme.colors.textSecondary };
-      default:
-        return { color: theme.colors.text };
-    }
+    return { fontWeight: fontWeights[weight] || fontWeights.regular };
   };
 
   return (
     <RNText
       style={[
-        styles.base,
-        getVariantStyle(),
+        getTypographyStyles(),
         getFontWeight(),
-        getTextColor(),
-        getTextAlignment(),
+        { textAlign: align },
+        color && { color },
         style,
       ]}
       {...props}
     >
-      {finalContent}
+      {children}
     </RNText>
   );
 };
 
-const styles = StyleSheet.create({
-  base: {
-    fontSize: 16,
-  },
-  h1: {
-    fontSize: 28,
-    fontWeight: "700",
-    marginBottom: 12,
-  },
-  h2: {
-    fontSize: 24,
-    fontWeight: "700",
-    marginBottom: 8,
-  },
-  h3: {
-    fontSize: 20,
-    fontWeight: "600",
-    marginBottom: 6,
-  },
-  body: {
-    fontSize: 16,
-    lineHeight: 24,
-  },
-  caption: {
-    fontSize: 14,
-    lineHeight: 20,
-  },
-  small: {
-    fontSize: 12,
-    lineHeight: 16,
-  },
-});
+export default Text;

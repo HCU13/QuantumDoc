@@ -1,5 +1,4 @@
-// src/components/ModernInput.js
-import React, { useState, useEffect } from "react";
+import React, { useState } from "react";
 import {
   View,
   TextInput,
@@ -7,206 +6,200 @@ import {
   StyleSheet,
   TouchableOpacity,
   Animated,
-  Pressable,
 } from "react-native";
-import { Ionicons } from "@expo/vector-icons";
-import { useTheme } from "../context/ThemeContext";
-import { useLocalization } from "../context/LocalizationContext";
 
 /**
- * Modern, kompakt ve minimal input bileşeni
+ * Input Component
+ *
+ * @param {string} label - Input label
+ * @param {string} value - Input value
+ * @param {function} onChangeText - Text change handler
+ * @param {string} placeholder - Placeholder text
+ * @param {boolean} error - Whether input has error
+ * @param {string} errorText - Error message to display
+ * @param {boolean} secureTextEntry - For password input
+ * @param {JSX.Element} leftIcon - Icon to display on the left
+ * @param {JSX.Element} rightIcon - Icon to display on the right
+ * @param {function} onRightIconPress - Handler for right icon press
+ * @param {Object} style - Additional styles for container
+ * @param {Object} inputStyle - Additional styles for input
  */
-export const Input = ({
+const Input = ({
   label,
-  value = "",
+  value,
   onChangeText,
-  placeholder = "",
+  placeholder,
+  error = false,
+  errorText,
   secureTextEntry = false,
-  error,
-  style,
-  icon,
+  leftIcon,
   rightIcon,
   onRightIconPress,
+  style,
+  inputStyle,
   ...props
 }) => {
-  const { theme } = useTheme();
-  const { t } = useLocalization();
   const [isFocused, setIsFocused] = useState(false);
   const [showPassword, setShowPassword] = useState(false);
-  
-  // Focus yönetimi
+
+  // Handle focus and blur events
   const handleFocus = () => setIsFocused(true);
   const handleBlur = () => setIsFocused(false);
-  
-  // Şifre görünürlüğü
+
+  // Toggle password visibility
   const togglePasswordVisibility = () => setShowPassword(!showPassword);
 
-  // Çeviri desteği
-  const translatedPlaceholder =
-    placeholder?.startsWith("common.") || placeholder?.startsWith("input.")
-      ? t(placeholder)
-      : placeholder;
-  
-  const translatedError =
-    error?.startsWith("error.") || error?.startsWith("validation.")
-      ? t(error)
-      : error;
-      
-  // Sol icon render
-  const renderLeftIcon = () => {
-    if (!icon) return null;
-    
-    return (
-      <View style={styles.leftIconContainer}>
-        <Ionicons
-          name={icon}
-          size={16}
-          color={isFocused ? theme.colors.primary : theme.colors.textSecondary}
-        />
-      </View>
-    );
-  };
-  
-  // Sağ icon render (şifre görünürlük veya özel)
-  const renderRightIcon = () => {
-    if (secureTextEntry) {
-      return (
-        <TouchableOpacity
-          onPress={togglePasswordVisibility}
-          style={styles.rightIconContainer}
-        >
-          <Ionicons
-            name={showPassword ? "eye-off-outline" : "eye-outline"}
-            size={16}
-            color={theme.colors.textSecondary}
-          />
-        </TouchableOpacity>
-      );
-    }
-
-    if (rightIcon) {
-      return (
-        <TouchableOpacity
-          onPress={onRightIconPress}
-          style={styles.rightIconContainer}
-        >
-          <Ionicons
-            name={rightIcon}
-            size={16}
-            color={theme.colors.textSecondary}
-          />
-        </TouchableOpacity>
-      );
-    }
-
-    return null;
-  };
-
-  // Border ve background rengi
-  const getInputContainerStyle = () => {
-    return {
-      backgroundColor: theme.colors.surface + "80",
-      borderWidth: 1,
-      borderColor: isFocused 
-        ? theme.colors.primary 
-        : error 
-        ? theme.colors.error 
-        : theme.colors.border,
-      borderRadius: 8,
-    };
+  // Determine border color based on state
+  const getBorderColor = () => {
+    if (error) return "#EF4444"; // Error color
+    if (isFocused) return "#5D5FEF"; // Primary color
+    return "#E2E8F0"; // Default border
   };
 
   return (
     <View style={[styles.container, style]}>
       {/* Label */}
       {label && (
-        <Text 
-          style={[
-            styles.label, 
-            { 
-              color: isFocused 
-                ? theme.colors.primary 
-                : error 
-                ? theme.colors.error 
-                : theme.colors.textSecondary 
-            }
-          ]}
-        >
-          {label}
-        </Text>
+        <Text style={[styles.label, error && styles.errorLabel]}>{label}</Text>
       )}
-      
+
       {/* Input Container */}
-      <View style={[styles.inputContainer, getInputContainerStyle()]}>
-        {renderLeftIcon()}
-        
+      <View
+        style={[
+          styles.inputContainer,
+          {
+            borderColor: getBorderColor(),
+            backgroundColor: isFocused ? "#FFFFFF" : "#F8FAFC",
+          },
+          error && styles.errorInput,
+        ]}
+      >
+        {/* Left Icon */}
+        {leftIcon && <View style={styles.leftIconContainer}>{leftIcon}</View>}
+
+        {/* Text Input */}
         <TextInput
           style={[
             styles.input,
-            { color: theme.colors.text }
+            leftIcon && styles.inputWithLeftIcon,
+            (rightIcon || secureTextEntry) && styles.inputWithRightIcon,
+            inputStyle,
           ]}
           value={value}
           onChangeText={onChangeText}
-          placeholder={translatedPlaceholder}
-          placeholderTextColor={theme.colors.textSecondary + "99"}
+          placeholder={placeholder}
+          placeholderTextColor="#94A3B8"
           secureTextEntry={secureTextEntry && !showPassword}
           onFocus={handleFocus}
           onBlur={handleBlur}
-          selectionColor={theme.colors.primary}
           {...props}
         />
-        
-        {renderRightIcon()}
+
+        {/* Right Icon or Password Toggle */}
+        {secureTextEntry ? (
+          <TouchableOpacity
+            style={styles.rightIconContainer}
+            onPress={togglePasswordVisibility}
+          >
+            {showPassword ? (
+              <EyeOffIcon color="#94A3B8" />
+            ) : (
+              <EyeIcon color="#94A3B8" />
+            )}
+          </TouchableOpacity>
+        ) : (
+          rightIcon && (
+            <TouchableOpacity
+              style={styles.rightIconContainer}
+              onPress={onRightIconPress}
+            >
+              {rightIcon}
+            </TouchableOpacity>
+          )
+        )}
       </View>
-      
-      {/* Error message */}
-      {error && (
-        <Text style={[styles.errorText, { color: theme.colors.error }]}>
-          {translatedError}
-        </Text>
-      )}
+
+      {/* Error Message */}
+      {error && errorText && <Text style={styles.errorText}>{errorText}</Text>}
     </View>
   );
 };
 
+// Simple icon components for password visibility
+const EyeIcon = ({ color }) => (
+  <View
+    style={{
+      width: 24,
+      height: 24,
+      alignItems: "center",
+      justifyContent: "center",
+    }}
+  >
+    <Text style={{ color }}>👁️</Text>
+  </View>
+);
+
+const EyeOffIcon = ({ color }) => (
+  <View
+    style={{
+      width: 24,
+      height: 24,
+      alignItems: "center",
+      justifyContent: "center",
+    }}
+  >
+    <Text style={{ color }}>👁️‍🗨️</Text>
+  </View>
+);
+
 const styles = StyleSheet.create({
   container: {
-    marginBottom: 12,
+    marginBottom: 16,
   },
   label: {
-    fontSize: 13,
+    fontSize: 14,
     fontWeight: "500",
-    marginBottom: 4,
-    marginLeft: 2,
+    marginBottom: 6,
+    color: "#334155",
+  },
+  errorLabel: {
+    color: "#EF4444",
   },
   inputContainer: {
     flexDirection: "row",
     alignItems: "center",
-    height: 42,
-    overflow: "hidden",
+    borderWidth: 1.5,
+    borderRadius: 12,
+    paddingVertical: 8,
+    paddingHorizontal: 12,
+    backgroundColor: "#F8FAFC",
+  },
+  errorInput: {
+    borderColor: "#EF4444",
   },
   input: {
     flex: 1,
-    height: "100%",
-    fontSize: 14,
-    paddingVertical: 0,
-    paddingHorizontal: 0,
+    height: 24,
+    fontSize: 16,
+    color: "#0F172A",
+  },
+  inputWithLeftIcon: {
+    paddingLeft: 8,
+  },
+  inputWithRightIcon: {
+    paddingRight: 8,
   },
   leftIconContainer: {
-    paddingHorizontal: 10,
-    height: "100%",
-    justifyContent: "center",
-    alignItems: "center",
+    marginRight: 8,
   },
   rightIconContainer: {
-    paddingHorizontal: 10,
-    height: "100%",
-    justifyContent: "center",
-    alignItems: "center",
+    marginLeft: 8,
   },
   errorText: {
-    fontSize: 11,
-    marginTop: 2,
-    marginLeft: 2,
-  }
+    color: "#EF4444",
+    fontSize: 12,
+    marginTop: 4,
+  },
 });
+
+export default Input;

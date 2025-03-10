@@ -1,108 +1,69 @@
-// src/components/DocumentItem.js
 import React from "react";
-import {
-  View,
-  StyleSheet,
-  TouchableOpacity,
-  Animated,
-  Pressable,
-} from "react-native";
-import { Ionicons } from "@expo/vector-icons";
-import { Text } from "./Text";
-import { Card } from "./Card";
-import { useTheme } from "../context/ThemeContext";
-import { LinearGradient } from "expo-linear-gradient";
+import { View, StyleSheet, TouchableOpacity, Image } from "react-native";
+import Text from "./Text";
+import Badge from "./Badge";
+import Card from "./Card";
 
 /**
- * Modern DocumentItem component for document listings
+ * DocumentItem Component - For displaying document in lists
  *
- * @param {Object} document - Document object
+ * @param {Object} document - Document object with properties
  * @param {function} onPress - Press handler
- * @param {Object} style - Custom style properties
  * @param {boolean} compact - Whether to use compact mode
- * @param {boolean} showAnalysisTag - Whether to show analysis tag
+ * @param {Object} style - Additional style overrides
  */
-export const DocumentItem = ({
+const DocumentItem = ({
   document,
   onPress,
-  style,
   compact = false,
-  showAnalysisTag = true,
+  style,
+  ...props
 }) => {
-  const { theme, isDark } = useTheme();
-  const pressAnim = React.useRef(new Animated.Value(0)).current;
-
-  // Handle press animations
-  const handlePressIn = () => {
-    Animated.timing(pressAnim, {
-      toValue: 1,
-      duration: 150,
-      useNativeDriver: true,
-    }).start();
+  // Constants for colors based on file type
+  const FILE_COLORS = {
+    pdf: "#EF4444", // Red
+    image: "#3B82F6", // Blue
+    doc: "#8B5CF6", // Purple
+    txt: "#6B7280", // Gray
+    default: "#5D5FEF", // Primary
   };
 
-  const handlePressOut = () => {
-    Animated.timing(pressAnim, {
-      toValue: 0,
-      duration: 200,
-      useNativeDriver: true,
-    }).start();
-  };
-
-  const scaleInterpolation = pressAnim.interpolate({
-    inputRange: [0, 1],
-    outputRange: [1, 0.98],
-  });
-
-  // Get document icon based on type
-  const getDocumentIcon = () => {
-    const type = document.type?.toLowerCase() || "";
-    const name = document.name?.toLowerCase() || "";
-
-    if (type.includes("pdf")) return "document-text";
-    if (type.includes("image")) return "image";
-    if (type.includes("word") || type.includes("doc")) return "document";
-    if (name.includes("invoice") || name.includes("receipt")) return "receipt";
-    if (name.includes("report")) return "analytics";
-    if (name.includes("presentation") || name.includes("slide")) return "easel";
-    if (name.includes("spreadsheet") || name.includes("excel")) return "grid";
-
-    return "document-outline";
-  };
-
-  // Get icon background color based on document type
-  const getIconColor = () => {
+  // Get color based on file type
+  const getFileColor = () => {
     const type = document.type?.toLowerCase() || "";
 
-    if (type.includes("pdf")) {
-      return {
-        icon: "#F87171",
-        bg: "#F8717130",
-      };
-    }
-    if (type.includes("image")) {
-      return {
-        icon: "#60A5FA",
-        bg: "#60A5FA30",
-      };
-    }
-    if (type.includes("word") || type.includes("doc")) {
-      return {
-        icon: "#818CF8",
-        bg: "#818CF830",
-      };
-    }
-    if (type.includes("excel") || type.includes("spreadsheet")) {
-      return {
-        icon: "#34D399",
-        bg: "#34D39930",
-      };
-    }
+    if (type.includes("pdf")) return FILE_COLORS.pdf;
+    if (type.includes("image")) return FILE_COLORS.image;
+    if (type.includes("doc")) return FILE_COLORS.doc;
+    if (type.includes("text") || type.includes("txt")) return FILE_COLORS.txt;
 
-    return {
-      icon: theme.colors.primary,
-      bg: `${theme.colors.primary}30`,
-    };
+    return FILE_COLORS.default;
+  };
+
+  // Get file type display name
+  const getFileType = () => {
+    const type = document.type?.toLowerCase() || "";
+
+    if (type.includes("pdf")) return "PDF";
+    if (type.includes("jpg") || type.includes("jpeg")) return "JPG";
+    if (type.includes("png")) return "PNG";
+    if (type.includes("docx")) return "DOCX";
+    if (type.includes("doc")) return "DOC";
+    if (type.includes("text") || type.includes("txt")) return "TXT";
+
+    return "DOC";
+  };
+
+  // Get file icon
+  const getFileIcon = () => {
+    const type = document.type?.toLowerCase() || "";
+
+    if (type.includes("pdf")) return "📄";
+    if (type.includes("image")) return "🖼️";
+    if (type.includes("doc")) return "📝";
+    if (type.includes("text") || type.includes("txt")) return "📃";
+
+    return "📄";
   };
 
   // Format file size
@@ -123,16 +84,11 @@ export const DocumentItem = ({
     const diffTime = Math.abs(now - date);
     const diffDays = Math.floor(diffTime / (1000 * 60 * 60 * 24));
 
-    // Today or recent dates
-    if (diffDays === 0) {
-      return "Today";
-    } else if (diffDays === 1) {
-      return "Yesterday";
-    } else if (diffDays < 7) {
-      return `${diffDays} days ago`;
-    }
+    if (diffDays === 0) return "Today";
+    if (diffDays === 1) return "Yesterday";
+    if (diffDays < 7) return `${diffDays} days ago`;
 
-    // Older dates
+    // For older dates
     return date.toLocaleDateString(undefined, {
       month: "short",
       day: "numeric",
@@ -140,175 +96,158 @@ export const DocumentItem = ({
     });
   };
 
-  const iconColors = getIconColor();
-
-  // Determine document status color and text
+  // Get status info
   const getStatusInfo = () => {
     switch (document.status) {
       case "analyzed":
         return {
-          color: theme.colors.success,
-          text: "Analyzed",
-          icon: "checkmark-circle",
-          bg: `${theme.colors.success}20`,
+          label: "Analyzed",
+          variant: "success",
         };
       case "analyzing":
         return {
-          color: theme.colors.warning,
-          text: "Analyzing",
-          icon: "time",
-          bg: `${theme.colors.warning}20`,
+          label: "Analyzing",
+          variant: "warning",
         };
       case "analysis_failed":
         return {
-          color: theme.colors.error,
-          text: "Failed",
-          icon: "alert-circle",
-          bg: `${theme.colors.error}20`,
+          label: "Failed",
+          variant: "error",
         };
       default:
         return {
-          color: theme.colors.info,
-          text: "Uploaded",
-          icon: "cloud-done",
-          bg: `${theme.colors.info}20`,
+          label: "Uploaded",
+          variant: "info",
         };
     }
   };
 
+  const fileColor = getFileColor();
   const statusInfo = getStatusInfo();
 
-  return (
-    <Pressable
-      onPress={onPress}
-      onPressIn={handlePressIn}
-      onPressOut={handlePressOut}
-      style={[styles.container, style]}
-    >
-      <Animated.View
-        style={[
-          styles.itemContainer,
-          { transform: [{ scale: scaleInterpolation }] },
-        ]}
+  // Compact view
+  if (compact) {
+    return (
+      <Card
+        variant="outlined"
+        onPress={onPress}
+        style={[styles.compactCard, style]}
+        {...props}
       >
-        <Card
-          style={[
-            styles.card,
-            {
-              padding: compact ? 12 : 16,
-              backgroundColor: theme.colors.card,
-            },
-          ]}
-          elevated={false}
-        >
-          <View style={styles.content}>
-            {/* Document icon */}
-            <View
-              style={[
-                styles.iconContainer,
-                {
-                  backgroundColor: iconColors.bg,
-                  width: compact ? 40 : 48,
-                  height: compact ? 40 : 48,
-                },
-              ]}
-            >
-              <Ionicons
-                name={getDocumentIcon()}
-                size={compact ? 20 : 24}
-                color={iconColors.icon}
-              />
-            </View>
-
-            {/* Document details */}
-            <View style={styles.details}>
-              <Text
-                variant={compact ? "subtitle1" : "subtitle1"}
-                style={styles.title}
-                numberOfLines={1}
-              >
-                {document.name || "Untitled Document"}
-              </Text>
-
-              <View style={styles.metadataContainer}>
-                {/* File type pill */}
-                <View
-                  style={[
-                    styles.typePill,
-                    {
-                      backgroundColor: isDark
-                        ? theme.colors.surface
-                        : theme.colors.border + "40",
-                    },
-                  ]}
-                >
-                  <Text variant="caption" style={styles.typeText}>
-                    {document.type?.split("/")[1]?.toUpperCase() || "DOC"}
-                  </Text>
-                </View>
-
-                <Text
-                  variant="caption"
-                  color={theme.colors.textSecondary}
-                  style={styles.metadata}
-                >
-                  {formatFileSize(document.size)} •{" "}
-                  {formatDate(document.createdAt)}
-                </Text>
-              </View>
-            </View>
-
-            <Ionicons
-              name="chevron-forward"
-              size={compact ? 18 : 20}
-              color={theme.colors.textSecondary}
-            />
+        <View style={styles.compactContent}>
+          {/* Icon */}
+          <View
+            style={[styles.compactIcon, { backgroundColor: `${fileColor}15` }]}
+          >
+            <Text style={{ fontSize: 20 }}>{getFileIcon()}</Text>
           </View>
 
-          {/* Status badge */}
-          {showAnalysisTag && document.status && (
-            <View style={[styles.badge, { backgroundColor: statusInfo.bg }]}>
-              <Ionicons
-                name={statusInfo.icon}
-                size={12}
-                color={statusInfo.color}
-                style={styles.badgeIcon}
+          {/* Details */}
+          <View style={styles.compactDetails}>
+            <Text
+              variant="subtitle2"
+              numberOfLines={1}
+              style={styles.compactTitle}
+            >
+              {document.name || "Untitled Document"}
+            </Text>
+
+            <View style={styles.compactMeta}>
+              <Badge
+                label={getFileType()}
+                variant="primary"
+                size="small"
+                style={styles.compactBadge}
               />
-              <Text
-                variant="caption"
-                style={[styles.badgeText, { color: statusInfo.color }]}
-              >
-                {statusInfo.text}
+
+              <Text variant="caption" color="#64748B">
+                {formatDate(document.createdAt)}
               </Text>
             </View>
+          </View>
+        </View>
+      </Card>
+    );
+  }
+
+  // Full view
+  return (
+    <Card onPress={onPress} style={[styles.card, style]} {...props}>
+      <View style={styles.content}>
+        {/* Left side - Icon or Image */}
+        {document.type?.includes("image") && document.downloadUrl ? (
+          <Image
+            source={{ uri: document.downloadUrl }}
+            style={styles.documentImage}
+            resizeMode="cover"
+          />
+        ) : (
+          <View
+            style={[
+              styles.iconContainer,
+              { backgroundColor: `${fileColor}15` },
+            ]}
+          >
+            <Text style={{ fontSize: 32 }}>{getFileIcon()}</Text>
+          </View>
+        )}
+
+        {/* Middle - Document Details */}
+        <View style={styles.details}>
+          <Text variant="subtitle1" numberOfLines={1} style={styles.title}>
+            {document.name || "Untitled Document"}
+          </Text>
+
+          <View style={styles.metaData}>
+            <Badge
+              label={getFileType()}
+              variant="primary"
+              size="small"
+              style={styles.badge}
+            />
+
+            <Text variant="caption" color="#64748B" style={styles.metaText}>
+              {formatFileSize(document.size)} • {formatDate(document.createdAt)}
+            </Text>
+          </View>
+
+          {/* Status Badge */}
+          {document.status && (
+            <Badge
+              label={statusInfo.label}
+              variant={statusInfo.variant}
+              size="small"
+              style={styles.statusBadge}
+            />
           )}
-        </Card>
-      </Animated.View>
-    </Pressable>
+        </View>
+      </View>
+    </Card>
   );
 };
 
 const styles = StyleSheet.create({
-  container: {
-    marginVertical: 6,
-    marginHorizontal: 16,
-  },
-  itemContainer: {
-    overflow: "hidden",
-  },
   card: {
-    overflow: "hidden",
-    borderRadius: 16,
+    marginVertical: 8,
+    padding: 16,
   },
   content: {
     flexDirection: "row",
     alignItems: "center",
   },
   iconContainer: {
+    width: 64,
+    height: 64,
     borderRadius: 12,
     alignItems: "center",
     justifyContent: "center",
-    marginRight: 12,
+    marginRight: 16,
+  },
+  documentImage: {
+    width: 64,
+    height: 64,
+    borderRadius: 12,
+    marginRight: 16,
   },
   details: {
     flex: 1,
@@ -316,39 +255,52 @@ const styles = StyleSheet.create({
   title: {
     marginBottom: 4,
   },
-  metadataContainer: {
+  metaData: {
     flexDirection: "row",
     alignItems: "center",
     flexWrap: "wrap",
-  },
-  typePill: {
-    paddingHorizontal: 6,
-    paddingVertical: 2,
-    borderRadius: 4,
-    marginRight: 6,
-  },
-  typeText: {
-    fontSize: 10,
-    fontWeight: "600",
-  },
-  metadata: {
-    fontSize: 12,
+    marginBottom: 8,
   },
   badge: {
-    position: "absolute",
-    top: 8,
-    right: 8,
+    marginRight: 8,
+  },
+  metaText: {
+    marginRight: 8,
+  },
+  statusBadge: {
+    marginTop: 4,
+  },
+
+  // Compact styles
+  compactCard: {
+    marginVertical: 4,
+    padding: 12,
+  },
+  compactContent: {
     flexDirection: "row",
     alignItems: "center",
-    paddingHorizontal: 8,
-    paddingVertical: 4,
-    borderRadius: 12,
   },
-  badgeIcon: {
-    marginRight: 4,
+  compactIcon: {
+    width: 40,
+    height: 40,
+    borderRadius: 8,
+    alignItems: "center",
+    justifyContent: "center",
+    marginRight: 12,
   },
-  badgeText: {
-    fontSize: 11,
-    fontWeight: "600",
+  compactDetails: {
+    flex: 1,
+  },
+  compactTitle: {
+    marginBottom: 4,
+  },
+  compactMeta: {
+    flexDirection: "row",
+    alignItems: "center",
+  },
+  compactBadge: {
+    marginRight: 8,
   },
 });
+
+export default DocumentItem;

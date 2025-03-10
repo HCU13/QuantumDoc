@@ -1,5 +1,4 @@
-// src/screens/main/ProfileScreen.js
-import React, { useState, useEffect } from "react";
+import React, { useState, useEffect, useRef } from "react";
 import {
   View,
   StyleSheet,
@@ -8,7 +7,6 @@ import {
   ScrollView,
   Alert,
   Modal,
-  SafeAreaView,
   Linking,
   StatusBar,
   Animated,
@@ -24,14 +22,15 @@ import {
   useLocalization,
   SUPPORTED_LANGUAGES,
 } from "../../context/LocalizationContext";
-import { Text } from "../../components/Text";
-import { Card } from "../../components/Card";
-import { Avatar } from "../../components/Avatar";
-import { Button } from "../../components/Button";
-import { Loading } from "../../components/Loading";
-import { Badge } from "../../components/Badge";
-// import { logoutUser } from "../../utils/revenuecat";
-
+import {
+  Loading,
+  Badge,
+  Card,
+  Text,
+  Button,
+  Avatar,
+  Divider,
+} from "../../components";
 const ProfileScreen = ({ navigation }) => {
   const { theme, toggleTheme, isDark } = useTheme();
   const { user, signOut, loading } = useAuth();
@@ -40,10 +39,13 @@ const ProfileScreen = ({ navigation }) => {
     useLocalization();
 
   const [languageModalVisible, setLanguageModalVisible] = useState(false);
+  const [activeSection, setActiveSection] = useState(null);
 
   // Animations
-  const fadeAnim = React.useRef(new Animated.Value(0)).current;
-  const slideAnim = React.useRef(new Animated.Value(30)).current;
+  const fadeAnim = useRef(new Animated.Value(0)).current;
+  const headerFadeAnim = useRef(new Animated.Value(0)).current;
+  const slideAnim = useRef(new Animated.Value(30)).current;
+  const scrollY = useRef(new Animated.Value(0)).current;
 
   useEffect(() => {
     // Start entrance animations
@@ -53,6 +55,11 @@ const ProfileScreen = ({ navigation }) => {
         duration: 600,
         useNativeDriver: true,
       }),
+      Animated.timing(headerFadeAnim, {
+        toValue: 1,
+        duration: 800,
+        useNativeDriver: true,
+      }),
       Animated.timing(slideAnim, {
         toValue: 0,
         duration: 600,
@@ -60,6 +67,37 @@ const ProfileScreen = ({ navigation }) => {
       }),
     ]).start();
   }, []);
+
+  // Header animations based on scroll
+  const headerHeight = scrollY.interpolate({
+    inputRange: [0, 120],
+    outputRange: [180, 90],
+    extrapolate: "clamp",
+  });
+
+  const avatarSize = scrollY.interpolate({
+    inputRange: [0, 120],
+    outputRange: [80, 45],
+    extrapolate: "clamp",
+  });
+
+  const headerPadding = scrollY.interpolate({
+    inputRange: [0, 120],
+    outputRange: [24, 12],
+    extrapolate: "clamp",
+  });
+
+  const opacityHeader = scrollY.interpolate({
+    inputRange: [0, 80, 120],
+    outputRange: [1, 0.8, 0],
+    extrapolate: "clamp",
+  });
+
+  const opacityCompactHeader = scrollY.interpolate({
+    inputRange: [80, 120],
+    outputRange: [0, 1],
+    extrapolate: "clamp",
+  });
 
   // Sign out
   const handleSignOut = () => {
@@ -72,9 +110,6 @@ const ProfileScreen = ({ navigation }) => {
         text: t("profile.signOut"),
         onPress: async () => {
           try {
-            // Log out from RevenueCat
-            await logoutUser();
-            // Log out from Firebase
             await signOut();
           } catch (error) {
             console.error("Sign out error:", error);
@@ -84,9 +119,14 @@ const ProfileScreen = ({ navigation }) => {
     ]);
   };
 
-  // Open help link
-  const openHelpLink = () => {
-    Linking.openURL("https://www.docai.app/help");
+  // Open about page
+  const openAboutPage = () => {
+    navigation.navigate("About");
+  };
+
+  // Open help and support page
+  const openHelpAndSupport = () => {
+    navigation.navigate("Help");
   };
 
   // Change language
@@ -126,7 +166,7 @@ const ProfileScreen = ({ navigation }) => {
               {currentLanguage === lang.code && (
                 <Ionicons
                   name="checkmark"
-                  size={24}
+                  size={22}
                   color={theme.colors.primary}
                 />
               )}
@@ -144,8 +184,17 @@ const ProfileScreen = ({ navigation }) => {
     </Modal>
   );
 
+  // Section handler
+  const toggleSection = (section) => {
+    if (activeSection === section) {
+      setActiveSection(null);
+    } else {
+      setActiveSection(section);
+    }
+  };
+
   return (
-    <SafeAreaView
+    <View
       style={{
         flex: 1,
         backgroundColor: theme.colors.background,
@@ -158,52 +207,88 @@ const ProfileScreen = ({ navigation }) => {
         translucent
       />
 
-      <ScrollView style={styles.container} showsVerticalScrollIndicator={false}>
-        {/* Header */}
-        <Animated.View
-          style={[
-            styles.header,
-            {
-              opacity: fadeAnim,
-            },
-          ]}
+      {/* Animated header */}
+      <Animated.View
+        style={[
+          styles.header,
+          {
+            height: headerHeight,
+            paddingTop: Platform.OS === "android" ? StatusBar.currentHeight : 0,
+          },
+        ]}
+      >
+        <LinearGradient
+          colors={
+            isDark
+              ? [theme.colors.primary + "80", theme.colors.background]
+              : [theme.colors.primary + "40", theme.colors.background]
+          }
+          style={styles.headerGradient}
         >
-          <LinearGradient
-            colors={
-              isDark
-                ? [theme.colors.primary + "30", theme.colors.background]
-                : [theme.colors.primary + "15", theme.colors.background]
-            }
-            style={styles.headerGradient}
+          {/* Full header (visible when not scrolled) */}
+          <Animated.View
+            style={[
+              styles.headerContent,
+              {
+                opacity: opacityHeader,
+                paddingHorizontal: headerPadding,
+              },
+            ]}
           >
-            <Text variant="h2" style={styles.headerTitle}>
+            <Avatar
+              source={user?.photoURL}
+              size={avatarSize}
+              name={user?.displayName || "User"}
+              style={styles.avatar}
+            />
+            <View style={styles.userInfo}>
+              <Text variant="h3" style={styles.userName}>
+                {user?.displayName || "User"}
+              </Text>
+              <Text variant="body2" color={theme.colors.textSecondary}>
+                {user?.email}
+              </Text>
+            </View>
+          </Animated.View>
+
+          {/* Compact header (visible when scrolled) */}
+          <Animated.View
+            style={[styles.compactHeader, { opacity: opacityCompactHeader }]}
+          >
+            <Text variant="h3" style={styles.compactTitle}>
               {t("profile.myProfile")}
             </Text>
-          </LinearGradient>
-        </Animated.View>
+            <Avatar
+              source={user?.photoURL}
+              size={40}
+              name={user?.displayName || "User"}
+            />
+          </Animated.View>
+        </LinearGradient>
+      </Animated.View>
 
-        {/* Profile Card */}
+      <ScrollView
+        style={styles.container}
+        showsVerticalScrollIndicator={false}
+        contentContainerStyle={styles.scrollContent}
+        onScroll={Animated.event(
+          [{ nativeEvent: { contentOffset: { y: scrollY } } }],
+          { useNativeDriver: true } // Change this to true
+        )}
+        scrollEventThrottle={16}
+      >
+        {/* Token Balance Card */}
         <Animated.View
           style={[
+            styles.cardContainer,
             {
               opacity: fadeAnim,
               transform: [{ translateY: slideAnim }],
+              marginTop: 10,
             },
           ]}
         >
-          <Card style={styles.profileCard} elevated={true}>
-            <View style={styles.profileHeader}>
-              <Avatar source={user?.photoURL} size={80} style={styles.avatar} />
-              <View style={styles.profileInfo}>
-                <Text variant="h3" style={styles.profileName}>
-                  {user?.displayName || "User"}
-                </Text>
-                <Text variant="body2" color={theme.colors.textSecondary}>
-                  {user?.email}
-                </Text>
-              </View>
-            </View>
-
+          <Card style={styles.tokenCard} elevated={true}>
             <View style={styles.tokenInfo}>
               <View style={styles.tokenDisplay}>
                 <View
@@ -260,6 +345,7 @@ const ProfileScreen = ({ navigation }) => {
         {/* Settings Card */}
         <Animated.View
           style={[
+            styles.cardContainer,
             {
               opacity: fadeAnim,
               transform: [{ translateY: slideAnim }],
@@ -274,6 +360,8 @@ const ProfileScreen = ({ navigation }) => {
             >
               {t("profile.accountSettings")}
             </Text>
+
+            <Divider />
 
             {/* Language Setting */}
             <TouchableOpacity
@@ -407,6 +495,7 @@ const ProfileScreen = ({ navigation }) => {
         {/* Support and About Card */}
         <Animated.View
           style={[
+            styles.cardContainer,
             {
               opacity: fadeAnim,
               transform: [{ translateY: slideAnim }],
@@ -419,7 +508,7 @@ const ProfileScreen = ({ navigation }) => {
                 styles.settingItem,
                 { borderBottomColor: theme.colors.border },
               ]}
-              onPress={openHelpLink}
+              onPress={openHelpAndSupport}
             >
               <View style={styles.settingLeft}>
                 <View
@@ -448,7 +537,10 @@ const ProfileScreen = ({ navigation }) => {
               />
             </TouchableOpacity>
 
-            <TouchableOpacity style={styles.settingItem}>
+            <TouchableOpacity
+              style={styles.settingItem}
+              onPress={openAboutPage}
+            >
               <View style={styles.settingLeft}>
                 <View
                   style={[
@@ -477,6 +569,7 @@ const ProfileScreen = ({ navigation }) => {
         {/* Sign Out Button */}
         <Animated.View
           style={[
+            styles.cardContainer,
             {
               opacity: fadeAnim,
               transform: [{ translateY: slideAnim }],
@@ -498,7 +591,7 @@ const ProfileScreen = ({ navigation }) => {
 
       {/* Loading Indicator */}
       {loading && <Loading fullScreen type="logo" />}
-    </SafeAreaView>
+    </View>
   );
 };
 
@@ -506,41 +599,61 @@ const styles = StyleSheet.create({
   container: {
     flex: 1,
   },
+  scrollContent: {
+    paddingBottom: 40,
+  },
   header: {
-    marginBottom: 16,
+    position: "absolute",
+    top: 0,
+    left: 0,
+    right: 0,
+    zIndex: 100,
+    overflow: "hidden",
   },
   headerGradient: {
-    paddingHorizontal: 20,
-    paddingTop: 12,
-    paddingBottom: 24,
+    flex: 1,
+    justifyContent: "flex-end",
   },
-  headerTitle: {
-    marginBottom: 0,
-  },
-  profileCard: {
-    margin: 16,
-    marginTop: 0,
-    marginBottom: 24,
-    padding: 20,
-  },
-  profileHeader: {
+  headerContent: {
     flexDirection: "row",
     alignItems: "center",
+    paddingVertical: 20,
+  },
+  compactHeader: {
+    position: "absolute",
+    top: 0,
+    left: 0,
+    right: 0,
+    height: "100%",
+    flexDirection: "row",
+    justifyContent: "space-between",
+    alignItems: "center",
+    paddingHorizontal: 20,
+    paddingTop: Platform.OS === "android" ? StatusBar.currentHeight : 0,
+  },
+  compactTitle: {
+    marginBottom: 0,
   },
   avatar: {
     marginRight: 16,
   },
-  profileInfo: {
+  userInfo: {
     flex: 1,
   },
-  profileName: {
+  userName: {
     marginBottom: 4,
+  },
+  cardContainer: {
+    marginHorizontal: 16,
+    marginTop: 16,
+  },
+  tokenCard: {
+    padding: 20,
   },
   tokenInfo: {
     flexDirection: "row",
     justifyContent: "space-between",
     alignItems: "center",
-    marginTop: 24,
   },
   tokenDisplay: {
     flexDirection: "row",
@@ -575,16 +688,12 @@ const styles = StyleSheet.create({
     fontWeight: "600",
   },
   settingsCard: {
-    margin: 16,
-    marginTop: 0,
-    marginBottom: 16,
     padding: 0,
     overflow: "hidden",
+    borderRadius: 16,
   },
   settingsTitle: {
     padding: 16,
-    borderBottomWidth: 1,
-    borderBottomColor: "#E0E0E0",
   },
   settingItem: {
     flexDirection: "row",
@@ -621,15 +730,12 @@ const styles = StyleSheet.create({
     transform: [{ scale: 0.8 }],
   },
   supportCard: {
-    margin: 16,
-    marginTop: 0,
-    marginBottom: 24,
     padding: 0,
     overflow: "hidden",
+    borderRadius: 16,
   },
   signOutButton: {
     margin: 16,
-    marginTop: 0,
     marginBottom: 40,
   },
   modalOverlay: {

@@ -1,175 +1,43 @@
-// src/screens/auth/RegisterScreen.js
-import React, { useState, useEffect, useRef } from "react";
+import React, { useState } from "react";
 import {
   View,
   StyleSheet,
-  TouchableOpacity,
+  SafeAreaView,
   KeyboardAvoidingView,
   Platform,
+  TouchableOpacity,
   ScrollView,
-  SafeAreaView,
-  StatusBar,
-  Animated,
   Dimensions,
-  ImageBackground
 } from "react-native";
 import { LinearGradient } from "expo-linear-gradient";
-import { Ionicons } from "@expo/vector-icons";
-import { BlurView } from "expo-blur";
-import { useTheme } from "../../context/ThemeContext";
-import { useAuth } from "../../context/AuthContext";
-import { useLocalization } from "../../context/LocalizationContext";
-import { Text } from "../../components/Text";
-import { Input } from "../../components/Input";
-import { Button } from "../../components/Button";
-import { Card } from "../../components/Card";
-import { Loading } from "../../components/Loading";
-import LottieView from 'lottie-react-native';
+import { Text, Input, Button, Card, Divider } from "../../components";
 
-const { width, height } = Dimensions.get('window');
+const { width, height } = Dimensions.get("window");
 
 const RegisterScreen = ({ navigation }) => {
-  const { theme, isDark } = useTheme();
-  const { register, loading } = useAuth();
-  const { t } = useLocalization();
-
+  // State for form fields and validation
   const [fullName, setFullName] = useState("");
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
   const [confirmPassword, setConfirmPassword] = useState("");
+  const [isLoading, setIsLoading] = useState(false);
   const [errors, setErrors] = useState({});
-  const [currentStep, setCurrentStep] = useState(1); // 1: Basic info, 2: Password
 
-  // Animations
-  const fadeAnim = useRef(new Animated.Value(0)).current;
-  const slideAnim = useRef(new Animated.Value(50)).current;
-  const formFade = useRef(new Animated.Value(1)).current;
-  const formSlide = useRef(new Animated.Value(0)).current;
-
-  // Refs
-  const lottieRef = useRef(null);
-
-  // Start entrance animations
-  useEffect(() => {
-    Animated.parallel([
-      Animated.timing(fadeAnim, {
-        toValue: 1,
-        duration: 800,
-        useNativeDriver: true,
-      }),
-      Animated.timing(slideAnim, {
-        toValue: 0,
-        duration: 800,
-        useNativeDriver: true,
-      }),
-    ]).start();
-
-    // Start Lottie animation
-    if (lottieRef.current) {
-      setTimeout(() => {
-        lottieRef.current.play();
-      }, 500);
-    }
-  }, []);
-
-  // Animate between registration steps
-  const animateToNextStep = () => {
-    // Fade out current form
-    Animated.parallel([
-      Animated.timing(formFade, {
-        toValue: 0,
-        duration: 300,
-        useNativeDriver: true,
-      }),
-      Animated.timing(formSlide, {
-        toValue: -50,
-        duration: 300,
-        useNativeDriver: true,
-      }),
-    ]).start(() => {
-      // Change to next step
-      setCurrentStep(2);
-      
-      // Reset animation values
-      formFade.setValue(0);
-      formSlide.setValue(50);
-      
-      // Fade in new form
-      Animated.parallel([
-        Animated.timing(formFade, {
-          toValue: 1,
-          duration: 300,
-          useNativeDriver: true,
-        }),
-        Animated.timing(formSlide, {
-          toValue: 0,
-          duration: 300,
-          useNativeDriver: true,
-        }),
-      ]).start();
-    });
-  };
-
-  // Animate back to previous step
-  const animateToPrevStep = () => {
-    // Fade out current form
-    Animated.parallel([
-      Animated.timing(formFade, {
-        toValue: 0,
-        duration: 300,
-        useNativeDriver: true,
-      }),
-      Animated.timing(formSlide, {
-        toValue: 50,
-        duration: 300,
-        useNativeDriver: true,
-      }),
-    ]).start(() => {
-      // Change to prev step
-      setCurrentStep(1);
-      
-      // Reset animation values
-      formFade.setValue(0);
-      formSlide.setValue(-50);
-      
-      // Fade in new form
-      Animated.parallel([
-        Animated.timing(formFade, {
-          toValue: 1,
-          duration: 300,
-          useNativeDriver: true,
-        }),
-        Animated.timing(formSlide, {
-          toValue: 0,
-          duration: 300,
-          useNativeDriver: true,
-        }),
-      ]).start();
-    });
-  };
-
-  // Form validation
-  const validateFirstStepForm = () => {
+  // Simple validation function
+  const validateForm = () => {
     const newErrors = {};
 
-    // Name validation
+    // Full name validation
     if (!fullName.trim()) {
-      newErrors.fullName = "Please enter your name";
+      newErrors.fullName = "Full name is required";
     }
 
     // Email validation
     if (!email) {
       newErrors.email = "Email is required";
     } else if (!/\S+@\S+\.\S+/.test(email)) {
-      newErrors.email = "Please enter a valid email";
+      newErrors.email = "Email is invalid";
     }
-
-    setErrors(newErrors);
-    return Object.keys(newErrors).length === 0;
-  };
-
-  const validateSecondStepForm = () => {
-    const newErrors = {};
 
     // Password validation
     if (!password) {
@@ -178,434 +46,274 @@ const RegisterScreen = ({ navigation }) => {
       newErrors.password = "Password must be at least 6 characters";
     }
 
-    // Password confirmation validation
+    // Confirm password validation
     if (password !== confirmPassword) {
-      newErrors.confirmPassword = "Passwords don't match";
+      newErrors.confirmPassword = "Passwords do not match";
     }
 
     setErrors(newErrors);
     return Object.keys(newErrors).length === 0;
   };
 
-  // Handle next step button press
-  const handleNextStep = () => {
-    if (validateFirstStepForm()) {
-      animateToNextStep();
-    }
-  };
-
   // Handle registration
   const handleRegister = async () => {
-    if (validateSecondStepForm()) {
+    if (validateForm()) {
       try {
-        await register(email, password, fullName);
-        // Registration successful - AuthContext will automatically log in
+        setIsLoading(true);
+
+        // Simulate registration request
+        await new Promise((resolve) => setTimeout(resolve, 1500));
+
+        // Call your registration logic here
+        // For example: await register(fullName, email, password);
+
+        // Navigate to login or main app
+        // navigation.replace('Login');
       } catch (error) {
-        console.error("Registration error", error);
-        // Toast message shown in AuthContext
+        setErrors({ general: error.message || "Registration failed" });
+      } finally {
+        setIsLoading(false);
       }
     }
   };
 
-  // Render step indicators
-  const renderStepIndicators = () => (
-    <View style={styles.stepIndicators}>
-      <View 
-        style={[
-          styles.stepIndicator, 
-          { 
-            backgroundColor: currentStep >= 1 
-              ? theme.colors.primary 
-              : theme.colors.border 
-          }
-        ]}
-      >
-        <Text 
-          variant="caption" 
-          color="#ffffff"
-        >
-          1
-        </Text>
-      </View>
-      <View 
-        style={[
-          styles.stepConnector, 
-          { backgroundColor: currentStep > 1 ? theme.colors.primary : theme.colors.border }
-        ]}
-      />
-      <View 
-        style={[
-          styles.stepIndicator, 
-          { 
-            backgroundColor: currentStep >= 2 
-              ? theme.colors.primary 
-              : theme.colors.border 
-          }
-        ]}
-      >
-        <Text 
-          variant="caption" 
-          color="#ffffff"
-        >
-          2
-        </Text>
-      </View>
-    </View>
-  );
-
   return (
-    <SafeAreaView style={{ flex: 1, backgroundColor: theme.colors.background }}>
-      <StatusBar
-        barStyle={isDark ? "light-content" : "dark-content"}
-        backgroundColor="transparent"
-        translucent
-      />
-
+    <SafeAreaView style={styles.container}>
       <KeyboardAvoidingView
-        style={{ flex: 1 }}
-        behavior={Platform.OS === "ios" ? "padding" : undefined}
-        keyboardVerticalOffset={Platform.OS === "ios" ? 0 : 0}
+        behavior={Platform.OS === "ios" ? "padding" : "height"}
+        style={styles.keyboardAvoidingView}
       >
-        <LinearGradient
-          colors={isDark 
-            ? [theme.colors.background, theme.colors.background] 
-            : [theme.colors.background, theme.colors.card]}
-          style={styles.gradient}
+        <ScrollView
+          contentContainerStyle={styles.scrollContent}
+          keyboardShouldPersistTaps="handled"
         >
-          {/* Header with Back Button */}
-          <Animated.View 
-            style={[
-              styles.header,
-              {
-                opacity: fadeAnim,
-              }
-            ]}
-          >
+          {/* Header with back button */}
+          <View style={styles.header}>
             <TouchableOpacity
               style={styles.backButton}
               onPress={() => navigation.goBack()}
             >
-              <Ionicons name="arrow-back" size={24} color={theme.colors.text} />
+              <Text>←</Text>
             </TouchableOpacity>
-            <Text variant="h2" style={styles.headerTitle}>
-              {t("auth.register")}
-            </Text>
+            <Text variant="h3">Create Account</Text>
             <View style={{ width: 40 }} />
-          </Animated.View>
+          </View>
 
-          <ScrollView
-            contentContainerStyle={styles.scrollContainer}
-            showsVerticalScrollIndicator={false}
-          >
-            {/* Create Account Animation */}
-            <Animated.View 
-              style={[
-                styles.animationContainer,
-                {
-                  opacity: fadeAnim,
-                  transform: [{ translateY: slideAnim }]
-                }
-              ]}
+          {/* Registration Card */}
+          <Card style={styles.registerCard}>
+            <Text variant="subtitle1" style={styles.registerTitle}>
+              Join QuantumDoc
+            </Text>
+            <Text
+              variant="body2"
+              color="#64748B"
+              style={styles.registerSubtitle}
             >
-              {/* <LottieView
-                ref={lottieRef}
-                source={require("../../assets/animations/create-account.json")}
-                style={styles.animation}
-                loop
-              /> */}
-              <Text
-                variant="body1"
-                color={theme.colors.textSecondary}
-                style={styles.subtitle}
-                centered
-              >
-                Create an account to get started with DocAI
+              Sign up to start analyzing documents with AI
+            </Text>
+
+            {/* Error message if registration fails */}
+            {errors.general && (
+              <View style={styles.errorContainer}>
+                <Text variant="body2" color="#EF4444">
+                  {errors.general}
+                </Text>
+              </View>
+            )}
+
+            {/* Full Name Input */}
+            <Input
+              label="Full Name"
+              value={fullName}
+              onChangeText={setFullName}
+              placeholder="John Doe"
+              autoCapitalize="words"
+              error={!!errors.fullName}
+              errorText={errors.fullName}
+              leftIcon={<Text>👤</Text>}
+              style={styles.input}
+            />
+
+            {/* Email Input */}
+            <Input
+              label="Email"
+              value={email}
+              onChangeText={setEmail}
+              placeholder="email@example.com"
+              keyboardType="email-address"
+              autoCapitalize="none"
+              error={!!errors.email}
+              errorText={errors.email}
+              leftIcon={<Text>📧</Text>}
+              style={styles.input}
+            />
+
+            {/* Password Input */}
+            <Input
+              label="Password"
+              value={password}
+              onChangeText={setPassword}
+              placeholder="••••••••"
+              secureTextEntry
+              error={!!errors.password}
+              errorText={errors.password}
+              leftIcon={<Text>🔒</Text>}
+              style={styles.input}
+            />
+
+            {/* Confirm Password Input */}
+            <Input
+              label="Confirm Password"
+              value={confirmPassword}
+              onChangeText={setConfirmPassword}
+              placeholder="••••••••"
+              secureTextEntry
+              error={!!errors.confirmPassword}
+              errorText={errors.confirmPassword}
+              leftIcon={<Text>🔒</Text>}
+              style={styles.input}
+            />
+
+            {/* Password requirements hint */}
+            <View style={styles.passwordHintContainer}>
+              <Text variant="caption" color="#64748B">
+                Password must be at least 6 characters long
               </Text>
-            </Animated.View>
+            </View>
 
-            {/* Step Indicators */}
-            <Animated.View
-              style={[
-                styles.stepsContainer,
-                {
-                  opacity: fadeAnim,
-                  transform: [{ translateY: slideAnim }]
-                }
-              ]}
-            >
-              {renderStepIndicators()}
-            </Animated.View>
+            {/* Register Button */}
+            <Button
+              label="Create Account"
+              onPress={handleRegister}
+              loading={isLoading}
+              gradient={true}
+              style={styles.registerButton}
+            />
 
-            {/* Registration Form */}
-            <Animated.View
-              style={[
-                styles.formContainer,
-                {
-                  opacity: Animated.multiply(fadeAnim, formFade),
-                  transform: [
-                    { translateY: Animated.add(slideAnim, formSlide) }
-                  ]
-                }
-              ]}
-            >
-              <Card 
-                style={styles.formCard}
-                elevated={true}
-              >
-                {currentStep === 1 ? (
-                  /* Step 1: Basic Information */
-                  <View style={styles.formStep}>
-                    <Text 
-                      variant="subtitle1"
-                      weight="semibold"
-                      style={styles.formTitle}
-                    >
-                      Tell us about yourself
-                    </Text>
+            <Divider text="or" />
 
-                    <Input
-                      label="Full Name"
-                      value={fullName}
-                      onChangeText={setFullName}
-                      placeholder="John Doe"
-                      icon="person"
-                      error={errors.fullName}
-                      variant="outline"
-                      animatedLabel={true}
-                    />
-
-                    <Input
-                      label="Email Address"
-                      value={email}
-                      onChangeText={setEmail}
-                      placeholder="email@example.com"
-                      keyboardType="email-address"
-                      autoCapitalize="none"
-                      icon="mail"
-                      error={errors.email}
-                      variant="outline"
-                      animatedLabel={true}
-                    />
-
-                    <Button
-                      title="Continue"
-                      onPress={handleNextStep}
-                      style={styles.actionButton}
-                      gradient={true}
-                      rightIcon="arrow-forward"
-                    />
-                  </View>
-                ) : (
-                  /* Step 2: Password */
-                  <View style={styles.formStep}>
-                    <Text 
-                      variant="subtitle1"
-                      weight="semibold"
-                      style={styles.formTitle}
-                    >
-                      Set up your password
-                    </Text>
-
-                    <Input
-                      label="Password"
-                      value={password}
-                      onChangeText={setPassword}
-                      placeholder="••••••••"
-                      secureTextEntry
-                      icon="lock-closed"
-                      error={errors.password}
-                      variant="outline"
-                      animatedLabel={true}
-                    />
-
-                    <Input
-                      label="Confirm Password"
-                      value={confirmPassword}
-                      onChangeText={setConfirmPassword}
-                      placeholder="••••••••"
-                      secureTextEntry
-                      icon="lock-closed"
-                      error={errors.confirmPassword}
-                      variant="outline"
-                      animatedLabel={true}
-                    />
-
-                    <View style={styles.passwordRequirements}>
-                      <Text 
-                        variant="caption" 
-                        color={theme.colors.textSecondary}
-                      >
-                        Password should be at least 6 characters
-                      </Text>
-                    </View>
-
-                    <View style={styles.twoButtonContainer}>
-                      <Button
-                        title="Back"
-                        onPress={animateToPrevStep}
-                        style={styles.backStepButton}
-                        type="outline"
-                      />
-                      <Button
-                        title="Create Account"
-                        onPress={handleRegister}
-                        style={styles.createButton}
-                        gradient={true}
-                        loading={loading}
-                      />
-                    </View>
-                  </View>
-                )}
-              </Card>
-            </Animated.View>
-
-            {/* Sign in link */}
-            <Animated.View
-              style={[
-                styles.signInContainer,
-                {
-                  opacity: fadeAnim,
-                  transform: [{ translateY: slideAnim }]
-                }
-              ]}
-            >
-              <TouchableOpacity
-                style={styles.signInLink}
-                onPress={() => navigation.navigate("Login")}
-              >
-                <Text 
-                  variant="body2" 
-                  color={theme.colors.textSecondary}
-                >
-                  {t("auth.alreadyHaveAccount")}{" "}
-                  <Text 
-                    variant="body2"
-                    color={theme.colors.primary}
-                    weight="semibold"
-                  >
-                    {t("auth.loginInstead")}
-                  </Text>
+            {/* Login Link */}
+            <View style={styles.loginContainer}>
+              <Text variant="body2" color="#64748B">
+                Already have an account?{" "}
+              </Text>
+              <TouchableOpacity onPress={() => navigation.navigate("Login")}>
+                <Text variant="body2" color="#5D5FEF" weight="semibold">
+                  Sign In
                 </Text>
               </TouchableOpacity>
-            </Animated.View>
-          </ScrollView>
-        </LinearGradient>
-      </KeyboardAvoidingView>
+            </View>
+          </Card>
 
-      {/* Full screen loading indicator */}
-      {loading && (
-        <Loading 
-          fullScreen 
-          text="Creating your account..." 
-          type="logo"
-          blur={true}
-          iconName="person-add"
-        />
-      )}
+          {/* Bottom decorative gradient */}
+          <LinearGradient
+            colors={["#61DAFB40", "#5D5FEF20"]}
+            start={{ x: 0, y: 0 }}
+            end={{ x: 1, y: 1 }}
+            style={styles.bottomGradient}
+          >
+            <View style={styles.benefitsContainer}>
+              <View style={styles.benefitItem}>
+                <Text style={styles.benefitIcon}>🔎</Text>
+                <Text variant="caption" color="#64748B">
+                  Instant document analysis
+                </Text>
+              </View>
+              <View style={styles.benefitItem}>
+                <Text style={styles.benefitIcon}>🤖</Text>
+                <Text variant="caption" color="#64748B">
+                  AI-powered insights
+                </Text>
+              </View>
+              <View style={styles.benefitItem}>
+                <Text style={styles.benefitIcon}>🔒</Text>
+                <Text variant="caption" color="#64748B">
+                  Secure cloud storage
+                </Text>
+              </View>
+            </View>
+          </LinearGradient>
+        </ScrollView>
+      </KeyboardAvoidingView>
     </SafeAreaView>
   );
 };
 
 const styles = StyleSheet.create({
-  gradient: {
+  container: {
+    flex: 1,
+    backgroundColor: "#F8FAFC",
+  },
+  keyboardAvoidingView: {
     flex: 1,
   },
-  scrollContainer: {
+  scrollContent: {
     flexGrow: 1,
-    paddingBottom: 40,
   },
   header: {
     flexDirection: "row",
     alignItems: "center",
     justifyContent: "space-between",
-    paddingHorizontal: 20,
-    paddingTop: Platform.OS === "android" ? StatusBar.currentHeight + 10 : 10,
-    paddingBottom: 10,
+    paddingHorizontal: 24,
+    paddingVertical: 16,
   },
   backButton: {
-    padding: 8,
-  },
-  headerTitle: {
-    flex: 1,
-    textAlign: "center",
-    marginBottom: 0,
-  },
-  animationContainer: {
-    alignItems: "center",
-    paddingHorizontal: 20,
-    paddingTop: 10,
-    marginBottom: 20,
-  },
-  animation: {
-    width: 160,
-    height: 160,
-  },
-  subtitle: {
-    textAlign: "center",
-    maxWidth: "80%",
-    marginTop: 10,
-  },
-  stepsContainer: {
-    alignItems: "center",
-    marginBottom: 20,
-  },
-  stepIndicators: {
-    flexDirection: "row",
-    alignItems: "center",
-    justifyContent: "center",
-  },
-  stepIndicator: {
-    width: 30,
-    height: 30,
-    borderRadius: 15,
-    alignItems: "center",
-    justifyContent: "center",
-  },
-  stepConnector: {
-    height: 2,
-    width: 50,
-  },
-  formContainer: {
-    paddingHorizontal: 24,
-  },
-  formCard: {
-    paddingHorizontal: 24,
-    paddingVertical: 30,
+    width: 40,
+    height: 40,
     borderRadius: 20,
+    alignItems: "center",
+    justifyContent: "center",
+    backgroundColor: "#F1F5F9",
   },
-  formStep: {
-    alignItems: "stretch",
+  registerCard: {
+    marginHorizontal: 24,
+    marginBottom: 24,
+    padding: 24,
+    borderRadius: 24,
   },
-  formTitle: {
-    marginBottom: 20,
-    textAlign: "center",
+  registerTitle: {
+    marginBottom: 8,
   },
-  actionButton: {
-    marginTop: 24,
+  registerSubtitle: {
+    marginBottom: 24,
   },
-  passwordRequirements: {
-    marginTop: 10,
-    marginBottom: 20,
+  errorContainer: {
+    backgroundColor: "#FEE2E2",
+    padding: 12,
+    borderRadius: 8,
+    marginBottom: 16,
   },
-  twoButtonContainer: {
+  input: {
+    marginBottom: 16,
+  },
+  passwordHintContainer: {
+    marginBottom: 24,
+  },
+  registerButton: {
+    marginBottom: 24,
+  },
+  loginContainer: {
+    flexDirection: "row",
+    justifyContent: "center",
+    marginVertical: 8,
+  },
+  bottomGradient: {
+    padding: 24,
+    marginHorizontal: 24,
+    borderRadius: 24,
+    marginBottom: 24,
+  },
+  benefitsContainer: {
     flexDirection: "row",
     justifyContent: "space-between",
-    marginTop: 10,
   },
-  backStepButton: {
-    flex: 1,
-    marginRight: 10,
-  },
-  createButton: {
-    flex: 1,
-  },
-  signInContainer: {
+  benefitItem: {
     alignItems: "center",
-    marginTop: 24,
-    paddingHorizontal: 24,
+    flex: 1,
   },
-  signInLink: {
-    padding: 10,
+  benefitIcon: {
+    fontSize: 24,
+    marginBottom: 8,
   },
 });
 

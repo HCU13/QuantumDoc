@@ -3,7 +3,7 @@ import React, { createContext, useContext, useState, useEffect } from "react";
 import { useColorScheme } from "react-native";
 import AsyncStorage from "@react-native-async-storage/async-storage";
 
-// Modern light theme with refined color palette
+// Modern light theme with softer colors
 const lightTheme = {
   colors: {
     // Primary & Secondary colors
@@ -12,10 +12,10 @@ const lightTheme = {
     primaryDark: "#3A0CA3", // Darker blue for emphasis
     secondary: "#4CC9F0", // Vibrant cyan for accents
 
-    // UI Background colors
-    background: "#FFFFFF",
+    // UI Background colors - Softer whites
+    background: "#F8F9FB", // Very light gray with blue tint instead of pure white
     surface: "#FFFFFF",
-    card: "#F9FAFB",
+    card: "#FFFFFF",
     modalBg: "#FFFFFF",
 
     // Functional colors
@@ -24,13 +24,13 @@ const lightTheme = {
     error: "#EF4444", // Red
     info: "#60A5FA", // Light blue
 
-    // Text colors
-    text: "#111827", // Near black for primary text
+    // Text colors - Softened for better readability
+    text: "#1F2937", // Dark gray for primary text rather than pure black
     textSecondary: "#6B7280", // Medium gray for secondary text
     textTertiary: "#9CA3AF", // Light gray for tertiary text
     textInverted: "#FFFFFF", // White text for dark backgrounds
 
-    // Border and divider colors
+    // Border and divider colors - More subtle
     border: "#E5E7EB", // Light gray for borders
     divider: "#F3F4F6", // Very light gray for dividers
 
@@ -52,13 +52,13 @@ const lightTheme = {
       heading: "System", // Could be replaced with a custom font
     },
     fontSize: {
-      xs: 12,
-      sm: 14,
-      md: 16,
-      lg: 18,
-      xl: 20,
-      xxl: 24,
-      xxxl: 30,
+      xs: 11,
+      sm: 13,
+      md: 14,
+      lg: 16,
+      xl: 18,
+      xxl: 22,
+      xxxl: 26,
     },
     fontWeight: {
       regular: "400",
@@ -77,44 +77,44 @@ const lightTheme = {
   spacing: {
     xs: 4,
     sm: 8,
-    md: 16,
-    lg: 24,
-    xl: 32,
-    xxl: 48,
+    md: 14, // Slightly reduced from 16
+    lg: 20, // Slightly reduced from 24
+    xl: 28, // Slightly reduced from 32
+    xxl: 40, // Slightly reduced from 48
   },
 
   // Border radius
   borderRadius: {
     xs: 4,
-    sm: 8,
-    md: 12,
-    lg: 16,
-    xl: 24,
+    sm: 6, // Reduced from 8
+    md: 10, // Reduced from 12
+    lg: 14, // Reduced from 16
+    xl: 20, // Reduced from 24
     round: 9999,
   },
 
-  // Shadows
+  // Shadows - More refined and subtle
   shadows: {
     sm: {
       shadowColor: "#000",
       shadowOffset: { width: 0, height: 1 },
-      shadowOpacity: 0.05,
+      shadowOpacity: 0.04,
       shadowRadius: 2,
-      elevation: 2,
+      elevation: 1,
     },
     md: {
       shadowColor: "#000",
       shadowOffset: { width: 0, height: 2 },
-      shadowOpacity: 0.07,
-      shadowRadius: 4,
-      elevation: 3,
+      shadowOpacity: 0.06,
+      shadowRadius: 3,
+      elevation: 2,
     },
     lg: {
       shadowColor: "#000",
-      shadowOffset: { width: 0, height: 4 },
-      shadowOpacity: 0.1,
-      shadowRadius: 6,
-      elevation: 5,
+      shadowOffset: { width: 0, height: 3 },
+      shadowOpacity: 0.08,
+      shadowRadius: 5,
+      elevation: 4,
     },
   },
 
@@ -128,7 +128,7 @@ const lightTheme = {
   isDark: false,
 };
 
-// Modern dark theme with thoughtful color choices
+// Modern dark theme with more balanced colors
 const darkTheme = {
   colors: {
     // Primary & Secondary colors
@@ -137,11 +137,11 @@ const darkTheme = {
     primaryDark: "#3A0CA3", // Deep purple
     secondary: "#4361EE", // Vibrant blue
 
-    // UI Background colors
-    background: "#111827", // Deep navy
-    surface: "#1F2937", // Slightly lighter navy
-    card: "#374151", // Medium dark gray with slight blue
-    modalBg: "#1F2937", // Slightly lighter navy
+    // UI Background colors - Not too dark
+    background: "#121826", // Dark navy with hint of blue instead of pure black
+    surface: "#1E293B", // Slightly lighter navy
+    card: "#283548", // Medium dark gray with slight blue
+    modalBg: "#1E293B", // Slightly lighter navy
 
     // Functional colors
     success: "#34D399", // Bright green
@@ -149,106 +149,63 @@ const darkTheme = {
     error: "#F87171", // Soft red
     info: "#60A5FA", // Blue
 
-    // Text colors
-    text: "#F9FAFB", // Almost white
-    textSecondary: "#D1D5DB", // Light gray
-    textTertiary: "#9CA3AF", // Medium gray
-    textInverted: "#111827", // Near black for text on light backgrounds
+    // Text colors - Better contrast
+    text: "#F1F5F9", // Off-white for better eye comfort (not pure white)
+    textSecondary: "#CBD5E1", // Light gray
+    textTertiary: "#94A3B8", // Medium gray
+    textInverted: "#121826", // Dark background color
 
     // Border and divider colors
-    border: "#374151", // Medium dark gray
-    divider: "#1F2937", // Dark navy
+    border: "#334155", // Medium dark gray
+    divider: "#1E293B", // Dark navy
 
     // Interactive states
     focus: "#4CC9F030", // Primary with 30% opacity
     pressed: "#4CC9F015", // Primary with 15% opacity
-    disabled: "#374151", // Medium dark gray
-    disabledText: "#6B7280", // Gray
+    disabled: "#334155", // Medium dark gray
+    disabledText: "#64748B", // Gray
 
     // Gradients
     gradientStart: "#4CC9F0",
     gradientEnd: "#3A0CA3",
   },
 
-  // Typography
-  typography: {
-    fontFamily: {
-      base: "System",
-      heading: "System",
-    },
-    fontSize: {
-      xs: 12,
-      sm: 14,
-      md: 16,
-      lg: 18,
-      xl: 20,
-      xxl: 24,
-      xxxl: 30,
-    },
-    fontWeight: {
-      regular: "400",
-      medium: "500",
-      semibold: "600",
-      bold: "700",
-    },
-    lineHeight: {
-      tight: 1.2,
-      normal: 1.5,
-      relaxed: 1.7,
-    },
-  },
+  // Typography - Same as light theme
+  typography: lightTheme.typography,
 
-  // Spacing system
-  spacing: {
-    xs: 4,
-    sm: 8,
-    md: 16,
-    lg: 24,
-    xl: 32,
-    xxl: 48,
-  },
+  // Spacing - Same as light theme
+  spacing: lightTheme.spacing,
 
-  // Border radius
-  borderRadius: {
-    xs: 4,
-    sm: 8,
-    md: 12,
-    lg: 16,
-    xl: 24,
-    round: 9999,
-  },
+  // Border radius - Same as light theme
+  borderRadius: lightTheme.borderRadius,
 
-  // Shadows
+  // Shadows - Adjusted for dark mode
   shadows: {
     sm: {
       shadowColor: "#000",
       shadowOffset: { width: 0, height: 1 },
-      shadowOpacity: 0.15,
+      shadowOpacity: 0.2,
       shadowRadius: 2,
       elevation: 2,
     },
     md: {
       shadowColor: "#000",
       shadowOffset: { width: 0, height: 2 },
-      shadowOpacity: 0.2,
+      shadowOpacity: 0.25,
       shadowRadius: 4,
       elevation: 3,
     },
     lg: {
       shadowColor: "#000",
       shadowOffset: { width: 0, height: 4 },
-      shadowOpacity: 0.25,
+      shadowOpacity: 0.3,
       shadowRadius: 6,
       elevation: 5,
     },
   },
 
-  // Animation durations
-  animation: {
-    fast: 200,
-    normal: 300,
-    slow: 500,
-  },
+  // Animation durations - Same as light theme
+  animation: lightTheme.animation,
 
   isDark: true,
 };

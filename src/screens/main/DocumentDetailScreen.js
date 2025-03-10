@@ -1,4 +1,3 @@
-// src/screens/main/DocumentDetailScreen.js
 import React, { useState, useEffect, useRef } from "react";
 import {
   View,
@@ -11,7 +10,6 @@ import {
   Platform,
   FlatList,
   TouchableOpacity,
-  Linking,
   Share,
   SafeAreaView,
   Animated,
@@ -20,6 +18,7 @@ import {
 } from "react-native";
 import { LinearGradient } from "expo-linear-gradient";
 import { Ionicons } from "@expo/vector-icons";
+import { BlurView } from "expo-blur";
 import { useTheme } from "../../context/ThemeContext";
 import { useTokens } from "../../context/TokenContext";
 import { useLocalization } from "../../context/LocalizationContext";
@@ -28,11 +27,10 @@ import { Button } from "../../components/Button";
 import { Card } from "../../components/Card";
 import { Badge } from "../../components/Badge";
 import { Loading } from "../../components/Loading";
+import { AIAnalysisCard } from "../../components/AIAnalysisCard";
 import { documentApi } from "../../api/documentApi";
-import { BlurView } from "expo-blur";
 
 const { width, height } = Dimensions.get("window");
-const AnimatedBlurView = Animated.createAnimatedComponent(BlurView);
 
 const DocumentDetailScreen = ({ route, navigation }) => {
   const { documentId, newDocument } = route.params;
@@ -50,19 +48,28 @@ const DocumentDetailScreen = ({ route, navigation }) => {
   const [askingQuestion, setAskingQuestion] = useState(false);
   const [freeQuestionsCount, setFreeQuestionsCount] = useState(3);
   const [sending, setSending] = useState(false);
+  const [isFocused, setIsFocused] = useState(false);
 
   // Animations
   const fadeAnim = useRef(new Animated.Value(0)).current;
-  const headerAnimation = useRef(new Animated.Value(0)).current;
+  const slideAnim = useRef(new Animated.Value(30)).current;
   const scrollY = useRef(new Animated.Value(0)).current;
+  const headerAnimation = useRef(new Animated.Value(0)).current;
 
   // Start entrance animations
   useEffect(() => {
-    Animated.timing(fadeAnim, {
-      toValue: 1,
-      duration: 600,
-      useNativeDriver: true,
-    }).start();
+    Animated.parallel([
+      Animated.timing(fadeAnim, {
+        toValue: 1,
+        duration: 600,
+        useNativeDriver: true,
+      }),
+      Animated.timing(slideAnim, {
+        toValue: 0,
+        duration: 600,
+        useNativeDriver: true,
+      }),
+    ]).start();
 
     // For new documents, animate header indicator
     if (newDocument) {
@@ -85,8 +92,14 @@ const DocumentDetailScreen = ({ route, navigation }) => {
 
   // Header animations based on scroll
   const headerOpacity = scrollY.interpolate({
+    inputRange: [0, 100, 130],
+    outputRange: [0, 0.7, 1],
+    extrapolate: "clamp",
+  });
+
+  const headerHeight = scrollY.interpolate({
     inputRange: [0, 200],
-    outputRange: [0, 1],
+    outputRange: [0, 60],
     extrapolate: "clamp",
   });
 
@@ -248,7 +261,18 @@ const DocumentDetailScreen = ({ route, navigation }) => {
   };
 
   if (loading) {
-    return <Loading fullScreen type="logo" iconName="document-text" />;
+    return (
+      <SafeAreaView
+        style={{ flex: 1, backgroundColor: theme.colors.background }}
+      >
+        <StatusBar
+          barStyle={isDark ? "light-content" : "dark-content"}
+          backgroundColor="transparent"
+          translucent
+        />
+        <Loading fullScreen iconName="document-text" />
+      </SafeAreaView>
+    );
   }
 
   if (!document) {
@@ -256,6 +280,11 @@ const DocumentDetailScreen = ({ route, navigation }) => {
       <SafeAreaView
         style={{ flex: 1, backgroundColor: theme.colors.background }}
       >
+        <StatusBar
+          barStyle={isDark ? "light-content" : "dark-content"}
+          backgroundColor="transparent"
+          translucent
+        />
         <View style={styles.container}>
           <View style={styles.header}>
             <TouchableOpacity
@@ -315,66 +344,19 @@ const DocumentDetailScreen = ({ route, navigation }) => {
   };
 
   // Render functions
-  const renderHeader = () => (
-    <>
-      {/* Animated header that appears when scrolling */}
-      <Animated.View
-        style={[
-          styles.animatedHeader,
-          {
-            backgroundColor: theme.colors.background,
-            borderBottomColor: theme.colors.border,
-            opacity: headerOpacity,
-          },
-        ]}
-      >
-        <View style={styles.headerContentCompact}>
-          <TouchableOpacity
-            style={styles.backButton}
-            onPress={() => navigation.goBack()}
-          >
-            <Ionicons name="arrow-back" size={24} color={theme.colors.text} />
-          </TouchableOpacity>
-
-          <Text
-            variant="subtitle1"
-            numberOfLines={1}
-            style={styles.headerTitle}
-          >
-            {document.name}
-          </Text>
-
-          <TouchableOpacity
-            style={styles.menuButton}
-            onPress={() => {
-              Alert.alert(document.name, "", [
-                {
-                  text: t("document.share"),
-                  onPress: shareDocument,
-                },
-                {
-                  text: t("document.delete"),
-                  style: "destructive",
-                  onPress: deleteDocument,
-                },
-                {
-                  text: t("common.cancel"),
-                  style: "cancel",
-                },
-              ]);
-            }}
-          >
-            <Ionicons
-              name="ellipsis-vertical"
-              size={24}
-              color={theme.colors.text}
-            />
-          </TouchableOpacity>
-        </View>
-      </Animated.View>
-
-      {/* Main expandable header */}
-      <View style={styles.header}>
+  const renderAnimatedHeader = () => (
+    <Animated.View
+      style={[
+        styles.animatedHeader,
+        {
+          height: headerHeight,
+          backgroundColor: theme.colors.background,
+          borderBottomColor: theme.colors.border,
+          opacity: headerOpacity,
+        },
+      ]}
+    >
+      <View style={styles.headerContentCompact}>
         <TouchableOpacity
           style={styles.backButton}
           onPress={() => navigation.goBack()}
@@ -382,7 +364,7 @@ const DocumentDetailScreen = ({ route, navigation }) => {
           <Ionicons name="arrow-back" size={24} color={theme.colors.text} />
         </TouchableOpacity>
 
-        <Text variant="h3" numberOfLines={1} style={styles.title}>
+        <Text variant="subtitle1" numberOfLines={1} style={styles.headerTitle}>
           {document.name}
         </Text>
 
@@ -413,7 +395,60 @@ const DocumentDetailScreen = ({ route, navigation }) => {
           />
         </TouchableOpacity>
       </View>
-    </>
+    </Animated.View>
+  );
+
+  const renderHeader = () => (
+    <View style={styles.headerContainer}>
+      <LinearGradient
+        colors={
+          isDark
+            ? [theme.colors.primary + "60", theme.colors.background]
+            : [theme.colors.primary + "30", theme.colors.background]
+        }
+        style={styles.headerGradient}
+      >
+        <View style={styles.header}>
+          <TouchableOpacity
+            style={styles.backButton}
+            onPress={() => navigation.goBack()}
+          >
+            <Ionicons name="arrow-back" size={24} color={theme.colors.text} />
+          </TouchableOpacity>
+
+          <Text variant="h3" numberOfLines={1} style={styles.title}>
+            {document.name}
+          </Text>
+
+          <TouchableOpacity
+            style={styles.menuButton}
+            onPress={() => {
+              Alert.alert(document.name, "", [
+                {
+                  text: t("document.share"),
+                  onPress: shareDocument,
+                },
+                {
+                  text: t("document.delete"),
+                  style: "destructive",
+                  onPress: deleteDocument,
+                },
+                {
+                  text: t("common.cancel"),
+                  style: "cancel",
+                },
+              ]);
+            }}
+          >
+            <Ionicons
+              name="ellipsis-vertical"
+              size={24}
+              color={theme.colors.text}
+            />
+          </TouchableOpacity>
+        </View>
+      </LinearGradient>
+    </View>
   );
 
   const renderDocumentImage = () => {
@@ -454,8 +489,16 @@ const DocumentDetailScreen = ({ route, navigation }) => {
   };
 
   const renderDocumentInfo = () => (
-    <Animated.View style={[styles.infoContainer, { opacity: fadeAnim }]}>
-      <Card style={styles.infoCard} variant="bordered">
+    <Animated.View
+      style={[
+        styles.infoContainer,
+        {
+          opacity: fadeAnim,
+          transform: [{ translateY: slideAnim }],
+        },
+      ]}
+    >
+      <Card style={styles.infoCard} variant="bordered" elevated={true}>
         <View style={styles.infoRow}>
           <View style={styles.infoItem}>
             <Text
@@ -547,6 +590,7 @@ const DocumentDetailScreen = ({ route, navigation }) => {
         styles.tabContainer,
         {
           opacity: fadeAnim,
+          transform: [{ translateY: slideAnim }],
           borderBottomColor: theme.colors.border,
         },
       ]}
@@ -619,17 +663,27 @@ const DocumentDetailScreen = ({ route, navigation }) => {
     </Animated.View>
   );
 
-  const renderContent = () => {
-    if (activeTab === "summary") {
-      // If document not yet analyzed, show analysis button
-      if (document.status !== "analyzed") {
-        return (
-          <Animated.View
-            style={[styles.noAnalysisContainer, { opacity: fadeAnim }]}
+  const renderSummaryContent = () => {
+    // If document not yet analyzed, show analysis button
+    if (document.status !== "analyzed") {
+      return (
+        <Animated.View
+          style={[
+            styles.noAnalysisContainer,
+            {
+              opacity: fadeAnim,
+              transform: [{ translateY: slideAnim }],
+            },
+          ]}
+        >
+          <Card
+            style={styles.noAnalysisCard}
+            variant={isDark ? "default" : "bordered"}
+            elevated={true}
           >
-            <Card
-              style={styles.noAnalysisCard}
-              variant={isDark ? "default" : "bordered"}
+            <LinearGradient
+              colors={[theme.colors.background, theme.colors.primary + "10"]}
+              style={styles.noAnalysisGradient}
             >
               <Ionicons
                 name="analytics-outline"
@@ -656,238 +710,276 @@ const DocumentDetailScreen = ({ route, navigation }) => {
                 gradient={true}
                 style={styles.analyzeButton}
               />
-            </Card>
-          </Animated.View>
-        );
-      }
-
-      // Analyzed document content
-      const analysis = document.analysis || {};
-
-      return (
-        <Animated.View style={[styles.summaryContainer, { opacity: fadeAnim }]}>
-          {/* Summary Section */}
-          <View style={styles.summarySection}>
-            <Text variant="h4" style={styles.sectionTitle}>
-              {t("document.summary")}
-            </Text>
-            <Card style={styles.summaryCard}>
-              <Text style={styles.summaryText}>
-                {analysis.summary || t("document.noSummary")}
-              </Text>
-            </Card>
-          </View>
-
-          {/* Key Points */}
-          {analysis.keyPoints && analysis.keyPoints.length > 0 && (
-            <View style={styles.summarySection}>
-              <Text variant="h4" style={styles.sectionTitle}>
-                {t("document.keyPoints")}
-              </Text>
-              <Card style={styles.summaryCard}>
-                {analysis.keyPoints.map((point, index) => (
-                  <View key={index} style={styles.keyPointItem}>
-                    <View
-                      style={[
-                        styles.bulletPoint,
-                        { backgroundColor: theme.colors.primary },
-                      ]}
-                    />
-                    <Text style={styles.keyPointText}>{point}</Text>
-                  </View>
-                ))}
-              </Card>
-            </View>
-          )}
-
-          {/* Details */}
-          {analysis.details && (
-            <View style={styles.summarySection}>
-              <Text variant="h4" style={styles.sectionTitle}>
-                Details
-              </Text>
-              <Card style={styles.summaryCard}>
-                <Text style={styles.summaryText}>{analysis.details}</Text>
-              </Card>
-            </View>
-          )}
-
-          {/* Recommendations */}
-          {analysis.recommendations && analysis.recommendations.length > 0 && (
-            <View style={styles.summarySection}>
-              <Text variant="h4" style={styles.sectionTitle}>
-                Recommendations
-              </Text>
-              <Card style={styles.summaryCard}>
-                {analysis.recommendations.map((rec, index) => (
-                  <View key={index} style={styles.keyPointItem}>
-                    <View
-                      style={[
-                        styles.bulletPoint,
-                        { backgroundColor: theme.colors.success },
-                      ]}
-                    />
-                    <Text style={styles.keyPointText}>{rec}</Text>
-                  </View>
-                ))}
-              </Card>
-            </View>
-          )}
+            </LinearGradient>
+          </Card>
         </Animated.View>
       );
-    } else if (activeTab === "ask") {
-      return (
-        <KeyboardAvoidingView
-          style={{ flex: 1 }}
-          behavior={Platform.OS === "ios" ? "padding" : null}
-          keyboardVerticalOffset={Platform.OS === "ios" ? 90 : 0}
-        >
-          <Animated.View style={[styles.askContainer, { opacity: fadeAnim }]}>
-            {/* Conversations */}
-            <FlatList
-              data={conversations}
-              keyExtractor={(item) => item.id}
-              renderItem={({ item }) => (
-                <Card
-                  style={styles.conversationCard}
-                  variant={isDark ? "default" : "bordered"}
-                >
-                  <View style={styles.questionContainer}>
-                    <View
-                      style={[
-                        styles.avatarContainer,
-                        { backgroundColor: theme.colors.textSecondary },
-                      ]}
-                    >
-                      <Ionicons name="person" size={16} color="#FFFFFF" />
-                    </View>
+    }
+
+    // Analyzed document content
+    const analysis = document.analysis || {};
+
+    return (
+      <Animated.View
+        style={[
+          styles.summaryContainer,
+          {
+            opacity: fadeAnim,
+            transform: [{ translateY: slideAnim }],
+          },
+        ]}
+      >
+        {/* Summary Section */}
+        <View style={styles.summarySection}>
+          <AIAnalysisCard
+            analysis={analysis}
+            analysisType="summary"
+            style={styles.analysisCard}
+          />
+        </View>
+
+        {/* Key Points */}
+        {analysis.keyPoints && analysis.keyPoints.length > 0 && (
+          <View style={styles.summarySection}>
+            <AIAnalysisCard
+              analysis={analysis}
+              analysisType="keyPoints"
+              style={styles.analysisCard}
+            />
+          </View>
+        )}
+
+        {/* Details */}
+        {analysis.details && (
+          <View style={styles.summarySection}>
+            <AIAnalysisCard
+              analysis={analysis}
+              analysisType="details"
+              style={styles.analysisCard}
+            />
+          </View>
+        )}
+
+        {/* Recommendations */}
+        {analysis.recommendations && analysis.recommendations.length > 0 && (
+          <View style={styles.summarySection}>
+            <AIAnalysisCard
+              analysis={analysis}
+              analysisType="recommendations"
+              style={styles.analysisCard}
+            />
+          </View>
+        )}
+      </Animated.View>
+    );
+  };
+
+  const renderAskContent = () => (
+    <KeyboardAvoidingView
+      style={{ flex: 1 }}
+      behavior={Platform.OS === "ios" ? "padding" : null}
+      keyboardVerticalOffset={Platform.OS === "ios" ? 90 : 0}
+    >
+      <Animated.View
+        style={[
+          styles.askContainer,
+          {
+            opacity: fadeAnim,
+            transform: [{ translateY: slideAnim }],
+          },
+        ]}
+      >
+        {/* Conversations */}
+        <FlatList
+          data={conversations}
+          keyExtractor={(item) => item.id}
+          renderItem={({ item, index }) => (
+            <Animated.View
+              style={[
+                {
+                  opacity: fadeAnim,
+                  transform: [
+                    {
+                      translateY: Animated.multiply(
+                        slideAnim,
+                        new Animated.Value(1 + index * 0.1)
+                      ),
+                    },
+                  ],
+                },
+              ]}
+            >
+              <Card
+                style={styles.conversationCard}
+                variant={isDark ? "default" : "bordered"}
+                elevated={true}
+              >
+                <View style={styles.questionContainer}>
+                  <View
+                    style={[
+                      styles.avatarContainer,
+                      { backgroundColor: theme.colors.textSecondary },
+                    ]}
+                  >
+                    <Ionicons name="person" size={16} color="#FFFFFF" />
+                  </View>
+                  <View style={styles.questionContent}>
                     <Text variant="subtitle2" style={styles.questionText}>
                       {item.question}
                     </Text>
                   </View>
+                </View>
 
-                  <View style={styles.answerContainer}>
-                    <View
-                      style={[
-                        styles.avatarContainer,
-                        { backgroundColor: theme.colors.primary },
-                      ]}
-                    >
-                      <Ionicons name="chatbubble" size={16} color="#FFFFFF" />
-                    </View>
+                <View style={styles.answerContainer}>
+                  <View
+                    style={[
+                      styles.avatarContainer,
+                      { backgroundColor: theme.colors.primary },
+                    ]}
+                  >
+                    <Ionicons name="chatbubble" size={16} color="#FFFFFF" />
+                  </View>
+                  <View style={styles.answerContent}>
                     <Text variant="body2" style={styles.answerText}>
                       {item.answer}
                     </Text>
                   </View>
-                </Card>
-              )}
-              inverted
-              contentContainerStyle={styles.conversationsList}
-              ListEmptyComponent={
-                <View style={styles.emptyConversation}>
-                  <Card
-                    style={styles.emptyConversationCard}
-                    variant={isDark ? "default" : "bordered"}
-                  >
-                    <Ionicons
-                      name="chatbubble-ellipses-outline"
-                      size={60}
-                      color={theme.colors.textSecondary}
-                    />
-                    <Text
-                      variant="subtitle1"
-                      color={theme.colors.textSecondary}
-                      style={styles.emptyConversationText}
-                    >
-                      Ask your first question about this document
-                    </Text>
-                    <Text
-                      variant="body2"
-                      color={theme.colors.textTertiary}
-                      style={styles.emptyConversationDescription}
-                    >
-                      Your first 3 questions are free. Additional questions cost
-                      0.2 tokens each.
-                    </Text>
-                  </Card>
                 </View>
-              }
-            />
-
-            {/* Question input area */}
-            <View
+              </Card>
+            </Animated.View>
+          )}
+          inverted
+          contentContainerStyle={styles.conversationsList}
+          ListEmptyComponent={
+            <Animated.View
               style={[
-                styles.inputContainer,
+                styles.emptyConversation,
                 {
-                  backgroundColor: theme.colors.background,
-                  borderTopColor: theme.colors.border,
+                  opacity: fadeAnim,
+                  transform: [{ translateY: slideAnim }],
                 },
               ]}
             >
-              {freeQuestionsCount > 0 ? (
-                <Badge
-                  label={`${freeQuestionsCount} free questions left`}
-                  type="info"
-                  icon="information-circle"
-                  style={styles.freeQuestionsBadge}
-                />
-              ) : (
-                <Badge
-                  label={`${TOKEN_COSTS.QUESTION} tokens per question`}
-                  type="warning"
-                  icon="key"
-                  style={styles.freeQuestionsBadge}
-                />
-              )}
-
-              <View
-                style={[
-                  styles.inputRow,
-                  {
-                    backgroundColor: isDark
-                      ? theme.colors.card
-                      : theme.colors.border + "30",
-                    borderColor: isFocused
-                      ? theme.colors.primary
-                      : "transparent",
-                  },
-                ]}
+              <Card
+                style={styles.emptyConversationCard}
+                variant={isDark ? "default" : "bordered"}
+                elevated={true}
               >
-                <TextInput
-                  style={[styles.input, { color: theme.colors.text }]}
-                  placeholder={t("document.askPlaceholder")}
-                  placeholderTextColor={theme.colors.textSecondary}
-                  value={question}
-                  onChangeText={setQuestion}
-                  multiline
-                  onFocus={() => setIsFocused(true)}
-                  onBlur={() => setIsFocused(false)}
-                />
-
-                <TouchableOpacity
-                  style={[
-                    styles.sendButton,
-                    {
-                      backgroundColor: question.trim()
-                        ? theme.colors.primary
-                        : theme.colors.border,
-                    },
+                <LinearGradient
+                  colors={[
+                    theme.colors.background,
+                    theme.colors.primary + "10",
                   ]}
-                  onPress={askQuestion}
-                  disabled={!question.trim() || askingQuestion}
+                  style={styles.emptyConversationGradient}
                 >
-                  {askingQuestion ? (
-                    <ActivityIndicator size="small" color="#FFFFFF" />
-                  ) : (
-                    <Ionicons name="send" size={20} color="#FFFFFF" />
-                  )}
-                </TouchableOpacity>
-              </View>
-            </View>
-          </Animated.View>
-        </KeyboardAvoidingView>
+                  <Ionicons
+                    name="chatbubble-ellipses-outline"
+                    size={60}
+                    color={theme.colors.textSecondary}
+                  />
+                  <Text
+                    variant="subtitle1"
+                    color={theme.colors.text}
+                    style={styles.emptyConversationText}
+                  >
+                    Ask your first question about this document
+                  </Text>
+                  <Text
+                    variant="body2"
+                    color={theme.colors.textSecondary}
+                    style={styles.emptyConversationDescription}
+                  >
+                    Your first 3 questions are free. Additional questions cost
+                    0.2 tokens each.
+                  </Text>
+                </LinearGradient>
+              </Card>
+            </Animated.View>
+          }
+        />
+
+        {/* Question input area */}
+        <View
+          style={[
+            styles.inputContainer,
+            {
+              backgroundColor: theme.colors.background,
+              borderTopColor: theme.colors.border,
+            },
+          ]}
+        >
+          {freeQuestionsCount > 0 ? (
+            <Badge
+              label={`${freeQuestionsCount} free questions left`}
+              type="info"
+              icon="information-circle"
+              style={styles.freeQuestionsBadge}
+            />
+          ) : (
+            <Badge
+              label={`${TOKEN_COSTS.QUESTION} tokens per question`}
+              type="warning"
+              icon="key"
+              style={styles.freeQuestionsBadge}
+            />
+          )}
+
+          <View
+            style={[
+              styles.inputRow,
+              {
+                backgroundColor: isDark
+                  ? theme.colors.card
+                  : theme.colors.border + "30",
+                borderColor: isFocused ? theme.colors.primary : "transparent",
+              },
+            ]}
+          >
+            <TextInput
+              style={[styles.input, { color: theme.colors.text }]}
+              placeholder={t("document.askPlaceholder")}
+              placeholderTextColor={theme.colors.textSecondary}
+              value={question}
+              onChangeText={setQuestion}
+              multiline
+              onFocus={() => setIsFocused(true)}
+              onBlur={() => setIsFocused(false)}
+            />
+
+            <TouchableOpacity
+              style={[
+                styles.sendButton,
+                question.trim()
+                  ? { backgroundColor: theme.colors.primary }
+                  : { backgroundColor: theme.colors.border },
+              ]}
+              onPress={askQuestion}
+              disabled={!question.trim() || askingQuestion}
+            >
+              {askingQuestion ? (
+                <Loading size="small" color="#FFFFFF" />
+              ) : (
+                <Ionicons name="send" size={20} color="#FFFFFF" />
+              )}
+            </TouchableOpacity>
+          </View>
+        </View>
+      </Animated.View>
+    </KeyboardAvoidingView>
+  );
+
+  const renderContent = () => {
+    if (analyzing) {
+      return (
+        <View style={styles.loadingContainer}>
+          <Loading text={t("document.processingDocument")} type="pulse" />
+        </View>
       );
     }
+
+    return activeTab === "summary"
+      ? renderSummaryContent()
+      : renderAskContent();
   };
 
   return (
@@ -904,7 +996,7 @@ const DocumentDetailScreen = ({ route, navigation }) => {
         translucent
       />
 
-      {renderHeader()}
+      {renderAnimatedHeader()}
 
       <Animated.ScrollView
         ref={scrollViewRef}
@@ -916,24 +1008,18 @@ const DocumentDetailScreen = ({ route, navigation }) => {
         contentContainerStyle={styles.scrollContent}
         showsVerticalScrollIndicator={false}
       >
+        {renderHeader()}
         {renderDocumentImage()}
         {renderDocumentInfo()}
         {renderTabs()}
-
-        {analyzing ? (
-          <View style={styles.loadingContainer}>
-            <Loading text={t("document.processingDocument")} type="pulse" />
-          </View>
-        ) : (
-          renderContent()
-        )}
+        {renderContent()}
       </Animated.ScrollView>
 
       {/* Sending indicator */}
       {sending && (
         <View style={styles.sendingOverlay}>
-          <Card style={styles.sendingCard}>
-            <ActivityIndicator color={theme.colors.primary} />
+          <Card style={styles.sendingCard} elevated={true}>
+            <Loading color={theme.colors.primary} size="small" />
             <Text style={styles.sendingText}>{t("document.thinking")}</Text>
           </Card>
         </View>
@@ -950,20 +1036,25 @@ const styles = StyleSheet.create({
     flexGrow: 1,
     paddingBottom: 120,
   },
+  headerContainer: {
+    overflow: "hidden",
+    borderBottomLeftRadius: 20,
+    borderBottomRightRadius: 20,
+  },
+  headerGradient: {
+    padding: 16,
+    paddingBottom: 24,
+  },
   header: {
     flexDirection: "row",
     alignItems: "center",
     justifyContent: "space-between",
-    paddingHorizontal: 16,
-    paddingVertical: 12,
-    zIndex: 10,
   },
   animatedHeader: {
     position: "absolute",
     top: 0,
     left: 0,
     right: 0,
-    height: 60,
     zIndex: 999,
     borderBottomWidth: 1,
     paddingTop: Platform.OS === "android" ? StatusBar.currentHeight : 0,
@@ -974,6 +1065,7 @@ const styles = StyleSheet.create({
     alignItems: "center",
     justifyContent: "space-between",
     paddingHorizontal: 16,
+    height: "100%",
   },
   backButton: {
     padding: 8,
@@ -1043,7 +1135,8 @@ const styles = StyleSheet.create({
   },
   tabContainer: {
     flexDirection: "row",
-    paddingHorizontal: 16,
+    marginHorizontal: 16,
+    marginBottom: 16,
     borderBottomWidth: 1,
   },
   tab: {
@@ -1060,6 +1153,10 @@ const styles = StyleSheet.create({
     padding: 16,
   },
   noAnalysisCard: {
+    overflow: "hidden",
+    borderRadius: 16,
+  },
+  noAnalysisGradient: {
     alignItems: "center",
     padding: 24,
   },
@@ -1082,31 +1179,10 @@ const styles = StyleSheet.create({
     padding: 16,
   },
   summarySection: {
-    marginBottom: 24,
+    marginBottom: 16,
   },
-  sectionTitle: {
-    marginBottom: 12,
-  },
-  summaryCard: {
-    padding: 16,
-  },
-  summaryText: {
-    lineHeight: 24,
-  },
-  keyPointItem: {
-    flexDirection: "row",
-    marginBottom: 12,
-  },
-  bulletPoint: {
-    width: 8,
-    height: 8,
-    borderRadius: 4,
-    marginTop: 8,
-    marginRight: 12,
-  },
-  keyPointText: {
-    flex: 1,
-    lineHeight: 24,
+  analysisCard: {
+    marginBottom: 8,
   },
   askContainer: {
     flex: 1,
@@ -1118,6 +1194,7 @@ const styles = StyleSheet.create({
   conversationCard: {
     marginBottom: 16,
     padding: 16,
+    borderRadius: 16,
   },
   questionContainer: {
     flexDirection: "row",
@@ -1131,22 +1208,31 @@ const styles = StyleSheet.create({
     alignItems: "center",
     marginRight: 12,
   },
+  questionContent: {
+    flex: 1,
+  },
   questionText: {
     flex: 1,
   },
   answerContainer: {
     flexDirection: "row",
   },
+  answerContent: {
+    flex: 1,
+  },
   answerText: {
     flex: 1,
     lineHeight: 24,
   },
   emptyConversation: {
-    alignItems: "center",
-    justifyContent: "center",
-    padding: 16,
+    paddingHorizontal: 16,
+    paddingTop: 16,
   },
   emptyConversationCard: {
+    overflow: "hidden",
+    borderRadius: 16,
+  },
+  emptyConversationGradient: {
     alignItems: "center",
     padding: 24,
   },

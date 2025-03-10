@@ -1,429 +1,328 @@
-// src/screens/auth/ForgotPasswordScreen.js
-import React, { useState, useEffect, useRef } from "react";
+import React, { useState } from "react";
 import {
   View,
   StyleSheet,
-  TouchableOpacity,
+  SafeAreaView,
   KeyboardAvoidingView,
   Platform,
+  TouchableOpacity,
   ScrollView,
-  SafeAreaView,
-  StatusBar,
-  Animated,
   Dimensions,
 } from "react-native";
 import { LinearGradient } from "expo-linear-gradient";
-import { Ionicons } from "@expo/vector-icons";
-import { useTheme } from "../../context/ThemeContext";
-import { useAuth } from "../../context/AuthContext";
-import { useLocalization } from "../../context/LocalizationContext";
-import { Text } from "../../components/Text";
-import { Input } from "../../components/Input";
-import { Button } from "../../components/Button";
-import { Card } from "../../components/Card";
-import { Loading } from "../../components/Loading";
-import LottieView from "lottie-react-native";
+import { Text, Input, Button, Card } from "../../components";
 
 const { width, height } = Dimensions.get("window");
 
 const ForgotPasswordScreen = ({ navigation }) => {
-  const { theme, isDark } = useTheme();
-  const { resetPassword, loading } = useAuth();
-  const { t } = useLocalization();
-
+  // State for form fields and validation
   const [email, setEmail] = useState("");
-  const [error, setError] = useState("");
+  const [isLoading, setIsLoading] = useState(false);
+  const [errors, setErrors] = useState({});
   const [isSubmitted, setIsSubmitted] = useState(false);
 
-  // Animations
-  const fadeAnim = useRef(new Animated.Value(0)).current;
-  const slideAnim = useRef(new Animated.Value(30)).current;
-  const formFade = useRef(new Animated.Value(1)).current;
-  const successFade = useRef(new Animated.Value(0)).current;
-  const successScale = useRef(new Animated.Value(0.8)).current;
-
-  // Refs
-  const lottieRef = useRef(null);
-  const successLottieRef = useRef(null);
-
-  // Start entrance animations
-  useEffect(() => {
-    Animated.parallel([
-      Animated.timing(fadeAnim, {
-        toValue: 1,
-        duration: 700,
-        useNativeDriver: true,
-      }),
-      Animated.timing(slideAnim, {
-        toValue: 0,
-        duration: 700,
-        useNativeDriver: true,
-      }),
-    ]).start();
-
-    // Start lottie animation
-    if (lottieRef.current) {
-      setTimeout(() => {
-        lottieRef.current.play();
-      }, 400);
-    }
-  }, []);
-
-  // Success animation when email is submitted
-  useEffect(() => {
-    if (isSubmitted) {
-      // Animate out the form
-      Animated.timing(formFade, {
-        toValue: 0,
-        duration: 400,
-        useNativeDriver: true,
-      }).start();
-
-      // Animate in the success state
-      Animated.parallel([
-        Animated.timing(successFade, {
-          toValue: 1,
-          duration: 800,
-          delay: 400,
-          useNativeDriver: true,
-        }),
-        Animated.timing(successScale, {
-          toValue: 1,
-          duration: 800,
-          delay: 400,
-          useNativeDriver: true,
-        }),
-      ]).start();
-
-      // Start success lottie animation
-      if (successLottieRef.current) {
-        setTimeout(() => {
-          successLottieRef.current.play();
-        }, 600);
-      }
-    }
-  }, [isSubmitted]);
-
-  // Form validation
+  // Simple validation function
   const validateForm = () => {
+    const newErrors = {};
+
+    // Email validation
     if (!email) {
-      setError("Please enter your email address");
-      return false;
+      newErrors.email = "Email is required";
     } else if (!/\S+@\S+\.\S+/.test(email)) {
-      setError("Please enter a valid email address");
-      return false;
+      newErrors.email = "Email is invalid";
     }
 
-    setError("");
-    return true;
+    setErrors(newErrors);
+    return Object.keys(newErrors).length === 0;
   };
 
-  // Password reset request
+  // Handle password reset request
   const handleResetPassword = async () => {
-    if (!validateForm()) return;
+    if (validateForm()) {
+      try {
+        setIsLoading(true);
 
-    try {
-      await resetPassword(email);
-      setIsSubmitted(true);
-      // Toast message shown in AuthContext
-    } catch (error) {
-      console.error("Password reset error", error);
-      // Toast message shown in AuthContext
+        // Simulate password reset request
+        await new Promise((resolve) => setTimeout(resolve, 1500));
+
+        // Call your password reset logic here
+        // For example: await sendPasswordResetEmail(email);
+
+        // Show success state
+        setIsSubmitted(true);
+      } catch (error) {
+        setErrors({
+          general: error.message || "Password reset request failed",
+        });
+      } finally {
+        setIsLoading(false);
+      }
     }
   };
 
   return (
-    <SafeAreaView style={{ flex: 1, backgroundColor: theme.colors.background }}>
-      <StatusBar
-        barStyle={isDark ? "light-content" : "dark-content"}
-        backgroundColor="transparent"
-        translucent
-      />
-
+    <SafeAreaView style={styles.container}>
       <KeyboardAvoidingView
-        style={{ flex: 1 }}
-        behavior={Platform.OS === "ios" ? "padding" : undefined}
-        keyboardVerticalOffset={Platform.OS === "ios" ? 0 : 0}
+        behavior={Platform.OS === "ios" ? "padding" : "height"}
+        style={styles.keyboardAvoidingView}
       >
-        <LinearGradient
-          colors={
-            isDark
-              ? [theme.colors.background, theme.colors.card]
-              : [theme.colors.background, theme.colors.background + "80"]
-          }
-          style={styles.gradient}
+        <ScrollView
+          contentContainerStyle={styles.scrollContent}
+          keyboardShouldPersistTaps="handled"
         >
-          <ScrollView
-            contentContainerStyle={styles.scrollContainer}
-            showsVerticalScrollIndicator={false}
-          >
-            {/* Header with Back Button */}
-            <Animated.View
-              style={[
-                styles.header,
-                {
-                  opacity: fadeAnim,
-                },
-              ]}
+          {/* Header with back button */}
+          <View style={styles.header}>
+            <TouchableOpacity
+              style={styles.backButton}
+              onPress={() => navigation.goBack()}
             >
-              <TouchableOpacity
-                style={styles.backButton}
-                onPress={() => navigation.goBack()}
-              >
-                <Ionicons
-                  name="arrow-back"
-                  size={24}
-                  color={theme.colors.text}
-                />
-              </TouchableOpacity>
-              <Text variant="h2" style={styles.title}>
-                {t("auth.forgotPassword")}
-              </Text>
-              <View style={{ width: 40 }} />
-            </Animated.View>
+              <Text>←</Text>
+            </TouchableOpacity>
+            <Text variant="h3">Reset Password</Text>
+            <View style={{ width: 40 }} />
+          </View>
 
-            {/* Animation Container */}
-            <Animated.View
-              style={[
-                styles.animationContainer,
-                {
-                  opacity: fadeAnim,
-                  transform: [{ translateY: slideAnim }],
-                },
-              ]}
-            >
-              {/* <LottieView
-                ref={lottieRef}
-                source={require("../../assets/animations/forgot-password.json")}
-                style={styles.animation}
-                loop
-              /> */}
-            </Animated.View>
-
-            {/* Reset Password Form */}
-            <Animated.View
-              style={[
-                styles.formContainer,
-                {
-                  opacity: Animated.multiply(fadeAnim, formFade),
-                  transform: [{ translateY: slideAnim }],
-                },
-              ]}
-            >
-              <Card style={styles.formCard} elevated={true}>
-                <Text
-                  style={[
-                    styles.description,
-                    { color: theme.colors.textSecondary },
-                  ]}
+          {/* Main Content */}
+          {!isSubmitted ? (
+            // Password Reset Request Form
+            <Card style={styles.resetCard}>
+              <View style={styles.iconContainer}>
+                <LinearGradient
+                  colors={["#61DAFB", "#5D5FEF"]}
+                  style={styles.iconBackground}
                 >
-                  {t("auth.resetPasswordDesc")}
-                </Text>
+                  <Text style={styles.icon}>🔑</Text>
+                </LinearGradient>
+              </View>
 
-                <Input
-                  label={t("auth.email")}
-                  value={email}
-                  onChangeText={setEmail}
-                  placeholder="email@example.com"
-                  keyboardType="email-address"
-                  autoCapitalize="none"
-                  icon="mail"
-                  error={error}
-                  variant="outline"
-                  animatedLabel={true}
-                />
+              <Text variant="subtitle1" style={styles.resetTitle}>
+                Forgot Your Password?
+              </Text>
 
-                <Button
-                  title={t("auth.resetPassword")}
-                  onPress={handleResetPassword}
-                  style={styles.resetButton}
-                  loading={loading}
-                  gradient={true}
-                  icon="send"
-                />
-              </Card>
-            </Animated.View>
-
-            {/* Success State */}
-            {isSubmitted && (
-              <Animated.View
-                style={[
-                  styles.successContainer,
-                  {
-                    opacity: successFade,
-                    transform: [{ scale: successScale }],
-                  },
-                ]}
+              <Text
+                variant="body2"
+                color="#64748B"
+                style={styles.resetSubtitle}
               >
-                <Card style={styles.successCard} elevated={true}>
-                  {/* <LottieView
-                    ref={successLottieRef}
-                    source={require("../../assets/animations/email-sent.json")}
-                    style={styles.successAnimation}
-                    loop={false}
-                  /> */}
+                Enter your email address and we'll send you a link to reset your
+                password
+              </Text>
 
-                  <Text variant="h3" style={styles.successTitle}>
-                    {t("auth.checkYourEmail")}
+              {/* Error message if request fails */}
+              {errors.general && (
+                <View style={styles.errorContainer}>
+                  <Text variant="body2" color="#EF4444">
+                    {errors.general}
                   </Text>
+                </View>
+              )}
 
-                  <Text
-                    variant="body1"
-                    color={theme.colors.textSecondary}
-                    style={styles.successMessage}
-                  >
-                    We've sent instructions to reset your password to
-                    <Text
-                      variant="body1"
-                      weight="semibold"
-                      color={theme.colors.primary}
-                    >
-                      {" "}
-                      {email}
-                    </Text>
-                  </Text>
+              {/* Email Input */}
+              <Input
+                label="Email"
+                value={email}
+                onChangeText={setEmail}
+                placeholder="email@example.com"
+                keyboardType="email-address"
+                autoCapitalize="none"
+                error={!!errors.email}
+                errorText={errors.email}
+                leftIcon={<Text>📧</Text>}
+                style={styles.input}
+              />
 
-                  <Button
-                    title={t("auth.loginInstead")}
-                    onPress={() => navigation.navigate("Login")}
-                    style={styles.loginButton}
-                    gradient={true}
-                  />
-                </Card>
-              </Animated.View>
-            )}
+              {/* Reset Button */}
+              <Button
+                label="Send Reset Link"
+                onPress={handleResetPassword}
+                loading={isLoading}
+                gradient={true}
+                style={styles.resetButton}
+              />
 
-            {/* Bottom Links */}
-            <Animated.View
-              style={[
-                styles.bottomLinks,
-                isSubmitted ? { display: "none" } : {},
-                {
-                  opacity: Animated.multiply(fadeAnim, formFade),
-                  transform: [{ translateY: slideAnim }],
-                },
-              ]}
-            >
+              {/* Back to Login Link */}
               <TouchableOpacity
-                style={styles.bottomLink}
+                style={styles.loginLink}
                 onPress={() => navigation.navigate("Login")}
               >
-                <Text variant="body2" color={theme.colors.textSecondary}>
+                <Text variant="body2" color="#64748B">
                   Remember your password?{" "}
-                  <Text
-                    variant="body2"
-                    weight="semibold"
-                    color={theme.colors.primary}
-                  >
-                    Log in
+                  <Text color="#5D5FEF" weight="semibold">
+                    Sign In
                   </Text>
                 </Text>
               </TouchableOpacity>
-            </Animated.View>
-          </ScrollView>
-        </LinearGradient>
-      </KeyboardAvoidingView>
+            </Card>
+          ) : (
+            // Success State
+            <Card style={styles.successCard}>
+              <View style={styles.successIconContainer}>
+                <LinearGradient
+                  colors={["#10B981", "#34D399"]}
+                  style={styles.successIconBackground}
+                >
+                  <Text style={styles.successIcon}>✉️</Text>
+                </LinearGradient>
+              </View>
 
-      {/* Full screen loading indicator */}
-      {loading && (
-        <Loading
-          fullScreen
-          text={t("common.loading")}
-          type="dots"
-          blur={true}
-        />
-      )}
+              <Text variant="h3" style={styles.successTitle}>
+                Check Your Email
+              </Text>
+
+              <Text variant="body2" color="#64748B" style={styles.successText}>
+                We've sent a password reset link to{" "}
+                <Text color="#5D5FEF" weight="semibold">
+                  {email}
+                </Text>
+              </Text>
+
+              <Text
+                variant="body2"
+                color="#64748B"
+                style={styles.instructionsText}
+              >
+                Follow the instructions in the email to reset your password. If
+                you don't see it, check your spam folder.
+              </Text>
+
+              {/* Back to Login Button */}
+              <Button
+                label="Back to Login"
+                onPress={() => navigation.navigate("Login")}
+                variant="primary"
+                style={styles.backToLoginButton}
+              />
+
+              {/* Resend Link */}
+              <TouchableOpacity
+                style={styles.resendLink}
+                onPress={handleResetPassword}
+              >
+                <Text variant="body2" color="#64748B">
+                  Didn't receive the email?{" "}
+                  <Text color="#5D5FEF" weight="semibold">
+                    Resend
+                  </Text>
+                </Text>
+              </TouchableOpacity>
+            </Card>
+          )}
+        </ScrollView>
+      </KeyboardAvoidingView>
     </SafeAreaView>
   );
 };
 
 const styles = StyleSheet.create({
-  gradient: {
+  container: {
+    flex: 1,
+    backgroundColor: "#F8FAFC",
+  },
+  keyboardAvoidingView: {
     flex: 1,
   },
-  scrollContainer: {
+  scrollContent: {
     flexGrow: 1,
-    paddingBottom: 40,
   },
   header: {
     flexDirection: "row",
     alignItems: "center",
     justifyContent: "space-between",
-    paddingHorizontal: 20,
-    paddingTop: Platform.OS === "android" ? StatusBar.currentHeight + 10 : 10,
-    paddingBottom: 10,
+    paddingHorizontal: 24,
+    paddingVertical: 16,
   },
   backButton: {
-    padding: 8,
-  },
-  title: {
-    flex: 1,
-    textAlign: "center",
-    marginBottom: 0,
-  },
-  animationContainer: {
-    alignItems: "center",
-    paddingTop: 10,
-    marginBottom: 10,
-  },
-  animation: {
-    width: 180,
-    height: 180,
-  },
-  formContainer: {
-    paddingHorizontal: 24,
-  },
-  formCard: {
-    paddingHorizontal: 24,
-    paddingVertical: 30,
+    width: 40,
+    height: 40,
     borderRadius: 20,
-  },
-  description: {
-    textAlign: "center",
-    marginBottom: 24,
-    lineHeight: 22,
-  },
-  resetButton: {
-    marginTop: 24,
-  },
-  successContainer: {
-    paddingHorizontal: 24,
-    position: "absolute",
-    top: 200,
-    left: 0,
-    right: 0,
-  },
-  successCard: {
-    paddingHorizontal: 24,
-    paddingVertical: 30,
-    borderRadius: 20,
-    alignItems: "center",
-  },
-  successAnimation: {
-    width: 150,
-    height: 150,
-    marginBottom: 10,
-  },
-  successTitle: {
-    textAlign: "center",
-    marginBottom: 16,
-  },
-  successMessage: {
-    textAlign: "center",
-    marginBottom: 30,
-    lineHeight: 22,
-  },
-  loginButton: {
-    minWidth: 200,
-  },
-  bottomLinks: {
     alignItems: "center",
     justifyContent: "center",
-    marginTop: 24,
-    paddingHorizontal: 24,
+    backgroundColor: "#F1F5F9",
   },
-  bottomLink: {
+  resetCard: {
+    margin: 24,
+    padding: 24,
+    borderRadius: 24,
+    alignItems: "center",
+  },
+  iconContainer: {
+    marginBottom: 24,
+  },
+  iconBackground: {
+    width: 80,
+    height: 80,
+    borderRadius: 40,
+    alignItems: "center",
+    justifyContent: "center",
+  },
+  icon: {
+    fontSize: 32,
+  },
+  resetTitle: {
+    marginBottom: 8,
+    textAlign: "center",
+  },
+  resetSubtitle: {
+    marginBottom: 24,
+    textAlign: "center",
+  },
+  errorContainer: {
+    backgroundColor: "#FEE2E2",
     padding: 12,
+    borderRadius: 8,
+    marginBottom: 16,
+    width: "100%",
+  },
+  input: {
+    marginBottom: 24,
+    width: "100%",
+  },
+  resetButton: {
+    marginBottom: 16,
+    width: "100%",
+  },
+  loginLink: {
+    marginTop: 8,
+  },
+
+  // Success State Styles
+  successCard: {
+    margin: 24,
+    padding: 24,
+    borderRadius: 24,
+    alignItems: "center",
+  },
+  successIconContainer: {
+    marginBottom: 24,
+  },
+  successIconBackground: {
+    width: 80,
+    height: 80,
+    borderRadius: 40,
+    alignItems: "center",
+    justifyContent: "center",
+  },
+  successIcon: {
+    fontSize: 32,
+  },
+  successTitle: {
+    marginBottom: 16,
+    textAlign: "center",
+  },
+  successText: {
+    marginBottom: 16,
+    textAlign: "center",
+  },
+  instructionsText: {
+    marginBottom: 24,
+    textAlign: "center",
+  },
+  backToLoginButton: {
+    marginBottom: 16,
+    width: "100%",
+  },
+  resendLink: {
+    marginTop: 8,
   },
 });
 

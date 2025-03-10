@@ -1,185 +1,113 @@
-// src/components/Badge.js
 import React from "react";
-import { View, StyleSheet, Animated } from "react-native";
-import { Ionicons } from "@expo/vector-icons";
-import { Text } from "./Text";
-import { useTheme } from "../context/ThemeContext";
+import { View, StyleSheet } from "react-native";
+import Text from "./Text";
 
 /**
- * Modern Badge component with various styles and animations
+ * Badge Component
  *
  * @param {string} label - Badge text
- * @param {string} type - Badge type (info, success, warning, error, primary, secondary)
- * @param {Object} style - Custom style properties
- * @param {string} size - Badge size (sm, md, lg)
- * @param {string} icon - Optional icon name (Ionicons)
- * @param {boolean} pulse - Whether to apply pulse animation
- * @param {boolean} outlined - Whether to use outlined style
- * @param {boolean} gradient - Whether to use gradient background
+ * @param {string} variant - Badge style variant ('primary', 'secondary', 'success', 'error', 'warning', 'info')
+ * @param {string} size - Badge size ('small', 'medium')
+ * @param {JSX.Element} leftIcon - Icon to display on the left
+ * @param {Object} style - Additional style overrides
  */
-export const Badge = ({
+const Badge = ({
   label,
-  type = "info",
+  variant = "primary",
+  size = "medium",
+  leftIcon,
   style,
-  size = "md",
-  icon,
-  pulse = false,
-  outlined = false,
-  gradient = false,
+  ...props
 }) => {
-  const { theme } = useTheme();
-
-  // Pulse animation setup
-  const pulseAnim = React.useRef(new Animated.Value(1)).current;
-
-  React.useEffect(() => {
-    if (pulse) {
-      Animated.loop(
-        Animated.sequence([
-          Animated.timing(pulseAnim, {
-            toValue: 1.08,
-            duration: 800,
-            useNativeDriver: true,
-          }),
-          Animated.timing(pulseAnim, {
-            toValue: 1,
-            duration: 800,
-            useNativeDriver: true,
-          }),
-        ])
-      ).start();
-    }
-  }, [pulse, pulseAnim]);
-
-  // Get badge type colors
-  const getTypeColors = () => {
-    switch (type) {
-      case "success":
-        return {
-          bg: outlined ? "transparent" : theme.colors.success + "18",
-          border: theme.colors.success,
-          text: theme.colors.success,
-        };
-      case "warning":
-        return {
-          bg: outlined ? "transparent" : theme.colors.warning + "18",
-          border: theme.colors.warning,
-          text: theme.colors.warning,
-        };
-      case "error":
-        return {
-          bg: outlined ? "transparent" : theme.colors.error + "18",
-          border: theme.colors.error,
-          text: theme.colors.error,
-        };
-      case "primary":
-        return {
-          bg: outlined ? "transparent" : theme.colors.primary + "18",
-          border: theme.colors.primary,
-          text: theme.colors.primary,
-        };
-      case "secondary":
-        return {
-          bg: outlined ? "transparent" : theme.colors.secondary + "18",
-          border: theme.colors.secondary,
-          text: theme.colors.secondary,
-        };
-      case "info":
-      default:
-        return {
-          bg: outlined ? "transparent" : theme.colors.info + "18",
-          border: theme.colors.info,
-          text: theme.colors.info,
-        };
-    }
+  // Theme colors
+  const colors = {
+    primary: {
+      background: "#5D5FEF20",
+      text: "#5D5FEF",
+    },
+    secondary: {
+      background: "#61DAFB20",
+      text: "#0891B2",
+    },
+    success: {
+      background: "#10B98120",
+      text: "#10B981",
+    },
+    error: {
+      background: "#EF444420",
+      text: "#EF4444",
+    },
+    warning: {
+      background: "#F59E0B20",
+      text: "#F59E0B",
+    },
+    info: {
+      background: "#3B82F620",
+      text: "#3B82F6",
+    },
   };
 
-  // Get size-based styles
-  const getSizeStyles = () => {
-    switch (size) {
-      case "sm":
-        return {
-          paddingHorizontal: 8,
-          paddingVertical: 2,
-          fontSize: theme.typography.fontSize.xs,
-          iconSize: 12,
-          borderRadius: theme.borderRadius.sm,
-        };
-      case "lg":
-        return {
-          paddingHorizontal: 12,
-          paddingVertical: 6,
-          fontSize: theme.typography.fontSize.sm,
-          iconSize: 16,
-          borderRadius: theme.borderRadius.md,
-        };
-      case "md":
-      default:
-        return {
-          paddingHorizontal: 10,
-          paddingVertical: 4,
-          fontSize: theme.typography.fontSize.xs,
-          iconSize: 14,
-          borderRadius: theme.borderRadius.sm,
-        };
-    }
+  // Size styles
+  const sizes = {
+    small: {
+      paddingVertical: 2,
+      paddingHorizontal: 8,
+      fontSize: 12,
+    },
+    medium: {
+      paddingVertical: 4,
+      paddingHorizontal: 10,
+      fontSize: 14,
+    },
   };
 
-  const colors = getTypeColors();
-  const sizeStyles = getSizeStyles();
+  const currentColor = colors[variant] || colors.primary;
+  const currentSize = sizes[size] || sizes.medium;
 
   return (
-    <Animated.View
+    <View
       style={[
-        styles.container,
+        styles.badge,
         {
-          backgroundColor: colors.bg,
-          borderWidth: outlined ? 1 : 0,
-          borderColor: colors.border,
-          borderRadius: sizeStyles.borderRadius,
-          paddingHorizontal: sizeStyles.paddingHorizontal,
-          paddingVertical: sizeStyles.paddingVertical,
-          transform: pulse ? [{ scale: pulseAnim }] : undefined,
+          backgroundColor: currentColor.background,
+          paddingVertical: currentSize.paddingVertical,
+          paddingHorizontal: currentSize.paddingHorizontal,
         },
         style,
       ]}
+      {...props}
     >
-      {icon && (
-        <Ionicons
-          name={icon}
-          size={sizeStyles.iconSize}
-          color={colors.text}
-          style={styles.icon}
-        />
-      )}
+      {leftIcon && <View style={styles.icon}>{leftIcon}</View>}
 
       <Text
         style={[
           styles.label,
           {
-            fontSize: sizeStyles.fontSize,
-            color: colors.text,
-            fontWeight: "600",
+            color: currentColor.text,
+            fontSize: currentSize.fontSize,
           },
         ]}
       >
         {label}
       </Text>
-    </Animated.View>
+    </View>
   );
 };
 
 const styles = StyleSheet.create({
-  container: {
+  badge: {
     flexDirection: "row",
     alignItems: "center",
     justifyContent: "center",
+    borderRadius: 16,
     alignSelf: "flex-start",
   },
   label: {
-    textAlign: "center",
+    fontWeight: "600",
   },
   icon: {
     marginRight: 4,
   },
 });
+
+export default Badge;
