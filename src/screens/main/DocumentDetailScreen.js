@@ -22,14 +22,10 @@ import { BlurView } from "expo-blur";
 import { useTheme } from "../../context/ThemeContext";
 import { useTokens } from "../../context/TokenContext";
 import { useLocalization } from "../../context/LocalizationContext";
-import { Text } from "../../components/Text";
-import { Button } from "../../components/Button";
-import { Card } from "../../components/Card";
-import { Badge } from "../../components/Badge";
-import { Loading } from "../../components/Loading";
+
 import { AIAnalysisCard } from "../../components/AIAnalysisCard";
 import { documentApi } from "../../api/documentApi";
-
+import { Loading, Badge, Card, Text, Button } from "../../components";
 const { width, height } = Dimensions.get("window");
 
 const DocumentDetailScreen = ({ route, navigation }) => {
