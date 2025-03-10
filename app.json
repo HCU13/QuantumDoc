@@ -34,6 +34,12 @@
           "resizeMode": "contain",
           "backgroundColor": "#ffffff"
         }
+      ],
+      [
+        "expo-dev-client",
+        {
+          "launchMode": "most-recent"
+        }
       ]
     ],
     "experiments": {
@@ -44,8 +50,9 @@
         "origin": false
       },
       "eas": {
-        "projectId": "1583e350-3ac6-459b-9c69-5b7180b879c7"
+        "projectId": "819e73e7-863f-4c7c-ae94-ae6af11a1767"
       }
-    }
+    },
+    "owner": "trooper13"
   }
 }

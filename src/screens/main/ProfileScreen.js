@@ -30,7 +30,7 @@ import { Avatar } from "../../components/Avatar";
 import { Button } from "../../components/Button";
 import { Loading } from "../../components/Loading";
 import { Badge } from "../../components/Badge";
-import { logoutUser } from "../../utils/revenuecat";
+// import { logoutUser } from "../../utils/revenuecat";
 
 const ProfileScreen = ({ navigation }) => {
   const { theme, toggleTheme, isDark } = useTheme();

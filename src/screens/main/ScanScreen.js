@@ -41,7 +41,9 @@ import Svg, {
 const { width, height } = Dimensions.get("window");
 const SCAN_AREA_PADDING = 40;
 const SCAN_AREA_ASPECT_RATIO = 1.414; // A4 aspect ratio
-
+// Calculate scan area dimensions
+const scanAreaWidth = width - SCAN_AREA_PADDING * 2;
+const scanAreaHeight = scanAreaWidth * SCAN_AREA_ASPECT_RATIO;
 const ScanScreen = ({ navigation }) => {
   const { theme, isDark } = useTheme();
   const { useTokens, TOKEN_COSTS } = useTokens();
@@ -76,10 +78,6 @@ const ScanScreen = ({ navigation }) => {
   const captureScale = useRef(new Animated.Value(1)).current;
   const previewFade = useRef(new Animated.Value(0)).current;
   const enhancementAnim = useRef(new Animated.Value(0)).current;
-
-  // Calculate scan area dimensions
-  const scanAreaWidth = width - SCAN_AREA_PADDING * 2;
-  const scanAreaHeight = scanAreaWidth * SCAN_AREA_ASPECT_RATIO;
 
   // Get camera permission
   useEffect(() => {

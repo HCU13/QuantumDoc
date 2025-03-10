@@ -192,12 +192,12 @@ const ForgotPasswordScreen = ({ navigation }) => {
                 },
               ]}
             >
-              <LottieView
+              {/* <LottieView
                 ref={lottieRef}
                 source={require("../../assets/animations/forgot-password.json")}
                 style={styles.animation}
                 loop
-              />
+              /> */}
             </Animated.View>
 
             {/* Reset Password Form */}
@@ -256,12 +256,12 @@ const ForgotPasswordScreen = ({ navigation }) => {
                 ]}
               >
                 <Card style={styles.successCard} elevated={true}>
-                  <LottieView
+                  {/* <LottieView
                     ref={successLottieRef}
                     source={require("../../assets/animations/email-sent.json")}
                     style={styles.successAnimation}
                     loop={false}
-                  />
+                  /> */}
 
                   <Text variant="h3" style={styles.successTitle}>
                     {t("auth.checkYourEmail")}

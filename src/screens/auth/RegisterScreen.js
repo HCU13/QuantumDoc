@@ -307,12 +307,12 @@ const RegisterScreen = ({ navigation }) => {
                 }
               ]}
             >
-              <LottieView
+              {/* <LottieView
                 ref={lottieRef}
                 source={require("../../assets/animations/create-account.json")}
                 style={styles.animation}
                 loop
-              />
+              /> */}
               <Text
                 variant="body1"
                 color={theme.colors.textSecondary}

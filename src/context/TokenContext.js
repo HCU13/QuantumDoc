@@ -14,7 +14,7 @@ import {
   limit,
   getDocs,
 } from "firebase/firestore";
-import Purchases from "react-native-purchases";
+// import Purchases from "react-native-purchases";
 import { FIRESTORE_DB } from "../../firebase/FirebaseConfig";
 import { useAuth } from "./AuthContext";
 import { showToast } from "../utils/toast";

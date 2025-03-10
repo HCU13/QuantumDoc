@@ -6,12 +6,11 @@ import {
   TouchableOpacity,
   KeyboardAvoidingView,
   Platform,
-  ScrollView,
   SafeAreaView,
   StatusBar,
   Dimensions,
-  ImageBackground,
-  Animated,
+  Keyboard,
+  Image,
 } from "react-native";
 import { LinearGradient } from "expo-linear-gradient";
 import { Ionicons } from "@expo/vector-icons";
@@ -19,40 +18,38 @@ import { useTheme } from "../../context/ThemeContext";
 import { useAuth } from "../../context/AuthContext";
 import { useLocalization } from "../../context/LocalizationContext";
 import { Text } from "../../components/Text";
-import { Input } from "../../components/Input";
+import { Input } from "../../components/Input"; // Yeni Input bileşeni
 import { Button } from "../../components/Button";
-import { Card } from "../../components/Card";
-import { Loading } from "../../components/Loading";
 
 const { width, height } = Dimensions.get("window");
 
 const LoginScreen = ({ navigation }) => {
+  // Context Hooks
   const { theme, isDark } = useTheme();
   const { login, loading } = useAuth();
   const { t } = useLocalization();
 
-  const [email, setEmail] = useState("");
-  const [password, setPassword] = useState("");
+  // State
+  const [email, setEmail] = useState("trooper1803@gmail.com");
+  const [password, setPassword] = useState("123123123");
   const [errors, setErrors] = useState({});
+  const [keyboardOpen, setKeyboardOpen] = useState(false);
 
-  // Animations
-  const fadeAnim = React.useRef(new Animated.Value(0)).current;
-  const slideAnim = React.useRef(new Animated.Value(50)).current;
-
+  // Klavye açık/kapalı durumunu takip et
   useEffect(() => {
-    // Start entrance animations
-    Animated.parallel([
-      Animated.timing(fadeAnim, {
-        toValue: 1,
-        duration: 800,
-        useNativeDriver: true,
-      }),
-      Animated.timing(slideAnim, {
-        toValue: 0,
-        duration: 800,
-        useNativeDriver: true,
-      }),
-    ]).start();
+    const keyboardDidShowListener = Keyboard.addListener(
+      'keyboardDidShow',
+      () => setKeyboardOpen(true)
+    );
+    const keyboardDidHideListener = Keyboard.addListener(
+      'keyboardDidHide',
+      () => setKeyboardOpen(false)
+    );
+
+    return () => {
+      keyboardDidShowListener.remove();
+      keyboardDidHideListener.remove();
+    };
   }, []);
 
   // Form validation
@@ -83,15 +80,46 @@ const LoginScreen = ({ navigation }) => {
 
     try {
       await login(email, password);
-      // Login successful - RootNavigator will redirect to main screen
+      // RootNavigator will redirect to main screen after successful login
     } catch (error) {
       console.error("Login error", error);
-      // Toast message shown in AuthContext
+      // Toast message is handled in AuthContext
     }
   };
 
+  // Logo bileşeni - klavye açık olduğunda gizlenir
+  const renderLogo = () => {
+    if (keyboardOpen) return null;
+    
+    return (
+      <View style={styles.logoContainer}>
+        <View style={[styles.logoBox, { backgroundColor: theme.colors.primary + "15" }]}>
+          <LinearGradient
+            colors={[theme.colors.primary, theme.colors.secondary]}
+            style={styles.logoGradient}
+          >
+            <Ionicons name="document-text" size={40} color="white" />
+          </LinearGradient>
+        </View>
+
+        <Text variant="h1" style={styles.title} weight="bold">
+          DocAI
+        </Text>
+
+        <Text
+          variant="subtitle1"
+          color={theme.colors.textSecondary}
+          style={styles.subtitle}
+          centered
+        >
+          {t("onboarding.welcome.description")}
+        </Text>
+      </View>
+    );
+  };
+
   return (
-    <SafeAreaView style={{ flex: 1, backgroundColor: theme.colors.background }}>
+    <SafeAreaView style={[styles.container, { backgroundColor: theme.colors.background }]}>
       <StatusBar
         barStyle={isDark ? "light-content" : "dark-content"}
         backgroundColor="transparent"
@@ -99,198 +127,135 @@ const LoginScreen = ({ navigation }) => {
       />
 
       <KeyboardAvoidingView
-        style={{ flex: 1 }}
-        behavior={Platform.OS === "ios" ? "padding" : undefined}
-        keyboardVerticalOffset={Platform.OS === "ios" ? 0 : 0}
+        style={styles.keyboardAvoidingView}
+        behavior={Platform.OS === "ios" ? "padding" : "height"}
+        keyboardVerticalOffset={Platform.OS === "ios" ? 0 : 20}
       >
         <LinearGradient
           colors={
             isDark
               ? [theme.colors.background, theme.colors.background]
-              : [theme.colors.background, theme.colors.card]
+              : [theme.colors.background, theme.colors.surface]
           }
           style={styles.gradient}
         >
-          <ScrollView
-            contentContainerStyle={styles.scrollContainer}
-            showsVerticalScrollIndicator={false}
-          >
-            {/* Header with Logo and Brand */}
-            <Animated.View
-              style={[
-                styles.header,
-                {
-                  opacity: fadeAnim,
-                  transform: [{ translateY: slideAnim }],
-                },
-              ]}
-            >
-              <View
-                style={[
-                  styles.logoContainer,
-                  {
-                    backgroundColor: theme.colors.primary + "15",
-                  },
-                ]}
+          <View style={styles.content}>
+            {renderLogo()}
+
+            <View style={styles.formContainer}>
+              <Text variant="h2" style={styles.formTitle}>
+                {t("auth.login")}
+              </Text>
+
+              {/* Email Input */}
+              <Input
+                label={t("auth.email")}
+                value={email}
+                onChangeText={setEmail}
+                placeholder="email@example.com"
+                keyboardType="email-address"
+                autoCapitalize="none"
+                icon="mail-outline"
+                error={errors.email ? t(errors.email) : null}
+              />
+
+              {/* Password Input */}
+              <Input
+                label={t("auth.password")}
+                value={password}
+                onChangeText={setPassword}
+                placeholder="••••••••"
+                secureTextEntry
+                icon="lock-closed-outline"
+                error={errors.password ? t(errors.password) : null}
+              />
+
+              {/* Forgot Password Link */}
+              <TouchableOpacity
+                style={styles.forgotPassword}
+                onPress={() => navigation.navigate("ForgotPassword")}
               >
-                <LinearGradient
-                  colors={[theme.colors.primary, theme.colors.secondary]}
-                  style={styles.logoGradient}
+                <Text
+                  variant="body2"
+                  color={theme.colors.primary}
+                  style={styles.forgotPasswordText}
                 >
-                  <Ionicons name="document-text" size={48} color="white" />
-                </LinearGradient>
-              </View>
-
-              <Text variant="h1" style={styles.title} weight="bold">
-                DocAI
-              </Text>
-
-              <Text
-                variant="subtitle1"
-                color={theme.colors.textSecondary}
-                style={styles.subtitle}
-                centered
-              >
-                {t("onboarding.welcome.description")}
-              </Text>
-            </Animated.View>
-
-            {/* Login Form */}
-            <Animated.View
-              style={[
-                styles.formContainer,
-                {
-                  opacity: fadeAnim,
-                  transform: [{ translateY: slideAnim }],
-                },
-              ]}
-            >
-              <Card style={styles.formCard} elevated={true} variant="default">
-                <Text variant="h2" style={styles.formTitle} centered>
-                  {t("auth.login")}
+                  {t("auth.forgotPassword")}
                 </Text>
+              </TouchableOpacity>
 
-                <Input
-                  label={t("auth.email")}
-                  value={email}
-                  onChangeText={setEmail}
-                  placeholder="email@example.com"
-                  keyboardType="email-address"
-                  autoCapitalize="none"
-                  icon="mail"
-                  error={errors.email ? t(errors.email) : null}
-                  variant="outline"
-                  animatedLabel={true}
-                />
+              {/* Login Button */}
+              <Button
+                title={t("auth.login")}
+                onPress={handleLogin}
+                style={styles.loginButton}
+                loading={loading}
+                gradient={true}
+                fullWidth
+              />
 
-                <Input
-                  label={t("auth.password")}
-                  value={password}
-                  onChangeText={setPassword}
-                  placeholder="••••••••"
-                  secureTextEntry
-                  icon="lock-closed"
-                  error={errors.password ? t(errors.password) : null}
-                  variant="outline"
-                  animatedLabel={true}
-                />
-
-                <TouchableOpacity
-                  style={styles.forgotPassword}
-                  onPress={() => navigation.navigate("ForgotPassword")}
-                >
+              {/* Register Link */}
+              <View style={styles.registerContainer}>
+                <Text variant="body2" color={theme.colors.textSecondary}>
+                  {t("auth.dontHaveAccount")}{" "}
+                </Text>
+                <TouchableOpacity onPress={() => navigation.navigate("Register")}>
                   <Text
                     variant="body2"
                     color={theme.colors.primary}
-                    style={styles.forgotPasswordText}
+                    weight="semibold"
                   >
-                    {t("auth.forgotPassword")}
+                    {t("auth.registerInstead")}
                   </Text>
                 </TouchableOpacity>
-
-                <Button
-                  title={t("auth.login")}
-                  onPress={handleLogin}
-                  style={styles.loginButton}
-                  loading={loading}
-                  gradient={true}
-                  size="lg"
-                  fullWidth
-                />
-
-                <View
-                  style={[
-                    styles.divider,
-                    { backgroundColor: theme.colors.border },
-                  ]}
-                >
-                  <Text
-                    variant="caption"
-                    color={theme.colors.textSecondary}
-                    style={styles.dividerText}
-                  >
-                    {t("common.or")}
-                  </Text>
-                </View>
-
-                <TouchableOpacity
-                  style={styles.registerLink}
-                  onPress={() => navigation.navigate("Register")}
-                >
-                  <Text variant="body2" color={theme.colors.textSecondary}>
-                    {t("auth.dontHaveAccount")}{" "}
-                    <Text
-                      variant="body2"
-                      color={theme.colors.primary}
-                      weight="semibold"
-                    >
-                      {t("auth.registerInstead")}
-                    </Text>
-                  </Text>
-                </TouchableOpacity>
-              </Card>
-            </Animated.View>
-          </ScrollView>
+              </View>
+            </View>
+          </View>
         </LinearGradient>
       </KeyboardAvoidingView>
 
       {/* Full screen loading indicator */}
       {loading && (
-        <Loading
-          fullScreen
-          text={t("common.loading")}
-          type="logo"
-          blur={true}
-          iconName="document-text"
-        />
+        <View style={styles.loadingOverlay}>
+          <LinearGradient
+            colors={[theme.colors.primary, theme.colors.secondary]}
+            style={styles.loadingIndicator}
+          >
+            <Ionicons name="document-text" size={28} color="white" />
+          </LinearGradient>
+        </View>
       )}
     </SafeAreaView>
   );
 };
 
 const styles = StyleSheet.create({
+  container: {
+    flex: 1,
+  },
+  keyboardAvoidingView: {
+    flex: 1,
+  },
   gradient: {
     flex: 1,
   },
-  scrollContainer: {
-    flexGrow: 1,
-    paddingTop: StatusBar.currentHeight || 0,
-    paddingBottom: 24,
-  },
-  header: {
-    alignItems: "center",
+  content: {
+    flex: 1,
+    paddingHorizontal: 20,
     justifyContent: "center",
-    paddingTop: height * 0.08,
-    paddingBottom: height * 0.04,
   },
   logoContainer: {
-    width: 100,
-    height: 100,
-    borderRadius: 20,
+    alignItems: "center",
+    marginBottom: 30,
+  },
+  logoBox: {
+    width: 70,
+    height: 70,
+    borderRadius: 16,
     justifyContent: "center",
     alignItems: "center",
-    marginBottom: 24,
     overflow: "hidden",
+    marginBottom: 16,
   },
   logoGradient: {
     width: "100%",
@@ -299,53 +264,50 @@ const styles = StyleSheet.create({
     alignItems: "center",
   },
   title: {
-    marginBottom: 12,
+    marginBottom: 8,
   },
   subtitle: {
     maxWidth: "80%",
     textAlign: "center",
-    marginBottom: 10,
-    lineHeight: 24,
+    marginBottom: 6,
+    lineHeight: 20,
   },
   formContainer: {
-    paddingHorizontal: 24,
-    paddingTop: 10,
-  },
-  formCard: {
-    paddingHorizontal: 24,
-    paddingVertical: 32,
-    borderRadius: 20,
+    width: "100%",
   },
   formTitle: {
-    marginBottom: 28,
+    marginBottom: 20,
+    fontSize: 22,
     textAlign: "center",
   },
   forgotPassword: {
     alignSelf: "flex-end",
-    marginTop: 8,
-    marginBottom: 24,
+    marginTop: 4,
+    marginBottom: 20,
   },
   forgotPasswordText: {
-    fontSize: 14,
+    fontSize: 13,
   },
   loginButton: {
-    marginTop: 8,
+    marginBottom: 20,
+    height: 44,
   },
-  divider: {
-    height: 1,
-    width: "100%",
-    marginVertical: 24,
-    position: "relative",
+  registerContainer: {
+    flexDirection: "row",
+    justifyContent: "center",
+    alignItems: "center",
   },
-  dividerText: {
-    position: "absolute",
-    top: -10,
-    left: "50%",
-    backgroundColor: "white",
-    paddingHorizontal: 10,
-    transform: [{ translateX: -20 }],
+  loadingOverlay: {
+    ...StyleSheet.absoluteFillObject,
+    backgroundColor: "rgba(0,0,0,0.4)",
+    justifyContent: "center",
+    alignItems: "center",
   },
-  registerLink: {
+  loadingIndicator: {
+    width: 60,
+    height: 60,
+    borderRadius: 30,
+    justifyContent: "center",
     alignItems: "center",
   },
 });
