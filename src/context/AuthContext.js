@@ -25,44 +25,55 @@ export function AuthProvider({ children }) {
   const [loading, setLoading] = useState(true);
   const auth = FIREBASE_AUTH;
 
-  // Kullanıcı oturum durumunu dinle
+  useEffect(() => {
+    const loadUserFromStorage = async () => {
+      try {
+        const storedUserData = await AsyncStorage.getItem("user");
+        if (storedUserData) {
+          const userData = JSON.parse(storedUserData);
+          setUser(userData);
+        }
+      } catch (error) {
+        console.error("Error loading user from storage:", error);
+      }
+    };
+
+    loadUserFromStorage();
+  }, []);
+
+  // Firebase auth listener'ı
   useEffect(() => {
     const unsubscribe = onAuthStateChanged(auth, async (firebaseUser) => {
-      if (firebaseUser) {
-        // Kullanıcı oturum açmış durumda
-        try {
-          // Firestore'dan ek kullanıcı bilgilerini al
+      try {
+        if (firebaseUser) {
+          // Kullanıcı oturum açmış durumda
           const userDoc = await getDoc(
             doc(FIRESTORE_DB, "users", firebaseUser.uid)
           );
 
           if (userDoc.exists()) {
-            // Firestore ve Firebase Auth verilerini birleştir
             const userData = {
               ...firebaseUser,
               ...userDoc.data(),
             };
             setUser(userData);
-            // Kullanıcı bilgilerini önbelleğe kaydet
             await AsyncStorage.setItem("user", JSON.stringify(userData));
           } else {
-            // Kullanıcı Firestore'da yok, sadece Firebase Auth verilerini kullan
             setUser(firebaseUser);
             await AsyncStorage.setItem("user", JSON.stringify(firebaseUser));
           }
-        } catch (error) {
-          console.error("User data loading error:", error);
-          setUser(firebaseUser);
+        } else {
+          // Eğer Firebase kullanıcı yok diyorsa, AsyncStorage'daki bilgiyi de temizle
+          setUser(null);
+          await AsyncStorage.removeItem("user");
         }
-      } else {
-        // Kullanıcı oturum açmamış durumda
-        setUser(null);
-        await AsyncStorage.removeItem("user");
+      } catch (error) {
+        console.error("User state change error:", error);
+      } finally {
+        setLoading(false);
       }
-      setLoading(false);
     });
 
-    // Cleanup: Listener'ı kaldır
     return () => unsubscribe();
   }, []);
 

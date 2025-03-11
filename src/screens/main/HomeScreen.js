@@ -232,7 +232,7 @@ const HomeScreen = ({ navigation }) => {
             <Text
               variant="body2"
               weight="semibold"
-              color={theme.colors.primary}
+              color={theme.text}
               style={styles.tokenText}
             >
               {tokens || 15}
@@ -265,7 +265,7 @@ const HomeScreen = ({ navigation }) => {
             <Text
               variant="body2"
               weight="semibold"
-              color={theme.colors.primary}
+              color={theme.colors.text}
               style={styles.tokenText}
             >
               {tokens || 15}
@@ -306,7 +306,7 @@ const HomeScreen = ({ navigation }) => {
             variant="body2"
             color={
               activeFilter === "all"
-                ? theme.colors.primary
+                ? theme.colors.text
                 : theme.colors.textSecondary
             }
             weight={activeFilter === "all" ? "semibold" : "regular"}

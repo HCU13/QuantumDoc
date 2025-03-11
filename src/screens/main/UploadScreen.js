@@ -37,7 +37,7 @@ const { width, height } = Dimensions.get("window");
 const UploadScreen = ({ navigation }) => {
   const { theme, isDark } = useTheme();
   const { t } = useLocalization();
-  const { useTokens, TOKEN_COSTS, freeTrialUsed } = useTokens();
+  const { useToken, TOKEN_COSTS, freeTrialUsed } = useTokens();
 
   // State
   const [selectedFile, setSelectedFile] = useState(null);
@@ -266,7 +266,7 @@ const UploadScreen = ({ navigation }) => {
       setUploadProgress(0);
 
       // Use token
-      await useTokens(TOKEN_COSTS.DOCUMENT_ANALYSIS, "analysis");
+      await useToken(TOKEN_COSTS.DOCUMENT_ANALYSIS, "analysis");
 
       // Upload file with progress tracking
       const uploadedDocument = await documentApi.uploadDocument(

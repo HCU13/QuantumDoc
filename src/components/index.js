@@ -11,3 +11,4 @@ export { default as EmptyState } from "./EmptyState";
 export { default as DocumentItem } from "./DocumentItem";
 export { default as AIAnalysisCard } from "./AIAnalysisCard";
 export { default as ColorfulHeader } from "./ColorfulHeader";
+export { default as AnimatedHeader } from "./AnimatedHeader";

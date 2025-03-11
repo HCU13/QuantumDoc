@@ -22,17 +22,20 @@ import { BlurView } from "expo-blur";
 import { useTheme } from "../../context/ThemeContext";
 import { useTokens } from "../../context/TokenContext";
 import { useLocalization } from "../../context/LocalizationContext";
+import { useApp } from "../../context/AppContext";
 
 import { AIAnalysisCard } from "../../components/AIAnalysisCard";
 import { documentApi } from "../../api/documentApi";
-import { Loading, Badge, Card, Text, Button } from "../../components";
+import { Loading, Badge, Card, Text, Button, Divider } from "../../components";
+
 const { width, height } = Dimensions.get("window");
 
 const DocumentDetailScreen = ({ route, navigation }) => {
   const { documentId, newDocument } = route.params;
   const { theme, isDark } = useTheme();
   const { t } = useLocalization();
-  const { hasEnoughTokens, useTokens, TOKEN_COSTS } = useTokens();
+  const { hasEnoughTokens, useToken, TOKEN_COSTS } = useTokens();
+  const { handleError, addNotification } = useApp();
 
   const scrollViewRef = useRef(null);
   const [document, setDocument] = useState(null);
@@ -111,6 +114,10 @@ const DocumentDetailScreen = ({ route, navigation }) => {
     try {
       setLoading(true);
       const doc = await documentApi.getDocumentById(documentId);
+      if (!doc) {
+        throw new Error("Document not found");
+      }
+
       setDocument(doc);
 
       // Load document conversations
@@ -122,7 +129,7 @@ const DocumentDetailScreen = ({ route, navigation }) => {
       setFreeQuestionsCount(Math.max(0, 3 - usedQuestions));
     } catch (error) {
       console.error("Error loading document:", error);
-      Alert.alert(t("errors.somethingWentWrong"));
+      handleError(error, t("errors.somethingWentWrong"));
     } finally {
       setLoading(false);
     }
@@ -144,15 +151,21 @@ const DocumentDetailScreen = ({ route, navigation }) => {
       }
 
       setAnalyzing(true);
-      await useTokens(TOKEN_COSTS.DOCUMENT_ANALYSIS, "analysis", documentId);
+      await useToken(TOKEN_COSTS.DOCUMENT_ANALYSIS, "analysis", documentId);
       const updatedDoc = await documentApi.analyzeDocument(documentId);
       setDocument(updatedDoc);
 
-      Alert.alert("Success", "Document analysis completed");
+      // Show success notification
+      addNotification({
+        title: "Analysis Complete",
+        message: "Document has been successfully analyzed",
+        type: "success",
+      });
+
       setActiveTab("summary");
     } catch (error) {
       console.error("Error analyzing document:", error);
-      Alert.alert(t("errors.analysisFailed"));
+      handleError(error, t("errors.analysisFailed"));
     } finally {
       setAnalyzing(false);
     }
@@ -172,11 +185,18 @@ const DocumentDetailScreen = ({ route, navigation }) => {
           try {
             setLoading(true);
             await documentApi.deleteDocument(documentId);
+
+            // Add notification for successful deletion
+            addNotification({
+              title: "Document Deleted",
+              message: `"${document.name}" has been deleted`,
+              type: "info",
+            });
+
             navigation.goBack();
-            Alert.alert("Success", "Document deleted successfully");
           } catch (error) {
             console.error("Error deleting document:", error);
-            Alert.alert(t("errors.somethingWentWrong"));
+            handleError(error, t("errors.somethingWentWrong"));
             setLoading(false);
           }
         },
@@ -197,6 +217,7 @@ const DocumentDetailScreen = ({ route, navigation }) => {
       });
     } catch (error) {
       console.error("Error sharing document:", error);
+      handleError(error, "Failed to share document");
     }
   };
 
@@ -221,7 +242,7 @@ const DocumentDetailScreen = ({ route, navigation }) => {
           return;
         }
 
-        await useTokens(TOKEN_COSTS.QUESTION, "question", documentId);
+        await useToken(TOKEN_COSTS.QUESTION, "question", documentId);
       }
 
       // Send question
@@ -249,7 +270,7 @@ const DocumentDetailScreen = ({ route, navigation }) => {
       setQuestion("");
     } catch (error) {
       console.error("Error asking question:", error);
-      Alert.alert(t("errors.somethingWentWrong"));
+      handleError(error, t("errors.somethingWentWrong"));
     } finally {
       setAskingQuestion(false);
       setSending(false);
@@ -266,7 +287,7 @@ const DocumentDetailScreen = ({ route, navigation }) => {
           backgroundColor="transparent"
           translucent
         />
-        <Loading fullScreen iconName="document-text" />
+        <Loading fullScreen text={t("common.loading")} />
       </SafeAreaView>
     );
   }
@@ -303,7 +324,7 @@ const DocumentDetailScreen = ({ route, navigation }) => {
               {t("errors.somethingWentWrong")}
             </Text>
             <Button
-              title={t("common.back")}
+              label={t("common.back")}
               onPress={() => navigation.goBack()}
               style={{ marginTop: 20 }}
             />
@@ -567,15 +588,28 @@ const DocumentDetailScreen = ({ route, navigation }) => {
             </Text>
             <Badge
               label={document.status === "analyzed" ? "Analyzed" : "Uploaded"}
-              type={document.status === "analyzed" ? "success" : "info"}
-              icon={
-                document.status === "analyzed"
-                  ? "checkmark-circle"
-                  : "cloud-done"
-              }
+              variant={document.status === "analyzed" ? "success" : "info"}
+              size="small"
             />
           </View>
         </View>
+
+        {document.source === "scan" && (
+          <View style={styles.sourceBadgeContainer}>
+            <Badge
+              label="Scanned Document"
+              variant="secondary"
+              size="small"
+              leftIcon={
+                <Ionicons
+                  name="scan"
+                  size={14}
+                  color={theme.colors.secondary}
+                />
+              }
+            />
+          </View>
+        )}
       </Card>
     </Animated.View>
   );
@@ -699,10 +733,12 @@ const DocumentDetailScreen = ({ route, navigation }) => {
                 insights.
               </Text>
               <Button
-                title={t("document.analyze")}
+                label={t("document.analyze")}
                 onPress={analyzeDocument}
                 loading={analyzing}
-                icon="analytics"
+                leftIcon={
+                  <Ionicons name="analytics" size={20} color="#FFFFFF" />
+                }
                 gradient={true}
                 style={styles.analyzeButton}
               />
@@ -841,6 +877,11 @@ const DocumentDetailScreen = ({ route, navigation }) => {
                     </Text>
                   </View>
                 </View>
+                <View style={styles.conversationTimeContainer}>
+                  <Text variant="caption" color={theme.colors.textTertiary}>
+                    {formatDate(item.createdAt)} {formatTime(item.createdAt)}
+                  </Text>
+                </View>
               </Card>
             </Animated.View>
           )}
@@ -886,7 +927,7 @@ const DocumentDetailScreen = ({ route, navigation }) => {
                     style={styles.emptyConversationDescription}
                   >
                     Your first 3 questions are free. Additional questions cost
-                    0.2 tokens each.
+                    {" " + TOKEN_COSTS.QUESTION} tokens each.
                   </Text>
                 </LinearGradient>
               </Card>
@@ -907,15 +948,25 @@ const DocumentDetailScreen = ({ route, navigation }) => {
           {freeQuestionsCount > 0 ? (
             <Badge
               label={`${freeQuestionsCount} free questions left`}
-              type="info"
-              icon="information-circle"
+              variant="info"
+              size="small"
+              leftIcon={
+                <Ionicons
+                  name="information-circle"
+                  size={14}
+                  color={theme.colors.info}
+                />
+              }
               style={styles.freeQuestionsBadge}
             />
           ) : (
             <Badge
               label={`${TOKEN_COSTS.QUESTION} tokens per question`}
-              type="warning"
-              icon="key"
+              variant="warning"
+              size="small"
+              leftIcon={
+                <Ionicons name="key" size={14} color={theme.colors.warning} />
+              }
               style={styles.freeQuestionsBadge}
             />
           )}
@@ -968,7 +1019,7 @@ const DocumentDetailScreen = ({ route, navigation }) => {
     if (analyzing) {
       return (
         <View style={styles.loadingContainer}>
-          <Loading text={t("document.processingDocument")} type="pulse" />
+          <Loading text={t("document.processingDocument")} variant="pulse" />
         </View>
       );
     }
@@ -976,6 +1027,13 @@ const DocumentDetailScreen = ({ route, navigation }) => {
     return activeTab === "summary"
       ? renderSummaryContent()
       : renderAskContent();
+  };
+
+  // Format time helper
+  const formatTime = (timestamp) => {
+    if (!timestamp) return "";
+    const date = new Date(timestamp);
+    return date.toLocaleTimeString([], { hour: "2-digit", minute: "2-digit" });
   };
 
   return (
@@ -1129,6 +1187,10 @@ const styles = StyleSheet.create({
   infoIcon: {
     marginRight: 8,
   },
+  sourceBadgeContainer: {
+    marginTop: 8,
+    alignItems: "flex-start",
+  },
   tabContainer: {
     flexDirection: "row",
     marginHorizontal: 16,
@@ -1219,6 +1281,10 @@ const styles = StyleSheet.create({
   answerText: {
     flex: 1,
     lineHeight: 24,
+  },
+  conversationTimeContainer: {
+    marginTop: 12,
+    alignItems: "flex-end",
   },
   emptyConversation: {
     paddingHorizontal: 16,

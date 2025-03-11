@@ -1,6 +1,7 @@
 import React, { useEffect, useRef } from "react";
 import { View, StyleSheet, ActivityIndicator, Animated } from "react-native";
 import Text from "./Text";
+import { useTheme } from "../context/ThemeContext";
 
 /**
  * Loading Component
@@ -16,11 +17,16 @@ const Loading = ({
   text,
   variant = "spinner",
   size = "medium",
-  color = "#5D5FEF",
+  color,
   fullScreen = false,
   style,
   ...props
 }) => {
+  const { theme } = useTheme();
+  const themeColor = color || theme.colors.primary;
+  const backgroundColor = theme.colors.background;
+  const textColor = theme.colors.text;
+
   // Animation values
   const pulseAnim = useRef(new Animated.Value(1)).current;
   const dotOneAnim = useRef(new Animated.Value(0)).current;
@@ -36,12 +42,10 @@ const Loading = ({
 
   const currentSize = sizes[size] || sizes.medium;
 
-  // Start animations when component mounts
   useEffect(() => {
     startAnimations();
 
     return () => {
-      // Cleanup animations on unmount
       pulseAnim.stopAnimation();
       dotOneAnim.stopAnimation();
       dotTwoAnim.stopAnimation();
@@ -49,7 +53,6 @@ const Loading = ({
     };
   }, [variant]);
 
-  // Animation logic
   const startAnimations = () => {
     if (variant === "pulse") {
       startPulseAnimation();
@@ -58,7 +61,6 @@ const Loading = ({
     }
   };
 
-  // Pulse animation
   const startPulseAnimation = () => {
     Animated.loop(
       Animated.sequence([
@@ -76,7 +78,6 @@ const Loading = ({
     ).start();
   };
 
-  // Dots animation
   const startDotsAnimation = () => {
     const createDotAnimation = (dotAnim, delay) => {
       return Animated.loop(
@@ -104,7 +105,6 @@ const Loading = ({
     ]).start();
   };
 
-  // Render appropriate loading indicator based on variant
   const renderLoader = () => {
     switch (variant) {
       case "pulse":
@@ -115,7 +115,7 @@ const Loading = ({
               {
                 width: currentSize,
                 height: currentSize,
-                backgroundColor: color,
+                backgroundColor: themeColor,
                 transform: [{ scale: pulseAnim }],
               },
             ]}
@@ -124,42 +124,21 @@ const Loading = ({
       case "dots":
         return (
           <View style={styles.dotsContainer}>
-            <Animated.View
-              style={[
-                styles.dot,
-                {
-                  width: currentSize / 3,
-                  height: currentSize / 3,
-                  backgroundColor: color,
-                  opacity: dotOneAnim,
-                  transform: [{ scale: dotOneAnim }],
-                },
-              ]}
-            />
-            <Animated.View
-              style={[
-                styles.dot,
-                {
-                  width: currentSize / 3,
-                  height: currentSize / 3,
-                  backgroundColor: color,
-                  opacity: dotTwoAnim,
-                  transform: [{ scale: dotTwoAnim }],
-                },
-              ]}
-            />
-            <Animated.View
-              style={[
-                styles.dot,
-                {
-                  width: currentSize / 3,
-                  height: currentSize / 3,
-                  backgroundColor: color,
-                  opacity: dotThreeAnim,
-                  transform: [{ scale: dotThreeAnim }],
-                },
-              ]}
-            />
+            {[dotOneAnim, dotTwoAnim, dotThreeAnim].map((anim, index) => (
+              <Animated.View
+                key={index}
+                style={[
+                  styles.dot,
+                  {
+                    width: currentSize / 3,
+                    height: currentSize / 3,
+                    backgroundColor: themeColor,
+                    opacity: anim,
+                    transform: [{ scale: anim }],
+                  },
+                ]}
+              />
+            ))}
           </View>
         );
       case "spinner":
@@ -167,7 +146,7 @@ const Loading = ({
         return (
           <ActivityIndicator
             size={size === "small" ? "small" : "large"}
-            color={color}
+            color={themeColor}
           />
         );
     }
@@ -175,13 +154,16 @@ const Loading = ({
 
   return (
     <View
-      style={[styles.container, fullScreen && styles.fullScreen, style]}
+      style={[
+        styles.container,
+        fullScreen && { backgroundColor, ...styles.fullScreen },
+        style,
+      ]}
       {...props}
     >
       {renderLoader()}
-
       {text && (
-        <Text variant="body2" color="#64748B" style={styles.text}>
+        <Text variant="body2" color={textColor} style={styles.text}>
           {text}
         </Text>
       )}
@@ -197,7 +179,6 @@ const styles = StyleSheet.create({
   },
   fullScreen: {
     ...StyleSheet.absoluteFillObject,
-    backgroundColor: "rgba(255, 255, 255, 0.9)",
     zIndex: 999,
   },
   text: {

@@ -146,7 +146,7 @@ export function TokenProvider({ children }) {
    * @param {string} documentId - Related document ID (if any)
    * @returns {Promise<boolean>} - Whether operation was successful
    */
-  const useTokens = async (cost, operationType, documentId = null) => {
+  const useToken = async (cost, operationType, documentId = null) => {
     if (!user) {
       throw new Error("User not authenticated");
     }
@@ -253,7 +253,7 @@ export function TokenProvider({ children }) {
         loading,
         tokenHistory,
         hasEnoughTokens,
-        useTokens,
+        useToken,
         refreshBalance: loadTokenBalance,
         refreshSubscription: checkSubscription,
         TOKEN_COSTS,

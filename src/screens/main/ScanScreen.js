@@ -13,18 +13,13 @@ import {
 } from "react-native";
 import { Camera } from "expo-camera";
 import * as ImageManipulator from "expo-image-manipulator";
-import * as Haptics from "expo-haptics";
 import { LinearGradient } from "expo-linear-gradient";
 import { BlurView } from "expo-blur";
 import { Ionicons } from "@expo/vector-icons";
 import { useTheme } from "../../context/ThemeContext";
 import { useTokens } from "../../context/TokenContext";
 import { useLocalization } from "../../context/LocalizationContext";
-import { Text } from "../../components/Text";
-import { Button } from "../../components/Button";
-import { Card } from "../../components/Card";
-import { Badge } from "../../components/Badge";
-import { Loading } from "../../components/Loading";
+import { Card, Text, Button, Loading, Badge } from "../../components";
 import Svg, {
   Path,
   Rect,
@@ -42,7 +37,7 @@ const scanAreaHeight = scanAreaWidth * SCAN_AREA_ASPECT_RATIO;
 
 const ScanScreen = ({ navigation }) => {
   const { theme, isDark } = useTheme();
-  const { useTokens, TOKEN_COSTS } = useTokens();
+
   const { t } = useLocalization();
 
   // Refs
@@ -55,7 +50,7 @@ const ScanScreen = ({ navigation }) => {
   const [capturedImage, setCapturedImage] = useState(null);
   const [processing, setProcessing] = useState(false);
   const [scanStage, setScanStage] = useState("initial"); // initial, detecting, captured, preview, processing
-  const [flashMode, setFlashMode] = useState(Camera.Constants.FlashMode.off);
+  const [flashMode, setFlashMode] = useState("auto");
   const [documentEdges, setDocumentEdges] = useState(null);
   const [processingStep, setProcessingStep] = useState(0);
   const [processingSteps, setProcessingSteps] = useState([
@@ -430,7 +425,7 @@ const ScanScreen = ({ navigation }) => {
         <Camera
           ref={cameraRef}
           style={styles.camera}
-          type={Camera.Constants.Type.back}
+          type={"back"}
           flashMode={flashMode}
           onCameraReady={() => setCameraReady(true)}
           ratio="4:3"
@@ -464,13 +459,13 @@ const ScanScreen = ({ navigation }) => {
               <View style={styles.headerControls}>
                 <TouchableOpacity
                   style={styles.controlButton}
-                  onPress={() => {
-                    setFlashMode(
-                      flashMode === Camera.Constants.FlashMode.off
-                        ? Camera.Constants.FlashMode.on
-                        : Camera.Constants.FlashMode.off
-                    );
-                  }}
+                  // onPress={() => {
+                  //   setFlashMode(
+                  //     flashMode === "auto"
+                  //       ? Camera.Constants.FlashMode.on
+                  //       : Camera.Constants.FlashMode.off
+                  //   );
+                  // }}
                 >
                   <BlurView
                     intensity={80}
@@ -478,11 +473,7 @@ const ScanScreen = ({ navigation }) => {
                     style={styles.blurButton}
                   >
                     <Ionicons
-                      name={
-                        flashMode === Camera.Constants.FlashMode.off
-                          ? "flash-off"
-                          : "flash"
-                      }
+                      name={flashMode === "auto" ? "flash-off" : "flash"}
                       size={22}
                       color="white"
                     />

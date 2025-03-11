@@ -11,6 +11,7 @@ import {
   Animated,
   Platform,
   Dimensions,
+  SafeAreaView,
 } from "react-native";
 import { LinearGradient } from "expo-linear-gradient";
 import { Ionicons } from "@expo/vector-icons";
@@ -30,6 +31,7 @@ import {
   Badge,
   Divider,
 } from "../../components";
+import AnimatedHeader from "../../components/AnimatedHeader";
 
 const { width, height } = Dimensions.get("window");
 
@@ -48,39 +50,8 @@ const ProfileScreen = ({ navigation }) => {
   const fadeAnim = useRef(new Animated.Value(0)).current;
   const slideAnim = useRef(new Animated.Value(30)).current;
 
-  // Header animations based on scroll - ÖNCE BU TANIMLAR YAPILMALI
-  const headerHeight = scrollY.interpolate({
-    inputRange: [0, 120],
-    outputRange: [180, 90],
-    extrapolate: "clamp",
-  });
-
-  const avatarSize = scrollY.interpolate({
-    inputRange: [0, 120],
-    outputRange: [80, 45],
-    extrapolate: "clamp",
-  });
-
-  const headerPadding = scrollY.interpolate({
-    inputRange: [0, 120],
-    outputRange: [24, 12],
-    extrapolate: "clamp",
-  });
-
-  const opacityHeader = scrollY.interpolate({
-    inputRange: [0, 80, 120],
-    outputRange: [1, 0.8, 0],
-    extrapolate: "clamp",
-  });
-
-  const opacityCompactHeader = scrollY.interpolate({
-    inputRange: [80, 120],
-    outputRange: [0, 1],
-    extrapolate: "clamp",
-  });
-
-  // SONRA platformla ilgili değerler hesaplanmalı
-  const paddingTopValue =
+  // Status bar height
+  const statusBarHeight =
     Platform.OS === "android" ? StatusBar.currentHeight || 0 : 0;
 
   // Sample token history for UI display
@@ -165,6 +136,28 @@ const ProfileScreen = ({ navigation }) => {
     return date.toLocaleDateString();
   };
 
+  // Render profile header
+  const renderHeader = () => (
+    <View style={styles.header}>
+      <View style={styles.userSection}>
+        <Avatar
+          source={user?.photoURL}
+          size={80}
+          name={user?.displayName || "User"}
+          style={styles.avatar}
+        />
+        <View style={styles.userInfo}>
+          <Text variant="h2" style={styles.userName}>
+            {user?.displayName || "User"}
+          </Text>
+          <Text variant="body2" color={theme.colors.textSecondary}>
+            {user?.email || "user@example.com"}
+          </Text>
+        </View>
+      </View>
+    </View>
+  );
+
   // Language selection modal
   const renderLanguageModal = () => (
     <Modal
@@ -218,91 +211,13 @@ const ProfileScreen = ({ navigation }) => {
     <View
       style={[styles.container, { backgroundColor: theme.colors.background }]}
     >
+      {/* SafeAreaView for iOS status bar compatibility */}
+
       <StatusBar
         barStyle={isDark ? "light-content" : "dark-content"}
         backgroundColor="transparent"
         translucent
       />
-
-      {/* Animated header - STİL OBJELERI BASITLEŞTIRILDI */}
-      <Animated.View
-        style={[
-          styles.header,
-          {
-            height: headerHeight,
-            paddingTop: paddingTopValue,
-            position: "absolute",
-            top: 0,
-            left: 0,
-            right: 0,
-            zIndex: 100,
-            overflow: "hidden",
-          },
-        ]}
-      >
-        <LinearGradient
-          colors={
-            isDark
-              ? [theme.colors.primary + "80", theme.colors.background]
-              : [theme.colors.primary + "40", theme.colors.background]
-          }
-          style={{ flex: 1, justifyContent: "flex-end" }}
-        >
-          {/* Full header (visible when not scrolled) */}
-          <Animated.View
-            style={{
-              flexDirection: "row",
-              alignItems: "center",
-              paddingVertical: 20,
-              opacity: opacityHeader,
-              paddingHorizontal: headerPadding,
-            }}
-          >
-            <Animated.View style={{ width: avatarSize, height: avatarSize }}>
-              <Avatar
-                source={user?.photoURL}
-                size={avatarSize.__getValue ? avatarSize.__getValue() : 80}
-                name={user?.displayName || "User"}
-                style={styles.avatar}
-              />
-            </Animated.View>
-            <View style={styles.userInfo}>
-              <Text variant="h3" style={styles.userName}>
-                {user?.displayName || "John Doe"}
-              </Text>
-              <Text variant="body2" color={theme.colors.textSecondary}>
-                {user?.email || "john.doe@example.com"}
-              </Text>
-            </View>
-          </Animated.View>
-
-          {/* Compact header (visible when scrolled) */}
-          <Animated.View
-            style={{
-              position: "absolute",
-              top: 0,
-              left: 0,
-              right: 0,
-              height: "100%",
-              flexDirection: "row",
-              justifyContent: "space-between",
-              alignItems: "center",
-              paddingHorizontal: 20,
-              paddingTop: paddingTopValue,
-              opacity: opacityCompactHeader,
-            }}
-          >
-            <Text variant="h3" style={styles.compactTitle}>
-              {t("profile.myProfile")}
-            </Text>
-            <Avatar
-              source={user?.photoURL}
-              size={40}
-              name={user?.displayName || "User"}
-            />
-          </Animated.View>
-        </LinearGradient>
-      </Animated.View>
 
       <ScrollView
         style={styles.scrollView}
@@ -314,6 +229,8 @@ const ProfileScreen = ({ navigation }) => {
         )}
         scrollEventThrottle={16}
       >
+        {renderHeader()}
+
         {/* Token Balance Card */}
         <Animated.View
           style={[
@@ -321,7 +238,7 @@ const ProfileScreen = ({ navigation }) => {
             {
               opacity: fadeAnim,
               transform: [{ translateY: slideAnim }],
-              marginTop: 180, // Header yüksekliğini hesaba katmak için
+              marginTop: 16,
             },
           ]}
         >
@@ -578,7 +495,7 @@ const ProfileScreen = ({ navigation }) => {
             </View>
 
             {/* Token History */}
-            <TouchableOpacity
+            {/* <TouchableOpacity
               style={styles.settingItem}
               onPress={() =>
                 navigation.navigate("TokenStore", { tab: "history" })
@@ -609,7 +526,7 @@ const ProfileScreen = ({ navigation }) => {
                 size={20}
                 color={theme.colors.textSecondary}
               />
-            </TouchableOpacity>
+            </TouchableOpacity> */}
           </Card>
         </Animated.View>
 
@@ -624,6 +541,15 @@ const ProfileScreen = ({ navigation }) => {
           ]}
         >
           <Card style={styles.supportCard} elevated={false} variant="bordered">
+            <Text
+              variant="subtitle1"
+              weight="semibold"
+              style={styles.settingsTitle}
+            >
+              {t("profile.system")}
+            </Text>
+
+            <Divider />
             <TouchableOpacity
               style={[
                 styles.settingItem,
@@ -682,7 +608,7 @@ const ProfileScreen = ({ navigation }) => {
                   </Text>
                 </View>
               </View>
-              <Badge label="v1.0.0" variant="secondary" size="sm" />
+              <Badge label="v1.0.0" variant="secondary" size="small" />
             </TouchableOpacity>
           </Card>
         </Animated.View>
@@ -727,6 +653,16 @@ const styles = StyleSheet.create({
   },
   scrollContent: {
     paddingBottom: 40,
+    paddingTop: Platform.OS === "ios" ? 20 : StatusBar.currentHeight + 20,
+  },
+  header: {
+    paddingHorizontal: 20,
+    paddingVertical: 20,
+    paddingTop: 50,
+  },
+  userSection: {
+    flexDirection: "row",
+    alignItems: "center",
   },
   avatar: {
     marginRight: 16,
@@ -736,9 +672,6 @@ const styles = StyleSheet.create({
   },
   userName: {
     marginBottom: 4,
-  },
-  compactTitle: {
-    marginBottom: 0,
   },
   cardContainer: {
     marginHorizontal: 16,
@@ -790,7 +723,7 @@ const styles = StyleSheet.create({
     borderRadius: 16,
   },
   activityTitle: {
-    padding: 16,
+    padding: 10,
   },
   activityItem: {
     flexDirection: "row",
@@ -811,11 +744,9 @@ const styles = StyleSheet.create({
     borderRadius: 20,
     alignItems: "center",
     justifyContent: "center",
-    marginRight: 12,
+    marginRight: 10,
   },
-  activityTextContainer: {
-    flex: 1,
-  },
+  activityTextContainer: {},
   viewAllButton: {
     flexDirection: "row",
     alignItems: "center",
@@ -828,7 +759,7 @@ const styles = StyleSheet.create({
     borderRadius: 16,
   },
   settingsTitle: {
-    padding: 16,
+    padding: 10,
   },
   settingItem: {
     flexDirection: "row",
@@ -836,7 +767,6 @@ const styles = StyleSheet.create({
     alignItems: "center",
     paddingVertical: 16,
     paddingHorizontal: 16,
-    borderBottomWidth: 1,
   },
   settingLeft: {
     flexDirection: "row",

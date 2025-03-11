@@ -1,5 +1,4 @@
-// src/screens/main/TokenStoreScreen.js
-import React, { useState, useEffect, useRef } from "react";
+import React, { useState, useEffect, useRef, useContext } from "react";
 import {
   View,
   StyleSheet,
@@ -11,21 +10,17 @@ import {
   Dimensions,
   Animated,
   Platform,
-  ImageBackground,
 } from "react-native";
+import { useFocusEffect } from "@react-navigation/native";
 import { Ionicons } from "@expo/vector-icons";
 import { LinearGradient } from "expo-linear-gradient";
 import { useTheme } from "../../context/ThemeContext";
-import { useTokens, PACKAGES } from "../../context/TokenContext";
+import { useTokens } from "../../context/TokenContext";
 import { useLocalization } from "../../context/LocalizationContext";
-import { Text } from "../../components/Text";
-import { Card } from "../../components/Card";
-import { Button } from "../../components/Button";
-import { Badge } from "../../components/Badge";
-import { Loading } from "../../components/Loading";
-import LottieView from "lottie-react-native";
+import { Text, Card, Button, Badge, Loading } from "../../components";
+import AnimatedHeader from "../../components/AnimatedHeader";
 import { MotiView } from "moti";
-import { SharedElement } from "react-navigation-shared-element";
+import { TabBarStyleContext } from "../../navigation/MainNavigator";
 
 const { width, height } = Dimensions.get("window");
 
@@ -41,6 +36,7 @@ const TokenStoreScreen = ({ navigation, route }) => {
     refreshBalance,
     refreshSubscription,
     freeTrialUsed,
+    TOKEN_COSTS,
   } = useTokens();
 
   // Initial active tab from route params or default to "packages"
@@ -54,15 +50,14 @@ const TokenStoreScreen = ({ navigation, route }) => {
   const [purchasedTokens, setPurchasedTokens] = useState(0);
 
   // Refs
-  const lottieRef = useRef(null);
   const scrollViewRef = useRef(null);
 
   // Animations
   const fadeAnim = useRef(new Animated.Value(0)).current;
   const slideAnim = useRef(new Animated.Value(30)).current;
-  const tokenCountAnim = useRef(new Animated.Value(tokens)).current;
+  const tokenCountAnim = useRef(new Animated.Value(tokens || 0)).current;
   const balanceScaleAnim = useRef(new Animated.Value(1)).current;
-  const confettiRef = useRef(null);
+  const scrollY = useRef(new Animated.Value(0)).current;
 
   // Start entrance animations
   useEffect(() => {
@@ -83,7 +78,7 @@ const TokenStoreScreen = ({ navigation, route }) => {
   // Animate token balance when it changes
   useEffect(() => {
     Animated.spring(tokenCountAnim, {
-      toValue: tokens,
+      toValue: tokens || 0,
       friction: 8,
       tension: 40,
       useNativeDriver: false, // We're animating a text value
@@ -108,10 +103,6 @@ const TokenStoreScreen = ({ navigation, route }) => {
   // Play confetti when purchase completes
   useEffect(() => {
     if (purchaseComplete && transactionSuccess) {
-      if (confettiRef.current) {
-        confettiRef.current.play();
-      }
-
       // After some time, reset states
       const timer = setTimeout(() => {
         setPurchaseComplete(false);
@@ -159,7 +150,6 @@ const TokenStoreScreen = ({ navigation, route }) => {
       console.error("Purchase error:", error);
       setTransactionSuccess(false);
       setPurchaseComplete(true);
-      // Toast message shown in TokenContext
     }
   };
 
@@ -199,9 +189,10 @@ const TokenStoreScreen = ({ navigation, route }) => {
     // Package list with details
     const packageList = [
       {
-        id: PACKAGES.TOKENS_20,
-        title: t("packages.tokens20.title"),
-        description: t("packages.tokens20.description"),
+        id: "tokens_20_package",
+        title: t("packages.tokens20.title") || "Basic Package",
+        description:
+          t("packages.tokens20.description") || "20 tokens for occasional use",
         tokens: 20,
         price: "$4.99",
         bestValue: false,
@@ -209,9 +200,10 @@ const TokenStoreScreen = ({ navigation, route }) => {
         icon: "key-outline",
       },
       {
-        id: PACKAGES.TOKENS_50,
-        title: t("packages.tokens50.title"),
-        description: t("packages.tokens50.description"),
+        id: "tokens_50_package",
+        title: t("packages.tokens50.title") || "Standard Package",
+        description:
+          t("packages.tokens50.description") || "50 tokens with 20% savings",
         tokens: 50,
         price: "$9.99",
         bestValue: false,
@@ -219,9 +211,10 @@ const TokenStoreScreen = ({ navigation, route }) => {
         icon: "key",
       },
       {
-        id: PACKAGES.TOKENS_120,
-        title: t("packages.tokens120.title"),
-        description: t("packages.tokens120.description"),
+        id: "tokens_120_package",
+        title: t("packages.tokens120.title") || "Premium Package",
+        description:
+          t("packages.tokens120.description") || "120 tokens with 30% savings",
         tokens: 120,
         price: "$19.99",
         bestValue: true,
@@ -229,9 +222,11 @@ const TokenStoreScreen = ({ navigation, route }) => {
         icon: "diamond",
       },
       {
-        id: PACKAGES.SUBSCRIPTION,
-        title: t("packages.subscription.title"),
-        description: t("packages.subscription.description"),
+        id: "monthly_subscription",
+        title: t("packages.subscription.title") || "Monthly Subscription",
+        description:
+          t("packages.subscription.description") ||
+          "50 tokens per month + unlimited analysis",
         tokens: 50,
         price: "$9.99/month",
         isSubscription: true,
@@ -304,10 +299,7 @@ const TokenStoreScreen = ({ navigation, route }) => {
                   },
                 ]}
               >
-                {tokenCountAnim.interpolate({
-                  inputRange: [0, tokens],
-                  outputRange: [0, tokens].map((v) => Math.floor(v).toString()),
-                })}
+                {Math.floor(tokenCountAnim.__getValue())}
               </Animated.Text>
             </Animated.View>
           </View>
@@ -315,15 +307,15 @@ const TokenStoreScreen = ({ navigation, route }) => {
           {subscription?.active ? (
             <Badge
               label="Active Subscription"
-              type="success"
-              icon="checkmark-circle"
+              variant="success"
+              size="small"
               style={styles.subscriptionBadge}
             />
           ) : !freeTrialUsed ? (
             <Badge
               label="Free Trial Available"
-              type="info"
-              icon="gift"
+              variant="info"
+              size="small"
               style={styles.subscriptionBadge}
             />
           ) : null}
@@ -351,7 +343,10 @@ const TokenStoreScreen = ({ navigation, route }) => {
                 color={theme.colors.textSecondary}
                 style={styles.tokenUsageText}
               >
-                {t("tokens.documentAnalysis")}
+                {t("tokens.documentAnalysis") ||
+                  `${
+                    TOKEN_COSTS?.DOCUMENT_ANALYSIS || 1
+                  } token = Document analysis (up to 5 pages)`}
               </Text>
             </View>
             <View style={styles.tokenUsageItem}>
@@ -365,7 +360,10 @@ const TokenStoreScreen = ({ navigation, route }) => {
                 color={theme.colors.textSecondary}
                 style={styles.tokenUsageText}
               >
-                {t("tokens.questionAnswering")}
+                {t("tokens.questionAnswering") ||
+                  `${
+                    TOKEN_COSTS?.QUESTION || 0.2
+                  } tokens = Ask a question (after first 3 free)`}
               </Text>
             </View>
           </View>
@@ -459,9 +457,10 @@ const TokenStoreScreen = ({ navigation, route }) => {
     // Package list
     const packageList = [
       {
-        id: PACKAGES.TOKENS_20,
-        title: t("packages.tokens20.title"),
-        description: t("packages.tokens20.description"),
+        id: "tokens_20_package",
+        title: t("packages.tokens20.title") || "Basic Package",
+        description:
+          t("packages.tokens20.description") || "20 tokens for occasional use",
         tokens: 20,
         price: "$4.99",
         bestValue: false,
@@ -469,9 +468,10 @@ const TokenStoreScreen = ({ navigation, route }) => {
         icon: "key-outline",
       },
       {
-        id: PACKAGES.TOKENS_50,
-        title: t("packages.tokens50.title"),
-        description: t("packages.tokens50.description"),
+        id: "tokens_50_package",
+        title: t("packages.tokens50.title") || "Standard Package",
+        description:
+          t("packages.tokens50.description") || "50 tokens with 20% savings",
         tokens: 50,
         price: "$9.99",
         bestValue: false,
@@ -479,9 +479,10 @@ const TokenStoreScreen = ({ navigation, route }) => {
         icon: "key",
       },
       {
-        id: PACKAGES.TOKENS_120,
-        title: t("packages.tokens120.title"),
-        description: t("packages.tokens120.description"),
+        id: "tokens_120_package",
+        title: t("packages.tokens120.title") || "Premium Package",
+        description:
+          t("packages.tokens120.description") || "120 tokens with 30% savings",
         tokens: 120,
         price: "$19.99",
         bestValue: true,
@@ -489,9 +490,11 @@ const TokenStoreScreen = ({ navigation, route }) => {
         icon: "diamond",
       },
       {
-        id: PACKAGES.SUBSCRIPTION,
-        title: t("packages.subscription.title"),
-        description: t("packages.subscription.description"),
+        id: "monthly_subscription",
+        title: t("packages.subscription.title") || "Monthly Subscription",
+        description:
+          t("packages.subscription.description") ||
+          "50 tokens per month + unlimited analysis",
         tokens: 50,
         price: "$9.99/month",
         isSubscription: true,
@@ -516,7 +519,7 @@ const TokenStoreScreen = ({ navigation, route }) => {
           weight="semibold"
           style={styles.packagesTitle}
         >
-          {t("packages.selectPackage")}
+          {t("packages.selectPackage") || "Select a package"}
         </Text>
 
         {packageList.map((pkg, index) => (
@@ -537,6 +540,7 @@ const TokenStoreScreen = ({ navigation, route }) => {
                   borderColor: pkg.color,
                   backgroundColor: pkg.color + "08",
                 },
+                { borderColor: theme.colors.border },
               ]}
               onPress={() => setSelectedPackage(pkg.id)}
             >
@@ -564,9 +568,9 @@ const TokenStoreScreen = ({ navigation, route }) => {
 
                 {pkg.bestValue && (
                   <Badge
-                    label={t("packages.bestValue")}
-                    type="secondary"
-                    size="sm"
+                    label={t("packages.bestValue") || "Best Value"}
+                    variant="secondary"
+                    size="small"
                     style={styles.bestValueBadge}
                   />
                 )}
@@ -574,8 +578,8 @@ const TokenStoreScreen = ({ navigation, route }) => {
                 {pkg.isSubscription && (
                   <Badge
                     label="Subscription"
-                    type="success"
-                    size="sm"
+                    variant="success"
+                    size="small"
                     style={styles.bestValueBadge}
                   />
                 )}
@@ -642,7 +646,7 @@ const TokenStoreScreen = ({ navigation, route }) => {
         ))}
 
         <Button
-          title={t("tokens.buyTokens")}
+          label={t("tokens.buyTokens") || "Buy Tokens"}
           onPress={handlePurchase}
           style={styles.purchaseButton}
           disabled={!selectedPackage || loading || purchaseInProgress}
@@ -654,122 +658,155 @@ const TokenStoreScreen = ({ navigation, route }) => {
   };
 
   // Transaction history
-  const renderHistory = () => (
-    <FlatList
-      data={tokenHistory}
-      keyExtractor={(item) => item.id}
-      renderItem={({ item, index }) => (
-        <MotiView
-          from={{ opacity: 0, translateY: 10 }}
-          animate={{ opacity: 1, translateY: 0 }}
-          transition={{
-            type: "timing",
-            duration: 300,
-            delay: index * 50,
-          }}
-        >
-          <Card
-            style={styles.historyCard}
-            variant={isDark ? "default" : "bordered"}
+  const renderHistory = () => {
+    // Sample history data if tokenHistory is not available
+    const historyData =
+      tokenHistory && tokenHistory.length > 0
+        ? tokenHistory
+        : [
+            {
+              id: "1",
+              operationType: "analysis",
+              amount: -1,
+              description: "Document analysis",
+              timestamp: new Date(Date.now() - 86400000),
+            },
+            {
+              id: "2",
+              operationType: "purchase",
+              amount: 50,
+              description: "Token Purchase",
+              timestamp: new Date(Date.now() - 172800000),
+            },
+            {
+              id: "3",
+              operationType: "question",
+              amount: -0.2,
+              description: "Document question",
+              timestamp: new Date(Date.now() - 259200000),
+            },
+          ];
+
+    return (
+      <FlatList
+        data={historyData}
+        keyExtractor={(item) => item.id}
+        renderItem={({ item, index }) => (
+          <MotiView
+            from={{ opacity: 0, translateY: 10 }}
+            animate={{ opacity: 1, translateY: 0 }}
+            transition={{
+              type: "timing",
+              duration: 300,
+              delay: index * 50,
+            }}
           >
-            <View style={styles.historyHeader}>
-              <View style={styles.historyDescriptionContainer}>
-                <View
-                  style={[
-                    styles.historyIcon,
-                    {
-                      backgroundColor:
-                        getHistoryIconColor(
-                          item.operationType,
-                          item.amount > 0
-                        ) + "20",
-                    },
-                  ]}
-                >
+            <Card
+              style={styles.historyCard}
+              variant={isDark ? "default" : "bordered"}
+            >
+              <View style={styles.historyHeader}>
+                <View style={styles.historyDescriptionContainer}>
+                  <View
+                    style={[
+                      styles.historyIcon,
+                      {
+                        backgroundColor:
+                          getHistoryIconColor(
+                            item.operationType,
+                            item.amount > 0
+                          ) + "20",
+                      },
+                    ]}
+                  >
+                    <Ionicons
+                      name={getHistoryIconName(
+                        item.operationType,
+                        item.amount > 0
+                      )}
+                      size={16}
+                      color={getHistoryIconColor(
+                        item.operationType,
+                        item.amount > 0
+                      )}
+                    />
+                  </View>
+                  <View>
+                    <Text
+                      variant="body1"
+                      weight="medium"
+                      style={styles.historyDescription}
+                    >
+                      {item.description}
+                    </Text>
+                    <Text
+                      variant="caption"
+                      color={theme.colors.textSecondary}
+                      style={styles.historyDate}
+                    >
+                      {formatDate(item.timestamp)}
+                    </Text>
+                  </View>
+                </View>
+
+                <View style={styles.historyAmount}>
+                  <Text
+                    variant="subtitle2"
+                    color={
+                      item.amount > 0
+                        ? theme.colors.success
+                        : theme.colors.error
+                    }
+                    style={styles.historyAmountText}
+                  >
+                    {item.amount > 0 ? "+" : ""}
+                    {item.amount}
+                  </Text>
                   <Ionicons
-                    name={getHistoryIconName(
-                      item.operationType,
+                    name="key"
+                    size={14}
+                    color={
                       item.amount > 0
-                    )}
-                    size={16}
-                    color={getHistoryIconColor(
-                      item.operationType,
-                      item.amount > 0
-                    )}
+                        ? theme.colors.success
+                        : theme.colors.error
+                    }
                   />
                 </View>
-                <View>
-                  <Text
-                    variant="body1"
-                    weight="medium"
-                    style={styles.historyDescription}
-                  >
-                    {item.description}
-                  </Text>
-                  <Text
-                    variant="caption"
-                    color={theme.colors.textSecondary}
-                    style={styles.historyDate}
-                  >
-                    {formatDate(item.timestamp)}
+              </View>
+
+              {item.documentId && (
+                <View style={styles.historyDocumentContainer}>
+                  <Text variant="caption" color={theme.colors.textSecondary}>
+                    Document ID: {item.documentId.substring(0, 10)}...
                   </Text>
                 </View>
-              </View>
-
-              <View style={styles.historyAmount}>
-                <Text
-                  variant="subtitle2"
-                  color={
-                    item.amount > 0 ? theme.colors.success : theme.colors.error
-                  }
-                  style={styles.historyAmountText}
-                >
-                  {item.amount > 0 ? "+" : ""}
-                  {item.amount}
-                </Text>
-                <Ionicons
-                  name="key"
-                  size={14}
-                  color={
-                    item.amount > 0 ? theme.colors.success : theme.colors.error
-                  }
-                />
-              </View>
-            </View>
-
-            {item.documentId && (
-              <View style={styles.historyDocumentContainer}>
-                <Text variant="caption" color={theme.colors.textSecondary}>
-                  Document ID: {item.documentId.substring(0, 10)}...
-                </Text>
-              </View>
-            )}
-          </Card>
-        </MotiView>
-      )}
-      contentContainerStyle={styles.historyContent}
-      ListEmptyComponent={
-        <View style={styles.emptyHistory}>
-          {/* <LottieView
-            source={require("../../assets/animations/empty-history.json")}
-            style={styles.emptyLottie}
-            autoPlay
-            loop
-          /> */}
-          <Text variant="subtitle1" style={styles.emptyHistoryTitle}>
-            No Transaction History
-          </Text>
-          <Text
-            variant="body2"
-            color={theme.colors.textSecondary}
-            style={styles.emptyHistoryText}
-          >
-            Your token usage and purchases will appear here
-          </Text>
-        </View>
-      }
-    />
-  );
+              )}
+            </Card>
+          </MotiView>
+        )}
+        contentContainerStyle={styles.historyContent}
+        ListEmptyComponent={
+          <View style={styles.emptyHistory}>
+            <Ionicons
+              name="document-text-outline"
+              size={60}
+              color={theme.colors.textSecondary}
+            />
+            <Text variant="subtitle1" style={styles.emptyHistoryTitle}>
+              No Transaction History
+            </Text>
+            <Text
+              variant="body2"
+              color={theme.colors.textSecondary}
+              style={styles.emptyHistoryText}
+            >
+              Your token usage and purchases will appear here
+            </Text>
+          </View>
+        }
+      />
+    );
+  };
 
   // Get history icon name based on operation type
   const getHistoryIconName = (operationType, isPositive) => {
@@ -815,24 +852,23 @@ const TokenStoreScreen = ({ navigation, route }) => {
             { backgroundColor: theme.colors.background + "F0" },
           ]}
         >
-          {/* <LottieView
-            ref={confettiRef}
-            source={require("../../assets/animations/confetti.json")}
-            style={styles.confettiAnimation}
-            loop={false}
-          /> */}
-
           <View style={styles.purchaseResultContent}>
-            {/* <LottieView
-              source={
-                transactionSuccess
-                  ? require("../../assets/animations/success.json")
-                  : require("../../assets/animations/failure.json")
-              }
-              style={styles.resultAnimation}
-              autoPlay
-              loop={false}
-            /> */}
+            <View style={styles.resultIconContainer}>
+              <LinearGradient
+                colors={
+                  transactionSuccess
+                    ? [theme.colors.success, theme.colors.primary]
+                    : [theme.colors.error, theme.colors.warning]
+                }
+                style={styles.resultIconGradient}
+              >
+                <Ionicons
+                  name={transactionSuccess ? "checkmark" : "close"}
+                  size={40}
+                  color="#FFFFFF"
+                />
+              </LinearGradient>
+            </View>
 
             <Text variant="h2" style={styles.purchaseResultTitle}>
               {transactionSuccess ? "Purchase Complete!" : "Purchase Failed"}
@@ -857,7 +893,7 @@ const TokenStoreScreen = ({ navigation, route }) => {
             )}
 
             <Button
-              title={transactionSuccess ? "Done" : "Try Again"}
+              label={transactionSuccess ? "Done" : "Try Again"}
               onPress={() => {
                 setPurchaseComplete(false);
                 setTransactionSuccess(false);
@@ -873,54 +909,88 @@ const TokenStoreScreen = ({ navigation, route }) => {
   };
 
   return (
-    <SafeAreaView
+    <View
       style={{
         flex: 1,
         backgroundColor: theme.colors.background,
-        paddingTop: Platform.OS === "android" ? StatusBar.currentHeight : 0,
+        paddingTop: 50,
       }}
     >
+      <SafeAreaView
+        style={{
+          backgroundColor: theme.colors.primary + (isDark ? "80" : "40"),
+        }}
+      />
       <StatusBar
         barStyle={isDark ? "light-content" : "dark-content"}
         backgroundColor="transparent"
         translucent
       />
 
-      {renderHeader()}
-      {renderTokenBalance()}
-      {renderTabs()}
+      <AnimatedHeader
+        title={t("tokens.buyTokens")}
+        scrollY={scrollY}
+        theme={theme}
+        onBackPress={() => navigation.goBack()}
+        statusBarHeight={
+          Platform.OS === "android" ? StatusBar.currentHeight : 0
+        }
+        topPosition={30}
+      />
 
-      <View style={styles.content}>
-        {activeTab === "packages" ? (
-          <ScrollView
-            style={styles.packagesScrollView}
-            contentContainerStyle={styles.packagesScrollContent}
-            showsVerticalScrollIndicator={false}
-            ref={scrollViewRef}
-          >
-            {renderPackages()}
-          </ScrollView>
-        ) : (
-          renderHistory()
+      <Animated.ScrollView
+        style={styles.container}
+        contentContainerStyle={styles.contentContainer}
+        showsVerticalScrollIndicator={false}
+        onScroll={Animated.event(
+          [{ nativeEvent: { contentOffset: { y: scrollY } } }],
+          { useNativeDriver: false }
         )}
-      </View>
+        scrollEventThrottle={16}
+      >
+        {renderHeader()}
+        {renderTokenBalance()}
+        {renderTabs()}
+
+        <View style={styles.content}>
+          {activeTab === "packages" ? (
+            <ScrollView
+              style={styles.packagesScrollView}
+              contentContainerStyle={styles.packagesScrollContent}
+              showsVerticalScrollIndicator={false}
+              ref={scrollViewRef}
+            >
+              {renderPackages()}
+            </ScrollView>
+          ) : (
+            renderHistory()
+          )}
+        </View>
+      </Animated.ScrollView>
 
       {purchaseComplete && renderPurchaseCompleteOverlay()}
 
       {loading && !purchaseInProgress && (
-        <Loading fullScreen type="logo" iconName="wallet" />
+        <Loading fullScreen iconName="wallet" />
       )}
-    </SafeAreaView>
+    </View>
   );
 };
 
 const styles = StyleSheet.create({
+  container: {
+    flex: 1,
+  },
+  contentContainer: {
+    paddingBottom: 40,
+  },
   header: {
     flexDirection: "row",
     alignItems: "center",
     justifyContent: "space-between",
     paddingHorizontal: 20,
-    paddingVertical: 10,
+    paddingVertical: 16,
+    paddingTop: Platform.OS === "android" ? StatusBar.currentHeight + 16 : 16,
   },
   backButton: {
     padding: 8,
@@ -1005,7 +1075,6 @@ const styles = StyleSheet.create({
   },
   packageCard: {
     borderWidth: 1,
-    borderColor: "#E0E0E0",
     borderRadius: 16,
     padding: 16,
     marginBottom: 16,
@@ -1139,12 +1208,8 @@ const styles = StyleSheet.create({
     justifyContent: "center",
     padding: 40,
   },
-  emptyLottie: {
-    width: 120,
-    height: 120,
-    marginBottom: 16,
-  },
   emptyHistoryTitle: {
+    marginTop: 16,
     marginBottom: 8,
   },
   emptyHistoryText: {
@@ -1155,20 +1220,23 @@ const styles = StyleSheet.create({
     justifyContent: "center",
     alignItems: "center",
   },
-  confettiAnimation: {
-    ...StyleSheet.absoluteFill,
-    position: "absolute",
-  },
   purchaseResultContent: {
     alignItems: "center",
     padding: 24,
     width: "90%",
     maxWidth: 360,
   },
-  resultAnimation: {
-    width: 120,
-    height: 120,
+  resultIconContainer: {
     marginBottom: 24,
+    borderRadius: 50,
+    overflow: "hidden",
+  },
+  resultIconGradient: {
+    width: 80,
+    height: 80,
+    borderRadius: 40,
+    alignItems: "center",
+    justifyContent: "center",
   },
   purchaseResultTitle: {
     marginBottom: 16,

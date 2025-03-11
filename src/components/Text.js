@@ -1,5 +1,6 @@
 import React from "react";
-import { Text as RNText, StyleSheet } from "react-native";
+import { Text as RNText } from "react-native";
+import { useTheme } from "../context/ThemeContext";
 
 /**
  * Text Component - Typography system
@@ -20,22 +21,7 @@ const Text = ({
   align = "left",
   ...props
 }) => {
-  // Theme colors
-  const colors = {
-    // Dark text colors
-    heading: "#0F172A", // Slate 900
-    body: "#334155", // Slate 700
-    secondary: "#64748B", // Slate 500
-    muted: "#94A3B8", // Slate 400
-
-    // Brand/accent colors
-    primary: "#5D5FEF", // Primary brand
-    secondary: "#61DAFB", // Secondary brand
-    success: "#10B981", // Green
-    error: "#EF4444", // Red
-    warning: "#F59E0B", // Amber
-    info: "#3B82F6", // Blue
-  };
+  const { theme } = useTheme();
 
   // Font weights
   const fontWeights = {
@@ -47,13 +33,14 @@ const Text = ({
 
   // Typography variants
   const getTypographyStyles = () => {
+    const defaultColor = theme.colors.text;
     switch (variant) {
       case "h1":
         return {
           fontSize: 32,
           lineHeight: 40,
           fontWeight: fontWeights.bold,
-          color: colors.heading,
+          color: theme.colors.heading || defaultColor,
           letterSpacing: -0.5,
           marginVertical: 8,
         };
@@ -62,7 +49,7 @@ const Text = ({
           fontSize: 24,
           lineHeight: 32,
           fontWeight: fontWeights.bold,
-          color: colors.heading,
+          color: theme.colors.heading || defaultColor,
           letterSpacing: -0.3,
           marginVertical: 6,
         };
@@ -71,7 +58,7 @@ const Text = ({
           fontSize: 20,
           lineHeight: 28,
           fontWeight: fontWeights.semibold,
-          color: colors.heading,
+          color: theme.colors.heading || defaultColor,
           letterSpacing: -0.2,
           marginVertical: 4,
         };
@@ -80,57 +67,51 @@ const Text = ({
           fontSize: 18,
           lineHeight: 26,
           fontWeight: fontWeights.semibold,
-          color: colors.heading,
+          color: theme.colors.heading || defaultColor,
         };
       case "subtitle2":
         return {
           fontSize: 16,
           lineHeight: 24,
           fontWeight: fontWeights.medium,
-          color: colors.heading,
+          color: theme.colors.heading || defaultColor,
         };
       case "body1":
         return {
           fontSize: 16,
           lineHeight: 24,
           fontWeight: fontWeights.regular,
-          color: colors.body,
+          color: theme.colors.body || defaultColor,
         };
       case "body2":
         return {
           fontSize: 14,
           lineHeight: 20,
           fontWeight: fontWeights.regular,
-          color: colors.body,
+          color: theme.colors.body || defaultColor,
         };
       case "caption":
         return {
           fontSize: 12,
           lineHeight: 16,
           fontWeight: fontWeights.regular,
-          color: colors.secondary,
+          color: theme.colors.secondary || defaultColor,
         };
       default:
         return {
           fontSize: 16,
           lineHeight: 24,
           fontWeight: fontWeights.regular,
-          color: colors.body,
+          color: defaultColor,
         };
     }
-  };
-
-  // Get font weight if explicitly specified
-  const getFontWeight = () => {
-    if (!weight) return {};
-    return { fontWeight: fontWeights[weight] || fontWeights.regular };
   };
 
   return (
     <RNText
       style={[
         getTypographyStyles(),
-        getFontWeight(),
+        weight && { fontWeight: fontWeights[weight] || fontWeights.regular },
         { textAlign: align },
         color && { color },
         style,

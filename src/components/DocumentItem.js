@@ -3,7 +3,7 @@ import { View, StyleSheet, TouchableOpacity, Image } from "react-native";
 import Text from "./Text";
 import Badge from "./Badge";
 import Card from "./Card";
-
+import { useTheme } from "../context/ThemeContext";
 /**
  * DocumentItem Component - For displaying document in lists
  *
@@ -160,7 +160,7 @@ const DocumentItem = ({
                 style={styles.compactBadge}
               />
 
-              <Text variant="caption" color="#64748B">
+              <Text variant="caption" color={theme.colors.textSecondary}>
                 {formatDate(document.createdAt)}
               </Text>
             </View>
@@ -169,7 +169,7 @@ const DocumentItem = ({
       </Card>
     );
   }
-
+  const { theme } = useTheme();
   // Full view
   return (
     <Card onPress={onPress} style={[styles.card, style]} {...props}>
@@ -194,7 +194,11 @@ const DocumentItem = ({
 
         {/* Middle - Document Details */}
         <View style={styles.details}>
-          <Text variant="subtitle1" numberOfLines={1} style={styles.title}>
+          <Text
+            variant="subtitle1"
+            numberOfLines={1}
+            style={[styles.title, { color: theme.colors.text }]}
+          >
             {document.name || "Untitled Document"}
           </Text>
 
@@ -206,7 +210,11 @@ const DocumentItem = ({
               style={styles.badge}
             />
 
-            <Text variant="caption" color="#64748B" style={styles.metaText}>
+            <Text
+              variant="caption"
+              color={theme.colors.textSecondary}
+              style={styles.metaText}
+            >
               {formatFileSize(document.size)} • {formatDate(document.createdAt)}
             </Text>
           </View>

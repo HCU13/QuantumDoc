@@ -51,8 +51,6 @@ const LoginScreen = ({ navigation }) => {
   const handleLogin = async () => {
     if (validateForm()) {
       try {
-        setIsLoading(true);
-
         // Firebase ile giriş yap
         await login(email, password);
         // NOT: AuthContext içinde zaten showToast ile başarılı mesajı gösteriliyor
@@ -67,13 +65,12 @@ const LoginScreen = ({ navigation }) => {
         // ama ekranda da göstermek istiyorsak:
         setErrors({ general: error.message || "Login failed" });
       } finally {
-        setIsLoading(false);
       }
     }
   };
 
   return (
-    <SafeAreaView style={styles.container}>
+    <View style={styles.container}>
       <KeyboardAvoidingView
         behavior={Platform.OS === "ios" ? "padding" : "height"}
         style={styles.keyboardAvoidingView}
@@ -181,14 +178,13 @@ const LoginScreen = ({ navigation }) => {
           </Card>
         </ScrollView>
       </KeyboardAvoidingView>
-    </SafeAreaView>
+    </View>
   );
 };
 
 const styles = StyleSheet.create({
   container: {
     flex: 1,
-    backgroundColor: "#F8FAFC",
   },
   keyboardAvoidingView: {
     flex: 1,
@@ -197,7 +193,7 @@ const styles = StyleSheet.create({
     flexGrow: 1,
   },
   topGradient: {
-    height: height * 0.35,
+    height: height * 0.38,
     width: "100%",
     justifyContent: "center",
     alignItems: "center",
