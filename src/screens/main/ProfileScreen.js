@@ -7,11 +7,10 @@ import {
   ScrollView,
   Alert,
   Modal,
-  Linking,
   StatusBar,
   Animated,
   Platform,
-  Image,
+  Dimensions,
 } from "react-native";
 import { LinearGradient } from "expo-linear-gradient";
 import { Ionicons } from "@expo/vector-icons";
@@ -23,14 +22,17 @@ import {
   SUPPORTED_LANGUAGES,
 } from "../../context/LocalizationContext";
 import {
-  Loading,
-  Badge,
-  Card,
   Text,
+  Card,
   Button,
   Avatar,
+  Loading,
+  Badge,
   Divider,
 } from "../../components";
+
+const { width, height } = Dimensions.get("window");
+
 const ProfileScreen = ({ navigation }) => {
   const { theme, toggleTheme, isDark } = useTheme();
   const { user, signOut, loading } = useAuth();
@@ -42,33 +44,11 @@ const ProfileScreen = ({ navigation }) => {
   const [activeSection, setActiveSection] = useState(null);
 
   // Animations
-  const fadeAnim = useRef(new Animated.Value(0)).current;
-  const headerFadeAnim = useRef(new Animated.Value(0)).current;
-  const slideAnim = useRef(new Animated.Value(30)).current;
   const scrollY = useRef(new Animated.Value(0)).current;
+  const fadeAnim = useRef(new Animated.Value(0)).current;
+  const slideAnim = useRef(new Animated.Value(30)).current;
 
-  useEffect(() => {
-    // Start entrance animations
-    Animated.parallel([
-      Animated.timing(fadeAnim, {
-        toValue: 1,
-        duration: 600,
-        useNativeDriver: true,
-      }),
-      Animated.timing(headerFadeAnim, {
-        toValue: 1,
-        duration: 800,
-        useNativeDriver: true,
-      }),
-      Animated.timing(slideAnim, {
-        toValue: 0,
-        duration: 600,
-        useNativeDriver: true,
-      }),
-    ]).start();
-  }, []);
-
-  // Header animations based on scroll
+  // Header animations based on scroll - ÖNCE BU TANIMLAR YAPILMALI
   const headerHeight = scrollY.interpolate({
     inputRange: [0, 120],
     outputRange: [180, 90],
@@ -98,6 +78,43 @@ const ProfileScreen = ({ navigation }) => {
     outputRange: [0, 1],
     extrapolate: "clamp",
   });
+
+  // SONRA platformla ilgili değerler hesaplanmalı
+  const paddingTopValue =
+    Platform.OS === "android" ? StatusBar.currentHeight || 0 : 0;
+
+  // Sample token history for UI display
+  const tokenHistory = [
+    {
+      id: "1",
+      type: "purchase",
+      amount: 50,
+      date: new Date(Date.now() - 172800000),
+    },
+    {
+      id: "2",
+      type: "usage",
+      amount: -1,
+      date: new Date(Date.now() - 86400000),
+    },
+    { id: "3", type: "purchase", amount: 20, date: new Date() },
+  ];
+
+  useEffect(() => {
+    // Start entrance animations
+    Animated.parallel([
+      Animated.timing(fadeAnim, {
+        toValue: 1,
+        duration: 600,
+        useNativeDriver: true,
+      }),
+      Animated.timing(slideAnim, {
+        toValue: 0,
+        duration: 600,
+        useNativeDriver: true,
+      }),
+    ]).start();
+  }, []);
 
   // Sign out
   const handleSignOut = () => {
@@ -133,6 +150,19 @@ const ProfileScreen = ({ navigation }) => {
   const handleLanguageChange = async (langCode) => {
     await changeLanguage(langCode);
     setLanguageModalVisible(false);
+  };
+
+  // Format date for token history
+  const formatDate = (date) => {
+    const now = new Date();
+    const diff = now - date;
+    const days = Math.floor(diff / (1000 * 60 * 60 * 24));
+
+    if (days === 0) return "Today";
+    if (days === 1) return "Yesterday";
+    if (days < 7) return `${days} days ago`;
+
+    return date.toLocaleDateString();
   };
 
   // Language selection modal
@@ -174,9 +204,9 @@ const ProfileScreen = ({ navigation }) => {
           ))}
 
           <Button
-            title={t("common.cancel")}
+            label={t("common.cancel")}
             onPress={() => setLanguageModalVisible(false)}
-            type="outline"
+            variant="outline"
             style={styles.cancelButton}
           />
         </Card>
@@ -184,22 +214,9 @@ const ProfileScreen = ({ navigation }) => {
     </Modal>
   );
 
-  // Section handler
-  const toggleSection = (section) => {
-    if (activeSection === section) {
-      setActiveSection(null);
-    } else {
-      setActiveSection(section);
-    }
-  };
-
   return (
     <View
-      style={{
-        flex: 1,
-        backgroundColor: theme.colors.background,
-        paddingTop: Platform.OS === "android" ? StatusBar.currentHeight : 0,
-      }}
+      style={[styles.container, { backgroundColor: theme.colors.background }]}
     >
       <StatusBar
         barStyle={isDark ? "light-content" : "dark-content"}
@@ -207,13 +224,19 @@ const ProfileScreen = ({ navigation }) => {
         translucent
       />
 
-      {/* Animated header */}
+      {/* Animated header - STİL OBJELERI BASITLEŞTIRILDI */}
       <Animated.View
         style={[
           styles.header,
           {
             height: headerHeight,
-            paddingTop: Platform.OS === "android" ? StatusBar.currentHeight : 0,
+            paddingTop: paddingTopValue,
+            position: "absolute",
+            top: 0,
+            left: 0,
+            right: 0,
+            zIndex: 100,
+            overflow: "hidden",
           },
         ]}
       >
@@ -223,37 +246,51 @@ const ProfileScreen = ({ navigation }) => {
               ? [theme.colors.primary + "80", theme.colors.background]
               : [theme.colors.primary + "40", theme.colors.background]
           }
-          style={styles.headerGradient}
+          style={{ flex: 1, justifyContent: "flex-end" }}
         >
           {/* Full header (visible when not scrolled) */}
           <Animated.View
-            style={[
-              styles.headerContent,
-              {
-                opacity: opacityHeader,
-                paddingHorizontal: headerPadding,
-              },
-            ]}
+            style={{
+              flexDirection: "row",
+              alignItems: "center",
+              paddingVertical: 20,
+              opacity: opacityHeader,
+              paddingHorizontal: headerPadding,
+            }}
           >
-            <Avatar
-              source={user?.photoURL}
-              size={avatarSize}
-              name={user?.displayName || "User"}
-              style={styles.avatar}
-            />
+            <Animated.View style={{ width: avatarSize, height: avatarSize }}>
+              <Avatar
+                source={user?.photoURL}
+                size={avatarSize.__getValue ? avatarSize.__getValue() : 80}
+                name={user?.displayName || "User"}
+                style={styles.avatar}
+              />
+            </Animated.View>
             <View style={styles.userInfo}>
               <Text variant="h3" style={styles.userName}>
-                {user?.displayName || "User"}
+                {user?.displayName || "John Doe"}
               </Text>
               <Text variant="body2" color={theme.colors.textSecondary}>
-                {user?.email}
+                {user?.email || "john.doe@example.com"}
               </Text>
             </View>
           </Animated.View>
 
           {/* Compact header (visible when scrolled) */}
           <Animated.View
-            style={[styles.compactHeader, { opacity: opacityCompactHeader }]}
+            style={{
+              position: "absolute",
+              top: 0,
+              left: 0,
+              right: 0,
+              height: "100%",
+              flexDirection: "row",
+              justifyContent: "space-between",
+              alignItems: "center",
+              paddingHorizontal: 20,
+              paddingTop: paddingTopValue,
+              opacity: opacityCompactHeader,
+            }}
           >
             <Text variant="h3" style={styles.compactTitle}>
               {t("profile.myProfile")}
@@ -268,12 +305,12 @@ const ProfileScreen = ({ navigation }) => {
       </Animated.View>
 
       <ScrollView
-        style={styles.container}
+        style={styles.scrollView}
         showsVerticalScrollIndicator={false}
         contentContainerStyle={styles.scrollContent}
         onScroll={Animated.event(
           [{ nativeEvent: { contentOffset: { y: scrollY } } }],
-          { useNativeDriver: true } // Change this to true
+          { useNativeDriver: false }
         )}
         scrollEventThrottle={16}
       >
@@ -284,7 +321,7 @@ const ProfileScreen = ({ navigation }) => {
             {
               opacity: fadeAnim,
               transform: [{ translateY: slideAnim }],
-              marginTop: 10,
+              marginTop: 180, // Header yüksekliğini hesaba katmak için
             },
           ]}
         >
@@ -304,7 +341,7 @@ const ProfileScreen = ({ navigation }) => {
                     {t("tokens.yourBalance")}
                   </Text>
                   <Text variant="h3" style={styles.tokenCount}>
-                    {tokens} tokens
+                    {tokens || 25} tokens
                   </Text>
                 </View>
               </View>
@@ -342,13 +379,97 @@ const ProfileScreen = ({ navigation }) => {
           </Card>
         </Animated.View>
 
+        {/* Recent Token Activity */}
+        <Animated.View
+          style={[
+            styles.cardContainer,
+            {
+              opacity: fadeAnim,
+              transform: [{ translateY: Animated.multiply(slideAnim, 1.1) }],
+            },
+          ]}
+        >
+          <Card style={styles.activityCard} elevated={false} variant="bordered">
+            <Text
+              variant="subtitle1"
+              weight="semibold"
+              style={styles.activityTitle}
+            >
+              Recent Token Activity
+            </Text>
+
+            <Divider />
+
+            {tokenHistory.map((item, index) => (
+              <View key={item.id} style={styles.activityItem}>
+                <View style={styles.activityLeft}>
+                  <View
+                    style={[
+                      styles.activityIconContainer,
+                      {
+                        backgroundColor:
+                          item.amount > 0
+                            ? theme.colors.success + "15"
+                            : theme.colors.primary + "15",
+                      },
+                    ]}
+                  >
+                    <Ionicons
+                      name={item.amount > 0 ? "add-circle" : "document-text"}
+                      size={20}
+                      color={
+                        item.amount > 0
+                          ? theme.colors.success
+                          : theme.colors.primary
+                      }
+                    />
+                  </View>
+                  <View style={styles.activityTextContainer}>
+                    <Text variant="body1">
+                      {item.amount > 0 ? "Token Purchase" : "Document Analysis"}
+                    </Text>
+                    <Text variant="caption" color={theme.colors.textSecondary}>
+                      {formatDate(item.date)}
+                    </Text>
+                  </View>
+                </View>
+                <Text
+                  variant="body2"
+                  weight="semibold"
+                  color={
+                    item.amount > 0 ? theme.colors.success : theme.colors.error
+                  }
+                >
+                  {item.amount > 0 ? `+${item.amount}` : item.amount}
+                </Text>
+              </View>
+            ))}
+
+            <TouchableOpacity
+              style={styles.viewAllButton}
+              onPress={() =>
+                navigation.navigate("TokenStore", { tab: "history" })
+              }
+            >
+              <Text variant="body2" color={theme.colors.primary}>
+                View All Activity
+              </Text>
+              <Ionicons
+                name="chevron-forward"
+                size={16}
+                color={theme.colors.primary}
+              />
+            </TouchableOpacity>
+          </Card>
+        </Animated.View>
+
         {/* Settings Card */}
         <Animated.View
           style={[
             styles.cardContainer,
             {
               opacity: fadeAnim,
-              transform: [{ translateY: slideAnim }],
+              transform: [{ translateY: Animated.multiply(slideAnim, 1.2) }],
             },
           ]}
         >
@@ -397,7 +518,7 @@ const ProfileScreen = ({ navigation }) => {
                   color={theme.colors.textSecondary}
                   style={styles.settingValue}
                 >
-                  {getCurrentLanguageName()}
+                  {getCurrentLanguageName() || "English"}
                 </Text>
                 <Ionicons
                   name="chevron-forward"
@@ -498,7 +619,7 @@ const ProfileScreen = ({ navigation }) => {
             styles.cardContainer,
             {
               opacity: fadeAnim,
-              transform: [{ translateY: slideAnim }],
+              transform: [{ translateY: Animated.multiply(slideAnim, 1.3) }],
             },
           ]}
         >
@@ -561,7 +682,7 @@ const ProfileScreen = ({ navigation }) => {
                   </Text>
                 </View>
               </View>
-              <Badge label="v1.0.0" type="secondary" size="sm" />
+              <Badge label="v1.0.0" variant="secondary" size="sm" />
             </TouchableOpacity>
           </Card>
         </Animated.View>
@@ -572,17 +693,19 @@ const ProfileScreen = ({ navigation }) => {
             styles.cardContainer,
             {
               opacity: fadeAnim,
-              transform: [{ translateY: slideAnim }],
+              transform: [{ translateY: Animated.multiply(slideAnim, 1.4) }],
             },
           ]}
         >
           <Button
-            title={t("profile.signOut")}
+            label={t("profile.signOut")}
             onPress={handleSignOut}
-            type="outline"
+            variant="outline"
             style={styles.signOutButton}
             loading={loading}
-            icon="log-out"
+            leftIcon={
+              <Ionicons name="log-out" size={20} color={theme.colors.text} />
+            }
           />
         </Animated.View>
       </ScrollView>
@@ -599,40 +722,11 @@ const styles = StyleSheet.create({
   container: {
     flex: 1,
   },
+  scrollView: {
+    flex: 1,
+  },
   scrollContent: {
     paddingBottom: 40,
-  },
-  header: {
-    position: "absolute",
-    top: 0,
-    left: 0,
-    right: 0,
-    zIndex: 100,
-    overflow: "hidden",
-  },
-  headerGradient: {
-    flex: 1,
-    justifyContent: "flex-end",
-  },
-  headerContent: {
-    flexDirection: "row",
-    alignItems: "center",
-    paddingVertical: 20,
-  },
-  compactHeader: {
-    position: "absolute",
-    top: 0,
-    left: 0,
-    right: 0,
-    height: "100%",
-    flexDirection: "row",
-    justifyContent: "space-between",
-    alignItems: "center",
-    paddingHorizontal: 20,
-    paddingTop: Platform.OS === "android" ? StatusBar.currentHeight : 0,
-  },
-  compactTitle: {
-    marginBottom: 0,
   },
   avatar: {
     marginRight: 16,
@@ -642,6 +736,9 @@ const styles = StyleSheet.create({
   },
   userName: {
     marginBottom: 4,
+  },
+  compactTitle: {
+    marginBottom: 0,
   },
   cardContainer: {
     marginHorizontal: 16,
@@ -686,6 +783,44 @@ const styles = StyleSheet.create({
   subscriptionText: {
     marginLeft: 8,
     fontWeight: "600",
+  },
+  activityCard: {
+    padding: 0,
+    overflow: "hidden",
+    borderRadius: 16,
+  },
+  activityTitle: {
+    padding: 16,
+  },
+  activityItem: {
+    flexDirection: "row",
+    justifyContent: "space-between",
+    alignItems: "center",
+    paddingVertical: 12,
+    paddingHorizontal: 16,
+    borderBottomWidth: 1,
+    borderBottomColor: "#E0E0E0",
+  },
+  activityLeft: {
+    flexDirection: "row",
+    alignItems: "center",
+  },
+  activityIconContainer: {
+    width: 40,
+    height: 40,
+    borderRadius: 20,
+    alignItems: "center",
+    justifyContent: "center",
+    marginRight: 12,
+  },
+  activityTextContainer: {
+    flex: 1,
+  },
+  viewAllButton: {
+    flexDirection: "row",
+    alignItems: "center",
+    justifyContent: "center",
+    paddingVertical: 12,
   },
   settingsCard: {
     padding: 0,

@@ -5,12 +5,12 @@ import {
   FlatList,
   TouchableOpacity,
   RefreshControl,
-  SafeAreaView,
   StatusBar,
   Alert,
   Animated,
   Platform,
   Dimensions,
+  ScrollView as RNScrollView,
 } from "react-native";
 import { Ionicons } from "@expo/vector-icons";
 import { LinearGradient } from "expo-linear-gradient";
@@ -19,15 +19,14 @@ import { useAuth } from "../../context/AuthContext";
 import { useTokens } from "../../context/TokenContext";
 import { useLocalization } from "../../context/LocalizationContext";
 import {
-  Loading,
-  Badge,
-  EmptyState,
-  Card,
   Text,
+  Card,
   Button,
   DocumentItem,
+  EmptyState,
+  Badge,
+  Loading,
 } from "../../components";
-
 import { documentApi } from "../../api/documentApi";
 
 const { width, height } = Dimensions.get("window");
@@ -41,6 +40,8 @@ const HomeScreen = ({ navigation }) => {
   const [documents, setDocuments] = useState([]);
   const [loading, setLoading] = useState(true);
   const [refreshing, setRefreshing] = useState(false);
+  const [filteredDocuments, setFilteredDocuments] = useState([]);
+  const [activeFilter, setActiveFilter] = useState("all");
 
   // Animation values
   const scrollY = useRef(new Animated.Value(0)).current;
@@ -56,8 +57,49 @@ const HomeScreen = ({ navigation }) => {
         setLoading(true);
       }
 
-      const docs = await documentApi.getUserDocuments();
-      setDocuments(docs);
+      // In real implementation, this would fetch from your API
+      // For UI design purposes, let's use sample data
+      const sampleDocuments = [
+        {
+          id: "1",
+          name: "Project Proposal.pdf",
+          type: "application/pdf",
+          size: 2500000,
+          createdAt: new Date(),
+          status: "analyzed",
+          downloadUrl: null,
+        },
+        {
+          id: "2",
+          name: "Financial Report Q2.xlsx",
+          type: "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet",
+          size: 1800000,
+          createdAt: new Date(Date.now() - 86400000), // Yesterday
+          status: "analyzed",
+          downloadUrl: null,
+        },
+        {
+          id: "3",
+          name: "Team Meeting Notes.docx",
+          type: "application/vnd.openxmlformats-officedocument.wordprocessingml.document",
+          size: 500000,
+          createdAt: new Date(Date.now() - 172800000), // 2 days ago
+          status: "uploaded",
+          downloadUrl: null,
+        },
+        {
+          id: "4",
+          name: "Product Diagram.jpg",
+          type: "image/jpeg",
+          size: 3500000,
+          createdAt: new Date(Date.now() - 259200000), // 3 days ago
+          status: "analyzed",
+          downloadUrl: "https://source.unsplash.com/random/800x600/?document",
+        },
+      ];
+
+      setDocuments(sampleDocuments);
+      setFilteredDocuments(sampleDocuments);
     } catch (error) {
       console.error("Error loading documents:", error);
       Alert.alert(
@@ -67,6 +109,42 @@ const HomeScreen = ({ navigation }) => {
     } finally {
       setLoading(false);
       setRefreshing(false);
+    }
+  };
+
+  // Filter documents
+  const filterDocuments = (filter) => {
+    setActiveFilter(filter);
+
+    if (filter === "all") {
+      setFilteredDocuments(documents);
+      return;
+    }
+
+    if (filter === "analyzed") {
+      setFilteredDocuments(
+        documents.filter((doc) => doc.status === "analyzed")
+      );
+      return;
+    }
+
+    if (filter === "images") {
+      setFilteredDocuments(
+        documents.filter((doc) => doc.type.includes("image"))
+      );
+      return;
+    }
+
+    if (filter === "documents") {
+      setFilteredDocuments(
+        documents.filter(
+          (doc) =>
+            doc.type.includes("pdf") ||
+            doc.type.includes("word") ||
+            doc.type.includes("document")
+        )
+      );
+      return;
     }
   };
 
@@ -105,44 +183,12 @@ const HomeScreen = ({ navigation }) => {
 
   // Navigate to upload screen
   const goToUpload = () => {
-    const canUpload = hasEnoughTokens(TOKEN_COSTS.DOCUMENT_ANALYSIS);
-
-    if (canUpload) {
-      navigation.navigate("Upload");
-    } else {
-      Alert.alert(
-        "Not Enough Tokens",
-        "You need more tokens to upload and analyze documents.",
-        [
-          { text: "Cancel", style: "cancel" },
-          {
-            text: "Get Tokens",
-            onPress: () => navigation.navigate("TokenStore"),
-          },
-        ]
-      );
-    }
+    navigation.navigate("Upload");
   };
 
   // Navigate to scan screen
   const goToScan = () => {
-    const canScan = hasEnoughTokens(TOKEN_COSTS.DOCUMENT_ANALYSIS);
-
-    if (canScan) {
-      navigation.navigate("Scan");
-    } else {
-      Alert.alert(
-        "Not Enough Tokens",
-        "You need more tokens to scan and analyze documents.",
-        [
-          { text: "Cancel", style: "cancel" },
-          {
-            text: "Get Tokens",
-            onPress: () => navigation.navigate("TokenStore"),
-          },
-        ]
-      );
-    }
+    navigation.navigate("Scan");
   };
 
   // Header opacity based on scroll
@@ -189,7 +235,7 @@ const HomeScreen = ({ navigation }) => {
               color={theme.colors.primary}
               style={styles.tokenText}
             >
-              {tokens}
+              {tokens || 15}
             </Text>
           </TouchableOpacity>
         </View>
@@ -222,12 +268,123 @@ const HomeScreen = ({ navigation }) => {
               color={theme.colors.primary}
               style={styles.tokenText}
             >
-              {tokens}
+              {tokens || 15}
             </Text>
           </TouchableOpacity>
         </View>
       </Animated.View>
     </View>
+  );
+
+  // Filter tabs
+  const renderFilterTabs = () => (
+    <Animated.View
+      style={[
+        styles.filterTabsContainer,
+        {
+          opacity: fadeAnim,
+          transform: [{ translateY: translateAnim }],
+        },
+      ]}
+    >
+      <RNScrollView
+        horizontal
+        showsHorizontalScrollIndicator={false}
+        contentContainerStyle={styles.filterTabsContent}
+      >
+        <TouchableOpacity
+          style={[
+            styles.filterTab,
+            activeFilter === "all" && {
+              backgroundColor: theme.colors.primary + "20",
+              borderColor: theme.colors.primary,
+            },
+          ]}
+          onPress={() => filterDocuments("all")}
+        >
+          <Text
+            variant="body2"
+            color={
+              activeFilter === "all"
+                ? theme.colors.primary
+                : theme.colors.textSecondary
+            }
+            weight={activeFilter === "all" ? "semibold" : "regular"}
+          >
+            All
+          </Text>
+        </TouchableOpacity>
+
+        <TouchableOpacity
+          style={[
+            styles.filterTab,
+            activeFilter === "analyzed" && {
+              backgroundColor: theme.colors.success + "20",
+              borderColor: theme.colors.success,
+            },
+          ]}
+          onPress={() => filterDocuments("analyzed")}
+        >
+          <Text
+            variant="body2"
+            color={
+              activeFilter === "analyzed"
+                ? theme.colors.success
+                : theme.colors.textSecondary
+            }
+            weight={activeFilter === "analyzed" ? "semibold" : "regular"}
+          >
+            Analyzed
+          </Text>
+        </TouchableOpacity>
+
+        <TouchableOpacity
+          style={[
+            styles.filterTab,
+            activeFilter === "images" && {
+              backgroundColor: theme.colors.info + "20",
+              borderColor: theme.colors.info,
+            },
+          ]}
+          onPress={() => filterDocuments("images")}
+        >
+          <Text
+            variant="body2"
+            color={
+              activeFilter === "images"
+                ? theme.colors.info
+                : theme.colors.textSecondary
+            }
+            weight={activeFilter === "images" ? "semibold" : "regular"}
+          >
+            Images
+          </Text>
+        </TouchableOpacity>
+
+        <TouchableOpacity
+          style={[
+            styles.filterTab,
+            activeFilter === "documents" && {
+              backgroundColor: theme.colors.error + "20",
+              borderColor: theme.colors.error,
+            },
+          ]}
+          onPress={() => filterDocuments("documents")}
+        >
+          <Text
+            variant="body2"
+            color={
+              activeFilter === "documents"
+                ? theme.colors.error
+                : theme.colors.textSecondary
+            }
+            weight={activeFilter === "documents" ? "semibold" : "regular"}
+          >
+            Documents
+          </Text>
+        </TouchableOpacity>
+      </RNScrollView>
+    </Animated.View>
   );
 
   // Action buttons
@@ -244,19 +401,21 @@ const HomeScreen = ({ navigation }) => {
       <Card style={styles.actionButtonsCard} elevated={true}>
         <View style={styles.actionButtons}>
           <Button
-            title={t("home.uploadDocument")}
+            label="Upload Document"
             onPress={goToUpload}
             style={styles.actionButton}
-            icon="cloud-upload"
+            leftIcon={
+              <Ionicons name="cloud-upload" size={20} color="#FFFFFF" />
+            }
             gradient={true}
           />
           <View style={styles.actionButtonSpacer} />
           <Button
-            title={t("home.scanDocument")}
+            label="Scan Document"
             onPress={goToScan}
             style={styles.actionButton}
-            icon="scan"
-            type="secondary"
+            leftIcon={<Ionicons name="scan" size={20} color="#FFFFFF" />}
+            variant="secondary"
           />
         </View>
       </Card>
@@ -289,7 +448,7 @@ const HomeScreen = ({ navigation }) => {
   // Document list
   const renderDocumentsList = () => (
     <Animated.FlatList
-      data={documents}
+      data={filteredDocuments}
       keyExtractor={(item) => item.id}
       renderItem={({ item, index }) => (
         <Animated.View
@@ -332,6 +491,7 @@ const HomeScreen = ({ navigation }) => {
       ListHeaderComponent={
         <>
           {renderHeader()}
+          {renderFilterTabs()}
           {renderActionButtons()}
         </>
       }
@@ -356,7 +516,7 @@ const HomeScreen = ({ navigation }) => {
 
   // Render content
   return (
-    <SafeAreaView
+    <View
       style={[styles.container, { backgroundColor: theme.colors.background }]}
     >
       <StatusBar
@@ -376,7 +536,7 @@ const HomeScreen = ({ navigation }) => {
           <Ionicons name="add" size={24} color="#FFFFFF" />
         </LinearGradient>
       </TouchableOpacity>
-    </SafeAreaView>
+    </View>
   );
 };
 
@@ -389,7 +549,7 @@ const styles = StyleSheet.create({
     position: "relative",
   },
   headerGradient: {
-    paddingTop: 20,
+    paddingTop: Platform.OS === "android" ? StatusBar.currentHeight + 10 : 50,
     paddingBottom: 30,
   },
   headerContent: {
@@ -403,7 +563,7 @@ const styles = StyleSheet.create({
     top: 0,
     left: 0,
     right: 0,
-    height: 70,
+    height: Platform.OS === "android" ? 70 + StatusBar.currentHeight : 70,
     paddingTop: Platform.OS === "android" ? StatusBar.currentHeight : 0,
     borderBottomWidth: 1,
     zIndex: 10,
@@ -425,9 +585,27 @@ const styles = StyleSheet.create({
   tokenText: {
     marginLeft: 4,
   },
+  filterTabsContainer: {
+    marginVertical: 10,
+    marginHorizontal: 16,
+    marginTop: 16, // Increased margin to avoid overlap
+  },
+  filterTabsContent: {
+    paddingHorizontal: 4,
+    paddingVertical: 8,
+  },
+  filterTab: {
+    paddingHorizontal: 16,
+    paddingVertical: 8,
+    borderRadius: 20,
+    marginHorizontal: 4,
+    borderWidth: 1,
+    borderColor: "#e0e0e0",
+  },
   actionButtonsContainer: {
-    marginTop: -20,
+    marginTop: 10, // Increased margin to avoid overlap
     zIndex: 1,
+    marginBottom: 10, // Added bottom margin for spacing
   },
   actionButtonsCard: {
     marginHorizontal: 20,
@@ -437,6 +615,7 @@ const styles = StyleSheet.create({
   actionButtons: {
     flexDirection: "row",
     alignItems: "center",
+    justifyContent: "space-between",
   },
   actionButton: {
     flex: 1,
