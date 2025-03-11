@@ -401,7 +401,7 @@ const HomeScreen = ({ navigation }) => {
       <Card style={styles.actionButtonsCard} elevated={true}>
         <View style={styles.actionButtons}>
           <Button
-            label="Upload Document"
+            label="Upload"
             onPress={goToUpload}
             style={styles.actionButton}
             leftIcon={
@@ -411,7 +411,7 @@ const HomeScreen = ({ navigation }) => {
           />
           <View style={styles.actionButtonSpacer} />
           <Button
-            label="Scan Document"
+            label="Scan"
             onPress={goToScan}
             style={styles.actionButton}
             leftIcon={<Ionicons name="scan" size={20} color="#FFFFFF" />}

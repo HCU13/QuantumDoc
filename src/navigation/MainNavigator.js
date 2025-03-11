@@ -61,7 +61,7 @@ function MainNavigator() {
 
   function getTabBarVisibility(route) {
     const routeName = getFocusedRouteNameFromRoute(route) ?? "";
-    const hiddenScreens = ["TokenStore", "Help", "About"];
+    const hiddenScreens = ["TokenStore", "Help", "About", "DocumentDetail"];
     return hiddenScreens.includes(routeName)
       ? { display: "none" }
       : tabBarStyle;
