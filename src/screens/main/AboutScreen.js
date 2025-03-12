@@ -80,14 +80,7 @@ const AboutScreen = ({ navigation }) => {
         },
       ]}
     >
-      <LinearGradient
-        colors={
-          isDark
-            ? [theme.colors.primary + "80", theme.colors.background]
-            : [theme.colors.primary + "40", theme.colors.background]
-        }
-        style={styles.logoGradient}
-      >
+      <View colors={theme.colors.background} style={styles.logoGradient}>
         <View style={styles.logoBackground}>
           <Text style={styles.logoText}>🤖</Text>
         </View>
@@ -107,7 +100,7 @@ const AboutScreen = ({ navigation }) => {
           size="small"
           style={styles.versionBadge}
         />
-      </LinearGradient>
+      </View>
     </Animated.View>
   );
 

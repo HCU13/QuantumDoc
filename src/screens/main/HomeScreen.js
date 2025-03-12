@@ -526,16 +526,6 @@ const HomeScreen = ({ navigation }) => {
       />
 
       {renderDocumentsList()}
-
-      {/* Floating action button */}
-      <TouchableOpacity style={[styles.fab]} onPress={goToUpload}>
-        <LinearGradient
-          colors={[theme.colors.primary, theme.colors.secondary]}
-          style={styles.fabGradient}
-        >
-          <Ionicons name="add" size={24} color="#FFFFFF" />
-        </LinearGradient>
-      </TouchableOpacity>
     </View>
   );
 };

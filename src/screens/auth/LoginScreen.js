@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from "react";
+import React, { useState, useEffect, useRef } from "react";
 import {
   View,
   StyleSheet,
@@ -9,21 +9,46 @@ import {
   Image,
   ScrollView,
   Dimensions,
+  StatusBar,
+  Animated,
 } from "react-native";
 import { LinearGradient } from "expo-linear-gradient";
 import { Text, Input, Button, Card } from "../../components";
-import { useAuth } from "../../context/AuthContext"; // AuthContext'i import et
+import { useAuth } from "../../context/AuthContext";
+import { useTheme } from "../../context/ThemeContext"; // Import the theme hook
 
 const { width, height } = Dimensions.get("window");
 
 const LoginScreen = ({ navigation }) => {
-  const { login } = useAuth(); // useAuth hook'undan login fonksiyonunu al
+  // Get theme and dark mode status
+  const { theme, isDark } = useTheme();
+  const { login } = useAuth();
+
+  // Animation refs
+  const fadeAnim = useRef(new Animated.Value(0)).current;
+  const slideAnim = useRef(new Animated.Value(30)).current;
 
   // State for form fields and validation
   const [email, setEmail] = useState("trooper1803@gmail.com");
   const [password, setPassword] = useState("123123123");
   const [isLoading, setIsLoading] = useState(false);
   const [errors, setErrors] = useState({});
+
+  // Start entrance animations
+  useEffect(() => {
+    Animated.parallel([
+      Animated.timing(fadeAnim, {
+        toValue: 1,
+        duration: 600,
+        useNativeDriver: true,
+      }),
+      Animated.timing(slideAnim, {
+        toValue: 0,
+        duration: 600,
+        useNativeDriver: true,
+      }),
+    ]).start();
+  }, []);
 
   // Simple validation function
   const validateForm = () => {
@@ -47,30 +72,31 @@ const LoginScreen = ({ navigation }) => {
     return Object.keys(newErrors).length === 0;
   };
 
-  // Handle login - Orijinal koddan alınan versiyonla güncellendi
+  // Handle login
   const handleLogin = async () => {
     if (validateForm()) {
       try {
-        // Firebase ile giriş yap
+        setIsLoading(true);
+        // Firebase login
         await login(email, password);
-        // NOT: AuthContext içinde zaten showToast ile başarılı mesajı gösteriliyor
-        // ve kullanıcı bilgisi AuthProvider içinde ayarlanıyor
-
-        // Navigasyon AppNavigator tarafından otomatik yapılacak,
-        // ama manuel olarak da yönlendirebiliriz:
-        // navigation.replace('MainNavigator');
       } catch (error) {
         console.error("Login error:", error);
-        // Hata mesajı AuthContext içinde showToast ile gösteriliyor
-        // ama ekranda da göstermek istiyorsak:
         setErrors({ general: error.message || "Login failed" });
       } finally {
+        setIsLoading(false);
       }
     }
   };
 
   return (
-    <View style={styles.container}>
+    <View
+      style={[styles.container, { backgroundColor: theme.colors.background }]}
+    >
+      <StatusBar
+        barStyle={isDark ? "light-content" : "dark-content"}
+        backgroundColor="transparent"
+        translucent
+      />
       <KeyboardAvoidingView
         behavior={Platform.OS === "ios" ? "padding" : "height"}
         style={styles.keyboardAvoidingView}
@@ -79,15 +105,27 @@ const LoginScreen = ({ navigation }) => {
           contentContainerStyle={styles.scrollContent}
           keyboardShouldPersistTaps="handled"
         >
-          {/* Top Gradient Background */}
+          {/* Top Gradient Background - Adjusted for dark mode */}
           <LinearGradient
-            colors={["#5D5FEF", "#61DAFB"]}
+            colors={
+              isDark
+                ? [theme.colors.primary + "80", theme.colors.background]
+                : [theme.colors.primary, theme.colors.secondary]
+            }
             start={{ x: 0, y: 0 }}
             end={{ x: 1, y: 0 }}
             style={styles.topGradient}
           >
             {/* App Logo */}
-            <View style={styles.logoContainer}>
+            <Animated.View
+              style={[
+                styles.logoContainer,
+                {
+                  opacity: fadeAnim,
+                  transform: [{ translateY: slideAnim }],
+                },
+              ]}
+            >
               <View style={styles.logoBackground}>
                 <Text style={styles.logoText}>🤖</Text>
               </View>
@@ -97,85 +135,113 @@ const LoginScreen = ({ navigation }) => {
               <Text variant="body2" color="#FFFFFF" style={styles.appTagline}>
                 AI-Powered Document Analysis
               </Text>
-            </View>
+            </Animated.View>
           </LinearGradient>
 
-          {/* Login Card */}
-          <Card style={styles.loginCard}>
-            <Text variant="h3" style={styles.loginTitle}>
-              Welcome Back
-            </Text>
-            <Text variant="body2" color="#64748B" style={styles.loginSubtitle}>
-              Sign in to continue to your account
-            </Text>
-
-            {/* Error message if login fails */}
-            {errors.general && (
-              <View style={styles.errorContainer}>
-                <Text variant="body2" color="#EF4444">
-                  {errors.general}
-                </Text>
-              </View>
-            )}
-
-            {/* Email Input */}
-            <Input
-              label="Email"
-              value={email}
-              onChangeText={setEmail}
-              placeholder="email@example.com"
-              keyboardType="email-address"
-              autoCapitalize="none"
-              error={!!errors.email}
-              errorText={errors.email}
-              leftIcon={<Text>📧</Text>}
-              style={styles.input}
-            />
-
-            {/* Password Input */}
-            <Input
-              label="Password"
-              value={password}
-              onChangeText={setPassword}
-              placeholder="••••••••"
-              secureTextEntry
-              error={!!errors.password}
-              errorText={errors.password}
-              leftIcon={<Text>🔒</Text>}
-              style={styles.input}
-            />
-
-            {/* Forgot Password Link */}
-            <TouchableOpacity
-              style={styles.forgotPasswordLink}
-              onPress={() => navigation.navigate("ForgotPassword")}
+          {/* Login Card - Updated with theme-aware styling */}
+          <Animated.View
+            style={[
+              {
+                opacity: fadeAnim,
+                transform: [{ translateY: slideAnim }],
+              },
+            ]}
+          >
+            <Card
+              style={styles.loginCard}
+              variant={isDark ? "default" : "bordered"}
+              elevated={true}
             >
-              <Text variant="body2" color="#5D5FEF">
-                Forgot Password?
+              <Text variant="h3" style={styles.loginTitle}>
+                Welcome Back
               </Text>
-            </TouchableOpacity>
-
-            {/* Login Button */}
-            <Button
-              label="Sign In"
-              onPress={handleLogin}
-              loading={isLoading}
-              gradient={true}
-              style={styles.loginButton}
-            />
-
-            {/* Register Link */}
-            <View style={styles.registerContainer}>
-              <Text variant="body2" color="#64748B">
-                Don't have an account?{" "}
+              <Text
+                variant="body2"
+                color={theme.colors.textSecondary}
+                style={styles.loginSubtitle}
+              >
+                Sign in to continue to your account
               </Text>
-              <TouchableOpacity onPress={() => navigation.navigate("Register")}>
-                <Text variant="body2" color="#5D5FEF" weight="semibold">
-                  Sign Up
+
+              {/* Error message if login fails */}
+              {errors.general && (
+                <View
+                  style={[
+                    styles.errorContainer,
+                    { backgroundColor: theme.colors.error + "20" },
+                  ]}
+                >
+                  <Text variant="body2" color={theme.colors.error}>
+                    {errors.general}
+                  </Text>
+                </View>
+              )}
+
+              {/* Email Input */}
+              <Input
+                label="Email"
+                value={email}
+                onChangeText={setEmail}
+                placeholder="email@example.com"
+                keyboardType="email-address"
+                autoCapitalize="none"
+                error={!!errors.email}
+                errorText={errors.email}
+                leftIcon={<Text>📧</Text>}
+                style={styles.input}
+              />
+
+              {/* Password Input */}
+              <Input
+                label="Password"
+                value={password}
+                onChangeText={setPassword}
+                placeholder="••••••••"
+                secureTextEntry
+                error={!!errors.password}
+                errorText={errors.password}
+                leftIcon={<Text>🔒</Text>}
+                style={styles.input}
+              />
+
+              {/* Forgot Password Link */}
+              <TouchableOpacity
+                style={styles.forgotPasswordLink}
+                onPress={() => navigation.navigate("ForgotPassword")}
+              >
+                <Text variant="body2" color={theme.colors.primary}>
+                  Forgot Password?
                 </Text>
               </TouchableOpacity>
-            </View>
-          </Card>
+
+              {/* Login Button */}
+              <Button
+                label="Sign In"
+                onPress={handleLogin}
+                loading={isLoading}
+                gradient={true}
+                style={styles.loginButton}
+              />
+
+              {/* Register Link */}
+              <View style={styles.registerContainer}>
+                <Text variant="body2" color={theme.colors.textSecondary}>
+                  Don't have an account?{" "}
+                </Text>
+                <TouchableOpacity
+                  onPress={() => navigation.navigate("Register")}
+                >
+                  <Text
+                    variant="body2"
+                    color={theme.colors.primary}
+                    weight="semibold"
+                  >
+                    Sign Up
+                  </Text>
+                </TouchableOpacity>
+              </View>
+            </Card>
+          </Animated.View>
         </ScrollView>
       </KeyboardAvoidingView>
     </View>
@@ -235,7 +301,6 @@ const styles = StyleSheet.create({
     marginBottom: 24,
   },
   errorContainer: {
-    backgroundColor: "#FEE2E2",
     padding: 12,
     borderRadius: 8,
     marginBottom: 16,

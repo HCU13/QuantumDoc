@@ -147,6 +147,7 @@ export function AuthProvider({ children }) {
         email,
         password
       );
+
       showToast("success", "Logged in successfully");
       return userCredential.user;
     } catch (error) {
@@ -206,6 +207,115 @@ export function AuthProvider({ children }) {
       setLoading(false);
     }
   };
+  /**
+   * Kullanıcı profilini günceller
+   * @param {string} displayName - Yeni görünen ad
+   * @param {string} email - Yeni e-posta adresi
+   * @returns {Promise<void>}
+   */
+  const updateUserProfile = async (displayName, email) => {
+    try {
+      setLoading(true);
+      const currentUser = auth.currentUser;
+
+      if (!currentUser) {
+        throw new Error("User not authenticated");
+      }
+
+      // Firebase Auth'ta displayName güncelleme
+      await updateProfile(currentUser, { displayName });
+
+      // E-posta değiştiyse güncelle
+      if (email !== currentUser.email) {
+        await updateEmail(currentUser, email);
+      }
+
+      // Firestore'daki kullanıcı verisini güncelle
+      await updateDoc(doc(FIRESTORE_DB, "users", currentUser.uid), {
+        displayName,
+        email,
+        updatedAt: serverTimestamp(),
+      });
+
+      // Güncel kullanıcı bilgisini al
+      const userDoc = await getDoc(doc(FIRESTORE_DB, "users", currentUser.uid));
+
+      if (userDoc.exists()) {
+        const updatedUserData = {
+          ...currentUser,
+          ...userDoc.data(),
+        };
+        setUser(updatedUserData);
+        await AsyncStorage.setItem("user", JSON.stringify(updatedUserData));
+      }
+
+      showToast("success", "Profile updated successfully");
+    } catch (error) {
+      console.error("Profile update error:", error);
+
+      let errorMessage = "Failed to update profile";
+
+      // Hata kodlarını kontrol et
+      if (error.code === "auth/requires-recent-login") {
+        errorMessage = "Please sign in again to update your profile";
+      } else if (error.code === "auth/email-already-in-use") {
+        errorMessage = "Email is already in use";
+      }
+
+      showToast("error", errorMessage);
+      throw error;
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  /**
+   * Kullanıcı şifresini değiştirir
+   * @param {string} currentPassword - Mevcut şifre
+   * @param {string} newPassword - Yeni şifre
+   * @returns {Promise<void>}
+   */
+  const changePassword = async (currentPassword, newPassword) => {
+    try {
+      setLoading(true);
+      const currentUser = auth.currentUser;
+
+      if (!currentUser) {
+        throw new Error("User not authenticated");
+      }
+
+      // Mevcut kimlik bilgileriyle yeniden kimlik doğrulama (güvenlik için)
+      const credential = EmailAuthProvider.credential(
+        currentUser.email,
+        currentPassword
+      );
+
+      await reauthenticateWithCredential(currentUser, credential);
+
+      // Şifreyi güncelle
+      await updatePassword(currentUser, newPassword);
+
+      showToast("success", "Password changed successfully");
+    } catch (error) {
+      console.error("Password change error:", error);
+
+      let errorMessage = "Failed to change password";
+
+      // Hata kodlarını kontrol et
+      if (error.code === "auth/wrong-password") {
+        errorMessage = "Current password is incorrect";
+      } else if (error.code === "auth/weak-password") {
+        errorMessage = "New password is too weak";
+      } else if (error.code === "auth/requires-recent-login") {
+        errorMessage = "Please sign in again to change your password";
+      }
+
+      showToast("error", errorMessage);
+      throw error;
+    } finally {
+      setLoading(false);
+    }
+  };
 
   return (
     <AuthContext.Provider
@@ -217,6 +327,8 @@ export function AuthProvider({ children }) {
         signOut,
         resetPassword,
         isAuthenticated: !!user,
+        changePassword,
+        updateUserProfile,
       }}
     >
       {children}

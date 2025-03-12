@@ -400,7 +400,44 @@ const ProfileScreen = ({ navigation }) => {
             </Text>
 
             <Divider />
-
+            {/* Account Setting */}
+            <TouchableOpacity
+              style={[
+                styles.settingItem,
+                { borderBottomColor: theme.colors.border },
+              ]}
+              onPress={() => navigation.navigate("ProfileEditScreen")}
+            >
+              <View style={styles.settingLeft}>
+                <View
+                  style={[
+                    styles.settingIconContainer,
+                    { backgroundColor: theme.colors.primary + "15" },
+                  ]}
+                >
+                  <Ionicons
+                    name="person-outline" // Profil düzenleme simgesi
+                    size={22}
+                    color={theme.colors.primary}
+                  />
+                </View>
+                <View style={styles.settingTextContainer}>
+                  <Text variant="body1">
+                    {t("profile.editProfile") || "Edit Profile"}
+                  </Text>
+                  <Text variant="caption" color={theme.colors.textSecondary}>
+                    Update your name and email
+                  </Text>
+                </View>
+              </View>
+              <View style={styles.settingRight}>
+                <Ionicons
+                  name="chevron-forward"
+                  size={20}
+                  color={theme.colors.textSecondary}
+                />
+              </View>
+            </TouchableOpacity>
             {/* Language Setting */}
             <TouchableOpacity
               style={[

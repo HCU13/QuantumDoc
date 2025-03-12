@@ -13,7 +13,7 @@ import TokenStoreScreen from "../screens/main/TokenStoreScreen";
 import ProfileScreen from "../screens/main/ProfileScreen";
 import HelpScreen from "../screens/main/HelpScreen";
 import AboutScreen from "../screens/main/AboutScreen";
-
+import ProfileEditScreen from "../screens/main/ProfileEditScreen";
 export const TabBarStyleContext = createContext(null);
 
 const Tab = createBottomTabNavigator();
@@ -45,6 +45,7 @@ function ProfileStack() {
       <Stack.Screen name="TokenStore" component={TokenStoreScreen} />
       <Stack.Screen name="Help" component={HelpScreen} />
       <Stack.Screen name="About" component={AboutScreen} />
+      <Stack.Screen name="ProfileEditScreen" component={ProfileEditScreen} />
     </Stack.Navigator>
   );
 }
@@ -61,7 +62,13 @@ function MainNavigator() {
 
   function getTabBarVisibility(route) {
     const routeName = getFocusedRouteNameFromRoute(route) ?? "";
-    const hiddenScreens = ["TokenStore", "Help", "About", "DocumentDetail"];
+    const hiddenScreens = [
+      "TokenStore",
+      "Help",
+      "About",
+      "DocumentDetail",
+      "ProfileEditScreen",
+    ];
     return hiddenScreens.includes(routeName)
       ? { display: "none" }
       : tabBarStyle;

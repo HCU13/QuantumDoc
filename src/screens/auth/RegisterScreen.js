@@ -11,7 +11,8 @@ import {
 } from "react-native";
 import { LinearGradient } from "expo-linear-gradient";
 import { Text, Input, Button, Card, Divider } from "../../components";
-
+import { useAuth } from "../../context/AuthContext";
+import { useTheme } from "../../context/ThemeContext";
 const { width, height } = Dimensions.get("window");
 
 const RegisterScreen = ({ navigation }) => {
@@ -22,7 +23,8 @@ const RegisterScreen = ({ navigation }) => {
   const [confirmPassword, setConfirmPassword] = useState("");
   const [isLoading, setIsLoading] = useState(false);
   const [errors, setErrors] = useState({});
-
+  const { register } = useAuth();
+  const { theme } = useTheme();
   // Simple validation function
   const validateForm = () => {
     const newErrors = {};
@@ -65,7 +67,7 @@ const RegisterScreen = ({ navigation }) => {
         await new Promise((resolve) => setTimeout(resolve, 1500));
 
         // Call your registration logic here
-        // For example: await register(fullName, email, password);
+        await register(email, password, fullName);
 
         // Navigate to login or main app
         // navigation.replace('Login');
@@ -78,7 +80,9 @@ const RegisterScreen = ({ navigation }) => {
   };
 
   return (
-    <SafeAreaView style={styles.container}>
+    <SafeAreaView
+      style={[styles.container, { backgroundColor: theme.colors.background }]}
+    >
       <KeyboardAvoidingView
         behavior={Platform.OS === "ios" ? "padding" : "height"}
         style={styles.keyboardAvoidingView}
@@ -90,7 +94,10 @@ const RegisterScreen = ({ navigation }) => {
           {/* Header with back button */}
           <View style={styles.header}>
             <TouchableOpacity
-              style={styles.backButton}
+              style={[
+                styles.backButton,
+                { backgroundColor: theme.colors.divider },
+              ]}
               onPress={() => navigation.goBack()}
             >
               <Text>←</Text>
@@ -106,7 +113,7 @@ const RegisterScreen = ({ navigation }) => {
             </Text>
             <Text
               variant="body2"
-              color="#64748B"
+              color={theme.colors.text}
               style={styles.registerSubtitle}
             >
               Sign up to start analyzing documents with AI
@@ -176,7 +183,7 @@ const RegisterScreen = ({ navigation }) => {
 
             {/* Password requirements hint */}
             <View style={styles.passwordHintContainer}>
-              <Text variant="caption" color="#64748B">
+              <Text variant="caption" color={theme.colors.text}>
                 Password must be at least 6 characters long
               </Text>
             </View>
@@ -190,9 +197,7 @@ const RegisterScreen = ({ navigation }) => {
               style={styles.registerButton}
             />
 
-            <Divider text="or" />
-
-            {/* Login Link */}
+            {/* <Divider text="or" />
             <View style={styles.loginContainer}>
               <Text variant="body2" color="#64748B">
                 Already have an account?{" "}
@@ -202,7 +207,7 @@ const RegisterScreen = ({ navigation }) => {
                   Sign In
                 </Text>
               </TouchableOpacity>
-            </View>
+            </View> */}
           </Card>
 
           {/* Bottom decorative gradient */}
@@ -215,19 +220,31 @@ const RegisterScreen = ({ navigation }) => {
             <View style={styles.benefitsContainer}>
               <View style={styles.benefitItem}>
                 <Text style={styles.benefitIcon}>🔎</Text>
-                <Text variant="caption" color="#64748B">
+                <Text
+                  variant="caption"
+                  color={theme.colors.text}
+                  style={{ textAlign: "center" }}
+                >
                   Instant document analysis
                 </Text>
               </View>
               <View style={styles.benefitItem}>
                 <Text style={styles.benefitIcon}>🤖</Text>
-                <Text variant="caption" color="#64748B">
+                <Text
+                  variant="caption"
+                  color={theme.colors.text}
+                  style={{ textAlign: "center" }}
+                >
                   AI-powered insights
                 </Text>
               </View>
               <View style={styles.benefitItem}>
                 <Text style={styles.benefitIcon}>🔒</Text>
-                <Text variant="caption" color="#64748B">
+                <Text
+                  variant="caption"
+                  color={theme.colors.text}
+                  style={{ textAlign: "center" }}
+                >
                   Secure cloud storage
                 </Text>
               </View>
@@ -242,7 +259,6 @@ const RegisterScreen = ({ navigation }) => {
 const styles = StyleSheet.create({
   container: {
     flex: 1,
-    backgroundColor: "#F8FAFC",
   },
   keyboardAvoidingView: {
     flex: 1,
@@ -263,7 +279,6 @@ const styles = StyleSheet.create({
     borderRadius: 20,
     alignItems: "center",
     justifyContent: "center",
-    backgroundColor: "#F1F5F9",
   },
   registerCard: {
     marginHorizontal: 24,

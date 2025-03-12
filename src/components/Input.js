@@ -7,7 +7,7 @@ import {
   TouchableOpacity,
   Animated,
 } from "react-native";
-
+import { useTheme } from "../context/ThemeContext";
 /**
  * Input Component
  *
@@ -41,7 +41,7 @@ const Input = ({
 }) => {
   const [isFocused, setIsFocused] = useState(false);
   const [showPassword, setShowPassword] = useState(false);
-
+  const { theme } = useTheme();
   // Handle focus and blur events
   const handleFocus = () => setIsFocused(true);
   const handleBlur = () => setIsFocused(false);
@@ -60,7 +60,15 @@ const Input = ({
     <View style={[styles.container, style]}>
       {/* Label */}
       {label && (
-        <Text style={[styles.label, error && styles.errorLabel]}>{label}</Text>
+        <Text
+          style={[
+            styles.label,
+            error && styles.errorLabel,
+            { color: theme.colors.text },
+          ]}
+        >
+          {label}
+        </Text>
       )}
 
       {/* Input Container */}
@@ -160,7 +168,6 @@ const styles = StyleSheet.create({
     fontSize: 14,
     fontWeight: "500",
     marginBottom: 6,
-    color: "#334155",
   },
   errorLabel: {
     color: "#EF4444",

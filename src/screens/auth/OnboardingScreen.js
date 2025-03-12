@@ -10,13 +10,15 @@ import {
 } from "react-native";
 import { LinearGradient } from "expo-linear-gradient";
 import { Text, Button } from "../../components";
-
+import { useTheme } from "../../context/ThemeContext";
+import { useNavigation } from "@react-navigation/native";
 const { width, height } = Dimensions.get("window");
 
-const OnboardingScreen = ({ navigation, onComplete }) => {
+const OnboardingScreen = ({ onComplete }) => {
   // State for tracking current page
   const [currentPage, setCurrentPage] = useState(0);
-
+  const { theme } = useTheme();
+  const navigation = useNavigation();
   // Refs
   const flatListRef = useRef(null);
   const fadeAnim = useRef(new Animated.Value(1)).current;
@@ -71,7 +73,7 @@ const OnboardingScreen = ({ navigation, onComplete }) => {
       }).start(() => {
         onComplete?.(); // Call the completion callback if provided
         // Or navigate to login
-        navigation.replace("Login");
+        navigation.navigate("Login");
       });
     }
   };
@@ -86,7 +88,7 @@ const OnboardingScreen = ({ navigation, onComplete }) => {
     }).start(() => {
       onComplete?.(); // Call the completion callback if provided
       // Or navigate to login
-      navigation.replace("Login");
+      navigation.navigate("Login");
     });
   };
 
@@ -105,10 +107,14 @@ const OnboardingScreen = ({ navigation, onComplete }) => {
       </LinearGradient>
 
       <View style={styles.contentContainer}>
-        <Text variant="h2" style={styles.title}>
+        <Text variant="h2" style={[styles.title, { color: theme.colors.text }]}>
           {item.title}
         </Text>
-        <Text variant="body1" color="#64748B" style={styles.description}>
+        <Text
+          variant="body1"
+          color={theme.colors.text}
+          style={styles.description}
+        >
           {item.description}
         </Text>
       </View>
@@ -126,8 +132,13 @@ const OnboardingScreen = ({ navigation, onComplete }) => {
   };
 
   return (
-    <Animated.View style={[styles.container, { opacity: fadeAnim }]}>
-      <SafeAreaView style={styles.safeArea}>
+    <Animated.View
+      style={[
+        styles.container,
+        { opacity: fadeAnim, backgroundColor: theme.colors.background },
+      ]}
+    >
+      <View style={styles.safeArea}>
         {/* Skip button */}
         <View style={styles.skipContainer}>
           {currentPage < onboardingData.length - 1 && (
@@ -182,7 +193,7 @@ const OnboardingScreen = ({ navigation, onComplete }) => {
             style={styles.nextButton}
           />
         </View>
-      </SafeAreaView>
+      </View>
     </Animated.View>
   );
 };
@@ -190,7 +201,6 @@ const OnboardingScreen = ({ navigation, onComplete }) => {
 const styles = StyleSheet.create({
   container: {
     flex: 1,
-    backgroundColor: "#FFFFFF",
   },
   safeArea: {
     flex: 1,
