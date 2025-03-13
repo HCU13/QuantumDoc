@@ -24,16 +24,16 @@ function HomeStack() {
     <Stack.Navigator screenOptions={{ headerShown: false }}>
       <Stack.Screen name="HomeScreen" component={HomeScreen} />
       <Stack.Screen name="DocumentDetail" component={DocumentDetailScreen} />
-      <Stack.Screen name="Upload" component={UploadScreen} />
       <Stack.Screen name="TokenStore" component={TokenStoreScreen} />
     </Stack.Navigator>
   );
 }
 
-function ScanStack() {
+function UploadStack() {
   return (
     <Stack.Navigator screenOptions={{ headerShown: false }}>
-      <Stack.Screen name="ScanScreen" component={ScanScreen} />
+      <Stack.Screen name="UploadScreen" component={UploadScreen} />
+      <Stack.Screen name="DocumentDetail" component={DocumentDetailScreen} />
     </Stack.Navigator>
   );
 }
@@ -90,6 +90,8 @@ function MainNavigator() {
               iconName = focused ? "scan" : "scan-outline";
             } else if (route.name === "Profile") {
               iconName = focused ? "person" : "person-outline";
+            } else if (route.name === "Upload") {
+              iconName = focused ? "cloud-upload" : "cloud-upload-outline";
             }
             return <Ionicons name={iconName} size={size} color={color} />;
           },
@@ -100,10 +102,15 @@ function MainNavigator() {
           component={HomeStack}
           options={{ tabBarLabel: "Home" }}
         />
-        <Tab.Screen
+        {/* <Tab.Screen
           name="Scan"
           component={ScanStack}
           options={{ tabBarLabel: "Scan" }}
+        /> */}
+        <Tab.Screen
+          name="Upload"
+          component={UploadStack}
+          options={{ tabBarLabel: "Upload" }}
         />
         <Tab.Screen
           name="Profile"

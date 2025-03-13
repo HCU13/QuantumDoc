@@ -10,7 +10,6 @@ import {
   Animated,
   Platform,
   Dimensions,
-  ScrollView as RNScrollView,
 } from "react-native";
 import { Ionicons } from "@expo/vector-icons";
 import { LinearGradient } from "expo-linear-gradient";
@@ -27,21 +26,20 @@ import {
   Badge,
   Loading,
 } from "../../components";
-import { documentApi } from "../../api/documentApi";
 
-const { width, height } = Dimensions.get("window");
+const { width } = Dimensions.get("window");
 
 const HomeScreen = ({ navigation }) => {
   const { theme, isDark } = useTheme();
   const { user } = useAuth();
-  const { tokens, TOKEN_COSTS, hasEnoughTokens } = useTokens();
+  const { tokens } = useTokens();
   const { t } = useLocalization();
 
   const [documents, setDocuments] = useState([]);
   const [loading, setLoading] = useState(true);
   const [refreshing, setRefreshing] = useState(false);
-  const [filteredDocuments, setFilteredDocuments] = useState([]);
   const [activeFilter, setActiveFilter] = useState("all");
+  const [filteredDocuments, setFilteredDocuments] = useState([]);
 
   // Animation values
   const scrollY = useRef(new Animated.Value(0)).current;
@@ -57,8 +55,7 @@ const HomeScreen = ({ navigation }) => {
         setLoading(true);
       }
 
-      // In real implementation, this would fetch from your API
-      // For UI design purposes, let's use sample data
+      // Sample data for UI display
       const sampleDocuments = [
         {
           id: "1",
@@ -191,13 +188,6 @@ const HomeScreen = ({ navigation }) => {
     navigation.navigate("Scan");
   };
 
-  // Header opacity based on scroll
-  const headerOpacity = scrollY.interpolate({
-    inputRange: [0, 100],
-    outputRange: [0, 1],
-    extrapolate: "clamp",
-  });
-
   // Header component
   const renderHeader = () => (
     <View style={styles.headerContainer}>
@@ -205,74 +195,67 @@ const HomeScreen = ({ navigation }) => {
         colors={
           isDark
             ? [theme.colors.primary + "80", theme.colors.background]
-            : [theme.colors.primary + "40", theme.colors.background]
+            : [theme.colors.primary, theme.colors.background]
         }
+        start={{ x: 0, y: 0 }}
+        end={{ x: 0, y: 1 }}
         style={styles.headerGradient}
       >
-        <View style={styles.headerContent}>
-          <View>
-            <Text variant="h2">My Documents</Text>
-            <Text variant="body2" color={theme.colors.textSecondary}>
-              {documents.length > 0
-                ? `You have ${documents.length} document${
-                    documents.length !== 1 ? "s" : ""
-                  }`
-                : "No documents yet"}
+        <View style={styles.headerTopRow}>
+          <View style={styles.logoContainer}>
+            <Text
+              style={[styles.logoText, { color: theme.colors.textInverted }]}
+            >
+              QuantumDoc
             </Text>
           </View>
 
-          <TouchableOpacity
-            style={[
-              styles.tokenBadge,
-              { backgroundColor: theme.colors.primary + "20" },
-            ]}
-            onPress={() => navigation.navigate("TokenStore")}
-          >
-            <Ionicons name="key" size={16} color={theme.colors.primary} />
-            <Text
-              variant="body2"
-              weight="semibold"
-              color={theme.text}
-              style={styles.tokenText}
+          <View style={styles.headerActions}>
+            <TouchableOpacity
+              style={styles.tokenButton}
+              onPress={() => navigation.navigate("TokenStore")}
             >
-              {tokens || 15}
-            </Text>
-          </TouchableOpacity>
+              <View
+                style={[
+                  styles.tokenBadge,
+                  { backgroundColor: theme.colors.text + "20" },
+                ]}
+              >
+                <Ionicons name="key" size={14} color={theme.colors.text} />
+                <Text style={[styles.tokenText, { color: theme.colors.text }]}>
+                  {tokens || 0}
+                </Text>
+              </View>
+            </TouchableOpacity>
+
+            {/* <TouchableOpacity
+              style={styles.profileButton}
+              onPress={() => navigation.navigate("Profile")}
+            >
+              <Ionicons
+                name="person-circle"
+                size={28}
+                color={theme.colors.text}
+              />
+            </TouchableOpacity> */}
+          </View>
+        </View>
+
+        <View style={styles.headerTitleContainer}>
+          <Text style={[styles.headerTitle, { color: theme.colors.text }]}>
+            My Documents
+          </Text>
+          <Text
+            style={[styles.headerSubtitle, { color: theme.colors.text + "CC" }]}
+          >
+            {documents.length > 0
+              ? `${documents.length} document${
+                  documents.length !== 1 ? "s" : ""
+                }`
+              : "No documents yet"}
+          </Text>
         </View>
       </LinearGradient>
-
-      {/* Animated header that appears when scrolling */}
-      <Animated.View
-        style={[
-          styles.animatedHeader,
-          {
-            backgroundColor: theme.colors.background,
-            borderBottomColor: theme.colors.border,
-            opacity: headerOpacity,
-          },
-        ]}
-      >
-        <View style={styles.animatedHeaderContent}>
-          <Text variant="h3">My Documents</Text>
-          <TouchableOpacity
-            style={[
-              styles.tokenBadge,
-              { backgroundColor: theme.colors.primary + "20" },
-            ]}
-            onPress={() => navigation.navigate("TokenStore")}
-          >
-            <Ionicons name="key" size={16} color={theme.colors.primary} />
-            <Text
-              variant="body2"
-              weight="semibold"
-              color={theme.colors.text}
-              style={styles.tokenText}
-            >
-              {tokens || 15}
-            </Text>
-          </TouchableOpacity>
-        </View>
-      </Animated.View>
     </View>
   );
 
@@ -284,32 +267,36 @@ const HomeScreen = ({ navigation }) => {
         {
           opacity: fadeAnim,
           transform: [{ translateY: translateAnim }],
+          backgroundColor: theme.colors.surface,
         },
       ]}
     >
-      <RNScrollView
-        horizontal
-        showsHorizontalScrollIndicator={false}
-        contentContainerStyle={styles.filterTabsContent}
-      >
+      <View style={styles.filterTabs}>
         <TouchableOpacity
           style={[
             styles.filterTab,
-            activeFilter === "all" && {
-              backgroundColor: theme.colors.primary + "20",
-              borderColor: theme.colors.primary,
-            },
+            activeFilter === "all" && [
+              styles.activeFilterTab,
+              {
+                backgroundColor: theme.colors.primary + "10",
+                borderColor: theme.colors.primary + "30",
+              },
+            ],
+            { borderColor: theme.colors.border },
           ]}
           onPress={() => filterDocuments("all")}
         >
           <Text
-            variant="body2"
-            color={
-              activeFilter === "all"
-                ? theme.colors.text
-                : theme.colors.textSecondary
-            }
-            weight={activeFilter === "all" ? "semibold" : "regular"}
+            style={[
+              styles.filterTabText,
+              activeFilter === "all" && styles.activeFilterTabText,
+              {
+                color:
+                  activeFilter === "all"
+                    ? theme.colors.primary
+                    : theme.colors.textSecondary,
+              },
+            ]}
           >
             All
           </Text>
@@ -318,21 +305,28 @@ const HomeScreen = ({ navigation }) => {
         <TouchableOpacity
           style={[
             styles.filterTab,
-            activeFilter === "analyzed" && {
-              backgroundColor: theme.colors.success + "20",
-              borderColor: theme.colors.success,
-            },
+            activeFilter === "analyzed" && [
+              styles.activeFilterTab,
+              {
+                backgroundColor: theme.colors.success + "10",
+                borderColor: theme.colors.success + "30",
+              },
+            ],
+            { borderColor: theme.colors.border },
           ]}
           onPress={() => filterDocuments("analyzed")}
         >
           <Text
-            variant="body2"
-            color={
-              activeFilter === "analyzed"
-                ? theme.colors.success
-                : theme.colors.textSecondary
-            }
-            weight={activeFilter === "analyzed" ? "semibold" : "regular"}
+            style={[
+              styles.filterTabText,
+              activeFilter === "analyzed" && styles.activeFilterTabText,
+              {
+                color:
+                  activeFilter === "analyzed"
+                    ? theme.colors.success
+                    : theme.colors.textSecondary,
+              },
+            ]}
           >
             Analyzed
           </Text>
@@ -341,21 +335,28 @@ const HomeScreen = ({ navigation }) => {
         <TouchableOpacity
           style={[
             styles.filterTab,
-            activeFilter === "images" && {
-              backgroundColor: theme.colors.info + "20",
-              borderColor: theme.colors.info,
-            },
+            activeFilter === "images" && [
+              styles.activeFilterTab,
+              {
+                backgroundColor: theme.colors.info + "10",
+                borderColor: theme.colors.info + "30",
+              },
+            ],
+            { borderColor: theme.colors.border },
           ]}
           onPress={() => filterDocuments("images")}
         >
           <Text
-            variant="body2"
-            color={
-              activeFilter === "images"
-                ? theme.colors.info
-                : theme.colors.textSecondary
-            }
-            weight={activeFilter === "images" ? "semibold" : "regular"}
+            style={[
+              styles.filterTabText,
+              activeFilter === "images" && styles.activeFilterTabText,
+              {
+                color:
+                  activeFilter === "images"
+                    ? theme.colors.info
+                    : theme.colors.textSecondary,
+              },
+            ]}
           >
             Images
           </Text>
@@ -364,59 +365,104 @@ const HomeScreen = ({ navigation }) => {
         <TouchableOpacity
           style={[
             styles.filterTab,
-            activeFilter === "documents" && {
-              backgroundColor: theme.colors.error + "20",
-              borderColor: theme.colors.error,
-            },
+            activeFilter === "documents" && [
+              styles.activeFilterTab,
+              {
+                backgroundColor: theme.colors.error + "10",
+                borderColor: theme.colors.error + "30",
+              },
+            ],
+            { borderColor: theme.colors.border },
           ]}
           onPress={() => filterDocuments("documents")}
         >
           <Text
-            variant="body2"
-            color={
-              activeFilter === "documents"
-                ? theme.colors.error
-                : theme.colors.textSecondary
-            }
-            weight={activeFilter === "documents" ? "semibold" : "regular"}
+            style={[
+              styles.filterTabText,
+              activeFilter === "documents" && styles.activeFilterTabText,
+              {
+                color:
+                  activeFilter === "documents"
+                    ? theme.colors.error
+                    : theme.colors.textSecondary,
+              },
+            ]}
           >
-            Documents
+            Docs
           </Text>
         </TouchableOpacity>
-      </RNScrollView>
+      </View>
     </Animated.View>
   );
 
-  // Action buttons
-  const renderActionButtons = () => (
+  // Actions card
+  const renderActions = () => (
     <Animated.View
       style={[
-        styles.actionButtonsContainer,
+        styles.actionsContainer,
         {
           opacity: fadeAnim,
           transform: [{ translateY: translateAnim }],
         },
       ]}
     >
-      <Card style={styles.actionButtonsCard} elevated={true}>
-        <View style={styles.actionButtons}>
-          <Button
-            label="Upload"
-            onPress={goToUpload}
-            style={styles.actionButton}
-            leftIcon={
-              <Ionicons name="cloud-upload" size={20} color="#FFFFFF" />
-            }
-            gradient={true}
-          />
-          <View style={styles.actionButtonSpacer} />
-          <Button
-            label="Scan"
+      <Card style={styles.actionsCard}>
+        <View style={styles.actionRow}>
+          <TouchableOpacity
+            style={[
+              styles.actionButton,
+              {
+                backgroundColor: isDark
+                  ? theme.colors.card
+                  : theme.colors.surface,
+              },
+            ]}
+            onPress={() => navigation.navigate("Upload")}
+          >
+            <View
+              style={[
+                styles.actionIconContainer,
+                { backgroundColor: theme.colors.primary + "20" },
+              ]}
+            >
+              <Ionicons
+                name="cloud-upload-outline"
+                size={22}
+                color={theme.colors.primary}
+              />
+            </View>
+            <Text style={[styles.actionText, { color: theme.colors.text }]}>
+              Upload File
+            </Text>
+          </TouchableOpacity>
+
+          <TouchableOpacity
+            style={[
+              styles.actionButton,
+              {
+                backgroundColor: isDark
+                  ? theme.colors.card
+                  : theme.colors.surface,
+              },
+            ]}
             onPress={goToScan}
-            style={styles.actionButton}
-            leftIcon={<Ionicons name="scan" size={20} color="#FFFFFF" />}
-            variant="secondary"
-          />
+          >
+            <View
+              style={[
+                styles.actionIconContainer,
+                { backgroundColor: theme.colors.secondary + "20" },
+              ]}
+            >
+              <Ionicons
+                name="scan-outline"
+                size={22}
+                color={theme.colors.secondary}
+              />
+            </View>
+            <Text style={[styles.actionText, { color: theme.colors.text }]}>
+              Scan Document
+            </Text>
+          </TouchableOpacity>
         </View>
       </Card>
     </Animated.View>
@@ -433,14 +479,39 @@ const HomeScreen = ({ navigation }) => {
         },
       ]}
     >
-      <Card style={styles.emptyStateCard} elevated={true}>
-        <EmptyState
-          icon="document-text-outline"
-          title="No Documents"
-          description="Upload or scan your first document to get started"
-          actionText="Upload Document"
-          onAction={goToUpload}
-        />
+      <Card style={styles.emptyStateCard}>
+        <View style={styles.emptyStateContent}>
+          <View
+            style={[
+              styles.emptyStateIconContainer,
+              { backgroundColor: theme.colors.primary + "10" },
+            ]}
+          >
+            <Ionicons
+              name="document-text-outline"
+              size={60}
+              color={theme.colors.textSecondary}
+            />
+          </View>
+          <Text style={[styles.emptyStateTitle, { color: theme.colors.text }]}>
+            No documents yet
+          </Text>
+          <Text
+            style={[
+              styles.emptyStateDescription,
+              { color: theme.colors.textSecondary },
+            ]}
+          >
+            Upload or scan your first document to get started with AI-powered
+            analysis
+          </Text>
+          <Button
+            label="Upload Document"
+            onPress={goToUpload}
+            style={styles.emptyStateButton}
+            gradient={true}
+          />
+        </View>
       </Card>
     </Animated.View>
   );
@@ -452,19 +523,17 @@ const HomeScreen = ({ navigation }) => {
       keyExtractor={(item) => item.id}
       renderItem={({ item, index }) => (
         <Animated.View
-          style={[
-            {
-              opacity: fadeAnim,
-              transform: [
-                {
-                  translateY: Animated.multiply(
-                    translateAnim,
-                    new Animated.Value(1 + index * 0.1)
-                  ),
-                },
-              ],
-            },
-          ]}
+          style={{
+            opacity: fadeAnim,
+            transform: [
+              {
+                translateY: Animated.multiply(
+                  translateAnim,
+                  new Animated.Value(1 + index * 0.1)
+                ),
+              },
+            ],
+          }}
         >
           <DocumentItem
             document={item}
@@ -492,10 +561,11 @@ const HomeScreen = ({ navigation }) => {
         <>
           {renderHeader()}
           {renderFilterTabs()}
-          {renderActionButtons()}
+          {renderActions()}
         </>
       }
       ListEmptyComponent={renderEmptyState}
+      ListFooterComponent={<View style={{ height: 80 }} />}
     />
   );
 
@@ -509,12 +579,11 @@ const HomeScreen = ({ navigation }) => {
           backgroundColor="transparent"
           translucent
         />
-        <Loading fullScreen type="logo" />
+        <Loading fullScreen text="Loading documents..." />
       </View>
     );
   }
 
-  // Render content
   return (
     <View
       style={[styles.container, { backgroundColor: theme.colors.background }]}
@@ -533,100 +602,165 @@ const HomeScreen = ({ navigation }) => {
 const styles = StyleSheet.create({
   container: {
     flex: 1,
-    paddingTop: Platform.OS === "android" ? StatusBar.currentHeight : 0,
   },
   headerContainer: {
-    position: "relative",
+    overflow: "hidden",
   },
   headerGradient: {
-    paddingTop: Platform.OS === "android" ? StatusBar.currentHeight + 10 : 50,
+    paddingTop: Platform.OS === "android" ? StatusBar.currentHeight + 20 : 50,
     paddingBottom: 30,
+    paddingHorizontal: 20,
   },
-  headerContent: {
+  headerTopRow: {
     flexDirection: "row",
     justifyContent: "space-between",
     alignItems: "center",
-    paddingHorizontal: 20,
+    marginBottom: 20,
   },
-  animatedHeader: {
-    position: "absolute",
-    top: 0,
-    left: 0,
-    right: 0,
-    height: Platform.OS === "android" ? 70 + StatusBar.currentHeight : 70,
-    paddingTop: Platform.OS === "android" ? StatusBar.currentHeight : 0,
-    borderBottomWidth: 1,
-    zIndex: 10,
-  },
-  animatedHeaderContent: {
-    flex: 1,
+  logoContainer: {
     flexDirection: "row",
-    justifyContent: "space-between",
     alignItems: "center",
-    paddingHorizontal: 20,
   },
+  logoText: {
+    fontSize: 22,
+    fontWeight: "700",
+  },
+  headerActions: {
+    flexDirection: "row",
+    alignItems: "center",
+  },
+  tokenButton: {},
   tokenBadge: {
     flexDirection: "row",
     alignItems: "center",
     paddingHorizontal: 12,
     paddingVertical: 6,
-    borderRadius: 20,
-  },
-  tokenText: {
-    marginLeft: 4,
-  },
-  filterTabsContainer: {
-    marginVertical: 10,
-    marginHorizontal: 16,
-    marginTop: 16, // Increased margin to avoid overlap
-  },
-  filterTabsContent: {
-    paddingHorizontal: 4,
-    paddingVertical: 8,
-  },
-  filterTab: {
-    paddingHorizontal: 16,
-    paddingVertical: 8,
-    borderRadius: 20,
-    marginHorizontal: 4,
-    borderWidth: 1,
-    borderColor: "#e0e0e0",
-  },
-  actionButtonsContainer: {
-    marginTop: 10, // Increased margin to avoid overlap
-    zIndex: 1,
-    marginBottom: 10, // Added bottom margin for spacing
-  },
-  actionButtonsCard: {
-    marginHorizontal: 20,
-    padding: 16,
     borderRadius: 16,
   },
-  actionButtons: {
+  tokenText: {
+    fontSize: 14,
+    fontWeight: "600",
+    marginLeft: 6,
+  },
+  profileButton: {
+    padding: 2,
+  },
+  headerTitleContainer: {
+    marginTop: 5,
+  },
+  headerTitle: {
+    fontSize: 26,
+    fontWeight: "700",
+    marginBottom: 4,
+  },
+  headerSubtitle: {
+    fontSize: 16,
+  },
+  filterTabsContainer: {
+    margin: 16,
+    marginTop: -15,
+    borderRadius: 12,
+    shadowColor: "#000",
+    shadowOffset: { width: 0, height: 2 },
+    shadowOpacity: 0.05,
+    shadowRadius: 4,
+    elevation: 2,
+    padding: 8,
+  },
+  filterTabs: {
     flexDirection: "row",
+    justifyContent: "space-between",
+  },
+  filterTab: {
+    flex: 1,
+    paddingVertical: 8,
+    borderRadius: 8,
+    borderWidth: 1,
+    marginHorizontal: 4,
     alignItems: "center",
+  },
+  activeFilterTab: {
+    borderWidth: 1,
+  },
+  filterTabText: {
+    fontSize: 14,
+    fontWeight: "500",
+  },
+  activeFilterTabText: {
+    fontWeight: "600",
+  },
+  actionsContainer: {
+    marginHorizontal: 16,
+    marginBottom: 16,
+  },
+  actionsCard: {
+    padding: 16,
+    borderRadius: 12,
+  },
+  actionRow: {
+    flexDirection: "row",
     justifyContent: "space-between",
   },
   actionButton: {
     flex: 1,
+    flexDirection: "row",
+    alignItems: "center",
+    padding: 12,
+    borderRadius: 10,
+    marginHorizontal: 4,
   },
-  actionButtonSpacer: {
-    width: 16,
+  actionIconContainer: {
+    width: 40,
+    height: 40,
+    borderRadius: 20,
+    justifyContent: "center",
+    alignItems: "center",
+    marginRight: 12,
+  },
+  actionText: {
+    fontSize: 14,
+    fontWeight: "500",
   },
   documentList: {
     paddingBottom: 80,
   },
   documentItem: {
-    marginHorizontal: 20,
-    marginVertical: 6,
+    marginHorizontal: 16,
+    marginBottom: 12,
   },
   emptyStateContainer: {
-    paddingHorizontal: 20,
-    paddingTop: 20,
+    marginHorizontal: 16,
+    marginTop: 20,
   },
   emptyStateCard: {
-    padding: 20,
-    borderRadius: 16,
+    borderRadius: 12,
+  },
+  emptyStateContent: {
+    padding: 24,
+    alignItems: "center",
+  },
+  emptyStateIconContainer: {
+    width: 80,
+    height: 80,
+    borderRadius: 40,
+    justifyContent: "center",
+    alignItems: "center",
+    marginBottom: 16,
+  },
+  emptyStateTitle: {
+    fontSize: 20,
+    fontWeight: "600",
+    marginBottom: 8,
+    textAlign: "center",
+  },
+  emptyStateDescription: {
+    fontSize: 16,
+    textAlign: "center",
+    marginBottom: 24,
+    paddingHorizontal: 16,
+  },
+  emptyStateButton: {
+    minWidth: 200,
   },
   fab: {
     position: "absolute",
@@ -638,15 +772,10 @@ const styles = StyleSheet.create({
     elevation: 4,
     shadowColor: "#000",
     shadowOffset: { width: 0, height: 2 },
-    shadowOpacity: 0.23,
-    shadowRadius: 2.62,
+    shadowOpacity: 0.2,
+    shadowRadius: 3,
     overflow: "hidden",
-  },
-  fabGradient: {
-    width: "100%",
-    height: "100%",
-    justifyContent: "center",
-    alignItems: "center",
+    zIndex: 10,
   },
 });
 
