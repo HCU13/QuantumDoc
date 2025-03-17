@@ -6,6 +6,7 @@ import {
   deleteObject,
 } from "firebase/storage";
 import { FIREBASE_STORAGE } from "../../firebase/FirebaseConfig";
+import * as FileSystem from "expo-file-system";
 
 // Belge yükleme fonksiyonu
 export const uploadDocument = async (file, userId, onProgress = () => {}) => {
@@ -16,9 +17,15 @@ export const uploadDocument = async (file, userId, onProgress = () => {}) => {
     const fileName = `document_${timestamp}.${fileExtension}`;
     const storagePath = `documents/${userId}/${fileName}`;
 
-    // Dosyayı blob'a dönüştür
-    const response = await fetch(file.uri);
-    const blob = await response.blob();
+    // Expo'nun file sistemini kullanarak dosya verisini oku
+    const fileData = await FileSystem.readAsStringAsync(file.uri, {
+      encoding: FileSystem.EncodingType.Base64,
+    });
+
+    // Base64 verisini blob'a dönüştür
+    const blob = await fetch(`data:${file.mimeType};base64,${fileData}`).then(
+      (r) => r.blob()
+    );
 
     // Storage referansı oluştur
     const storageRef = ref(FIREBASE_STORAGE, storagePath);
@@ -36,6 +43,7 @@ export const uploadDocument = async (file, userId, onProgress = () => {}) => {
         },
         (error) => {
           // Hata durumu
+          console.error("Upload error:", error);
           reject(error);
         },
         async () => {
@@ -43,20 +51,24 @@ export const uploadDocument = async (file, userId, onProgress = () => {}) => {
           try {
             // İndirme URL'sini al
             const downloadUrl = await getDownloadURL(uploadTask.snapshot.ref);
+
+            // Başarılı sonucu döndür
             resolve({
               name: file.name,
-              type: file.type,
+              type: file.type || file.mimeType,
               size: file.size,
               downloadUrl,
               storagePath,
             });
           } catch (error) {
+            console.error("Error getting download URL:", error);
             reject(error);
           }
         }
       );
     });
   } catch (error) {
+    console.error("Error in uploadDocument:", error);
     throw error;
   }
 };
@@ -68,6 +80,7 @@ export const deleteDocument = async (storagePath) => {
     await deleteObject(storageRef);
     return true;
   } catch (error) {
+    console.error("Error deleting document from storage:", error);
     throw error;
   }
 };

@@ -153,7 +153,7 @@ const UploadScreen = ({ navigation }) => {
   const navigateToScan = () => {
     closeScanModal();
     setTimeout(() => {
-      navigation.navigate("Scan");
+      navigation.navigate("ScanScreen");
     }, 300);
   };
 

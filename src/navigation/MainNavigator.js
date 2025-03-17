@@ -34,6 +34,7 @@ function UploadStack() {
     <Stack.Navigator screenOptions={{ headerShown: false }}>
       <Stack.Screen name="UploadScreen" component={UploadScreen} />
       <Stack.Screen name="DocumentDetail" component={DocumentDetailScreen} />
+      <Stack.Screen name="ScanScreen" component={ScanScreen} />
     </Stack.Navigator>
   );
 }

@@ -71,11 +71,20 @@ export const documentService = {
   // Belge yükle
   uploadDocument: async (file, userId, onProgress = () => {}) => {
     try {
+      console.log("Başlangıç: uploadDocument", {
+        fileName: file.name,
+        fileSize: file.size,
+      });
+
+      // Token kullanımıyla ilgili bir işlem varsa buraya eklenebilir
+
       // Önce Storage'a yükle
+      console.log("Storage'a yükleme başlıyor...");
       const storageResult = await uploadToStorage(file, userId, onProgress);
+      console.log("Storage'a yükleme tamamlandı:", storageResult);
 
       // Sonra Firestore'a meta verileri kaydet
-      const docRef = await addDoc(collection(FIRESTORE_DB, "documents"), {
+      const docData = {
         name: file.name,
         type: file.type || file.mimeType,
         size: file.size,
@@ -84,21 +93,31 @@ export const documentService = {
         userId,
         status: "uploaded",
         createdAt: serverTimestamp(),
-      });
+      };
+
+      console.log("Firestore'a kaydediliyor:", docData);
+      const docRef = await addDoc(
+        collection(FIRESTORE_DB, "documents"),
+        docData
+      );
+      console.log("Firestore'a kaydedildi, document ID:", docRef.id);
 
       // Başarılı sonuç döndür
       return {
         id: docRef.id,
-        name: file.name,
-        type: file.type || file.mimeType,
-        size: file.size,
-        downloadUrl: storageResult.downloadUrl,
-        storagePath: storageResult.storagePath,
-        status: "uploaded",
+        ...docData,
         createdAt: new Date(),
       };
     } catch (error) {
       console.error("Error uploading document:", error);
+      // Hata türüne göre daha spesifik mesajlar eklenebilir
+      if (error.code === "storage/unauthorized") {
+        throw new Error("Dosya yükleme yetkiniz yok. Lütfen giriş yapın.");
+      } else if (error.code === "storage/canceled") {
+        throw new Error("Dosya yükleme iptal edildi.");
+      } else if (error.code === "storage/quota-exceeded") {
+        throw new Error("Depolama kotanız aşıldı.");
+      }
       throw error;
     }
   },
