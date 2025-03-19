@@ -7,8 +7,19 @@ import {
   signOut as firebaseSignOut,
   updateProfile,
   sendPasswordResetEmail,
+  // İlave importlar:
+  EmailAuthProvider,
+  reauthenticateWithCredential,
+  updatePassword,
+  updateEmail,
 } from "firebase/auth";
-import { doc, setDoc, getDoc, serverTimestamp } from "firebase/firestore";
+import {
+  doc,
+  setDoc,
+  getDoc,
+  updateDoc,
+  serverTimestamp,
+} from "firebase/firestore";
 import AsyncStorage from "@react-native-async-storage/async-storage";
 import { FIREBASE_AUTH, FIRESTORE_DB } from "../../firebase/FirebaseConfig";
 import { showToast } from "../utils/toast";
@@ -25,20 +36,42 @@ export function AuthProvider({ children }) {
   const [loading, setLoading] = useState(true);
   const auth = FIREBASE_AUTH;
 
+  // Uygulama başladığında, AsyncStorage'dan kullanıcı bilgilerini kontrol et ve yeniden giriş yap
   useEffect(() => {
-    const loadUserFromStorage = async () => {
+    const initAuth = async () => {
       try {
-        const storedUserData = await AsyncStorage.getItem("user");
-        if (storedUserData) {
-          const userData = JSON.parse(storedUserData);
-          setUser(userData);
+        // Eğer zaten Firebase'de authenticate edilmiş kullanıcı varsa, işlem yapma
+        if (auth.currentUser) {
+          return;
+        }
+
+        // E-posta ve şifre bilgilerini kontrol et (güvenli saklama için EncryptedStorage kullanmanız önerilir)
+        const storedEmail = await AsyncStorage.getItem("userEmail");
+        const storedPassword = await AsyncStorage.getItem("userPassword"); // Önerilen: EncryptedStorage
+
+        if (storedEmail && storedPassword) {
+          try {
+            // Firebase ile yeniden giriş yap
+            const userCredential = await signInWithEmailAndPassword(
+              auth,
+              storedEmail,
+              storedPassword
+            );
+            console.log("Auto login successful");
+          } catch (loginError) {
+            console.error("Auto login failed:", loginError);
+            // Hata durumunda verileri temizle
+            await AsyncStorage.removeItem("userEmail");
+            await AsyncStorage.removeItem("userPassword");
+            await AsyncStorage.removeItem("user");
+          }
         }
       } catch (error) {
-        console.error("Error loading user from storage:", error);
+        console.error("Auth initialization error:", error);
       }
     };
 
-    loadUserFromStorage();
+    initAuth();
   }, []);
 
   // Firebase auth listener'ı
@@ -47,6 +80,12 @@ export function AuthProvider({ children }) {
       try {
         if (firebaseUser) {
           // Kullanıcı oturum açmış durumda
+          // E-posta ve token bilgisini sakla (sonraki otomatik girişler için)
+          await AsyncStorage.setItem("userEmail", firebaseUser.email);
+          // Not: Gerçek bir token saklamak için, Firebase'in idToken veya refreshToken özelliklerini kullanabilirsiniz
+          // Bu örnek için basit bir değer kullanıyoruz
+          await AsyncStorage.setItem("userLoginToken", firebaseUser.uid);
+
           const userDoc = await getDoc(
             doc(FIRESTORE_DB, "users", firebaseUser.uid)
           );
@@ -66,6 +105,8 @@ export function AuthProvider({ children }) {
           // Eğer Firebase kullanıcı yok diyorsa, AsyncStorage'daki bilgiyi de temizle
           setUser(null);
           await AsyncStorage.removeItem("user");
+          await AsyncStorage.removeItem("userEmail");
+          await AsyncStorage.removeItem("userLoginToken");
         }
       } catch (error) {
         console.error("User state change error:", error);
@@ -109,6 +150,10 @@ export function AuthProvider({ children }) {
         freeTrialUsed: false,
       });
 
+      // E-posta ve token bilgisini sakla (otomatik giriş için)
+      await AsyncStorage.setItem("userEmail", email);
+      await AsyncStorage.setItem("userLoginToken", newUser.uid);
+
       showToast("success", "Account created successfully");
       return newUser;
     } catch (error) {
@@ -148,6 +193,13 @@ export function AuthProvider({ children }) {
         password
       );
 
+      // Otomatik giriş için bilgileri sakla
+      await AsyncStorage.setItem("userEmail", email);
+      // NOT: Şifreleri saklamak güvenlik açısından ideal değildir
+      // Daha iyi bir çözüm için React Native Keychain veya EncryptedStorage gibi
+      // güvenli depolama çözümlerini kullanmanız önerilir
+      await AsyncStorage.setItem("userPassword", password);
+
       showToast("success", "Logged in successfully");
       return userCredential.user;
     } catch (error) {
@@ -179,6 +231,11 @@ export function AuthProvider({ children }) {
     try {
       setLoading(true);
       await firebaseSignOut(auth);
+      // AsyncStorage'dan kullanıcı bilgilerini temizle
+      await AsyncStorage.removeItem("user");
+      await AsyncStorage.removeItem("userEmail");
+      await AsyncStorage.removeItem("userPassword");
+
       showToast("success", "Logged out successfully");
     } catch (error) {
       console.error("Sign out error:", error);
@@ -207,6 +264,7 @@ export function AuthProvider({ children }) {
       setLoading(false);
     }
   };
+
   /**
    * Kullanıcı profilini günceller
    * @param {string} displayName - Yeni görünen ad
@@ -228,6 +286,8 @@ export function AuthProvider({ children }) {
       // E-posta değiştiyse güncelle
       if (email !== currentUser.email) {
         await updateEmail(currentUser, email);
+        // Yeni e-postayı AsyncStorage'a kaydet
+        await AsyncStorage.setItem("userEmail", email);
       }
 
       // Firestore'daki kullanıcı verisini güncelle

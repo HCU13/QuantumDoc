@@ -4,10 +4,11 @@ import Text from "./Text";
 import Badge from "./Badge";
 import Card from "./Card";
 import { useTheme } from "../context/ThemeContext";
+
 /**
  * DocumentItem Component - For displaying document in lists
  *
- * @param {Object} document - Document object with properties
+ * @param {Object} document - Document object with properties from API
  * @param {function} onPress - Press handler
  * @param {boolean} compact - Whether to use compact mode
  * @param {Object} style - Additional style overrides
@@ -19,6 +20,8 @@ const DocumentItem = ({
   style,
   ...props
 }) => {
+  const { theme } = useTheme();
+
   // Constants for colors based on file type
   const FILE_COLORS = {
     pdf: "#EF4444", // Red
@@ -33,8 +36,14 @@ const DocumentItem = ({
     const type = document.type?.toLowerCase() || "";
 
     if (type.includes("pdf")) return FILE_COLORS.pdf;
-    if (type.includes("image")) return FILE_COLORS.image;
-    if (type.includes("doc")) return FILE_COLORS.doc;
+    if (
+      type.includes("image") ||
+      type.includes("jpg") ||
+      type.includes("jpeg") ||
+      type.includes("png")
+    )
+      return FILE_COLORS.image;
+    if (type.includes("doc") || type.includes("word")) return FILE_COLORS.doc;
     if (type.includes("text") || type.includes("txt")) return FILE_COLORS.txt;
 
     return FILE_COLORS.default;
@@ -43,13 +52,27 @@ const DocumentItem = ({
   // Get file type display name
   const getFileType = () => {
     const type = document.type?.toLowerCase() || "";
+    const name = document.name?.toLowerCase() || "";
 
     if (type.includes("pdf")) return "PDF";
-    if (type.includes("jpg") || type.includes("jpeg")) return "JPG";
-    if (type.includes("png")) return "PNG";
-    if (type.includes("docx")) return "DOCX";
-    if (type.includes("doc")) return "DOC";
-    if (type.includes("text") || type.includes("txt")) return "TXT";
+    if (
+      type.includes("jpg") ||
+      type.includes("jpeg") ||
+      name.endsWith(".jpg") ||
+      name.endsWith(".jpeg")
+    )
+      return "JPG";
+    if (type.includes("png") || name.endsWith(".png")) return "PNG";
+    if (type.includes("docx") || name.endsWith(".docx")) return "DOCX";
+    if (type.includes("doc") || name.endsWith(".doc")) return "DOC";
+    if (type.includes("text") || type.includes("txt") || name.endsWith(".txt"))
+      return "TXT";
+
+    // Extract extension from filename as fallback
+    const lastDot = name.lastIndexOf(".");
+    if (lastDot > 0) {
+      return name.substring(lastDot + 1).toUpperCase();
+    }
 
     return "DOC";
   };
@@ -57,11 +80,28 @@ const DocumentItem = ({
   // Get file icon
   const getFileIcon = () => {
     const type = document.type?.toLowerCase() || "";
+    const name = document.name?.toLowerCase() || "";
 
     if (type.includes("pdf")) return "📄";
-    if (type.includes("image")) return "🖼️";
-    if (type.includes("doc")) return "📝";
-    if (type.includes("text") || type.includes("txt")) return "📃";
+    if (
+      type.includes("image") ||
+      type.includes("jpg") ||
+      type.includes("jpeg") ||
+      type.includes("png") ||
+      name.endsWith(".jpg") ||
+      name.endsWith(".png") ||
+      name.endsWith(".jpeg")
+    )
+      return "🖼️";
+    if (
+      type.includes("doc") ||
+      type.includes("word") ||
+      name.endsWith(".doc") ||
+      name.endsWith(".docx")
+    )
+      return "📝";
+    if (type.includes("text") || type.includes("txt") || name.endsWith(".txt"))
+      return "📃";
 
     return "📄";
   };
@@ -79,7 +119,14 @@ const DocumentItem = ({
   const formatDate = (timestamp) => {
     if (!timestamp) return "Unknown date";
 
-    const date = new Date(timestamp);
+    // Handle Firebase Timestamp objects or date strings
+    const date =
+      timestamp instanceof Date
+        ? timestamp
+        : timestamp.toDate
+        ? timestamp.toDate()
+        : new Date(timestamp);
+
     const now = new Date();
     const diffTime = Math.abs(now - date);
     const diffDays = Math.floor(diffTime / (1000 * 60 * 60 * 24));
@@ -113,6 +160,11 @@ const DocumentItem = ({
         return {
           label: "Failed",
           variant: "error",
+        };
+      case "uploaded":
+        return {
+          label: "Uploaded",
+          variant: "info",
         };
       default:
         return {
@@ -169,13 +221,14 @@ const DocumentItem = ({
       </Card>
     );
   }
-  const { theme } = useTheme();
+
   // Full view
   return (
     <Card onPress={onPress} style={[styles.card, style]} {...props}>
       <View style={styles.content}>
         {/* Left side - Icon or Image */}
-        {document.type?.includes("image") && document.downloadUrl ? (
+        {document.type?.toLowerCase().includes("image") &&
+        document.downloadUrl ? (
           <Image
             source={{ uri: document.downloadUrl }}
             style={styles.documentImage}

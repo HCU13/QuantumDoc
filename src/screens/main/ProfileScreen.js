@@ -98,7 +98,9 @@ const ProfileScreen = ({ navigation }) => {
         text: t("profile.signOut"),
         onPress: async () => {
           try {
-            await signOut();
+            await signOut().then(() => {
+              navigation.navigate("AuthNavigator", { screen: "Login" });
+            });
           } catch (error) {
             console.error("Sign out error:", error);
           }

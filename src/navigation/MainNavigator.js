@@ -5,15 +5,19 @@ import { createStackNavigator } from "@react-navigation/stack";
 import { Ionicons } from "@expo/vector-icons";
 import { useTheme } from "../context/ThemeContext";
 import { getFocusedRouteNameFromRoute } from "@react-navigation/native";
-import HomeScreen from "../screens/main/HomeScreen";
-import ScanScreen from "../screens/main/ScanScreen";
-import DocumentDetailScreen from "../screens/main/DocumentDetailScreen";
-import UploadScreen from "../screens/main/UploadScreen";
-import TokenStoreScreen from "../screens/main/TokenStoreScreen";
+
+// Import screens
+import HomeScreen from "../screens/main/home";
+import DocumentActionsScreen from "../screens/main/documentActions";
+import DocumentProcessingScreen from "../screens/main/documentProcessing";
+import ScanDocumentScreen from "../screens/main/scanDocument";
 import ProfileScreen from "../screens/main/ProfileScreen";
+import TokenStoreScreen from "../screens/main/TokenStoreScreen";
 import HelpScreen from "../screens/main/HelpScreen";
 import AboutScreen from "../screens/main/AboutScreen";
 import ProfileEditScreen from "../screens/main/ProfileEditScreen";
+import DocumentDetailScreen from "../screens/main/DocumentDetailScreen";
+
 export const TabBarStyleContext = createContext(null);
 
 const Tab = createBottomTabNavigator();
@@ -29,12 +33,19 @@ function HomeStack() {
   );
 }
 
-function UploadStack() {
+function DocumentActionsStack() {
   return (
     <Stack.Navigator screenOptions={{ headerShown: false }}>
-      <Stack.Screen name="UploadScreen" component={UploadScreen} />
+      <Stack.Screen
+        name="DocumentActionsScreen"
+        component={DocumentActionsScreen}
+      />
+      <Stack.Screen
+        name="DocumentProcessing"
+        component={DocumentProcessingScreen}
+      />
+      <Stack.Screen name="ScanDocument" component={ScanDocumentScreen} />
       <Stack.Screen name="DocumentDetail" component={DocumentDetailScreen} />
-      <Stack.Screen name="ScanScreen" component={ScanScreen} />
     </Stack.Navigator>
   );
 }
@@ -69,6 +80,8 @@ function MainNavigator() {
       "About",
       "DocumentDetail",
       "ProfileEditScreen",
+      "DocumentProcessing",
+      "ScanDocument",
     ];
     return hiddenScreens.includes(routeName)
       ? { display: "none" }
@@ -87,12 +100,10 @@ function MainNavigator() {
             let iconName;
             if (route.name === "Home") {
               iconName = focused ? "home" : "home-outline";
-            } else if (route.name === "Scan") {
-              iconName = focused ? "scan" : "scan-outline";
+            } else if (route.name === "DocumentActions") {
+              iconName = focused ? "document-text" : "document-text-outline";
             } else if (route.name === "Profile") {
               iconName = focused ? "person" : "person-outline";
-            } else if (route.name === "Upload") {
-              iconName = focused ? "cloud-upload" : "cloud-upload-outline";
             }
             return <Ionicons name={iconName} size={size} color={color} />;
           },
@@ -103,15 +114,10 @@ function MainNavigator() {
           component={HomeStack}
           options={{ tabBarLabel: "Home" }}
         />
-        {/* <Tab.Screen
-          name="Scan"
-          component={ScanStack}
-          options={{ tabBarLabel: "Scan" }}
-        /> */}
         <Tab.Screen
-          name="Upload"
-          component={UploadStack}
-          options={{ tabBarLabel: "Upload" }}
+          name="DocumentActions"
+          component={DocumentActionsStack}
+          options={{ tabBarLabel: "Documents" }}
         />
         <Tab.Screen
           name="Profile"

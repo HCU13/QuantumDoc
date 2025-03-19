@@ -1,214 +1,181 @@
-// src/services/documentService.js
+import { FIREBASE_STORAGE, FIRESTORE_DB } from "../../firebase/FirebaseConfig";
+import { Platform } from "react-native";
+import * as FileSystem from "expo-file-system";
+import * as mime from "react-native-mime-types";
+import { nanoid } from "nanoid/non-secure";
+import {
+  getDownloadURL,
+  ref,
+  uploadBytesResumable,
+  deleteObject,
+} from "firebase/storage";
 import {
   collection,
-  addDoc,
-  getDocs,
-  getDoc,
   doc,
+  getDoc,
+  getDocs,
+  setDoc,
+  updateDoc,
+  deleteDoc,
   query,
   where,
   orderBy,
-  limit,
-  updateDoc,
-  deleteDoc,
   serverTimestamp,
 } from "firebase/firestore";
-import { FIRESTORE_DB } from "../../firebase/FirebaseConfig";
-import {
-  uploadDocument as uploadToStorage,
-  deleteDocument as deleteFromStorage,
-} from "../utils/storage";
+import { getAuth } from "firebase/auth";
 
-export const documentService = {
-  // Kullanıcının belgelerini getir
-  getUserDocuments: async (userId, limitCount = 20) => {
+const storage = FIREBASE_STORAGE;
+const firestore = FIRESTORE_DB;
+const documentsCollection = collection(firestore, "documents");
+
+// Get the current authenticated user's ID
+const getCurrentUserId = () => {
+  const auth = getAuth();
+  const user = auth.currentUser;
+
+  if (user) {
+    return user.uid; // return the authenticated user's UID
+  } else {
+    throw new Error("User is not authenticated");
+  }
+};
+
+const getMimeType = (uri) =>
+  mime.lookup(uri.split(".").pop()) || "application/octet-stream";
+
+const getFileSize = async (uri) => {
+  try {
+    const fileInfo = await FileSystem.getInfoAsync(uri);
+    return fileInfo.size;
+  } catch (error) {
+    console.error("Error getting file size:", error);
+    return 0;
+  }
+};
+
+const DocumentService = {
+  uploadDocument: async (uri, fileName) => {
     try {
-      // Belgeleri sorgula (en yeni önce)
-      const q = query(
-        collection(FIRESTORE_DB, "documents"),
-        where("userId", "==", userId),
-        orderBy("createdAt", "desc"),
-        limit(limitCount)
+      const userId = getCurrentUserId(); // Get user ID from Firebase Auth
+      fileName = fileName || uri.split("/").pop();
+      const fileId = nanoid();
+      const mimeType = getMimeType(uri);
+      const size = await getFileSize(uri);
+      const storageRef = ref(
+        storage,
+        `documents/${userId}/${fileId}-${fileName}`
       );
 
-      const querySnapshot = await getDocs(q);
+      const response = await fetch(uri);
+      const blob = await response.blob();
 
-      // Belgeleri dönüştür
-      const documents = querySnapshot.docs.map((doc) => ({
-        id: doc.id,
-        ...doc.data(),
-        createdAt: doc.data().createdAt?.toDate?.() || new Date(),
-      }));
+      const uploadTask = uploadBytesResumable(storageRef, blob, {
+        contentType: mimeType,
+      });
 
-      return documents;
+      return new Promise((resolve, reject) => {
+        uploadTask.on(
+          "state_changed",
+          (snapshot) => {
+            const progress =
+              (snapshot.bytesTransferred / snapshot.totalBytes) * 100;
+            console.log(`Upload is ${progress}% complete`);
+          },
+          reject,
+          async () => {
+            try {
+              const downloadUrl = await getDownloadURL(storageRef);
+              const documentData = {
+                id: fileId,
+                name: fileName,
+                type: mimeType,
+                size,
+                createdAt: serverTimestamp(),
+                userId,
+                status: "uploaded",
+                downloadUrl,
+                storagePath: `documents/${userId}/${fileId}-${fileName}`,
+              };
+
+              await setDoc(doc(documentsCollection, fileId), documentData);
+              resolve({ ...documentData, createdAt: new Date() });
+            } catch (error) {
+              console.error("Error saving document to Firestore:", error);
+              reject(error);
+            }
+          }
+        );
+      });
     } catch (error) {
-      console.error("Error getting user documents:", error);
+      console.error("Error in uploadDocument:", error);
       throw error;
     }
   },
 
-  // Belge detayını getir
+  getDocuments: async () => {
+    try {
+      const userId = getCurrentUserId(); // Get user ID from Firebase Auth
+
+      const q = query(
+        documentsCollection,
+        where("userId", "==", userId),
+        orderBy("createdAt", "desc")
+      );
+      const snapshot = await getDocs(q);
+      return snapshot.empty
+        ? []
+        : snapshot.docs.map((doc) => ({
+            ...doc.data(),
+            createdAt: doc.data().createdAt?.toDate() || new Date(),
+          }));
+    } catch (error) {
+      console.error("Error getting documents:", error);
+      throw new Error(error.message);
+    }
+  },
+
   getDocumentById: async (documentId) => {
     try {
-      const docRef = doc(FIRESTORE_DB, "documents", documentId);
-      const docSnap = await getDoc(docRef);
-
-      if (!docSnap.exists()) {
-        throw new Error("Document not found");
-      }
-
+      const docSnap = await getDoc(doc(documentsCollection, documentId));
+      if (!docSnap.exists()) throw new Error("Document not found");
       return {
-        id: docSnap.id,
         ...docSnap.data(),
-        createdAt: docSnap.data().createdAt?.toDate?.() || new Date(),
+        createdAt: docSnap.data().createdAt?.toDate() || new Date(),
       };
     } catch (error) {
-      console.error("Error getting document by id:", error);
-      throw error;
+      console.error("Error getting document by ID:", error);
+      throw new Error(error.message);
     }
   },
 
-  // Belge yükle
-  uploadDocument: async (file, userId, onProgress = () => {}) => {
+  updateDocumentStatus: async (documentId, status) => {
     try {
-      console.log("Başlangıç: uploadDocument", {
-        fileName: file.name,
-        fileSize: file.size,
+      await updateDoc(doc(documentsCollection, documentId), {
+        status,
+        updatedAt: serverTimestamp(),
       });
-
-      // Token kullanımıyla ilgili bir işlem varsa buraya eklenebilir
-
-      // Önce Storage'a yükle
-      console.log("Storage'a yükleme başlıyor...");
-      const storageResult = await uploadToStorage(file, userId, onProgress);
-      console.log("Storage'a yükleme tamamlandı:", storageResult);
-
-      // Sonra Firestore'a meta verileri kaydet
-      const docData = {
-        name: file.name,
-        type: file.type || file.mimeType,
-        size: file.size,
-        storagePath: storageResult.storagePath,
-        downloadUrl: storageResult.downloadUrl,
-        userId,
-        status: "uploaded",
-        createdAt: serverTimestamp(),
-      };
-
-      console.log("Firestore'a kaydediliyor:", docData);
-      const docRef = await addDoc(
-        collection(FIRESTORE_DB, "documents"),
-        docData
-      );
-      console.log("Firestore'a kaydedildi, document ID:", docRef.id);
-
-      // Başarılı sonuç döndür
-      return {
-        id: docRef.id,
-        ...docData,
-        createdAt: new Date(),
-      };
+      return { id: documentId, status };
     } catch (error) {
-      console.error("Error uploading document:", error);
-      // Hata türüne göre daha spesifik mesajlar eklenebilir
-      if (error.code === "storage/unauthorized") {
-        throw new Error("Dosya yükleme yetkiniz yok. Lütfen giriş yapın.");
-      } else if (error.code === "storage/canceled") {
-        throw new Error("Dosya yükleme iptal edildi.");
-      } else if (error.code === "storage/quota-exceeded") {
-        throw new Error("Depolama kotanız aşıldı.");
-      }
+      console.error("Error updating document status:", error);
       throw error;
     }
   },
 
-  // Belge analizini güncelle
-  updateDocumentAnalysis: async (documentId, analysis) => {
-    try {
-      await updateDoc(doc(FIRESTORE_DB, "documents", documentId), {
-        status: "analyzed",
-        analysis: {
-          ...analysis,
-          analyzedAt: serverTimestamp(),
-        },
-      });
-
-      return true;
-    } catch (error) {
-      console.error("Error updating document analysis:", error);
-      throw error;
-    }
-  },
-
-  // Belge sil
   deleteDocument: async (documentId) => {
     try {
-      // Önce belgeyi getir
-      const document = await documentService.getDocumentById(documentId);
+      const docSnap = await getDoc(doc(documentsCollection, documentId));
+      if (!docSnap.exists()) throw new Error("Document not found");
 
-      // Storage'dan dosyayı sil
-      if (document.storagePath) {
-        await deleteFromStorage(document.storagePath);
-      }
+      const { storagePath } = docSnap.data();
+      if (storagePath) await deleteObject(ref(storage, storagePath));
 
-      // Firestore'dan belgeyi sil
-      await deleteDoc(doc(FIRESTORE_DB, "documents", documentId));
-
-      return true;
+      await deleteDoc(doc(documentsCollection, documentId));
+      return { success: true, id: documentId };
     } catch (error) {
       console.error("Error deleting document:", error);
       throw error;
     }
   },
-
-  // Belge hakkındaki sohbetleri kaydet
-  saveDocumentConversation: async (documentId, userId, question, answer) => {
-    try {
-      const docRef = await addDoc(
-        collection(FIRESTORE_DB, "document_conversations"),
-        {
-          documentId,
-          userId,
-          question,
-          answer,
-          createdAt: serverTimestamp(),
-        }
-      );
-
-      return {
-        id: docRef.id,
-        documentId,
-        question,
-        answer,
-        createdAt: new Date(),
-      };
-    } catch (error) {
-      console.error("Error saving document conversation:", error);
-      throw error;
-    }
-  },
-
-  // Belge sohbetlerini getir
-  getDocumentConversations: async (documentId) => {
-    try {
-      const q = query(
-        collection(FIRESTORE_DB, "document_conversations"),
-        where("documentId", "==", documentId),
-        orderBy("createdAt", "desc")
-      );
-
-      const querySnapshot = await getDocs(q);
-
-      const conversations = querySnapshot.docs.map((doc) => ({
-        id: doc.id,
-        ...doc.data(),
-        createdAt: doc.data().createdAt?.toDate?.() || new Date(),
-      }));
-
-      return conversations;
-    } catch (error) {
-      console.error("Error getting document conversations:", error);
-      return [];
-    }
-  },
 };
+
+export default DocumentService;

@@ -1,4 +1,3 @@
-// src/context/ThemeContext.js
 import React, { createContext, useContext, useState, useEffect } from "react";
 import { useColorScheme } from "react-native";
 import AsyncStorage from "@react-native-async-storage/async-storage";
@@ -7,42 +6,45 @@ import AsyncStorage from "@react-native-async-storage/async-storage";
 const lightTheme = {
   colors: {
     // Primary & Secondary colors
-    primary: "#4361EE", // Modern blue for primary actions
-    primaryLight: "#4895EF", // Lighter blue for secondary elements
-    primaryDark: "#3A0CA3", // Darker blue for emphasis
-    secondary: "#4CC9F0", // Vibrant cyan for accents
+    primary: "#5B5FEF", // Modern indigo/purple for primary actions
+    primaryLight: "#7C7FF7", // Lighter version of primary
+    primaryDark: "#4A4DCB", // Darker version of primary
+    secondary: "#61DAFB", // Vibrant cyan for accents
+    accent: "#FF7D54", // Coral/orange for special emphasis
 
-    // UI Background colors - Softer whites
-    background: "#F8F9FB", // Very light gray with blue tint instead of pure white
+    // Functional colors
+    success: "#22C55E", // Green
+    warning: "#F59E0B", // Amber
+    error: "#EF4444", // Red
+    info: "#3B82F6", // Blue
+
+    // UI Background colors
+    background: "#F9FAFB", // Very light gray with blue tint instead of pure white
     surface: "#FFFFFF",
     card: "#FFFFFF",
     modalBg: "#FFFFFF",
 
-    // Functional colors
-    success: "#10B981", // Green
-    warning: "#FBBF24", // Yellow
-    error: "#EF4444", // Red
-    info: "#60A5FA", // Light blue
-
-    // Text colors - Softened for better readability
-    text: "#1F2937", // Dark gray for primary text rather than pure black
+    // Text colors
+    text: "#111827", // Almost black for primary text
     textSecondary: "#6B7280", // Medium gray for secondary text
     textTertiary: "#9CA3AF", // Light gray for tertiary text
     textInverted: "#FFFFFF", // White text for dark backgrounds
 
-    // Border and divider colors - More subtle
+    // Border and divider colors
     border: "#E5E7EB", // Light gray for borders
     divider: "#F3F4F6", // Very light gray for dividers
 
     // Interactive states
-    focus: "#4361EE30", // Primary with 30% opacity
-    pressed: "#4361EE15", // Primary with 15% opacity
+    focus: "rgba(91, 95, 239, 0.3)", // Primary with 30% opacity
+    pressed: "rgba(91, 95, 239, 0.15)", // Primary with 15% opacity
     disabled: "#E5E7EB", // Light gray
     disabledText: "#9CA3AF", // Medium gray
 
     // Gradients
-    gradientStart: "#4361EE",
-    gradientEnd: "#4CC9F0",
+    gradient: ["#5B5FEF", "#61DAFB"],
+
+    // Shadow
+    shadow: "#000000",
   },
 
   // Typography
@@ -77,43 +79,43 @@ const lightTheme = {
   spacing: {
     xs: 4,
     sm: 8,
-    md: 14, // Slightly reduced from 16
-    lg: 20, // Slightly reduced from 24
-    xl: 28, // Slightly reduced from 32
-    xxl: 40, // Slightly reduced from 48
+    md: 16,
+    lg: 24,
+    xl: 32,
+    xxl: 48,
   },
 
   // Border radius
   borderRadius: {
     xs: 4,
-    sm: 6, // Reduced from 8
-    md: 10, // Reduced from 12
-    lg: 14, // Reduced from 16
-    xl: 20, // Reduced from 24
+    sm: 8,
+    md: 12,
+    lg: 16,
+    xl: 24,
     round: 9999,
   },
 
-  // Shadows - More refined and subtle
+  // Shadows
   shadows: {
     sm: {
       shadowColor: "#000",
       shadowOffset: { width: 0, height: 1 },
-      shadowOpacity: 0.04,
-      shadowRadius: 2,
+      shadowOpacity: 0.05,
+      shadowRadius: 3,
       elevation: 1,
     },
     md: {
       shadowColor: "#000",
       shadowOffset: { width: 0, height: 2 },
-      shadowOpacity: 0.06,
-      shadowRadius: 3,
+      shadowOpacity: 0.07,
+      shadowRadius: 5,
       elevation: 2,
     },
     lg: {
       shadowColor: "#000",
-      shadowOffset: { width: 0, height: 3 },
-      shadowOpacity: 0.08,
-      shadowRadius: 5,
+      shadowOffset: { width: 0, height: 4 },
+      shadowOpacity: 0.09,
+      shadowRadius: 8,
       elevation: 4,
     },
   },
@@ -128,46 +130,49 @@ const lightTheme = {
   isDark: false,
 };
 
-// Modern dark theme with more balanced colors
+// Modern dark theme
 const darkTheme = {
   colors: {
     // Primary & Secondary colors
-    primary: "#4CC9F0", // Brighter cyan for dark mode primary
-    primaryLight: "#4895EF", // Light blue
-    primaryDark: "#3A0CA3", // Deep purple
-    secondary: "#4361EE", // Vibrant blue
-
-    // UI Background colors - Not too dark
-    background: "#121826", // Dark navy with hint of blue instead of pure black
-    surface: "#1E293B", // Slightly lighter navy
-    card: "#283548", // Medium dark gray with slight blue
-    modalBg: "#1E293B", // Slightly lighter navy
+    primary: "#6366F1", // Slightly adjusted for dark mode
+    primaryLight: "#818CF8", // Lighter version of primary
+    primaryDark: "#4F46E5", // Darker version of primary
+    secondary: "#4FD1F7", // Slightly toned down cyan for dark mode
+    accent: "#FF7D54", // Same accent color as light theme
 
     // Functional colors
-    success: "#34D399", // Bright green
-    warning: "#FBBF24", // Amber
-    error: "#F87171", // Soft red
-    info: "#60A5FA", // Blue
+    success: "#10B981", // Slightly darker green for dark mode
+    warning: "#F59E0B", // Same amber
+    error: "#EF4444", // Same red
+    info: "#3B82F6", // Same blue
 
-    // Text colors - Better contrast
+    // UI Background colors
+    background: "#111827", // Dark navy with hint of blue instead of pure black
+    surface: "#1E293B", // Slightly lighter navy
+    card: "#1F2937", // Medium dark gray with slight blue
+    modalBg: "#1E293B", // Slightly lighter navy
+
+    // Text colors
     text: "#F1F5F9", // Off-white for better eye comfort (not pure white)
     textSecondary: "#CBD5E1", // Light gray
     textTertiary: "#94A3B8", // Medium gray
-    textInverted: "#121826", // Dark background color
+    textInverted: "#111827", // Dark background color for inverted text
 
     // Border and divider colors
     border: "#334155", // Medium dark gray
     divider: "#1E293B", // Dark navy
 
     // Interactive states
-    focus: "#4CC9F030", // Primary with 30% opacity
-    pressed: "#4CC9F015", // Primary with 15% opacity
+    focus: "rgba(99, 102, 241, 0.3)", // Primary with 30% opacity
+    pressed: "rgba(99, 102, 241, 0.15)", // Primary with 15% opacity
     disabled: "#334155", // Medium dark gray
     disabledText: "#64748B", // Gray
 
     // Gradients
-    gradientStart: "#4CC9F0",
-    gradientEnd: "#3A0CA3",
+    gradient: ["#6366F1", "#4FD1F7"],
+
+    // Shadow
+    shadow: "#000000",
   },
 
   // Typography - Same as light theme
@@ -184,21 +189,21 @@ const darkTheme = {
     sm: {
       shadowColor: "#000",
       shadowOffset: { width: 0, height: 1 },
-      shadowOpacity: 0.2,
+      shadowOpacity: 0.3,
       shadowRadius: 2,
       elevation: 2,
     },
     md: {
       shadowColor: "#000",
       shadowOffset: { width: 0, height: 2 },
-      shadowOpacity: 0.25,
+      shadowOpacity: 0.35,
       shadowRadius: 4,
       elevation: 3,
     },
     lg: {
       shadowColor: "#000",
       shadowOffset: { width: 0, height: 4 },
-      shadowOpacity: 0.3,
+      shadowOpacity: 0.4,
       shadowRadius: 6,
       elevation: 5,
     },
@@ -210,12 +215,12 @@ const darkTheme = {
   isDark: true,
 };
 
-// Theme context creation
+// Create context
 const ThemeContext = createContext(null);
 
 /**
- * Theme management Provider component
- * Handles light/dark theme switching and storage
+ * Theme Provider Component
+ * Manages light/dark theme and user preferences
  */
 export function ThemeProvider({ children }) {
   // Get device theme
@@ -288,7 +293,7 @@ export function ThemeProvider({ children }) {
   );
 }
 
-// Theme context hook export
+// Theme context hook
 export function useTheme() {
   const context = useContext(ThemeContext);
   if (!context) {

@@ -2,34 +2,45 @@ import React, { useState, useEffect, useRef } from "react";
 import {
   View,
   StyleSheet,
-  Alert,
-  StatusBar,
-  Animated,
+  ScrollView,
   TouchableOpacity,
+  Image,
+  StatusBar,
   SafeAreaView,
-  RefreshControl,
+  Animated,
+  Dimensions,
+  Alert,
+  Platform,
+  TextInput,
+  KeyboardAvoidingView,
+  ActivityIndicator,
 } from "react-native";
+import { LinearGradient } from "expo-linear-gradient";
+import { MotiView } from "moti";
 import { Ionicons } from "@expo/vector-icons";
 import { useTheme } from "../../../context/ThemeContext";
+import { useAuth } from "../../../context/AuthContext";
 import { useTokens } from "../../../context/TokenContext";
-import { useLocalization } from "../../../context/LocalizationContext";
-import { Text, AnimatedHeader, Card } from "../../../components";
-import DocumentInfo from "./DocumentInfo";
-import SummaryView from "./SummaryView";
-import QuestionsView from "./QuestionsView";
+import {
+  Text,
+  Button,
+  Card,
+  Badge,
+  Divider,
+  AIAnalysisCard,
+} from "../../../components";
+import documentService from "../../../services/documentService";
+import { formatFileSize } from "../../../utils/formatUtils";
+
+const { width, height } = Dimensions.get("window");
 
 const DocumentDetailScreen = ({ route, navigation }) => {
-  // Get params from route or use default
-  const params = route?.params || {};
-  const { documentId, newDocument } = params;
-
-  // Hooks
   const { theme, isDark } = useTheme();
+  const { user } = useAuth();
   const { tokens, hasEnoughTokens, useToken, TOKEN_COSTS } = useTokens();
-  const { t } = useLocalization();
 
-  // Refs
-  const scrollY = useRef(new Animated.Value(0)).current;
+  // Get document ID from route
+  const { documentId, newDocument } = route.params || {};
 
   // State
   const [document, setDocument] = useState(null);
@@ -38,224 +49,144 @@ const DocumentDetailScreen = ({ route, navigation }) => {
   const [activeTab, setActiveTab] = useState("summary");
   const [analyzing, setAnalyzing] = useState(false);
   const [conversations, setConversations] = useState([]);
+  const [question, setQuestion] = useState("");
+  const [sending, setSending] = useState(false);
   const [freeQuestionsCount, setFreeQuestionsCount] = useState(3);
+
+  // Animation
+  const scrollY = useRef(new Animated.Value(0)).current;
+  const fadeAnim = useRef(new Animated.Value(0)).current;
+  const slideAnim = useRef(new Animated.Value(30)).current;
+
+  // Header animation
+  const headerHeight = scrollY.interpolate({
+    inputRange: [0, 120],
+    outputRange: [200, 70],
+    extrapolate: "clamp",
+  });
+
+  const headerOpacity = scrollY.interpolate({
+    inputRange: [0, 60, 120],
+    outputRange: [1, 0.7, 0],
+    extrapolate: "clamp",
+  });
+
+  const headerTextSize = scrollY.interpolate({
+    inputRange: [0, 120],
+    outputRange: [24, 18],
+    extrapolate: "clamp",
+  });
 
   // Load document data
   useEffect(() => {
     loadDocument();
+
+    // Start animations
+    Animated.parallel([
+      Animated.timing(fadeAnim, {
+        toValue: 1,
+        duration: 400,
+        useNativeDriver: true,
+      }),
+      Animated.timing(slideAnim, {
+        toValue: 0,
+        duration: 400,
+        useNativeDriver: true,
+      }),
+    ]).start();
   }, [documentId]);
 
-  // Load document with mock data
+  // Load document and conversations
   const loadDocument = async () => {
     try {
       setLoading(true);
 
-      // Mock document data with realistic properties
-      const mockDocument = {
-        id: documentId || "doc123",
-        name: "Financial Report Q2 2024.pdf",
-        type: "application/pdf",
-        size: 2458000,
-        downloadUrl: "https://source.unsplash.com/random/800x600/?document",
-        createdAt: new Date(Date.now() - 3 * 24 * 60 * 60 * 1000), // 3 days ago
-        status: "analyzed",
-        source: "upload",
-        analysis: {
-          summary:
-            "This quarterly financial report outlines company performance for Q2 2024. Revenue increased by 12% compared to Q1, reaching $3.4M. Operating expenses were reduced by 7% through effective cost management strategies. The gross profit margin improved to 58%, up from 52% in the previous quarter. The report highlights successful product launches and market expansion efforts that contributed to growth. Cash flow remains positive with $4.2M in reserves, positioning the company well for planned Q3 investments.",
-          keyPoints: [
-            "Revenue increased by 12% quarter-over-quarter to $3.4M",
-            "Operating expenses reduced by 7% through cost optimization",
-            "Gross profit margin improved to 58% from 52%",
-            "Product launches in European markets exceeded expectations",
-            "Cash reserves at $4.2M, sufficient for planned Q3 investments",
-            "Customer acquisition cost reduced by 15% through digital marketing optimization",
-          ],
-          details:
-            "The financial performance for Q2 2024 exceeded projections in several key areas. The marketing department's reallocation of budget to digital channels resulted in higher conversion rates and lower customer acquisition costs. Software division revenue grew by 18%, while hardware sales increased by 9%. Research and development expenses remained consistent at 15% of revenue, focusing on next-generation product features. The company maintained healthy inventory levels with a turnover ratio of 8.2. Accounts receivable decreased slightly, indicating improved collection efficiency.",
-          recommendations: [
-            "Continue expanding digital marketing efforts based on Q2 performance",
-            "Increase investment in the software division given its higher growth rate",
-            "Consider strategic acquisitions with current cash reserves",
-            "Implement planned price adjustments for enterprise customers",
-            "Accelerate hiring in engineering to support product roadmap",
-          ],
-        },
-      };
+      // Get document from service
+      const doc = await documentService.getDocumentById(documentId);
+      setDocument(doc);
+      console.log("Conversations:", documentId);
+      // Get conversations
+      const convs = await documentService.getDocumentConversations(documentId);
+      setConversations(convs);
+ 
+      // Calculate free questions left
+      setFreeQuestionsCount(Math.max(0, 3 - convs.length));
 
-      // Mock conversations
-      const mockConversations = [
-        {
-          id: "conv1",
-          question: "What was the revenue increase in Q2?",
-          answer:
-            "According to the financial report, revenue increased by 12% quarter-over-quarter, reaching $3.4M in Q2 2024.",
-          createdAt: new Date(Date.now() - 2 * 60 * 60 * 1000), // 2 hours ago
-        },
-        {
-          id: "conv2",
-          question:
-            "How much are the cash reserves and what are they planned for?",
-          answer:
-            "The cash reserves stand at $4.2M. The report indicates these reserves are sufficient for the planned investments in Q3 2024, though specific investment targets aren't detailed in the document.",
-          createdAt: new Date(Date.now() - 1 * 24 * 60 * 60 * 1000), // 1 day ago
-        },
-      ];
-
-      // Set document and conversations with a slight delay for smoother animation
-      setTimeout(() => {
-        setDocument(mockDocument);
-        setConversations(mockConversations);
-
-        // Calculate free questions left
-        setFreeQuestionsCount(Math.max(0, 3 - mockConversations.length));
-
-        setLoading(false);
-      }, 500);
-    } catch (error) {
-      console.error("Error loading document:", error);
-      Alert.alert(
-        t("errors.somethingWentWrong"),
-        "Could not load document details. Please try again later."
-      );
       setLoading(false);
-    }
-  };
-
-  // Refresh document data
-  const refreshDocument = async () => {
-    try {
-      setRefreshing(true);
-      await loadDocument();
     } catch (error) {
-      console.error("Error refreshing document:", error);
-    } finally {
-      setRefreshing(false);
-    }
-  };
 
-  // Handle tab change
-  const handleTabChange = (tab) => {
-    if (tab === activeTab) return;
-    setActiveTab(tab);
+      console.error("Error loading document:", error);
+      setLoading(false);
+
+      // Show error and navigate back
+      Alert.alert("Error", "Failed to load document. Please try again later.", [
+        { text: "OK", onPress: () => navigation.goBack() },
+      ]);
+    }
   };
 
   // Analyze document
   const analyzeDocument = async () => {
     try {
       // Check if user has enough tokens
-      const canAnalyze = hasEnoughTokens(TOKEN_COSTS.DOCUMENT_ANALYSIS);
-
-      if (!canAnalyze) {
-        Alert.alert(t("tokens.notEnoughTokens"), t("tokens.addTokens"), [
-          {
-            text: t("common.cancel"),
-            style: "cancel",
-          },
-          {
-            text: t("tokens.buyTokens"),
-            onPress: () => navigation.navigate("TokenStore"),
-          },
-        ]);
+      if (!hasEnoughTokens(TOKEN_COSTS.DOCUMENT_ANALYSIS)) {
+        Alert.alert(
+          "Not Enough Tokens",
+          "You don't have enough tokens to analyze this document.",
+          [
+            { text: "Cancel", style: "cancel" },
+            {
+              text: "Get Tokens",
+              onPress: () => navigation.navigate("TokenStore"),
+            },
+          ]
+        );
         return;
       }
 
       setAnalyzing(true);
 
-      // Simulate using tokens
+      // Use token for analysis
       await useToken(TOKEN_COSTS.DOCUMENT_ANALYSIS, "analysis", documentId);
 
-      // Simulate analysis delay
-      await new Promise((resolve) => setTimeout(resolve, 3000));
+      // Analyze document
+      const result = await documentService.analyzeDocument(documentId);
 
-      // Update document with analysis
-      const updatedDoc = {
-        ...document,
-        status: "analyzed",
-        analysis: {
-          summary:
-            "This quarterly financial report outlines company performance for Q2 2024. Revenue increased by 12% compared to Q1, reaching $3.4M. Operating expenses were reduced by 7% through effective cost management strategies. The gross profit margin improved to 58%, up from 52% in the previous quarter. The report highlights successful product launches and market expansion efforts that contributed to growth. Cash flow remains positive with $4.2M in reserves, positioning the company well for planned Q3 investments.",
-          keyPoints: [
-            "Revenue increased by 12% quarter-over-quarter to $3.4M",
-            "Operating expenses reduced by 7% through cost optimization",
-            "Gross profit margin improved to 58% from 52%",
-            "Product launches in European markets exceeded expectations",
-            "Cash reserves at $4.2M, sufficient for planned Q3 investments",
-            "Customer acquisition cost reduced by 15% through digital marketing optimization",
-          ],
-          details:
-            "The financial performance for Q2 2024 exceeded projections in several key areas. The marketing department's reallocation of budget to digital channels resulted in higher conversion rates and lower customer acquisition costs. Software division revenue grew by 18%, while hardware sales increased by 9%. Research and development expenses remained consistent at 15% of revenue, focusing on next-generation product features. The company maintained healthy inventory levels with a turnover ratio of 8.2. Accounts receivable decreased slightly, indicating improved collection efficiency.",
-          recommendations: [
-            "Continue expanding digital marketing efforts based on Q2 performance",
-            "Increase investment in the software division given its higher growth rate",
-            "Consider strategic acquisitions with current cash reserves",
-            "Implement planned price adjustments for enterprise customers",
-            "Accelerate hiring in engineering to support product roadmap",
-          ],
-        },
-      };
-
-      setDocument(updatedDoc);
-      Alert.alert("Success", "Document analysis completed");
+      // Update document state
+      setDocument(result);
       setActiveTab("summary");
     } catch (error) {
       console.error("Error analyzing document:", error);
-      Alert.alert(t("errors.analysisFailed"), "Please try again later.");
+      Alert.alert(
+        "Error",
+        "Failed to analyze document. Please try again later."
+      );
     } finally {
       setAnalyzing(false);
     }
   };
 
-  // Delete document
-  const deleteDocument = async () => {
-    Alert.alert(t("document.delete"), t("document.deleteConfirm"), [
-      {
-        text: t("common.cancel"),
-        style: "cancel",
-      },
-      {
-        text: t("common.delete"),
-        style: "destructive",
-        onPress: async () => {
-          try {
-            setLoading(true);
-            // Simulate API call delay
-            await new Promise((resolve) => setTimeout(resolve, 1000));
-            navigation.goBack();
-          } catch (error) {
-            console.error("Error deleting document:", error);
-            Alert.alert(t("errors.somethingWentWrong"));
-            setLoading(false);
-          }
-        },
-      },
-    ]);
-  };
+  // Ask a question
+  const askQuestion = async () => {
+    if (!question.trim() || sending) return;
 
-  // Share document
-  const shareDocument = async () => {
     try {
-      Alert.alert("Sharing document", "Share functionality would go here");
-    } catch (error) {
-      console.error("Error sharing document:", error);
-    }
-  };
+      setSending(true);
 
-  // Ask question
-  const askQuestion = async (question) => {
-    try {
-      // Create new conversation with pending state
-      const newConversationId = Date.now().toString();
-      const pendingConversation = {
-        id: newConversationId,
-        question: question,
-        answer: "",
-        createdAt: new Date(),
+      // Create temporary conversation
+      const tempId = Date.now().toString();
+      const tempConversation = {
+        id: tempId,
+        question: question.trim(),
         isPending: true,
+        createdAt: new Date(),
       };
 
-      // Add to conversations right away
-      setConversations([pendingConversation, ...conversations]);
+      // Add to UI immediately
+      setConversations([tempConversation, ...conversations]);
+
+      // Clear input
+      setQuestion("");
 
       // Check if token needed
       const needsToken = freeQuestionsCount <= 0;
@@ -267,28 +198,29 @@ const DocumentDetailScreen = ({ route, navigation }) => {
           // Update conversation to show error
           setConversations([
             {
-              ...pendingConversation,
+              ...tempConversation,
               answer: "You don't have enough tokens to ask this question.",
               error: true,
               isPending: false,
             },
-            ...conversations,
+            ...conversations.filter((c) => c.id !== tempId),
           ]);
 
-          // Show token purchase prompt
           setTimeout(() => {
-            Alert.alert(t("tokens.notEnoughTokens"), t("tokens.addTokens"), [
-              {
-                text: t("common.cancel"),
-                style: "cancel",
-              },
-              {
-                text: t("tokens.buyTokens"),
-                onPress: () => navigation.navigate("TokenStore"),
-              },
-            ]);
+            Alert.alert(
+              "Not Enough Tokens",
+              "You need to purchase more tokens to ask additional questions.",
+              [
+                { text: "Cancel", style: "cancel" },
+                {
+                  text: "Get Tokens",
+                  onPress: () => navigation.navigate("TokenStore"),
+                },
+              ]
+            );
           }, 500);
 
+          setSending(false);
           return;
         }
 
@@ -296,42 +228,17 @@ const DocumentDetailScreen = ({ route, navigation }) => {
         await useToken(TOKEN_COSTS.QUESTION, "question", documentId);
       }
 
-      // Simulate API delay
-      await new Promise((resolve) => setTimeout(resolve, 2500));
+      // Get answer from service
+      const conversation = await documentService.askDocumentQuestion(
+        documentId,
+        user.uid,
+        tempConversation.question
+      );
 
-      // Generate a simple answer based on the question
-      let answer = "";
-      const questionLower = pendingConversation.question.toLowerCase();
-
-      if (questionLower.includes("revenue")) {
-        answer =
-          "The report shows a revenue increase of 12% compared to the previous quarter, reaching $3.4M in Q2 2024.";
-      } else if (
-        questionLower.includes("profit") ||
-        questionLower.includes("margin")
-      ) {
-        answer =
-          "The gross profit margin improved to 58%, up from 52% in the previous quarter. This represents a 6% increase in profitability.";
-      } else if (questionLower.includes("expense")) {
-        answer =
-          "Operating expenses were reduced by 7% through effective cost management strategies. The company maintained R&D spending at 15% of revenue.";
-      } else if (
-        questionLower.includes("cash") ||
-        questionLower.includes("reserve")
-      ) {
-        answer =
-          "Cash flow remains positive with $4.2M in reserves, which positions the company well for planned investments in Q3.";
-      } else {
-        answer =
-          "Based on the financial report for Q2 2024, the company is showing strong performance with growth in revenue, improved margins, and healthy cash reserves. Specific details about " +
-          questionLower +
-          " may require further analysis of the complete financial statements.";
-      }
-
-      // Update conversation
-      setConversations([
-        { ...pendingConversation, answer, isPending: false },
-        ...conversations.filter((c) => c.id !== newConversationId),
+      // Update conversation list
+      setConversations((prev) => [
+        conversation,
+        ...prev.filter((c) => c.id !== tempId),
       ]);
 
       // Update free questions count
@@ -340,206 +247,886 @@ const DocumentDetailScreen = ({ route, navigation }) => {
       }
     } catch (error) {
       console.error("Error asking question:", error);
-      Alert.alert(t("errors.somethingWentWrong"));
+
+      // Update conversation to show error
+      setConversations((prev) => {
+        const tempConv = prev.find((c) => c.isPending);
+        if (tempConv) {
+          return [
+            {
+              ...tempConv,
+              answer:
+                "Sorry, there was an error processing your question. Please try again.",
+              error: true,
+              isPending: false,
+            },
+            ...prev.filter((c) => !c.isPending),
+          ];
+        }
+        return prev;
+      });
+    } finally {
+      setSending(false);
     }
   };
 
-  // Render tabs
-  const renderTabs = () => {
+  // Share document
+  const shareDocument = () => {
+    // Implement sharing functionality
+    Alert.alert("Share", "Sharing functionality would go here");
+  };
+
+  // Delete document
+  const deleteDocument = () => {
+    Alert.alert(
+      "Delete Document",
+      "Are you sure you want to delete this document? This action cannot be undone.",
+      [
+        { text: "Cancel", style: "cancel" },
+        {
+          text: "Delete",
+          style: "destructive",
+          onPress: async () => {
+            try {
+              setLoading(true);
+              await documentService.deleteDocument(documentId);
+              setLoading(false);
+              navigation.goBack();
+            } catch (error) {
+              console.error("Error deleting document:", error);
+              setLoading(false);
+              Alert.alert(
+                "Error",
+                "Failed to delete document. Please try again later."
+              );
+            }
+          },
+        },
+      ]
+    );
+  };
+
+  // Format date
+  const formatDate = (date) => {
+    if (!date) return "Unknown";
+
+    const d = new Date(date);
+    const now = new Date();
+    const diff = Math.abs(now - d);
+    const diffDays = Math.floor(diff / (1000 * 60 * 60 * 24));
+
+    if (diffDays === 0) return "Today";
+    if (diffDays === 1) return "Yesterday";
+    if (diffDays < 7) return `${diffDays} days ago`;
+
+    return d.toLocaleDateString();
+  };
+
+  // Get message time
+  const getMessageTime = (date) => {
+    if (!date) return "";
+
+    const d = new Date(date);
+    return d.toLocaleTimeString([], { hour: "2-digit", minute: "2-digit" });
+  };
+
+  // Loading state
+  if (loading) {
     return (
       <View
         style={[
-          styles.tabContainer,
-          { borderBottomColor: theme.colors.border },
+          styles.loadingContainer,
+          { backgroundColor: theme.colors.background },
         ]}
       >
-        <TouchableOpacity
-          style={[
-            styles.tab,
-            activeTab === "summary" && {
-              borderBottomWidth: 2,
-              borderBottomColor: theme.colors.primary,
-            },
-          ]}
-          onPress={() => handleTabChange("summary")}
-        >
-          <Ionicons
-            name="document-text"
-            size={20}
-            color={
-              activeTab === "summary"
-                ? theme.colors.primary
-                : theme.colors.textSecondary
-            }
-            style={styles.tabIcon}
-          />
-          <Text
-            variant="body2"
-            weight={activeTab === "summary" ? "semibold" : "regular"}
-            color={
-              activeTab === "summary"
-                ? theme.colors.primary
-                : theme.colors.textSecondary
-            }
-          >
-            {t("document.summary")}
-          </Text>
-        </TouchableOpacity>
+        <StatusBar
+          barStyle={isDark ? "light-content" : "dark-content"}
+          backgroundColor="transparent"
+          translucent
+        />
+        <ActivityIndicator size="large" color={theme.colors.primary} />
+        <Text variant="body1" style={{ marginTop: 16 }}>
+          Loading document...
+        </Text>
+      </View>
+    );
+  }
 
-        <TouchableOpacity
-          style={[
-            styles.tab,
-            activeTab === "ask" && {
-              borderBottomWidth: 2,
-              borderBottomColor: theme.colors.primary,
-            },
-          ]}
-          onPress={() => handleTabChange("ask")}
+  // If document not found
+  if (!document) {
+    return (
+      <View
+        style={[
+          styles.errorContainer,
+          { backgroundColor: theme.colors.background },
+        ]}
+      >
+        <StatusBar
+          barStyle={isDark ? "light-content" : "dark-content"}
+          backgroundColor="transparent"
+          translucent
+        />
+        <Ionicons
+          name="alert-circle-outline"
+          size={64}
+          color={theme.colors.error}
+        />
+        <Text variant="h3" style={{ marginTop: 16, marginBottom: 8 }}>
+          Document Not Found
+        </Text>
+        <Text
+          variant="body1"
+          color={theme.colors.textSecondary}
+          style={{ textAlign: "center", marginBottom: 24 }}
         >
-          <Ionicons
-            name="chatbubble"
-            size={20}
-            color={
-              activeTab === "ask"
-                ? theme.colors.primary
-                : theme.colors.textSecondary
-            }
-            style={styles.tabIcon}
-          />
-          <Text
-            variant="body2"
-            weight={activeTab === "ask" ? "semibold" : "regular"}
-            color={
-              activeTab === "ask"
-                ? theme.colors.primary
-                : theme.colors.textSecondary
-            }
-          >
-            {t("document.askQuestion")}
-          </Text>
-          {conversations.length > 0 && (
-            <View
-              style={[
-                styles.conversationCount,
-                { backgroundColor: theme.colors.error },
-              ]}
+          This document may have been deleted or is no longer available.
+        </Text>
+        <Button
+          label="Go Back"
+          onPress={() => navigation.goBack()}
+          variant="primary"
+          size="medium"
+        />
+      </View>
+    );
+  }
+
+  // File type and color
+  const getFileIconName = () => {
+    const type = document.type?.toLowerCase() || "";
+
+    if (type.includes("pdf")) return "document-text";
+    if (type.includes("image")) return "image";
+    if (type.includes("doc")) return "document";
+    if (type.includes("text") || type.includes("txt"))
+      return "document-text-outline";
+
+    return "document-outline";
+  };
+
+  const getFileColor = () => {
+    const type = document.type?.toLowerCase() || "";
+
+    if (type.includes("pdf")) return theme.colors.error;
+    if (type.includes("image")) return theme.colors.info;
+    if (type.includes("doc")) return theme.colors.primary;
+    if (type.includes("text") || type.includes("txt"))
+      return theme.colors.textSecondary;
+
+    return theme.colors.primary;
+  };
+
+  const getFileType = () => {
+    const type = document.type?.toLowerCase() || "";
+
+    if (type.includes("pdf")) return "PDF";
+    if (type.includes("jpg") || type.includes("jpeg")) return "JPG";
+    if (type.includes("png")) return "PNG";
+    if (type.includes("docx")) return "DOCX";
+    if (type.includes("doc")) return "DOC";
+    if (type.includes("text") || type.includes("txt")) return "TXT";
+
+    return "DOC";
+  };
+
+  // Render header with animations
+  const renderHeader = () => (
+    <Animated.View style={[styles.header, { height: headerHeight }]}>
+      <LinearGradient
+        colors={[getFileColor() + "CC", getFileColor() + "66"]}
+        style={styles.headerGradient}
+      >
+        <SafeAreaView style={styles.headerContent}>
+          <View style={styles.headerTopBar}>
+            <TouchableOpacity
+              style={styles.backButton}
+              onPress={() => navigation.goBack()}
             >
-              <Text variant="caption" color="white">
-                {conversations.length}
-              </Text>
+              <Ionicons name="arrow-back" size={24} color="#FFFFFF" />
+            </TouchableOpacity>
+
+            <View style={styles.headerActions}>
+              <TouchableOpacity
+                style={styles.headerActionButton}
+                onPress={shareDocument}
+              >
+                <Ionicons name="share-outline" size={24} color="#FFFFFF" />
+              </TouchableOpacity>
+
+              <TouchableOpacity
+                style={styles.headerActionButton}
+                onPress={deleteDocument}
+              >
+                <Ionicons name="trash-outline" size={24} color="#FFFFFF" />
+              </TouchableOpacity>
             </View>
+          </View>
+
+          <Animated.View
+            style={[styles.documentInfo, { opacity: headerOpacity }]}
+          >
+            <View style={styles.documentIconContainer}>
+              {document.type?.includes("image") && document.downloadUrl ? (
+                <Image
+                  source={{ uri: document.downloadUrl }}
+                  style={styles.documentImage}
+                  resizeMode="cover"
+                />
+              ) : (
+                <View
+                  style={[
+                    styles.documentIcon,
+                    { backgroundColor: "#FFFFFF40" },
+                  ]}
+                >
+                  <Ionicons
+                    name={getFileIconName()}
+                    size={36}
+                    color="#FFFFFF"
+                  />
+                </View>
+              )}
+            </View>
+
+            <View style={styles.documentDetails}>
+              <Animated.Text
+                style={[
+                  styles.documentTitle,
+                  { fontSize: headerTextSize, color: "#FFFFFF" },
+                ]}
+              >
+                {document.name}
+              </Animated.Text>
+
+              <View style={styles.documentMeta}>
+                <Badge
+                  label={getFileType()}
+                  variant="primary"
+                  size="small"
+                  style={styles.documentBadge}
+                />
+
+                <Text variant="caption" color="#FFFFFFCC">
+                  {formatFileSize(document.size)} •{" "}
+                  {formatDate(document.createdAt)}
+                </Text>
+              </View>
+
+              <Badge
+                label={
+                  document.status === "analyzed"
+                    ? "Analyzed"
+                    : document.status === "analyzing"
+                    ? "Analyzing..."
+                    : "Not Analyzed"
+                }
+                variant={
+                  document.status === "analyzed"
+                    ? "success"
+                    : document.status === "analyzing"
+                    ? "warning"
+                    : "secondary"
+                }
+                size="small"
+              />
+            </View>
+          </Animated.View>
+        </SafeAreaView>
+      </LinearGradient>
+    </Animated.View>
+  );
+
+  // Render tabs
+  const renderTabs = () => (
+    <View style={styles.tabContainer}>
+      <TouchableOpacity
+        style={[styles.tab, activeTab === "summary" && styles.activeTab]}
+        onPress={() => setActiveTab("summary")}
+      >
+        <Ionicons
+          name="document-text-outline"
+          size={20}
+          color={
+            activeTab === "summary"
+              ? theme.colors.primary
+              : theme.colors.textSecondary
+          }
+          style={styles.tabIcon}
+        />
+        <Text
+          variant="body2"
+          weight={activeTab === "summary" ? "semibold" : "regular"}
+          color={
+            activeTab === "summary"
+              ? theme.colors.primary
+              : theme.colors.textSecondary
+          }
+        >
+          Summary
+        </Text>
+      </TouchableOpacity>
+
+      <TouchableOpacity
+        style={[styles.tab, activeTab === "ask" && styles.activeTab]}
+        onPress={() => setActiveTab("ask")}
+      >
+        <Ionicons
+          name="chatbubble-outline"
+          size={20}
+          color={
+            activeTab === "ask"
+              ? theme.colors.primary
+              : theme.colors.textSecondary
+          }
+          style={styles.tabIcon}
+        />
+        <Text
+          variant="body2"
+          weight={activeTab === "ask" ? "semibold" : "regular"}
+          color={
+            activeTab === "ask"
+              ? theme.colors.primary
+              : theme.colors.textSecondary
+          }
+        >
+          Ask Questions
+        </Text>
+
+        {conversations.length > 0 && (
+          <Badge
+            label={conversations.length.toString()}
+            variant="error"
+            size="small"
+            style={styles.conversationBadge}
+          />
+        )}
+      </TouchableOpacity>
+    </View>
+  );
+
+  // Render summary tab content
+  const renderSummaryTab = () => {
+    // If document is not yet analyzed
+    if (document.status !== "analyzed") {
+      return (
+        <MotiView
+          from={{ opacity: 0, scale: 0.95 }}
+          animate={{ opacity: 1, scale: 1 }}
+          transition={{ type: "timing", duration: 400 }}
+          style={styles.notAnalyzedContainer}
+        >
+          <Card style={styles.notAnalyzedCard}>
+            <View style={styles.notAnalyzedContent}>
+              <Ionicons
+                name="analytics-outline"
+                size={64}
+                color={theme.colors.primary}
+              />
+
+              <Text variant="h3" style={styles.notAnalyzedTitle}>
+                Not Yet Analyzed
+              </Text>
+
+              <Text
+                variant="body1"
+                color={theme.colors.textSecondary}
+                style={styles.notAnalyzedDescription}
+              >
+                Analyze this document with AI to get a summary, key points, and
+                actionable insights.
+              </Text>
+
+              <Button
+                label="Analyze Document"
+                onPress={analyzeDocument}
+                gradient={true}
+                loading={analyzing}
+                style={styles.analyzeButton}
+                leftIcon={
+                  !analyzing && (
+                    <Ionicons name="analytics" size={18} color="#FFFFFF" />
+                  )
+                }
+              />
+
+              <View style={styles.tokenCost}>
+                <Ionicons
+                  name="key"
+                  size={14}
+                  color={theme.colors.textSecondary}
+                />
+                <Text
+                  variant="caption"
+                  color={theme.colors.textSecondary}
+                  style={{ marginLeft: 4 }}
+                >
+                  Cost: {TOKEN_COSTS?.DOCUMENT_ANALYSIS || 1} token
+                </Text>
+              </View>
+            </View>
+          </Card>
+        </MotiView>
+      );
+    }
+
+    // Rendered when document is analyzed
+    return (
+      <View style={styles.analysisContainer}>
+        {/* Summary Card */}
+        <MotiView
+          from={{ opacity: 0, translateY: 20 }}
+          animate={{ opacity: 1, translateY: 0 }}
+          transition={{ type: "timing", duration: 300, delay: 0 }}
+        >
+          <AIAnalysisCard
+            analysis={document.analysis}
+            analysisType="summary"
+            style={styles.analysisCard}
+          />
+        </MotiView>
+
+        {/* Key Points Card */}
+        {document.analysis.keyPoints &&
+          document.analysis.keyPoints.length > 0 && (
+            <MotiView
+              from={{ opacity: 0, translateY: 20 }}
+              animate={{ opacity: 1, translateY: 0 }}
+              transition={{ type: "timing", duration: 300, delay: 100 }}
+            >
+              <AIAnalysisCard
+                analysis={document.analysis}
+                analysisType="keyPoints"
+                style={styles.analysisCard}
+              />
+            </MotiView>
           )}
-        </TouchableOpacity>
+
+        {/* Details Card */}
+        {document.analysis.details && (
+          <MotiView
+            from={{ opacity: 0, translateY: 20 }}
+            animate={{ opacity: 1, translateY: 0 }}
+            transition={{ type: "timing", duration: 300, delay: 200 }}
+          >
+            <AIAnalysisCard
+              analysis={document.analysis}
+              analysisType="details"
+              style={styles.analysisCard}
+            />
+          </MotiView>
+        )}
+
+        {/* Recommendations Card */}
+        {document.analysis.recommendations &&
+          document.analysis.recommendations.length > 0 && (
+            <MotiView
+              from={{ opacity: 0, translateY: 20 }}
+              animate={{ opacity: 1, translateY: 0 }}
+              transition={{ type: "timing", duration: 300, delay: 300 }}
+            >
+              <AIAnalysisCard
+                analysis={document.analysis}
+                analysisType="recommendations"
+                style={styles.analysisCard}
+              />
+            </MotiView>
+          )}
       </View>
     );
   };
 
-  // Show error view if document not found
-  if (loading) {
-    return (
-      <SafeAreaView
-        style={[styles.container, { backgroundColor: theme.colors.background }]}
-      >
-        <StatusBar
-          barStyle={isDark ? "light-content" : "dark-content"}
-          backgroundColor="transparent"
-          translucent
-        />
-        <View style={styles.loading}>
-          <Ionicons name="hourglass" size={48} color={theme.colors.primary} />
-          <Text variant="subtitle1" style={{ marginTop: 16 }}>
-            {t("common.loading")}
-          </Text>
-        </View>
-      </SafeAreaView>
-    );
-  }
+  // Render ask tab content
+  const renderAskTab = () => {
+    // Document must be analyzed first
+    if (document.status !== "analyzed") {
+      return (
+        <MotiView
+          from={{ opacity: 0, scale: 0.95 }}
+          animate={{ opacity: 1, scale: 1 }}
+          transition={{ type: "timing", duration: 400 }}
+          style={styles.notAnalyzedContainer}
+        >
+          <Card style={styles.notAnalyzedCard}>
+            <View style={styles.notAnalyzedContent}>
+              <Ionicons
+                name="chatbubbles-outline"
+                size={64}
+                color={theme.colors.primary}
+              />
 
-  if (!document) {
+              <Text variant="h3" style={styles.notAnalyzedTitle}>
+                Analysis Required
+              </Text>
+
+              <Text
+                variant="body1"
+                color={theme.colors.textSecondary}
+                style={styles.notAnalyzedDescription}
+              >
+                You need to analyze the document first before you can ask
+                questions about it.
+              </Text>
+
+              <Button
+                label="Analyze Document"
+                onPress={analyzeDocument}
+                gradient={true}
+                loading={analyzing}
+                style={styles.analyzeButton}
+                leftIcon={
+                  !analyzing && (
+                    <Ionicons name="analytics" size={18} color="#FFFFFF" />
+                  )
+                }
+              />
+            </View>
+          </Card>
+        </MotiView>
+      );
+    }
+
     return (
-      <SafeAreaView
-        style={[styles.container, { backgroundColor: theme.colors.background }]}
-      >
-        <StatusBar
-          barStyle={isDark ? "light-content" : "dark-content"}
-          backgroundColor="transparent"
-          translucent
-        />
-        <View style={styles.errorContainer}>
-          <Ionicons
-            name="alert-circle-outline"
-            size={60}
-            color={theme.colors.error}
-          />
-          <Text variant="h3" style={{ textAlign: "center", marginTop: 16 }}>
-            {t("errors.somethingWentWrong")}
-          </Text>
-          <TouchableOpacity
-            style={[
-              styles.backButton,
-              { backgroundColor: theme.colors.primary },
-            ]}
-            onPress={() => navigation.goBack()}
+      <View style={styles.questionsContainer}>
+        {/* Free questions indicator */}
+        {freeQuestionsCount > 0 && (
+          <MotiView
+            from={{ opacity: 0, scale: 0.95 }}
+            animate={{ opacity: 1, scale: 1 }}
+            transition={{ type: "spring" }}
           >
-            <Text variant="body1" color="white">
-              {t("common.back")}
-            </Text>
-          </TouchableOpacity>
+            <View style={styles.freeQuestionsContainer}>
+              <Badge
+                label={`${freeQuestionsCount} free ${
+                  freeQuestionsCount === 1 ? "question" : "questions"
+                } left`}
+                variant="info"
+                size="small"
+                leftIcon={
+                  <Ionicons
+                    name="information-circle"
+                    size={14}
+                    color={theme.colors.info}
+                  />
+                }
+              />
+            </View>
+          </MotiView>
+        )}
+
+        {/* Conversations list */}
+        <View style={styles.conversationsContainer}>
+          {conversations.length === 0 ? (
+            <MotiView
+              from={{ opacity: 0, scale: 0.95 }}
+              animate={{ opacity: 1, scale: 1 }}
+              transition={{ type: "timing", duration: 400 }}
+            >
+              <Card style={styles.emptyConversationsCard}>
+                <View style={styles.emptyConversationsContent}>
+                  <Ionicons
+                    name="chatbubble-ellipses-outline"
+                    size={64}
+                    color={theme.colors.textSecondary}
+                  />
+
+                  <Text variant="h3" style={styles.emptyConversationsTitle}>
+                    Ask Your First Question
+                  </Text>
+
+                  <Text
+                    variant="body1"
+                    color={theme.colors.textSecondary}
+                    style={styles.emptyConversationsDescription}
+                  >
+                    Ask questions about the document and AI will provide answers
+                    based on its content.
+                  </Text>
+
+                  <View style={styles.firstQuestionExamples}>
+                    <TouchableOpacity
+                      style={[
+                        styles.exampleQuestion,
+                        { backgroundColor: theme.colors.primary + "15" },
+                      ]}
+                      onPress={() =>
+                        setQuestion(
+                          "What are the key findings in this document?"
+                        )
+                      }
+                    >
+                      <Text variant="body2" color={theme.colors.primary}>
+                        What are the key findings?
+                      </Text>
+                    </TouchableOpacity>
+
+                    <TouchableOpacity
+                      style={[
+                        styles.exampleQuestion,
+                        { backgroundColor: theme.colors.primary + "15" },
+                      ]}
+                      onPress={() =>
+                        setQuestion("Can you summarize the main points?")
+                      }
+                    >
+                      <Text variant="body2" color={theme.colors.primary}>
+                        Summarize the main points
+                      </Text>
+                    </TouchableOpacity>
+
+                    <TouchableOpacity
+                      style={[
+                        styles.exampleQuestion,
+                        { backgroundColor: theme.colors.primary + "15" },
+                      ]}
+                      onPress={() =>
+                        setQuestion(
+                          "What recommendations are made in this document?"
+                        )
+                      }
+                    >
+                      <Text variant="body2" color={theme.colors.primary}>
+                        What recommendations are made?
+                      </Text>
+                    </TouchableOpacity>
+                  </View>
+                </View>
+              </Card>
+            </MotiView>
+          ) : (
+            conversations.map((conversation, index) => (
+              <MotiView
+                key={conversation.id}
+                from={{ opacity: 0, translateY: 20 }}
+                animate={{ opacity: 1, translateY: 0 }}
+                transition={{
+                  type: "timing",
+                  duration: 300,
+                  delay: Math.min(index * 100, 500),
+                }}
+                style={styles.conversationItem}
+              >
+                {/* Question */}
+                <View style={styles.questionContainer}>
+                  <View style={styles.questionHeader}>
+                    <Text variant="caption" color={theme.colors.textSecondary}>
+                      You • {formatDate(conversation.createdAt)}{" "}
+                      {getMessageTime(conversation.createdAt)}
+                    </Text>
+                  </View>
+
+                  <View
+                    style={[
+                      styles.questionBubble,
+                      { backgroundColor: theme.colors.primary },
+                    ]}
+                  >
+                    <Text variant="body2" color="#FFFFFF">
+                      {conversation.question}
+                    </Text>
+                  </View>
+                </View>
+
+                {/* Answer */}
+                <View style={styles.answerContainer}>
+                  <View style={styles.answerHeader}>
+                    <Text variant="caption" color={theme.colors.textSecondary}>
+                      AI Assistant
+                    </Text>
+                  </View>
+
+                  <View
+                    style={[
+                      styles.answerBubble,
+                      {
+                        backgroundColor: isDark ? theme.colors.card : "#F0F0F0",
+                        borderColor: conversation.error
+                          ? theme.colors.error + "40"
+                          : "transparent",
+                      },
+                    ]}
+                  >
+                    {conversation.isPending ? (
+                      <View style={styles.pendingAnswer}>
+                        <ActivityIndicator
+                          size="small"
+                          color={theme.colors.primary}
+                        />
+                        <Text
+                          variant="caption"
+                          color={theme.colors.textSecondary}
+                          style={{ marginLeft: 8 }}
+                        >
+                          Thinking...
+                        </Text>
+                      </View>
+                    ) : (
+                      <Text
+                        variant="body2"
+                        color={
+                          conversation.error
+                            ? theme.colors.error
+                            : theme.colors.text
+                        }
+                      >
+                        {conversation.answer}
+                      </Text>
+                    )}
+                  </View>
+                </View>
+              </MotiView>
+            ))
+          )}
         </View>
-      </SafeAreaView>
+      </View>
     );
-  }
+  };
+
+  // Question input field
+  const renderQuestionInput = () => {
+    // Only show if on ask tab and document is analyzed
+    if (activeTab !== "ask" || document.status !== "analyzed") {
+      return null;
+    }
+
+    return (
+      <KeyboardAvoidingView
+        behavior={Platform.OS === "ios" ? "padding" : "height"}
+        keyboardVerticalOffset={Platform.OS === "ios" ? 90 : 0}
+        style={styles.questionInputContainer}
+      >
+        <View
+          style={[
+            styles.questionInputWrapper,
+            {
+              backgroundColor: isDark ? theme.colors.card : "#F0F0F0",
+              borderTopColor: theme.colors.border,
+            },
+          ]}
+        >
+          <View
+            style={[
+              styles.questionInput,
+              { backgroundColor: isDark ? theme.colors.background : "#FFFFFF" },
+            ]}
+          >
+            <TextInput
+              style={[styles.questionTextInput, { color: theme.colors.text }]}
+              placeholder="Ask a question about this document..."
+              placeholderTextColor={theme.colors.textSecondary}
+              value={question}
+              onChangeText={setQuestion}
+              multiline
+              maxLength={280}
+            />
+
+            <TouchableOpacity
+              style={[
+                styles.sendButton,
+                {
+                  backgroundColor: theme.colors.primary,
+                  opacity: !question.trim() || sending ? 0.6 : 1,
+                },
+              ]}
+              onPress={askQuestion}
+              disabled={!question.trim() || sending}
+            >
+              {sending ? (
+                <ActivityIndicator size="small" color="#FFFFFF" />
+              ) : (
+                <Ionicons name="send" size={20} color="#FFFFFF" />
+              )}
+            </TouchableOpacity>
+          </View>
+
+          {freeQuestionsCount <= 0 && (
+            <View style={styles.tokenCostIndicator}>
+              <Ionicons name="key" size={12} color={theme.colors.warning} />
+              <Text
+                variant="caption"
+                color={theme.colors.warning}
+                style={{ marginLeft: 4 }}
+              >
+                {TOKEN_COSTS?.QUESTION || 0.2} tokens per question
+              </Text>
+            </View>
+          )}
+        </View>
+      </KeyboardAvoidingView>
+    );
+  };
 
   return (
     <View
       style={[styles.container, { backgroundColor: theme.colors.background }]}
     >
       <StatusBar
-        barStyle={isDark ? "light-content" : "dark-content"}
+        barStyle="light-content"
         backgroundColor="transparent"
         translucent
       />
 
-      {/* Fixed Header Info */}
-      <View style={styles.fixedContent}>
-        {/* Document Info - Compact Version */}
-        <DocumentInfo
-          document={document}
-          onShare={shareDocument}
-          onDelete={deleteDocument}
-          onBackPress={() => navigation.goBack()}
-          theme={theme}
-        />
+      {renderHeader()}
 
-        {/* Tabs */}
-        {renderTabs()}
-      </View>
+      <Animated.View
+        style={[
+          styles.compactHeader,
+          {
+            backgroundColor: getFileColor() + "BF",
+            transform: [
+              {
+                translateY: scrollY.interpolate({
+                  inputRange: [0, 100, 101],
+                  outputRange: [-100, 0, 0],
+                  extrapolate: "clamp",
+                }),
+              },
+            ],
+          },
+        ]}
+      >
+        <View style={styles.compactHeaderContent}>
+          <TouchableOpacity
+            style={styles.compactBackButton}
+            onPress={() => navigation.goBack()}
+          >
+            <Ionicons name="arrow-back" size={22} color="#FFFFFF" />
+          </TouchableOpacity>
 
-      {/* Main Scrollable Content */}
-      <View style={styles.mainContent}>
-        {activeTab === "summary" ? (
-          <SummaryView
-            document={document}
-            analyzing={analyzing}
-            analyzeDocument={analyzeDocument}
-            theme={theme}
-            t={t}
-            scrollY={scrollY}
-            refreshDocument={refreshDocument}
-            refreshing={refreshing}
-          />
-        ) : (
-          <QuestionsView
-            document={document}
-            conversations={conversations}
-            freeQuestionsCount={freeQuestionsCount}
-            askQuestion={askQuestion}
-            theme={theme}
-            t={t}
-            TOKEN_COSTS={TOKEN_COSTS}
-          />
+          <Text
+            variant="subtitle2"
+            color="#FFFFFF"
+            numberOfLines={1}
+            style={styles.compactTitle}
+          >
+            {document.name}
+          </Text>
+
+          <View style={{ width: 24 }} />
+        </View>
+      </Animated.View>
+
+      {renderTabs()}
+
+      <ScrollView
+        style={styles.content}
+        contentContainerStyle={[
+          styles.contentContainer,
+          { paddingTop: 210 }, // Account for header height
+        ]}
+        showsVerticalScrollIndicator={false}
+        onScroll={Animated.event(
+          [{ nativeEvent: { contentOffset: { y: scrollY } } }],
+          { useNativeDriver: true }
         )}
-      </View>
+        scrollEventThrottle={16}
+      >
+        {activeTab === "summary" ? renderSummaryTab() : renderAskTab()}
+
+        {/* Bottom padding for question input */}
+        <View style={{ height: activeTab === "ask" ? 100 : 20 }} />
+      </ScrollView>
+
+      {renderQuestionInput()}
     </View>
   );
 };
@@ -547,57 +1134,299 @@ const DocumentDetailScreen = ({ route, navigation }) => {
 const styles = StyleSheet.create({
   container: {
     flex: 1,
-    paddingTop: 50,
   },
-  loading: {
+  loadingContainer: {
     flex: 1,
     justifyContent: "center",
     alignItems: "center",
+    paddingTop: 50,
   },
   errorContainer: {
     flex: 1,
     justifyContent: "center",
     alignItems: "center",
-    padding: 24,
+    padding: 20,
+    paddingTop: 50,
+  },
+  header: {
+    position: "absolute",
+    top: 0,
+    left: 0,
+    right: 0,
+    zIndex: 10,
+    overflow: "hidden",
+  },
+  headerGradient: {
+    flex: 1,
+    paddingTop: StatusBar.currentHeight || 40,
+  },
+  headerContent: {
+    flex: 1,
+    paddingHorizontal: 20,
+  },
+  headerTopBar: {
+    flexDirection: "row",
+    justifyContent: "space-between",
+    alignItems: "center",
+    marginTop: 10,
   },
   backButton: {
-    marginTop: 20,
-    paddingVertical: 10,
-    paddingHorizontal: 20,
+    width: 40,
+    height: 40,
+    borderRadius: 20,
+    backgroundColor: "rgba(0,0,0,0.1)",
+    alignItems: "center",
+    justifyContent: "center",
+  },
+  headerActions: {
+    flexDirection: "row",
+  },
+  headerActionButton: {
+    width: 40,
+    height: 40,
+    borderRadius: 20,
+    backgroundColor: "rgba(0,0,0,0.1)",
+    alignItems: "center",
+    justifyContent: "center",
+    marginLeft: 10,
+  },
+  documentInfo: {
+    flexDirection: "row",
+    marginTop: 16,
+  },
+  documentIconContainer: {
+    marginRight: 16,
+  },
+  documentImage: {
+    width: 60,
+    height: 60,
     borderRadius: 8,
   },
-  fixedContent: {
-    zIndex: 1,
-    backgroundColor: (theme) => theme.colors.background,
+  documentIcon: {
+    width: 60,
+    height: 60,
+    borderRadius: 8,
+    alignItems: "center",
+    justifyContent: "center",
   },
-  mainContent: {
+  documentDetails: {
+    flex: 1,
+  },
+  documentTitle: {
+    marginBottom: 6,
+    fontWeight: "600",
+  },
+  documentMeta: {
+    flexDirection: "row",
+    alignItems: "center",
+    marginBottom: 8,
+  },
+  documentBadge: {
+    marginRight: 10,
+  },
+  compactHeader: {
+    position: "absolute",
+    top: 0,
+    left: 0,
+    right: 0,
+    paddingTop: StatusBar.currentHeight || 40,
+    zIndex: 20,
+  },
+  compactHeaderContent: {
+    flexDirection: "row",
+    alignItems: "center",
+    padding: 16,
+  },
+  compactBackButton: {
+    marginRight: 16,
+  },
+  compactTitle: {
     flex: 1,
   },
   tabContainer: {
     flexDirection: "row",
-    marginHorizontal: 16,
-    borderBottomWidth: 1,
+    paddingHorizontal: 16,
+    marginTop: 200, // Space for header
+    position: "absolute",
+    top: 0,
+    left: 0,
+    right: 0,
+    zIndex: 5,
+    backgroundColor: "white",
+    elevation: 2,
+    shadowColor: "#000",
+    shadowOffset: { width: 0, height: 2 },
+    shadowOpacity: 0.1,
+    shadowRadius: 4,
   },
   tab: {
     flex: 1,
-    paddingVertical: 12,
-    alignItems: "center",
     flexDirection: "row",
+    alignItems: "center",
     justifyContent: "center",
+    paddingVertical: 16,
     position: "relative",
   },
-  tabIcon: {
-    marginRight: 6,
+  activeTab: {
+    borderBottomWidth: 2,
+    borderBottomColor: (theme) => theme.colors.primary,
   },
-  conversationCount: {
+  tabIcon: {
+    marginRight: 8,
+  },
+  conversationBadge: {
     position: "absolute",
     top: 8,
-    right: 20,
-    width: 18,
-    height: 18,
-    borderRadius: 9,
-    justifyContent: "center",
+    right: 30,
+  },
+  content: {
+    flex: 1,
+  },
+  contentContainer: {
+    paddingHorizontal: 16,
+    paddingBottom: 20,
+  },
+  notAnalyzedContainer: {
+    marginBottom: 20,
+  },
+  notAnalyzedCard: {
+    padding: 0,
+    overflow: "hidden",
+    borderRadius: 16,
+  },
+  notAnalyzedContent: {
+    padding: 24,
     alignItems: "center",
+  },
+  notAnalyzedTitle: {
+    marginTop: 16,
+    marginBottom: 8,
+  },
+  notAnalyzedDescription: {
+    textAlign: "center",
+    marginBottom: 24,
+  },
+  analyzeButton: {
+    paddingHorizontal: 24,
+  },
+  tokenCost: {
+    flexDirection: "row",
+    alignItems: "center",
+    marginTop: 16,
+  },
+  analysisContainer: {
+    marginBottom: 20,
+  },
+  analysisCard: {
+    marginBottom: 16,
+  },
+  questionsContainer: {
+    marginBottom: 20,
+  },
+  freeQuestionsContainer: {
+    alignItems: "center",
+    marginBottom: 16,
+  },
+  conversationsContainer: {
+    marginBottom: 20,
+  },
+  emptyConversationsCard: {
+    padding: 0,
+    overflow: "hidden",
+    borderRadius: 16,
+  },
+  emptyConversationsContent: {
+    padding: 24,
+    alignItems: "center",
+  },
+  emptyConversationsTitle: {
+    marginTop: 16,
+    marginBottom: 8,
+  },
+  emptyConversationsDescription: {
+    textAlign: "center",
+    marginBottom: 24,
+  },
+  firstQuestionExamples: {
+    width: "100%",
+  },
+  exampleQuestion: {
+    padding: 12,
+    borderRadius: 8,
+    marginBottom: 8,
+  },
+  conversationItem: {
+    marginBottom: 24,
+  },
+  questionContainer: {
+    marginBottom: 2,
+  },
+  questionHeader: {
+    alignItems: "flex-end",
+    marginBottom: 4,
+    paddingRight: 8,
+  },
+  questionBubble: {
+    alignSelf: "flex-end",
+    maxWidth: "85%",
+    padding: 12,
+    borderRadius: 18,
+    borderBottomRightRadius: 4,
+  },
+  answerContainer: {
+    marginTop: 2,
+  },
+  answerHeader: {
+    marginBottom: 4,
+    paddingLeft: 8,
+  },
+  answerBubble: {
+    alignSelf: "flex-start",
+    maxWidth: "85%",
+    padding: 12,
+    borderRadius: 18,
+    borderBottomLeftRadius: 4,
+    borderWidth: 1,
+  },
+  pendingAnswer: {
+    flexDirection: "row",
+    alignItems: "center",
+  },
+  questionInputContainer: {
+    position: "absolute",
+    bottom: 0,
+    left: 0,
+    right: 0,
+  },
+  questionInputWrapper: {
+    borderTopWidth: 1,
+    padding: 8,
+  },
+  questionInput: {
+    flexDirection: "row",
+    alignItems: "center",
+    borderRadius: 24,
+    paddingHorizontal: 16,
+    paddingVertical: 4,
+  },
+  questionTextInput: {
+    flex: 1,
+    height: 40,
+    fontSize: 16,
+  },
+  sendButton: {
+    width: 36,
+    height: 36,
+    borderRadius: 18,
+    alignItems: "center",
+    justifyContent: "center",
+    marginLeft: 8,
+  },
+  tokenCostIndicator: {
+    flexDirection: "row",
+    alignItems: "center",
+    justifyContent: "center",
+    marginTop: 4,
   },
 });
 

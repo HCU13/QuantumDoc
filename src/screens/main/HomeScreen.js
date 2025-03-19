@@ -2,30 +2,25 @@ import React, { useState, useEffect, useRef } from "react";
 import {
   View,
   StyleSheet,
-  FlatList,
+  ScrollView,
   TouchableOpacity,
-  RefreshControl,
+  FlatList,
+  Image,
   StatusBar,
-  Alert,
+  SafeAreaView,
   Animated,
-  Platform,
   Dimensions,
+  RefreshControl,
+  Platform
 } from "react-native";
-import { Ionicons } from "@expo/vector-icons";
 import { LinearGradient } from "expo-linear-gradient";
+import { Ionicons } from "@expo/vector-icons";
+import { MotiView } from "moti";
 import { useTheme } from "../../context/ThemeContext";
 import { useAuth } from "../../context/AuthContext";
 import { useTokens } from "../../context/TokenContext";
-import { useLocalization } from "../../context/LocalizationContext";
-import {
-  Text,
-  Card,
-  Button,
-  DocumentItem,
-  EmptyState,
-  Badge,
-  Loading,
-} from "../../components";
+import { Text, Card, Button, DocumentItem, Badge } from "../../components";
+import documentService from "../../services/documentService";
 
 const { width } = Dimensions.get("window");
 
@@ -33,76 +28,38 @@ const HomeScreen = ({ navigation }) => {
   const { theme, isDark } = useTheme();
   const { user } = useAuth();
   const { tokens } = useTokens();
-  const { t } = useLocalization();
 
+  // State
   const [documents, setDocuments] = useState([]);
+  const [recentDocuments, setRecentDocuments] = useState([]);
   const [loading, setLoading] = useState(true);
   const [refreshing, setRefreshing] = useState(false);
   const [activeFilter, setActiveFilter] = useState("all");
-  const [filteredDocuments, setFilteredDocuments] = useState([]);
 
-  // Animation values
+  // Animation
   const scrollY = useRef(new Animated.Value(0)).current;
-  const fadeAnim = useRef(new Animated.Value(0)).current;
-  const translateAnim = useRef(new Animated.Value(30)).current;
+  const headerHeight = scrollY.interpolate({
+    inputRange: [0, 100],
+    outputRange: [200, 120],
+    extrapolate: "clamp",
+  });
 
   // Load documents
   const loadDocuments = async (showRefresh = false) => {
     try {
-      if (showRefresh) {
-        setRefreshing(true);
-      } else if (!refreshing) {
-        setLoading(true);
+      if (showRefresh) setRefreshing(true);
+      else if (!refreshing) setLoading(true);
+
+      if (user) {
+        // Get user documents from service
+        const userDocs = await documentService.getUserDocuments(user.uid);
+        setDocuments(userDocs);
+
+        // Get recent documents (last 3)
+        setRecentDocuments(userDocs.slice(0, 3));
       }
-
-      // Sample data for UI display
-      const sampleDocuments = [
-        {
-          id: "1",
-          name: "Project Proposal.pdf",
-          type: "application/pdf",
-          size: 2500000,
-          createdAt: new Date(),
-          status: "analyzed",
-          downloadUrl: null,
-        },
-        {
-          id: "2",
-          name: "Financial Report Q2.xlsx",
-          type: "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet",
-          size: 1800000,
-          createdAt: new Date(Date.now() - 86400000), // Yesterday
-          status: "analyzed",
-          downloadUrl: null,
-        },
-        {
-          id: "3",
-          name: "Team Meeting Notes.docx",
-          type: "application/vnd.openxmlformats-officedocument.wordprocessingml.document",
-          size: 500000,
-          createdAt: new Date(Date.now() - 172800000), // 2 days ago
-          status: "uploaded",
-          downloadUrl: null,
-        },
-        {
-          id: "4",
-          name: "Product Diagram.jpg",
-          type: "image/jpeg",
-          size: 3500000,
-          createdAt: new Date(Date.now() - 259200000), // 3 days ago
-          status: "analyzed",
-          downloadUrl: "https://source.unsplash.com/random/800x600/?document",
-        },
-      ];
-
-      setDocuments(sampleDocuments);
-      setFilteredDocuments(sampleDocuments);
     } catch (error) {
       console.error("Error loading documents:", error);
-      Alert.alert(
-        "Error",
-        "Could not load your documents. Please try again later."
-      );
     } finally {
       setLoading(false);
       setRefreshing(false);
@@ -113,190 +70,315 @@ const HomeScreen = ({ navigation }) => {
   const filterDocuments = (filter) => {
     setActiveFilter(filter);
 
-    if (filter === "all") {
-      setFilteredDocuments(documents);
-      return;
-    }
-
-    if (filter === "analyzed") {
-      setFilteredDocuments(
-        documents.filter((doc) => doc.status === "analyzed")
+    if (filter === "all") return documents;
+    if (filter === "analyzed")
+      return documents.filter((doc) => doc.status === "analyzed");
+    if (filter === "images")
+      return documents.filter((doc) => doc.type?.includes("image"));
+    if (filter === "documents")
+      return documents.filter(
+        (doc) =>
+          doc.type?.includes("pdf") ||
+          doc.type?.includes("doc") ||
+          doc.type?.includes("text")
       );
-      return;
-    }
 
-    if (filter === "images") {
-      setFilteredDocuments(
-        documents.filter((doc) => doc.type.includes("image"))
-      );
-      return;
-    }
-
-    if (filter === "documents") {
-      setFilteredDocuments(
-        documents.filter(
-          (doc) =>
-            doc.type.includes("pdf") ||
-            doc.type.includes("word") ||
-            doc.type.includes("document")
-        )
-      );
-      return;
-    }
+    return documents;
   };
 
-  // Initial loading
+  // Initial load
   useEffect(() => {
     loadDocuments();
+  }, [user]);
 
-    // Start entrance animations
-    Animated.parallel([
-      Animated.timing(fadeAnim, {
-        toValue: 1,
-        duration: 600,
-        useNativeDriver: true,
-      }),
-      Animated.timing(translateAnim, {
-        toValue: 0,
-        duration: 600,
-        useNativeDriver: true,
-      }),
-    ]).start();
-  }, []);
-
-  // Update when screen focuses
+  // Refresh when screen is focused
   useEffect(() => {
     const unsubscribe = navigation.addListener("focus", () => {
       loadDocuments();
     });
-
     return unsubscribe;
   }, [navigation]);
 
-  // Document selection
-  const handleSelectDocument = (document) => {
+  // Handle document selection
+  const handleDocumentSelect = (document) => {
     navigation.navigate("DocumentDetail", { documentId: document.id });
   };
 
-  // Navigate to upload screen
-  const goToUpload = () => {
-    navigation.navigate("Upload");
-  };
-
-  // Navigate to scan screen
-  const goToScan = () => {
-    navigation.navigate("Scan");
-  };
-
-  // Header component
+  // Header component with gradient and user info
   const renderHeader = () => (
-    <View style={styles.headerContainer}>
+    <Animated.View style={[styles.header, { height: headerHeight }]}>
       <LinearGradient
-        colors={
-          isDark
-            ? [theme.colors.primary + "80", theme.colors.background]
-            : [theme.colors.primary, theme.colors.background]
-        }
+        colors={[theme.colors.primary, theme.colors.primaryDark]}
         start={{ x: 0, y: 0 }}
-        end={{ x: 0, y: 1 }}
+        end={{ x: 1, y: 1 }}
         style={styles.headerGradient}
       >
-        <View style={styles.headerTopRow}>
-          <View style={styles.logoContainer}>
-            <Text
-              style={[styles.logoText, { color: theme.colors.textInverted }]}
-            >
-              QuantumDoc
-            </Text>
-          </View>
+        <SafeAreaView style={styles.headerContent}>
+          <View style={styles.headerTop}>
+            <View style={styles.welcomeContainer}>
+              <Text variant="h3" color="#FFFFFF" style={styles.welcomeText}>
+                Hello, {user?.displayName?.split(" ")[0] || "User"}
+              </Text>
+              <Text variant="body2" color="rgba(255,255,255,0.8)">
+                {documents.length > 0
+                  ? `You have ${documents.length} document${
+                      documents.length !== 1 ? "s" : ""
+                    }`
+                  : "Start by adding a document"}
+              </Text>
+            </View>
 
-          <View style={styles.headerActions}>
             <TouchableOpacity
-              style={styles.tokenButton}
+              style={styles.tokenBadge}
               onPress={() => navigation.navigate("TokenStore")}
             >
-              <View
-                style={[
-                  styles.tokenBadge,
-                  { backgroundColor: theme.colors.text + "20" },
-                ]}
+              <LinearGradient
+                colors={["rgba(255,255,255,0.3)", "rgba(255,255,255,0.15)"]}
+                style={styles.tokenGradient}
               >
-                <Ionicons name="key" size={14} color={theme.colors.text} />
-                <Text style={[styles.tokenText, { color: theme.colors.text }]}>
+                <Ionicons name="key" size={16} color="#FFFFFF" />
+                <Text
+                  variant="subtitle2"
+                  color="#FFFFFF"
+                  style={styles.tokenText}
+                >
                   {tokens || 0}
                 </Text>
-              </View>
+              </LinearGradient>
             </TouchableOpacity>
-
-            {/* <TouchableOpacity
-              style={styles.profileButton}
-              onPress={() => navigation.navigate("Profile")}
-            >
-              <Ionicons
-                name="person-circle"
-                size={28}
-                color={theme.colors.text}
-              />
-            </TouchableOpacity> */}
           </View>
-        </View>
 
-        <View style={styles.headerTitleContainer}>
-          <Text style={[styles.headerTitle, { color: theme.colors.text }]}>
-            My Documents
-          </Text>
-          <Text
-            style={[styles.headerSubtitle, { color: theme.colors.text + "CC" }]}
-          >
-            {documents.length > 0
-              ? `${documents.length} document${
-                  documents.length !== 1 ? "s" : ""
-                }`
-              : "No documents yet"}
-          </Text>
-        </View>
+          <View style={styles.searchContainer}>
+            <TouchableOpacity
+              style={styles.searchButton}
+              onPress={() => navigation.navigate("Upload")}
+            >
+              <Ionicons name="add" size={22} color={theme.colors.primary} />
+              <Text variant="subtitle2" color={theme.colors.primary}>
+                New Document
+              </Text>
+            </TouchableOpacity>
+          </View>
+        </SafeAreaView>
       </LinearGradient>
+    </Animated.View>
+  );
+
+  // Quick actions section
+  const renderQuickActions = () => (
+    <MotiView
+      from={{ opacity: 0, translateY: 20 }}
+      animate={{ opacity: 1, translateY: 0 }}
+      transition={{ type: "timing", duration: 500 }}
+      style={styles.quickActionsContainer}
+    >
+      <View style={styles.quickActionsRow}>
+        <TouchableOpacity
+          style={[
+            styles.quickActionButton,
+            { backgroundColor: theme.colors.primary + "10" },
+          ]}
+          onPress={() => navigation.navigate("Upload")}
+        >
+          <View
+            style={[
+              styles.actionIcon,
+              { backgroundColor: theme.colors.primary + "20" },
+            ]}
+          >
+            <Ionicons
+              name="cloud-upload-outline"
+              size={24}
+              color={theme.colors.primary}
+            />
+          </View>
+          <Text variant="caption" style={styles.actionText}>
+            Upload
+          </Text>
+        </TouchableOpacity>
+
+        <TouchableOpacity
+          style={[
+            styles.quickActionButton,
+            { backgroundColor: theme.colors.secondary + "10" },
+          ]}
+          onPress={() => navigation.navigate("ScanScreen")}
+        >
+          <View
+            style={[
+              styles.actionIcon,
+              { backgroundColor: theme.colors.secondary + "20" },
+            ]}
+          >
+            <Ionicons
+              name="scan-outline"
+              size={24}
+              color={theme.colors.secondary}
+            />
+          </View>
+          <Text variant="caption" style={styles.actionText}>
+            Scan
+          </Text>
+        </TouchableOpacity>
+
+        <TouchableOpacity
+          style={[
+            styles.quickActionButton,
+            { backgroundColor: theme.colors.info + "10" },
+          ]}
+          onPress={() => navigation.navigate("TokenStore")}
+        >
+          <View
+            style={[
+              styles.actionIcon,
+              { backgroundColor: theme.colors.info + "20" },
+            ]}
+          >
+            <Ionicons name="key-outline" size={24} color={theme.colors.info} />
+          </View>
+          <Text variant="caption" style={styles.actionText}>
+            Tokens
+          </Text>
+        </TouchableOpacity>
+
+        <TouchableOpacity
+          style={[
+            styles.quickActionButton,
+            { backgroundColor: theme.colors.success + "10" },
+          ]}
+          onPress={() => navigation.navigate("Help")}
+        >
+          <View
+            style={[
+              styles.actionIcon,
+              { backgroundColor: theme.colors.success + "20" },
+            ]}
+          >
+            <Ionicons
+              name="help-outline"
+              size={24}
+              color={theme.colors.success}
+            />
+          </View>
+          <Text variant="caption" style={styles.actionText}>
+            Help
+          </Text>
+        </TouchableOpacity>
+      </View>
+    </MotiView>
+  );
+
+  // Recent documents section
+  const renderRecentDocuments = () => (
+    <View style={styles.sectionContainer}>
+      <View style={styles.sectionHeader}>
+        <Text variant="h3" style={styles.sectionTitle}>
+          Recent Documents
+        </Text>
+        {documents.length > 3 && (
+          <TouchableOpacity onPress={() => scrollToAllDocuments()}>
+            <Text variant="body2" color={theme.colors.primary}>
+              See All
+            </Text>
+          </TouchableOpacity>
+        )}
+      </View>
+
+      {recentDocuments.length === 0 ? (
+        <MotiView
+          from={{ opacity: 0, scale: 0.9 }}
+          animate={{ opacity: 1, scale: 1 }}
+          transition={{ type: "timing", duration: 400 }}
+        >
+          <Card style={styles.emptyCard}>
+            <View style={styles.emptyStateContent}>
+              <Ionicons
+                name="document-outline"
+                size={48}
+                color={theme.colors.textSecondary}
+              />
+              <Text
+                variant="subtitle1"
+                style={{ marginTop: 16, marginBottom: 8 }}
+              >
+                No recent documents
+              </Text>
+              <Text
+                variant="body2"
+                color={theme.colors.textSecondary}
+                style={{ textAlign: "center", marginBottom: 16 }}
+              >
+                Your recently accessed documents will appear here
+              </Text>
+              <Button
+                label="Add Document"
+                onPress={() => navigation.navigate("Upload")}
+                gradient={true}
+                size="small"
+              />
+            </View>
+          </Card>
+        </MotiView>
+      ) : (
+        <View style={styles.recentDocumentsContainer}>
+          {recentDocuments.map((document, index) => (
+            <MotiView
+              key={document.id}
+              from={{ opacity: 0, translateX: -20 }}
+              animate={{ opacity: 1, translateX: 0 }}
+              transition={{ delay: index * 100, type: "timing", duration: 400 }}
+              style={styles.recentDocumentItem}
+            >
+              <DocumentItem
+                document={document}
+                onPress={() => handleDocumentSelect(document)}
+              />
+            </MotiView>
+          ))}
+        </View>
+      )}
     </View>
   );
 
-  // Filter tabs
+  // Filter tabs for document categories
   const renderFilterTabs = () => (
-    <Animated.View
-      style={[
-        styles.filterTabsContainer,
-        {
-          opacity: fadeAnim,
-          transform: [{ translateY: translateAnim }],
-          backgroundColor: theme.colors.surface,
-        },
-      ]}
-    >
-      <View style={styles.filterTabs}>
+    <View style={styles.filterTabsContainer}>
+      <ScrollView
+        horizontal
+        showsHorizontalScrollIndicator={false}
+        style={styles.filterScrollView}
+      >
         <TouchableOpacity
           style={[
             styles.filterTab,
             activeFilter === "all" && [
               styles.activeFilterTab,
               {
-                backgroundColor: theme.colors.primary + "10",
-                borderColor: theme.colors.primary + "30",
+                backgroundColor: theme.colors.primary + "15",
+                borderColor: theme.colors.primary,
               },
             ],
-            { borderColor: theme.colors.border },
           ]}
-          onPress={() => filterDocuments("all")}
+          onPress={() => setActiveFilter("all")}
         >
+          <Ionicons
+            name="grid-outline"
+            size={16}
+            color={
+              activeFilter === "all"
+                ? theme.colors.primary
+                : theme.colors.textSecondary
+            }
+          />
           <Text
-            style={[
-              styles.filterTabText,
-              activeFilter === "all" && styles.activeFilterTabText,
-              {
-                color:
-                  activeFilter === "all"
-                    ? theme.colors.primary
-                    : theme.colors.textSecondary,
-              },
-            ]}
+            variant="body2"
+            weight={activeFilter === "all" ? "semibold" : "regular"}
+            color={
+              activeFilter === "all"
+                ? theme.colors.primary
+                : theme.colors.textSecondary
+            }
+            style={styles.filterTabText}
           >
             All
           </Text>
@@ -308,25 +390,31 @@ const HomeScreen = ({ navigation }) => {
             activeFilter === "analyzed" && [
               styles.activeFilterTab,
               {
-                backgroundColor: theme.colors.success + "10",
-                borderColor: theme.colors.success + "30",
+                backgroundColor: theme.colors.success + "15",
+                borderColor: theme.colors.success,
               },
             ],
-            { borderColor: theme.colors.border },
           ]}
-          onPress={() => filterDocuments("analyzed")}
+          onPress={() => setActiveFilter("analyzed")}
         >
+          <Ionicons
+            name="checkmark-circle-outline"
+            size={16}
+            color={
+              activeFilter === "analyzed"
+                ? theme.colors.success
+                : theme.colors.textSecondary
+            }
+          />
           <Text
-            style={[
-              styles.filterTabText,
-              activeFilter === "analyzed" && styles.activeFilterTabText,
-              {
-                color:
-                  activeFilter === "analyzed"
-                    ? theme.colors.success
-                    : theme.colors.textSecondary,
-              },
-            ]}
+            variant="body2"
+            weight={activeFilter === "analyzed" ? "semibold" : "regular"}
+            color={
+              activeFilter === "analyzed"
+                ? theme.colors.success
+                : theme.colors.textSecondary
+            }
+            style={styles.filterTabText}
           >
             Analyzed
           </Text>
@@ -338,25 +426,31 @@ const HomeScreen = ({ navigation }) => {
             activeFilter === "images" && [
               styles.activeFilterTab,
               {
-                backgroundColor: theme.colors.info + "10",
-                borderColor: theme.colors.info + "30",
+                backgroundColor: theme.colors.info + "15",
+                borderColor: theme.colors.info,
               },
             ],
-            { borderColor: theme.colors.border },
           ]}
-          onPress={() => filterDocuments("images")}
+          onPress={() => setActiveFilter("images")}
         >
+          <Ionicons
+            name="image-outline"
+            size={16}
+            color={
+              activeFilter === "images"
+                ? theme.colors.info
+                : theme.colors.textSecondary
+            }
+          />
           <Text
-            style={[
-              styles.filterTabText,
-              activeFilter === "images" && styles.activeFilterTabText,
-              {
-                color:
-                  activeFilter === "images"
-                    ? theme.colors.info
-                    : theme.colors.textSecondary,
-              },
-            ]}
+            variant="body2"
+            weight={activeFilter === "images" ? "semibold" : "regular"}
+            color={
+              activeFilter === "images"
+                ? theme.colors.info
+                : theme.colors.textSecondary
+            }
+            style={styles.filterTabText}
           >
             Images
           </Text>
@@ -368,221 +462,152 @@ const HomeScreen = ({ navigation }) => {
             activeFilter === "documents" && [
               styles.activeFilterTab,
               {
-                backgroundColor: theme.colors.error + "10",
-                borderColor: theme.colors.error + "30",
+                backgroundColor: theme.colors.error + "15",
+                borderColor: theme.colors.error,
               },
             ],
-            { borderColor: theme.colors.border },
           ]}
-          onPress={() => filterDocuments("documents")}
+          onPress={() => setActiveFilter("documents")}
         >
+          <Ionicons
+            name="document-outline"
+            size={16}
+            color={
+              activeFilter === "documents"
+                ? theme.colors.error
+                : theme.colors.textSecondary
+            }
+          />
           <Text
-            style={[
-              styles.filterTabText,
-              activeFilter === "documents" && styles.activeFilterTabText,
-              {
-                color:
-                  activeFilter === "documents"
-                    ? theme.colors.error
-                    : theme.colors.textSecondary,
-              },
-            ]}
+            variant="body2"
+            weight={activeFilter === "documents" ? "semibold" : "regular"}
+            color={
+              activeFilter === "documents"
+                ? theme.colors.error
+                : theme.colors.textSecondary
+            }
+            style={styles.filterTabText}
           >
-            Docs
+            Documents
           </Text>
         </TouchableOpacity>
-      </View>
-    </Animated.View>
+      </ScrollView>
+    </View>
   );
 
-  // Actions card
-  const renderActions = () => (
-    <Animated.View
-      style={[
-        styles.actionsContainer,
-        {
-          opacity: fadeAnim,
-          transform: [{ translateY: translateAnim }],
-        },
-      ]}
-    >
-      <Card style={styles.actionsCard}>
-        <View style={styles.actionRow}>
-          <TouchableOpacity
-            style={[
-              styles.actionButton,
-              {
-                backgroundColor: isDark
-                  ? theme.colors.card
-                  : theme.colors.surface,
-              },
-            ]}
-            onPress={() => navigation.navigate("Upload")}
-          >
-            <View
-              style={[
-                styles.actionIconContainer,
-                { backgroundColor: theme.colors.primary + "20" },
-              ]}
-            >
-              <Ionicons
-                name="cloud-upload-outline"
-                size={22}
-                color={theme.colors.primary}
-              />
-            </View>
-            <Text style={[styles.actionText, { color: theme.colors.text }]}>
-              Upload File
-            </Text>
-          </TouchableOpacity>
-
-          <TouchableOpacity
-            style={[
-              styles.actionButton,
-              {
-                backgroundColor: isDark
-                  ? theme.colors.card
-                  : theme.colors.surface,
-              },
-            ]}
-            onPress={goToScan}
-          >
-            <View
-              style={[
-                styles.actionIconContainer,
-                { backgroundColor: theme.colors.secondary + "20" },
-              ]}
-            >
-              <Ionicons
-                name="scan-outline"
-                size={22}
-                color={theme.colors.secondary}
-              />
-            </View>
-            <Text style={[styles.actionText, { color: theme.colors.text }]}>
-              Scan Document
-            </Text>
-          </TouchableOpacity>
-        </View>
-      </Card>
-    </Animated.View>
-  );
-
-  // Empty state
-  const renderEmptyState = () => (
-    <Animated.View
-      style={[
-        styles.emptyStateContainer,
-        {
-          opacity: fadeAnim,
-          transform: [{ translateY: translateAnim }],
-        },
-      ]}
-    >
-      <Card style={styles.emptyStateCard}>
-        <View style={styles.emptyStateContent}>
-          <View
-            style={[
-              styles.emptyStateIconContainer,
-              { backgroundColor: theme.colors.primary + "10" },
-            ]}
-          >
-            <Ionicons
-              name="document-text-outline"
-              size={60}
-              color={theme.colors.textSecondary}
-            />
-          </View>
-          <Text style={[styles.emptyStateTitle, { color: theme.colors.text }]}>
-            No documents yet
-          </Text>
-          <Text
-            style={[
-              styles.emptyStateDescription,
-              { color: theme.colors.textSecondary },
-            ]}
-          >
-            Upload or scan your first document to get started with AI-powered
-            analysis
-          </Text>
-          <Button
-            label="Upload Document"
-            onPress={goToUpload}
-            style={styles.emptyStateButton}
-            gradient={true}
-          />
-        </View>
-      </Card>
-    </Animated.View>
-  );
-
-  // Document list
-  const renderDocumentsList = () => (
-    <Animated.FlatList
-      data={filteredDocuments}
-      keyExtractor={(item) => item.id}
-      renderItem={({ item, index }) => (
-        <Animated.View
-          style={{
-            opacity: fadeAnim,
-            transform: [
-              {
-                translateY: Animated.multiply(
-                  translateAnim,
-                  new Animated.Value(1 + index * 0.1)
-                ),
-              },
-            ],
-          }}
-        >
-          <DocumentItem
-            document={item}
-            onPress={() => handleSelectDocument(item)}
-            style={styles.documentItem}
-          />
-        </Animated.View>
-      )}
-      contentContainerStyle={styles.documentList}
-      showsVerticalScrollIndicator={false}
-      onScroll={Animated.event(
-        [{ nativeEvent: { contentOffset: { y: scrollY } } }],
-        { useNativeDriver: false }
-      )}
-      scrollEventThrottle={16}
-      refreshControl={
-        <RefreshControl
-          refreshing={refreshing}
-          onRefresh={() => loadDocuments(true)}
-          colors={[theme.colors.primary]}
-          tintColor={theme.colors.primary}
-        />
+  // All documents section
+  const renderAllDocuments = () => {
+    // Filter documents based on active filter
+    const filteredDocs = documents.filter((doc) => {
+      if (activeFilter === "all") return true;
+      if (activeFilter === "analyzed") return doc.status === "analyzed";
+      if (activeFilter === "images") return doc.type?.includes("image");
+      if (activeFilter === "documents") {
+        return (
+          doc.type?.includes("pdf") ||
+          doc.type?.includes("doc") ||
+          doc.type?.includes("text")
+        );
       }
-      ListHeaderComponent={
-        <>
-          {renderHeader()}
-          {renderFilterTabs()}
-          {renderActions()}
-        </>
-      }
-      ListEmptyComponent={renderEmptyState}
-      ListFooterComponent={<View style={{ height: 80 }} />}
-    />
-  );
+      return true;
+    });
 
-  if (loading && !refreshing) {
     return (
-      <View
-        style={[styles.container, { backgroundColor: theme.colors.background }]}
-      >
-        <StatusBar
-          barStyle={isDark ? "light-content" : "dark-content"}
-          backgroundColor="transparent"
-          translucent
-        />
-        <Loading fullScreen text="Loading documents..." />
+      <View style={styles.sectionContainer} id="allDocuments">
+        <View style={styles.sectionHeader}>
+          <Text variant="h3" style={styles.sectionTitle}>
+            My Documents
+          </Text>
+          <Badge
+            label={`${filteredDocs.length} items`}
+            size="small"
+            variant="secondary"
+          />
+        </View>
+
+        {renderFilterTabs()}
+
+        {filteredDocs.length === 0 ? (
+          <MotiView
+            from={{ opacity: 0, scale: 0.9 }}
+            animate={{ opacity: 1, scale: 1 }}
+            transition={{ type: "timing", duration: 400 }}
+          >
+            <Card style={styles.emptyCard}>
+              <View style={styles.emptyStateContent}>
+                <Ionicons
+                  name="folder-open-outline"
+                  size={48}
+                  color={theme.colors.textSecondary}
+                />
+                <Text
+                  variant="subtitle1"
+                  style={{ marginTop: 16, marginBottom: 8 }}
+                >
+                  {activeFilter === "all"
+                    ? "No documents yet"
+                    : `No ${activeFilter} documents`}
+                </Text>
+                <Text
+                  variant="body2"
+                  color={theme.colors.textSecondary}
+                  style={{ textAlign: "center", marginBottom: 16 }}
+                >
+                  {activeFilter === "all"
+                    ? "Start by uploading or scanning a document"
+                    : `Documents in the "${activeFilter}" category will appear here`}
+                </Text>
+                {activeFilter === "all" && (
+                  <Button
+                    label="Add Document"
+                    onPress={() => navigation.navigate("Upload")}
+                    gradient={true}
+                    size="small"
+                  />
+                )}
+              </View>
+            </Card>
+          </MotiView>
+        ) : (
+          <View style={styles.allDocumentsContainer}>
+            {filteredDocs.map((document, index) => (
+              <MotiView
+                key={document.id}
+                from={{ opacity: 0, translateY: 10 }}
+                animate={{ opacity: 1, translateY: 0 }}
+                transition={{
+                  delay: index * 70,
+                  type: "timing",
+                  duration: 300,
+                }}
+                style={styles.documentItemContainer}
+              >
+                <DocumentItem
+                  document={document}
+                  onPress={() => handleDocumentSelect(document)}
+                />
+              </MotiView>
+            ))}
+          </View>
+        )}
       </View>
     );
-  }
+  };
+
+  // Floating add button
+  const renderFloatingButton = () => (
+    <TouchableOpacity
+      style={styles.floatingButton}
+      onPress={() => navigation.navigate("Upload")}
+    >
+      <LinearGradient
+        colors={[theme.colors.primary, theme.colors.primaryDark]}
+        style={styles.floatingButtonGradient}
+      >
+        <Ionicons name="add" size={28} color="#FFFFFF" />
+      </LinearGradient>
+    </TouchableOpacity>
+  );
 
   return (
     <View
@@ -594,7 +619,34 @@ const HomeScreen = ({ navigation }) => {
         translucent
       />
 
-      {renderDocumentsList()}
+      {renderHeader()}
+
+      <ScrollView
+        contentContainerStyle={styles.scrollContent}
+        showsVerticalScrollIndicator={false}
+        refreshControl={
+          <RefreshControl
+            refreshing={refreshing}
+            onRefresh={() => loadDocuments(true)}
+            colors={[theme.colors.primary]}
+            tintColor={theme.colors.primary}
+          />
+        }
+        onScroll={Animated.event(
+          [{ nativeEvent: { contentOffset: { y: scrollY } } }],
+          { useNativeDriver: false }
+        )}
+        scrollEventThrottle={16}
+      >
+        {renderQuickActions()}
+        {renderRecentDocuments()}
+        {renderAllDocuments()}
+
+        {/* Bottom padding for floating button */}
+        <View style={{ height: 100 }} />
+      </ScrollView>
+
+      {renderFloatingButton()}
     </View>
   );
 };
@@ -603,179 +655,184 @@ const styles = StyleSheet.create({
   container: {
     flex: 1,
   },
-  headerContainer: {
+  scrollContent: {
+    paddingTop: 220, // Account for header height
+  },
+  header: {
+    position: "absolute",
+    top: 0,
+    left: 0,
+    right: 0,
+    zIndex: 10,
     overflow: "hidden",
   },
   headerGradient: {
-    paddingTop: Platform.OS === "android" ? StatusBar.currentHeight + 20 : 50,
-    paddingBottom: 30,
+    flex: 1,
+    paddingTop: StatusBar.currentHeight || 40,
+  },
+  headerContent: {
+    flex: 1,
     paddingHorizontal: 20,
   },
-  headerTopRow: {
+  headerTop: {
     flexDirection: "row",
     justifyContent: "space-between",
     alignItems: "center",
-    marginBottom: 20,
+    marginTop: 10,
   },
-  logoContainer: {
-    flexDirection: "row",
-    alignItems: "center",
+  welcomeContainer: {
+    flex: 1,
   },
-  logoText: {
-    fontSize: 22,
-    fontWeight: "700",
+  welcomeText: {
+    marginBottom: 4,
   },
-  headerActions: {
-    flexDirection: "row",
-    alignItems: "center",
-  },
-  tokenButton: {},
   tokenBadge: {
+    borderRadius: 20,
+    overflow: "hidden",
+  },
+  tokenGradient: {
     flexDirection: "row",
     alignItems: "center",
     paddingHorizontal: 12,
-    paddingVertical: 6,
-    borderRadius: 16,
+    paddingVertical: 8,
+    borderRadius: 20,
   },
   tokenText: {
-    fontSize: 14,
-    fontWeight: "600",
-    marginLeft: 6,
+    marginLeft: 8,
   },
-  profileButton: {
-    padding: 2,
+  searchContainer: {
+    marginTop: 20,
+    marginBottom: 10,
   },
-  headerTitleContainer: {
-    marginTop: 5,
-  },
-  headerTitle: {
-    fontSize: 26,
-    fontWeight: "700",
-    marginBottom: 4,
-  },
-  headerSubtitle: {
-    fontSize: 16,
-  },
-  filterTabsContainer: {
-    margin: 16,
-    marginTop: -15,
+  searchButton: {
+    flexDirection: "row",
+    alignItems: "center",
+    justifyContent: "center",
+    backgroundColor: "rgba(255,255,255,0.9)",
+    paddingVertical: 12,
+    paddingHorizontal: 20,
     borderRadius: 12,
-    shadowColor: "#000",
-    shadowOffset: { width: 0, height: 2 },
-    shadowOpacity: 0.05,
-    shadowRadius: 4,
-    elevation: 2,
-    padding: 8,
   },
-  filterTabs: {
+  quickActionsContainer: {
+    marginTop: -60,
+    marginHorizontal: 20,
+    marginBottom: 20,
+    backgroundColor: "white",
+    borderRadius: 16,
+    padding: 16,
+    ...Platform.select({
+      ios: {
+        shadowColor: "#000",
+        shadowOffset: { width: 0, height: 2 },
+        shadowOpacity: 0.1,
+        shadowRadius: 4,
+      },
+      android: {
+        elevation: 3,
+      },
+    }),
+  },
+  quickActionsRow: {
     flexDirection: "row",
     justifyContent: "space-between",
   },
-  filterTab: {
-    flex: 1,
-    paddingVertical: 8,
-    borderRadius: 8,
-    borderWidth: 1,
-    marginHorizontal: 4,
+  quickActionButton: {
     alignItems: "center",
+    padding: 12,
+    borderRadius: 12,
+    width: (width - 80) / 4,
+  },
+  actionIcon: {
+    width: 50,
+    height: 50,
+    borderRadius: 12,
+    alignItems: "center",
+    justifyContent: "center",
+    marginBottom: 8,
+  },
+  actionText: {
+    textAlign: "center",
+  },
+  sectionContainer: {
+    marginBottom: 24,
+    paddingHorizontal: 20,
+  },
+  sectionHeader: {
+    flexDirection: "row",
+    justifyContent: "space-between",
+    alignItems: "center",
+    marginBottom: 16,
+  },
+  sectionTitle: {
+    fontSize: 22,
+  },
+  emptyCard: {
+    padding: 24,
+    alignItems: "center",
+  },
+  emptyStateContent: {
+    alignItems: "center",
+    padding: 16,
+  },
+  recentDocumentsContainer: {
+    marginBottom: 16,
+  },
+  recentDocumentItem: {
+    marginBottom: 12,
+  },
+  filterTabsContainer: {
+    marginBottom: 16,
+  },
+  filterScrollView: {
+    flexDirection: "row",
+  },
+  filterTab: {
+    flexDirection: "row",
+    alignItems: "center",
+    paddingVertical: 8,
+    paddingHorizontal: 16,
+    marginRight: 12,
+    borderRadius: 20,
+    borderWidth: 1,
+    borderColor: "rgba(0,0,0,0.1)",
   },
   activeFilterTab: {
     borderWidth: 1,
   },
   filterTabText: {
-    fontSize: 14,
-    fontWeight: "500",
+    marginLeft: 6,
   },
-  activeFilterTabText: {
-    fontWeight: "600",
-  },
-  actionsContainer: {
-    marginHorizontal: 16,
+  allDocumentsContainer: {
     marginBottom: 16,
   },
-  actionsCard: {
-    padding: 16,
-    borderRadius: 12,
-  },
-  actionRow: {
-    flexDirection: "row",
-    justifyContent: "space-between",
-  },
-  actionButton: {
-    flex: 1,
-    flexDirection: "row",
-    alignItems: "center",
-    padding: 12,
-    borderRadius: 10,
-    marginHorizontal: 4,
-  },
-  actionIconContainer: {
-    width: 40,
-    height: 40,
-    borderRadius: 20,
-    justifyContent: "center",
-    alignItems: "center",
-    marginRight: 12,
-  },
-  actionText: {
-    fontSize: 14,
-    fontWeight: "500",
-  },
-  documentList: {
-    paddingBottom: 80,
-  },
-  documentItem: {
-    marginHorizontal: 16,
+  documentItemContainer: {
     marginBottom: 12,
   },
-  emptyStateContainer: {
-    marginHorizontal: 16,
-    marginTop: 20,
-  },
-  emptyStateCard: {
-    borderRadius: 12,
-  },
-  emptyStateContent: {
-    padding: 24,
-    alignItems: "center",
-  },
-  emptyStateIconContainer: {
-    width: 80,
-    height: 80,
-    borderRadius: 40,
-    justifyContent: "center",
-    alignItems: "center",
-    marginBottom: 16,
-  },
-  emptyStateTitle: {
-    fontSize: 20,
-    fontWeight: "600",
-    marginBottom: 8,
-    textAlign: "center",
-  },
-  emptyStateDescription: {
-    fontSize: 16,
-    textAlign: "center",
-    marginBottom: 24,
-    paddingHorizontal: 16,
-  },
-  emptyStateButton: {
-    minWidth: 200,
-  },
-  fab: {
+  floatingButton: {
     position: "absolute",
-    bottom: 24,
-    right: 24,
-    width: 56,
-    height: 56,
-    borderRadius: 28,
-    elevation: 4,
-    shadowColor: "#000",
-    shadowOffset: { width: 0, height: 2 },
-    shadowOpacity: 0.2,
-    shadowRadius: 3,
+    bottom: 30,
+    right: 30,
+    width: 60,
+    height: 60,
+    borderRadius: 30,
     overflow: "hidden",
-    zIndex: 10,
+    ...Platform.select({
+      ios: {
+        shadowColor: "#000",
+        shadowOffset: { width: 0, height: 4 },
+        shadowOpacity: 0.3,
+        shadowRadius: 4,
+      },
+      android: {
+        elevation: 5,
+      },
+    }),
+  },
+  floatingButtonGradient: {
+    width: "100%",
+    height: "100%",
+    alignItems: "center",
+    justifyContent: "center",
   },
 });
 
