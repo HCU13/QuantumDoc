@@ -57,7 +57,7 @@ const DocumentActionsScreen = ({ navigation }) => {
           "text/plain",
         ],
         copyToCacheDirectory: true,
-      });
+      }); 
 
       if (!result.canceled && result.assets && result.assets.length > 0) {
         const file = result.assets[0];

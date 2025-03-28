@@ -4,8 +4,8 @@ import axios from "axios";
 const CLAUDE_API_URL = "https://api.anthropic.com/v1/messages";
 const CLAUDE_API_KEY =
   process.env.CLAUDE_API_KEY ||
-  "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";
-const CLAUDE_MODEL = "claude-3-haiku-20240307";
+  "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"; // Replace with your actual API key
+const CLAUDE_MODEL = "claude-3-opus-20240229"; // Using the Opus model for best analysis
 
 // Create HTTP client
 const claudeClient = axios.create({
@@ -20,31 +20,41 @@ const claudeClient = axios.create({
 /**
  * AI Service - Handles all AI-related operations using Claude
  */
-export const aiService = {
+const aiService = {
   /**
-   * Analyze text using Claude
-   * @param {string} text - Text to analyze
-   * @returns {Promise<Object>} Analysis results
+   * Analyze document content using Claude
+   * @param {string} text - Document text content
+   * @returns {Promise<Object>} Analysis results with summary, keyPoints, details, recommendations
    */
-  analyzeText: async (text) => {
+  analyzeDocument: async (text) => {
     try {
+      // Truncate text if too long (Claude has token limits)
+      const truncatedText =
+        text.length > 100000 ? text.substring(0, 100000) + "..." : text;
+
       const prompt = `
-        This document needs to be analyzed thoroughly. Please provide:
+You are an AI assistant that specializes in analyzing documents. You've been given the following document to analyze thoroughly.
 
-        1. Summary: 2-3 paragraphs summarizing the main content
-        2. Key Points: 4-7 bullet points highlighting the most important information
-        3. Details: Any specific facts, figures, or important details
-        4. Recommendations: If applicable, suggest actions or next steps
+Please structure your analysis as follows:
+1. Summary: 2-3 paragraphs that capture the main content, purpose, and conclusions of the document.
+2. Key Points: 5-7 bullet points highlighting the most important information in the document.
+3. Details: Notable facts, figures, dates, or specific information that might be valuable to reference.
+4. Recommendations: 3-5 bullet points suggesting actions or next steps based on the document content (if applicable).
 
-        Here's the document:
-        ${text}
+Format your response in a clean JSON structure with these keys: "summary", "keyPoints" (array), "details", "recommendations" (array).
 
-        Please organize your response in JSON format with these keys: summary, keyPoints (as an array), details, and recommendations (as an array).
-      `;
+Here's the document content:
+"""
+${truncatedText}
+"""
+
+Now, provide your comprehensive analysis in valid JSON format:`;
+
+      console.log("Sending document to Claude for analysis...");
 
       const response = await claudeClient.post("", {
         model: CLAUDE_MODEL,
-        max_tokens: 2000,
+        max_tokens: 4000,
         temperature: 0.2,
         messages: [
           {
@@ -54,59 +64,71 @@ export const aiService = {
         ],
       });
 
-      // Parse the response
+      // Extract the text from the response
       const responseText = response.data.content[0].text;
 
+      // Try to parse JSON from the response
       try {
-        // Try to parse as JSON
+        // Find JSON in the response (sometimes Claude might add extra text)
         const jsonMatch = responseText.match(/\{[\s\S]*\}/);
         if (jsonMatch) {
           return JSON.parse(jsonMatch[0]);
         }
-      } catch (parseError) {
-        console.error("Error parsing JSON response:", parseError);
-      }
 
-      // Fallback: Extract sections manually
-      return {
-        summary: extractSection(responseText, "Summary"),
-        keyPoints: extractBulletPoints(
-          extractSection(responseText, "Key Points")
-        ),
-        details: extractSection(responseText, "Details"),
-        recommendations: extractBulletPoints(
-          extractSection(responseText, "Recommendations")
-        ),
-      };
+        // If no match, try parsing the whole response
+        return JSON.parse(responseText);
+      } catch (parseError) {
+        console.error("Error parsing Claude response:", parseError);
+
+        // Fall back to manual extraction if JSON parsing fails
+        return {
+          summary: extractSection(responseText, "Summary"),
+          keyPoints: extractBulletPoints(
+            extractSection(responseText, "Key Points")
+          ),
+          details: extractSection(responseText, "Details"),
+          recommendations: extractBulletPoints(
+            extractSection(responseText, "Recommendations")
+          ),
+        };
+      }
     } catch (error) {
-      console.error("Error calling Claude API for text analysis:", error);
-      throw new Error(`Failed to analyze text: ${error.message}`);
+      console.error("Error calling Claude API for document analysis:", error);
+      throw new Error(`Failed to analyze document: ${error.message}`);
     }
   },
 
   /**
-   * Extract text from an image using OCR
-   * @param {string} imageUrl - URL of the image
+   * Extract text from an image using Claude's vision capabilities
+   * @param {string} base64Image - Base64-encoded image data
    * @returns {Promise<string>} Extracted text
    */
-  extractTextFromImage: async (imageUrl) => {
+  extractTextFromImage: async (base64Image) => {
     try {
-      const prompt = `
-        This is an image. Please extract all visible text from it as accurately as possible.
-        The text should be formatted exactly as it appears in the image, preserving paragraphs,
-        bullet points, and other formatting.
-        
-        Image URL: ${imageUrl}
-      `;
+      const prompt =
+        "Extract all text from this image. Preserve the formatting as much as possible.";
 
       const response = await claudeClient.post("", {
         model: CLAUDE_MODEL,
-        max_tokens: 2000,
+        max_tokens: 4000,
         temperature: 0.2,
         messages: [
           {
             role: "user",
-            content: prompt,
+            content: [
+              {
+                type: "text",
+                text: prompt,
+              },
+              {
+                type: "image",
+                source: {
+                  type: "base64",
+                  media_type: "image/jpeg", // Adjust based on the image type
+                  data: base64Image,
+                },
+              },
+            ],
           },
         ],
       });
@@ -119,78 +141,50 @@ export const aiService = {
   },
 
   /**
-   * Extract text from a PDF document
-   * @param {string} pdfUrl - URL of the PDF
-   * @returns {Promise<string>} Extracted text
+   * Ask a question about a document
+   * @param {string} question - Question to ask
+   * @param {Object} documentContext - Document information and analysis
+   * @returns {Promise<string>} Answer from Claude
    */
-  extractTextFromPdf: async (pdfUrl) => {
+  askDocumentQuestion: async (question, documentContext) => {
     try {
+      // Format the document context for Claude
+      const formattedContext = `
+Document: ${documentContext.name || "Unnamed Document"}
+
+Summary: ${documentContext.analysis?.summary || "No summary available"}
+
+Key Points:
+${
+  documentContext.analysis?.keyPoints?.join("\n- ") || "No key points available"
+}
+
+Details:
+${documentContext.analysis?.details || "No details available"}
+
+Recommendations:
+${
+  documentContext.analysis?.recommendations?.join("\n- ") ||
+  "No recommendations available"
+}
+`;
+
       const prompt = `
-        This is a PDF document. Please extract all visible text from it as accurately as possible.
-        The text should be formatted exactly as it appears in the document, preserving paragraphs,
-        bullet points, and other formatting.
-        
-        PDF URL: ${pdfUrl}
-      `;
+You are a helpful AI assistant that specializes in answering questions about documents. You have been provided with information about a document, and I will ask you a question about it.
+
+Document Context:
+${formattedContext}
+
+Please answer the following question about this document. If the information to answer the question is not in the document context, please state that clearly rather than making up information.
+
+Question: ${question}
+`;
+
+      console.log("Sending question to Claude...");
 
       const response = await claudeClient.post("", {
         model: CLAUDE_MODEL,
         max_tokens: 2000,
-        temperature: 0.2,
-        messages: [
-          {
-            role: "user",
-            content: prompt,
-          },
-        ],
-      });
-
-      return response.data.content[0].text;
-    } catch (error) {
-      console.error("Error extracting text from PDF:", error);
-      throw new Error(`Failed to extract text from PDF: ${error.message}`);
-    }
-  },
-
-  /**
-   * Ask a question about a document
-   * @param {string} question - Question to ask
-   * @param {Object} document - Document object with analysis
-   * @returns {Promise<string>} Answer
-   */
-  askQuestion: async (question, document) => {
-    try {
-      // Combine document content from analysis
-      const documentContext = `
-        Document Title: ${document.name}
-        
-        Summary: ${document.analysis.summary}
-        
-        Key Points: 
-        ${document.analysis.keyPoints?.join("\n") || ""}
-        
-        Details: 
-        ${document.analysis.details || ""}
-        
-        Recommendations:
-        ${document.analysis.recommendations?.join("\n") || ""}
-      `;
-
-      const prompt = `
-        You are an assistant that helps answer questions about documents.
-        
-        Context from the document:
-        ${documentContext}
-        
-        Please answer the following question based only on the information in the document:
-        ${question}
-        
-        If the answer is not in the document or you're not sure, please state that clearly.
-      `;
-
-      const response = await claudeClient.post("", {
-        model: CLAUDE_MODEL,
-        max_tokens: 1000,
         temperature: 0.3,
         messages: [
           {
@@ -208,7 +202,7 @@ export const aiService = {
   },
 };
 
-// Helper functions
+// Helper functions for extracting information when JSON parsing fails
 function extractSection(text, sectionName) {
   const regex = new RegExp(`${sectionName}:(.+?)(?=\\n\\w+:|$)`, "s");
   const match = text.match(regex);
@@ -219,7 +213,7 @@ function extractBulletPoints(text) {
   if (!text) return [];
 
   // Match lines that start with a bullet point (-, *, •, numbers)
-  const bulletPointRegex = /^[ \t]*(?:[-*•]|\d+\.)\s+(.+)$/gm;
+  const bulletPointRegex = /^\s*(?:[-*•]|\d+\.)\s+(.+)$/gm;
   const matches = [];
   let match;
 
@@ -234,3 +228,5 @@ function extractBulletPoints(text) {
 
   return matches;
 }
+
+export default aiService;

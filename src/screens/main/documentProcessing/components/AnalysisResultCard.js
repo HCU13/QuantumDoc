@@ -36,8 +36,8 @@ const AnalysisResultCard = ({ result, onViewDocument }) => {
       </Text>
 
       {/* Result Preview */}
-      <View style={styles.resultPreview}>
-        {/* Summary Section */}
+      {/* <View style={styles.resultPreview}>
+
         <View style={styles.resultSection}>
           <View style={styles.sectionHeader}>
             <Ionicons
@@ -60,7 +60,7 @@ const AnalysisResultCard = ({ result, onViewDocument }) => {
           </Text>
         </View>
 
-        {/* Key Points Preview */}
+
         <View style={styles.resultSection}>
           <View style={styles.sectionHeader}>
             <Ionicons name="list" size={20} color={theme.colors.info} />
@@ -102,7 +102,7 @@ const AnalysisResultCard = ({ result, onViewDocument }) => {
           </View>
         </View>
 
-        {/* Topics/Tags */}
+       
         {result.topics && result.topics.length > 0 && (
           <View style={styles.topicsContainer}>
             <Text
@@ -132,7 +132,7 @@ const AnalysisResultCard = ({ result, onViewDocument }) => {
             </View>
           </View>
         )}
-      </View>
+      </View> */}
 
       {/* View Document Button */}
       <Button

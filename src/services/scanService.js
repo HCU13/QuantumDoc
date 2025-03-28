@@ -2,9 +2,10 @@ import * as FileSystem from "expo-file-system";
 import { manipulateAsync, SaveFormat } from "expo-image-manipulator";
 import { Camera } from "expo-camera";
 import documentService from "./documentService";
+import aiService from "./aiService";
 
 /**
- * Scan Service - Handles camera scanning operations
+ * Scan Service - Handles camera scanning operations and OCR
  */
 const scanService = {
   /**
@@ -47,7 +48,7 @@ const scanService = {
         throw new Error("Invalid photo object");
       }
 
-      // Process the image
+      // Process the image to enhance document quality
       const processedImage = await manipulateAsync(
         photo.uri,
         [
@@ -80,64 +81,83 @@ const scanService = {
   },
 
   /**
-   * Upload a scanned document
-   * @param {Object} photo - Photo object from camera
-   * @param {string} userId - User ID
-   * @param {Function} onProgress - Progress callback
-   * @returns {Promise<Object>} Uploaded document object
+   * Convert image file to base64
+   * @param {string} uri - Image file URI
+   * @returns {Promise<string>} Base64-encoded image data
    */
-  uploadScannedDocument: async (photo, userId, onProgress = () => {}) => {
+  imageToBase64: async (uri) => {
     try {
-      // Process the image
-      const processedImage = await scanService.processImage(photo);
-
-      // Upload the processed image as a document
-      return await documentService.uploadDocument(
-        processedImage,
-        userId,
-        onProgress
-      );
+      const base64 = await FileSystem.readAsStringAsync(uri, {
+        encoding: FileSystem.EncodingType.Base64,
+      });
+      return base64;
     } catch (error) {
-      console.error("Error uploading scanned document:", error);
+      console.error("Error converting image to base64:", error);
       throw error;
     }
   },
 
   /**
-   * Detect text in an image (OCR) using the AI service
-   * This is handled by the aiService's extractTextFromImage method,
-   * but included here for convenience when working with scanned documents
-   * @param {string} imageUri - Local image URI
+   * Extract text from image using Claude's vision capabilities
+   * @param {string} imageUri - Image file URI
    * @returns {Promise<string>} Extracted text
    */
-  detectText: async (imageUri) => {
+  extractTextFromImage: async (imageUri) => {
     try {
-      // This would use aiService.extractTextFromImage in a real implementation
-      // But that requires the image to be accessible via URL
-      // For a local image, we'd need to upload it first or use a different OCR service
+      // Convert image to base64
+      const base64Image = await scanService.imageToBase64(imageUri);
 
-      // For now, we'll return a simulated response
-      console.log("Simulating OCR for image:", imageUri);
-
-      // Simulate processing delay
-      await new Promise((resolve) => setTimeout(resolve, 2000));
-
-      return `
-        Simulated OCR result for ${imageUri}
-        
-        This is a document that contains text that would normally be extracted 
-        by an OCR service. In a real application, you would integrate with 
-        Google Cloud Vision API, Azure Computer Vision, or a similar service.
-        
-        The document appears to contain information about a business agreement
-        between two parties, dated January 15, 2023.
-        
-        Key terms include payment schedules, deliverables, and confidentiality agreements.
-        
-        The document is signed by representatives from both organizations.
-      `;
+      // Use Claude AI service to extract text
+      // Bu gerçek bir Claude entegrasyonu olduğunda burada Claude'un görüntü işleme API'si çağrılır
+      return await aiService.extractTextFromImage(base64Image);
     } catch (error) {
-      console.error("Error detecting text:", error);
+      console.error("Error extracting text from image:", error);
+      throw new Error("Could not extract text from image: " + error.message);
+    }
+  },
+
+  /**
+   * Process and analyze a scanned document
+   * @param {Object} processedImage - Processed image file object
+   * @returns {Promise<Object>} Document analysis result
+   */
+  processScannedDocument: async (processedImage) => {
+    try {
+      // Upload document to Firebase first
+      const uploadedDoc = await documentService.uploadDocument(
+        processedImage.uri,
+        processedImage.name
+      );
+
+      // Convert to base64 for analysis
+      const base64Image = await scanService.imageToBase64(processedImage.uri);
+
+      // Görüntü belgelerinde metin içeriği doğrudan Claude'un anlayabileceği bir formatta olmalı
+      // Bu gösterim amaçlı basit bir metin
+      const dummyText =
+        "Bu bir taranmış belge görüntüsüdür. Claude AI tarafından analiz edilecektir.";
+
+      // Prepare file data object
+      const fileData = {
+        content: dummyText,
+        rawData: base64Image,
+        fileType: "image",
+        name: processedImage.name,
+      };
+
+      // Analyze the document
+      const analysisResult = await documentService.analyzeDocument(
+        uploadedDoc.id,
+        fileData
+      );
+
+      return {
+        document: uploadedDoc,
+        analysis: analysisResult,
+        textContent: dummyText,
+      };
+    } catch (error) {
+      console.error("Error processing scanned document:", error);
       throw error;
     }
   },

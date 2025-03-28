@@ -5,26 +5,16 @@ import {
   SafeAreaView,
   ScrollView,
   TouchableOpacity,
-  Alert,
   KeyboardAvoidingView,
   Platform,
   StatusBar,
 } from "react-native";
-import { LinearGradient } from "expo-linear-gradient";
 import { Ionicons } from "@expo/vector-icons";
-import {
-  updateProfile,
-  updateEmail,
-  updatePassword,
-  EmailAuthProvider,
-  reauthenticateWithCredential,
-} from "firebase/auth";
-import { doc, updateDoc, serverTimestamp } from "firebase/firestore";
 import { showToast } from "../../utils/toast";
 import { useTheme } from "../../context/ThemeContext";
 import { useAuth } from "../../context/AuthContext";
 import { useLocalization } from "../../context/LocalizationContext";
-import { FIREBASE_AUTH, FIRESTORE_DB } from "../../../firebase/FirebaseConfig";
+import firebaseService from "../../services/firebaseService"; // Import the firebase service
 import { Text, Input, Button, Card, Divider, Loading } from "../../components";
 
 const ProfileEditScreen = ({ navigation, route }) => {
@@ -33,8 +23,12 @@ const ProfileEditScreen = ({ navigation, route }) => {
   const { t } = useLocalization();
   const { section = "profile" } = route.params || {};
 
+  // Get user displayName - check both places it might be stored
+  const userDisplayName =
+    user?.displayName || user?.providerData?.[0]?.displayName || "";
+
   // Form states
-  const [displayName, setDisplayName] = useState(user?.displayName || "");
+  const [displayName, setDisplayName] = useState(userDisplayName);
   const [email, setEmail] = useState(user?.email || "");
   const [currentPassword, setCurrentPassword] = useState("");
   const [newPassword, setNewPassword] = useState("");
@@ -44,6 +38,16 @@ const ProfileEditScreen = ({ navigation, route }) => {
   const [loading, setLoading] = useState(false);
   const [errors, setErrors] = useState({});
   const [activeSection, setActiveSection] = useState(section);
+
+  // Refresh form values when user changes
+  useEffect(() => {
+    if (user) {
+      const displayName =
+        user.displayName || user.providerData?.[0]?.displayName || "";
+      setDisplayName(displayName);
+      setEmail(user.email || "");
+    }
+  }, [user]);
 
   useEffect(() => {
     // Set active section from route params
@@ -101,26 +105,27 @@ const ProfileEditScreen = ({ navigation, route }) => {
     if (validateProfileForm()) {
       try {
         setLoading(true);
-        const auth = FIREBASE_AUTH;
-        const currentUser = auth.currentUser;
+        const currentUser = firebaseService.auth.getCurrentUser();
 
         if (!currentUser) {
           throw new Error("User not authenticated");
         }
 
-        // Update display name in Firebase Auth
-        await updateProfile(currentUser, { displayName });
+        // Update profile using firebaseService
+        await firebaseService.auth.updateProfile({
+          displayName,
+        });
 
         // Update email if changed
         if (email !== currentUser.email) {
-          await updateEmail(currentUser, email);
+          await firebaseService.auth.updateEmail(email);
         }
 
-        // Update Firestore document
-        await updateDoc(doc(FIRESTORE_DB, "users", currentUser.uid), {
+        // Update Firestore document using firebaseService
+        await firebaseService.firestore.updateDoc("users", currentUser.uid, {
           displayName,
           email,
-          updatedAt: serverTimestamp(),
+          updatedAt: firebaseService.firestore.getServerTimestamp(),
         });
 
         showToast(
@@ -155,23 +160,17 @@ const ProfileEditScreen = ({ navigation, route }) => {
     if (validatePasswordForm()) {
       try {
         setLoading(true);
-        const auth = FIREBASE_AUTH;
-        const currentUser = auth.currentUser;
+        const currentUser = firebaseService.auth.getCurrentUser();
 
         if (!currentUser) {
           throw new Error("User not authenticated");
         }
 
         // Reauthenticate user first (required for sensitive operations)
-        const credential = EmailAuthProvider.credential(
-          currentUser.email,
-          currentPassword
-        );
+        await firebaseService.auth.reauthenticate(currentPassword);
 
-        await reauthenticateWithCredential(currentUser, credential);
-
-        // Update password
-        await updatePassword(currentUser, newPassword);
+        // Update password using firebaseService
+        await firebaseService.auth.updatePassword(newPassword);
 
         // Clear form fields
         setCurrentPassword("");

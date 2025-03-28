@@ -20,6 +20,7 @@ import FileInfoCard from "./components/FileInfoCard";
 import ProcessingProgress from "./components/ProcessingProgress";
 import AnalysisResultCard from "./components/AnalysisResultCard";
 import DocumentService from "../../../services/documentService";
+import * as FileSystem from "expo-file-system";
 
 const DocumentProcessingScreen = ({ route, navigation }) => {
   const { theme, isDark } = useTheme();
@@ -34,6 +35,8 @@ const DocumentProcessingScreen = ({ route, navigation }) => {
   const [error, setError] = useState(null);
   const [analysisResult, setAnalysisResult] = useState(null);
   const [fileInfo, setFileInfo] = useState(null);
+  const [documentId, setDocumentId] = useState(null);
+  const [fileData, setFileData] = useState(null); // Değişiklik: textContent yerine fileData
 
   // Animation values
   const fadeAnim = useRef(new Animated.Value(0)).current;
@@ -54,9 +57,9 @@ const DocumentProcessingScreen = ({ route, navigation }) => {
       // Generate file info
       const fileInfoData = {
         name: file.name,
-        type: file.mimeType,
+        type: file.mimeType || file.type,
         size: formatFileSize(file.size),
-        pages: Math.max(1, Math.floor(file.size / 50000)), // Estimate pages based on size
+        pages: estimatePageCount(file.size, file.mimeType || file.type),
         lastModified: new Date().toLocaleDateString(),
       };
 
@@ -78,6 +81,21 @@ const DocumentProcessingScreen = ({ route, navigation }) => {
     ]).start();
   }, [file]);
 
+  // Estimate page count based on file size and type
+  const estimatePageCount = (size, mimeType) => {
+    if (!size) return 1;
+
+    // Very rough estimate: PDF pages are ~50KB each, images are 1 page
+    if (mimeType?.includes("pdf")) {
+      return Math.max(1, Math.ceil(size / 50000));
+    } else if (mimeType?.includes("image")) {
+      return 1;
+    } else {
+      // Text or other documents
+      return Math.max(1, Math.ceil(size / 30000));
+    }
+  };
+
   // Handle processing stage changes
   useEffect(() => {
     if (processingStage === "uploading" || processingStage === "analyzing") {
@@ -93,7 +111,7 @@ const DocumentProcessingScreen = ({ route, navigation }) => {
   const getFileTypeIcon = () => {
     if (!file) return "document-outline";
 
-    const type = file.mimeType?.toLowerCase() || "";
+    const type = (file.mimeType || file.type || "").toLowerCase();
 
     if (type.includes("pdf")) return "document-text";
     if (type.includes("image")) return "image";
@@ -106,7 +124,7 @@ const DocumentProcessingScreen = ({ route, navigation }) => {
   const getFileTypeColor = () => {
     if (!file) return theme.colors.primary;
 
-    const type = file.mimeType?.toLowerCase() || "";
+    const type = (file.mimeType || file.type || "").toLowerCase();
 
     if (type.includes("pdf")) return theme.colors.error;
     if (type.includes("image")) return theme.colors.info;
@@ -116,11 +134,63 @@ const DocumentProcessingScreen = ({ route, navigation }) => {
     return theme.colors.secondary;
   };
 
-  // Start upload and analysis process
+  // Read file content
+  const readFileContent = async (fileUri) => {
+    try {
+      const type = (file.mimeType || file.type || "").toLowerCase();
+
+      // PDF dosyaları için
+      if (type.includes("pdf")) {
+        // PDF dosyasını base64 olarak oku
+        const base64Content = await FileSystem.readAsStringAsync(fileUri, {
+          encoding: FileSystem.EncodingType.Base64,
+        });
+
+        // PDF içeriğini Firebase'e gönderirken kullanabiliriz
+        return {
+          content: "PDF document content that would be analyzed by Claude",
+          rawData: base64Content,
+          fileType: "pdf",
+        };
+      }
+      // Görüntü dosyaları için
+      else if (type.includes("image")) {
+        // Görüntüleri de base64 olarak oku (OCR için gerekebilir)
+        const base64Image = await FileSystem.readAsStringAsync(fileUri, {
+          encoding: FileSystem.EncodingType.Base64,
+        });
+
+        return {
+          content: "Image content that would be extracted using OCR",
+          rawData: base64Image,
+          fileType: "image",
+        };
+      }
+      // Metin dosyaları için
+      else {
+        // Text dosyalarını normal stringler olarak oku
+        const content = await FileSystem.readAsStringAsync(fileUri);
+        return {
+          content: content || "File content could not be read",
+          rawData: content,
+          fileType: "text",
+        };
+      }
+    } catch (error) {
+      console.error("Error reading file:", error);
+      return {
+        content: `Error reading file: ${error.message}`,
+        error: true,
+      };
+    }
+  };
+
+  // Start document processing
   const startProcessing = async () => {
     try {
       const processingCost = TOKEN_COSTS.DOCUMENT_ANALYSIS;
 
+      // Check if user has enough tokens
       if (!hasEnoughTokens(processingCost) && freeTrialUsed) {
         Alert.alert(
           "Not Enough Tokens",
@@ -136,84 +206,107 @@ const DocumentProcessingScreen = ({ route, navigation }) => {
         return;
       }
 
-      // Start upload
+      // Start upload process
       setProcessingStage("uploading");
+      setProgress(0);
 
-      // Simulate upload progress using documentService
-      let currentProgress = 0;
+      // Simulate progress updates
       const uploadInterval = setInterval(() => {
-        currentProgress += 5;
-        if (currentProgress > 95) {
-          clearInterval(uploadInterval);
-          currentProgress = 100;
+        setProgress((prev) => {
+          const newProgress = prev + 5;
+          if (newProgress >= 95) {
+            clearInterval(uploadInterval);
+            return 100;
+          }
+          return newProgress;
+        });
+      }, 100);
 
-          // Move to analysis stage
-          setTimeout(async () => {
-            setProgress(0);
-            setProcessingStage("analyzing");
+      try {
+        // Upload file to Firebase
+        const uploadedDoc = await DocumentService.uploadDocument(
+          file.uri,
+          file.name
+        );
+        setDocumentId(uploadedDoc.id);
+        clearInterval(uploadInterval);
+        setProgress(100);
 
-            try {
-              // Call DocumentService's uploadDocument function to upload the document
-              const result = await DocumentService.uploadDocument(
-                file.uri,
-                file.name
-              );
+        // Short delay before moving to analysis
+        setTimeout(async () => {
+          setProcessingStage("analyzing");
+          setProgress(0);
 
-              if (result.error) {
-                throw new Error(result.error);
+          // Read the file content for analysis
+          const fileDataResult = await readFileContent(file.uri);
+          setFileData(fileDataResult); // Değişiklik: fileData'yı ayarla
+
+          // Dosya okuma hatası varsa işlemi durdur
+          if (fileDataResult.error) {
+            setProcessingStage("error");
+            setError(`Failed to read file: ${fileDataResult.content}`);
+            return;
+          }
+
+          // Start analysis progress simulation
+          const analysisInterval = setInterval(() => {
+            setProgress((prev) => {
+              const newProgress = prev + 2;
+              if (newProgress >= 95) {
+                clearInterval(analysisInterval);
+                return 95;
               }
+              return newProgress;
+            });
+          }, 100);
 
-              // Simulate document analysis result (replace with actual analysis logic)
-              setTimeout(() => {
-                setAnalysisResult({
-                  summary:
-                    "This document outlines the financial performance for Q2 2024. Revenue increased by 12% compared to the previous quarter, while operating expenses were reduced by 7% through effective cost management.",
-                  keyPoints: [
-                    "Revenue increased by 12% quarter-over-quarter to $3.4M",
-                    "Operating expenses reduced by 7% through cost optimization",
-                    "Gross profit margin improved to 58% from 52%",
-                    "Cash reserves at $4.2M, sufficient for planned Q3 investments",
-                  ],
-                  topics: ["Finance", "Business", "Quarterly Report"],
-                });
-              }, 500);
-
-              // Use token if free trial is used
-              if (!freeTrialUsed) {
-                // Free trial used
-              } else {
-                useToken(processingCost, "analysis");
-              }
-
-              // Complete process
-              setTimeout(() => {
-                setProcessingStage("complete");
-              }, 500);
-            } catch (error) {
-              console.error("Error in processing:", error);
-              setProcessingStage("error");
-              setError(
-                "An error occurred during document processing. Please try again."
-              );
+          try {
+            // Use token if free trial is used
+            if (!freeTrialUsed) {
+              // Just mark free trial as used
+              await useToken(0, "analysis", uploadedDoc.id);
+            } else {
+              // Use actual token
+              await useToken(processingCost, "analysis", uploadedDoc.id);
             }
-          }, 800);
-        }
-        setProgress(currentProgress);
-      }, 80);
+
+            // Analyze document with Claude - fileDataResult nesnesini gönder
+            const analysis = await DocumentService.analyzeDocument(
+              uploadedDoc.id,
+              fileDataResult // Değişiklik: Nesne olarak gönder
+            );
+            setAnalysisResult(analysis);
+
+            // Complete the progress
+            clearInterval(analysisInterval);
+            setProgress(100);
+            setProcessingStage("complete");
+          } catch (analysisError) {
+            console.error("Analysis error:", analysisError);
+            clearInterval(analysisInterval);
+            setProcessingStage("error");
+            setError("Failed to analyze document. Please try again.");
+          }
+        }, 800);
+      } catch (uploadError) {
+        console.error("Upload error:", uploadError);
+        clearInterval(uploadInterval);
+        setProcessingStage("error");
+        setError("Failed to upload document. Please try again.");
+      }
     } catch (error) {
       console.error("Processing error:", error);
       setProcessingStage("error");
-      setError(
-        "An error occurred during document processing. Please try again."
-      );
+      setError("An error occurred. Please try again.");
     }
   };
 
   // View document details after processing
   const viewDocument = () => {
     navigation.navigate("DocumentDetail", {
-      documentId: `doc-${Date.now()}`,
+      documentId: documentId,
       newDocument: true,
+      fileType: fileData?.fileType, // Değişiklik: Dosya tipini ilet
     });
   };
 
@@ -237,7 +330,7 @@ const DocumentProcessingScreen = ({ route, navigation }) => {
             <Button
               label={
                 freeTrialUsed
-                  ? "Process Document (1 Token)"
+                  ? `Process Document (${TOKEN_COSTS.DOCUMENT_ANALYSIS} Token)`
                   : "Process Document (Free Trial)"
               }
               onPress={startProcessing}
@@ -280,6 +373,7 @@ const DocumentProcessingScreen = ({ route, navigation }) => {
           <AnalysisResultCard
             result={analysisResult}
             onViewDocument={viewDocument}
+            fileType={fileData?.fileType} // Değişiklik: Dosya tipini ilet
           />
         );
 
@@ -359,7 +453,6 @@ const DocumentProcessingScreen = ({ route, navigation }) => {
             },
           ]}
         >
-          {/* File Info Card */}
           {fileInfo && (
             <FileInfoCard
               file={file}
@@ -369,7 +462,6 @@ const DocumentProcessingScreen = ({ route, navigation }) => {
             />
           )}
 
-          {/* Processing Area */}
           <Card style={styles.processingCard}>{renderProcessingContent()}</Card>
         </Animated.View>
       </ScrollView>

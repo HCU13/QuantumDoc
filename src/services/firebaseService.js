@@ -5,6 +5,10 @@ import {
   signOut,
   updateProfile,
   sendPasswordResetEmail,
+  updateEmail,
+  updatePassword,
+  EmailAuthProvider,
+  reauthenticateWithCredential,
 } from "firebase/auth";
 
 import {
@@ -139,6 +143,86 @@ const firebaseService = {
      */
     getCurrentUser: () => {
       return auth.currentUser;
+    },
+
+    /**
+     * Update user profile
+     * @param {Object} user - User object
+     * @param {Object} profileData - Profile data to update (displayName, photoURL, etc.)
+     * @returns {Promise<void>}
+     */
+    updateProfile: async (profileData) => {
+      try {
+        const currentUser = auth.currentUser;
+        if (!currentUser) {
+          throw new Error("User not authenticated");
+        }
+        await updateProfile(currentUser, profileData);
+      } catch (error) {
+        console.error("Update profile error:", error);
+        throw error;
+      }
+    },
+
+    /**
+     * Update user email
+     * @param {string} newEmail - New email address
+     * @returns {Promise<void>}
+     */
+    updateEmail: async (newEmail) => {
+      try {
+        const currentUser = auth.currentUser;
+        if (!currentUser) {
+          throw new Error("User not authenticated");
+        }
+        await updateEmail(currentUser, newEmail);
+      } catch (error) {
+        console.error("Update email error:", error);
+        throw error;
+      }
+    },
+
+    /**
+     * Update user password
+     * @param {string} newPassword - New password
+     * @returns {Promise<void>}
+     */
+    updatePassword: async (newPassword) => {
+      try {
+        const currentUser = auth.currentUser;
+        if (!currentUser) {
+          throw new Error("User not authenticated");
+        }
+        await updatePassword(currentUser, newPassword);
+      } catch (error) {
+        console.error("Update password error:", error);
+        throw error;
+      }
+    },
+
+    /**
+     * Reauthenticate user with credentials
+     * @param {string} email - User email
+     * @param {string} password - User password
+     * @returns {Promise<Object>} User credential
+     */
+    reauthenticate: async (password) => {
+      try {
+        const currentUser = auth.currentUser;
+        if (!currentUser) {
+          throw new Error("User not authenticated");
+        }
+
+        const credential = EmailAuthProvider.credential(
+          currentUser.email,
+          password
+        );
+
+        return await reauthenticateWithCredential(currentUser, credential);
+      } catch (error) {
+        console.error("Reauthentication error:", error);
+        throw error;
+      }
     },
   },
 
@@ -295,6 +379,14 @@ const firebaseService = {
         console.error(`Error deleting document from ${collectionName}:`, error);
         throw error;
       }
+    },
+
+    /**
+     * Get server timestamp
+     * @returns {Object} Server timestamp
+     */
+    getServerTimestamp: () => {
+      return serverTimestamp();
     },
   },
 

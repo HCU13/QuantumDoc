@@ -7,6 +7,7 @@ import {
   TouchableOpacity,
   Animated,
   Dimensions,
+  ActivityIndicator,
 } from "react-native";
 import { BlurView } from "expo-blur";
 import { Ionicons } from "@expo/vector-icons";
@@ -14,7 +15,7 @@ import { Text, Button } from "../../../../components";
 
 const { width, height } = Dimensions.get("window");
 
-const ScanPreviewModal = ({ visible, image, onRetake, onUse, theme }) => {
+const ScanPreviewModal = ({ visible, image, onRetake, onUse, theme, processing = false }) => {
   // Animation values
   const fadeAnim = useRef(new Animated.Value(0)).current;
   const scaleAnim = useRef(new Animated.Value(0.9)).current;
@@ -61,7 +62,11 @@ const ScanPreviewModal = ({ visible, image, onRetake, onUse, theme }) => {
             <Text variant="h3" color="#FFFFFF" style={styles.previewTitle}>
               Preview Document
             </Text>
-            <TouchableOpacity style={styles.closeButton} onPress={onRetake}>
+            <TouchableOpacity 
+              style={styles.closeButton} 
+              onPress={onRetake}
+              disabled={processing}
+            >
               <Ionicons name="close" size={24} color="#FFFFFF" />
             </TouchableOpacity>
           </View>
@@ -93,25 +98,39 @@ const ScanPreviewModal = ({ visible, image, onRetake, onUse, theme }) => {
               variant="outline"
               style={[styles.actionButton, styles.retakeButton]}
               textStyle={{ color: "#FFFFFF" }}
+              disabled={processing}
             />
 
-            <Button
-              label="Use Photo"
-              onPress={onUse}
-              gradient={true}
-              style={styles.actionButton}
-              leftIcon={<Ionicons name="checkmark" size={20} color="#FFFFFF" />}
-            />
+            {processing ? (
+              <Button
+                style={styles.actionButton}
+                disabled={true}
+              >
+                <View style={styles.processingButton}>
+                  <ActivityIndicator size="small" color="#FFFFFF" />
+                  <Text color="#FFFFFF" style={styles.processingText}>
+                    Processing...
+                  </Text>
+                </View>
+              </Button>
+            ) : (
+              <Button
+                label="Use Photo"
+                onPress={onUse}
+                gradient={true}
+                style={styles.actionButton}
+                leftIcon={<Ionicons name="checkmark" size={20} color="#FFFFFF" />}
+              />
+            )}
           </View>
 
-          {/* Helpful tip */}
+          {/* AI Processing Explanation */}
           <Text
             variant="caption"
             color="rgba(255,255,255,0.7)"
             style={styles.tip}
           >
-            Tip: Make sure the document is fully within the frame and properly
-            lit
+            Document will be processed by Claude AI for text extraction and analysis
           </Text>
         </Animated.View>
       </View>
@@ -181,6 +200,15 @@ const styles = StyleSheet.create({
   },
   retakeButton: {
     borderColor: "rgba(255,255,255,0.3)",
+  },
+  processingButton: {
+    flexDirection: "row",
+    alignItems: "center",
+    justifyContent: "center",
+    paddingVertical: 12,
+  },
+  processingText: {
+    marginLeft: 8,
   },
   tip: {
     textAlign: "center",

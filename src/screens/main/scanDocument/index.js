@@ -1,31 +1,29 @@
-import React, { useState, useRef, useEffect } from "react";
+import React, { useState, useEffect, useRef } from "react";
 import {
   View,
   StyleSheet,
   TouchableOpacity,
-  Image,
+  Platform,
   StatusBar,
   Animated,
-  Platform,
-  Dimensions,
-  SafeAreaView,
   Alert,
+  SafeAreaView,
 } from "react-native";
 import { Camera } from "expo-camera";
-import { LinearGradient } from "expo-linear-gradient";
 import { BlurView } from "expo-blur";
 import * as Haptics from "expo-haptics";
 import { Ionicons } from "@expo/vector-icons";
 import { useTheme } from "../../../context/ThemeContext";
-import { Text, Button, Card } from "../../../components";
+import { useApp } from "../../../context/AppContext";
+import { Text, Button } from "../../../components";
 import ScannerOverlay from "./components/ScannerOverlay";
 import CaptureButton from "./components/CaptureButton";
 import ScanPreviewModal from "./components/ScanPreviewModal";
-
-const { width, height } = Dimensions.get("window");
+import scanService from "../../../services/scanService";
 
 const ScanDocumentScreen = ({ navigation }) => {
   const { theme, isDark } = useTheme();
+  const { isConnected } = useApp();
 
   // Refs
   const cameraRef = useRef(null);
@@ -37,6 +35,7 @@ const ScanDocumentScreen = ({ navigation }) => {
   const [capturedImage, setCapturedImage] = useState(null);
   const [flashMode, setFlashMode] = useState(Camera.Constants.FlashMode.off);
   const [previewVisible, setPreviewVisible] = useState(false);
+  const [processingImage, setProcessingImage] = useState(false);
 
   // Animations
   const scanLineAnim = useRef(new Animated.Value(0)).current;
@@ -45,6 +44,26 @@ const ScanDocumentScreen = ({ navigation }) => {
   // Request camera permission
   useEffect(() => {
     (async () => {
+      // Check network connectivity
+      if (!isConnected) {
+        Alert.alert(
+          "Offline Mode",
+          "You are currently offline. Document scanning requires an internet connection for analysis.",
+          [
+            { 
+              text: "Continue Anyway", 
+              style: "default" 
+            },
+            { 
+              text: "Go Back", 
+              onPress: () => navigation.goBack(),
+              style: "cancel" 
+            }
+          ]
+        );
+      }
+      
+      // Request camera permission
       const { status } = await Camera.requestCameraPermissionsAsync();
       setHasPermission(status === "granted");
 
@@ -118,21 +137,34 @@ const ScanDocumentScreen = ({ navigation }) => {
   };
 
   // Process the captured image
-  const processImage = () => {
-    // Here we'd normally do image processing, but for now we'll just navigate to the processing screen
+  const processImage = async () => {
+    // Hide preview modal
     setPreviewVisible(false);
-
-    // Create a file-like object from the captured image
-    const file = {
-      uri: capturedImage.uri,
-      name: `scan_${Date.now()}.jpg`,
-      type: "image/jpeg",
-      size: 500000, // Estimate
-      mimeType: "image/jpeg",
-    };
-
-    // Navigate to processing screen
-    navigation.replace("DocumentProcessing", { file });
+    setProcessingImage(true);
+    
+    try {
+      Haptics.notificationAsync(Haptics.NotificationFeedbackType.Success);
+      
+      // Process the image
+      const processedImage = await scanService.processImage(capturedImage);
+      
+      // Navigate to processing screen
+      navigation.replace("DocumentProcessing", { file: processedImage });
+    } catch (error) {
+      console.error("Error processing image:", error);
+      Haptics.notificationAsync(Haptics.NotificationFeedbackType.Error);
+      
+      Alert.alert(
+        "Processing Error",
+        "Failed to process the scanned image. Please try again.",
+        [{ text: "OK" }]
+      );
+      
+      // Go back to scanning
+      setScanStage("scanning");
+    } finally {
+      setProcessingImage(false);
+    }
   };
 
   // Render permission error
@@ -151,42 +183,40 @@ const ScanDocumentScreen = ({ navigation }) => {
       <View
         style={[styles.container, { backgroundColor: theme.colors.background }]}
       >
-        <Card style={styles.permissionCard}>
-          <View style={styles.permissionContent}>
-            <View
-              style={[
-                styles.permissionIcon,
-                { backgroundColor: theme.colors.error + "15" },
-              ]}
-            >
-              <Ionicons
-                name="camera-off"
-                size={40}
-                color={theme.colors.error}
-              />
-            </View>
-
-            <Text variant="h3" style={styles.permissionTitle}>
-              Camera Access Needed
-            </Text>
-
-            <Text
-              variant="body1"
-              color={theme.colors.textSecondary}
-              style={styles.permissionText}
-            >
-              Please enable camera access in your device settings to scan
-              documents.
-            </Text>
-
-            <Button
-              label="Go Back"
-              onPress={() => navigation.goBack()}
-              variant="outline"
-              style={styles.permissionButton}
+        <View style={styles.permissionContent}>
+          <View
+            style={[
+              styles.permissionIcon,
+              { backgroundColor: theme.colors.error + "15" },
+            ]}
+          >
+            <Ionicons
+              name="camera-off"
+              size={40}
+              color={theme.colors.error}
             />
           </View>
-        </Card>
+
+          <Text variant="h3" style={styles.permissionTitle}>
+            Camera Access Needed
+          </Text>
+
+          <Text
+            variant="body1"
+            color={theme.colors.textSecondary}
+            style={styles.permissionText}
+          >
+            Please enable camera access in your device settings to scan
+            documents.
+          </Text>
+
+          <Button
+            label="Go Back"
+            onPress={() => navigation.goBack()}
+            variant="outline"
+            style={styles.permissionButton}
+          />
+        </View>
       </View>
     );
   }
@@ -257,6 +287,16 @@ const ScanDocumentScreen = ({ navigation }) => {
             </Text>
 
             <CaptureButton onPress={takePicture} />
+            
+            {/* Network warning if offline */}
+            {!isConnected && (
+              <View style={styles.offlineWarning}>
+                <Ionicons name="cloud-offline" size={16} color="#FFFFFF" />
+                <Text variant="caption" color="#FFFFFF" style={styles.offlineText}>
+                  You're offline. Document analysis will be limited.
+                </Text>
+              </View>
+            )}
           </View>
         </Animated.View>
       </Camera>
@@ -268,6 +308,7 @@ const ScanDocumentScreen = ({ navigation }) => {
         onRetake={handleRetake}
         onUse={processImage}
         theme={theme}
+        processing={processingImage}
       />
     </View>
   );
@@ -278,13 +319,11 @@ const styles = StyleSheet.create({
     flex: 1,
     backgroundColor: "#000",
   },
-  permissionCard: {
-    margin: 20,
-    padding: 20,
-    borderRadius: 16,
-  },
   permissionContent: {
+    flex: 1,
+    justifyContent: "center",
     alignItems: "center",
+    padding: 20,
   },
   permissionIcon: {
     width: 80,
@@ -352,6 +391,21 @@ const styles = StyleSheet.create({
     paddingVertical: 8,
     borderRadius: 20,
     overflow: "hidden",
+    textShadowColor: "rgba(0,0,0,0.7)",
+    textShadowOffset: { width: 1, height: 1 },
+    textShadowRadius: 2,
+  },
+  offlineWarning: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    backgroundColor: 'rgba(255, 159, 10, 0.7)',
+    paddingHorizontal: 16,
+    paddingVertical: 8,
+    borderRadius: 20,
+    marginTop: 10,
+  },
+  offlineText: {
+    marginLeft: 8,
     textShadowColor: "rgba(0,0,0,0.7)",
     textShadowOffset: { width: 1, height: 1 },
     textShadowRadius: 2,

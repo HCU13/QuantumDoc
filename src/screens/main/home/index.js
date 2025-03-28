@@ -22,7 +22,8 @@ import {
 import { useTheme } from "../../../context/ThemeContext";
 import { useAuth } from "../../../context/AuthContext";
 import { useTokens } from "../../../context/TokenContext";
-import RecentDocumentsList from "./components/RecentDocumentsList";
+import { useApp } from "../../../context/AppContext"; // Ağ durumu için ekle
+
 import CategoryTabs from "./components/CategoryTabs";
 import HomeHeader from "./components/HomeHeader";
 import DocumentService from "../../../services/documentService";
@@ -31,6 +32,7 @@ const HomeScreen = ({ navigation }) => {
   const { theme, isDark } = useTheme();
   const { user } = useAuth();
   const { tokens } = useTokens();
+  const { isConnected } = useApp(); // Ağ durumunu al
 
   // State
   const [documents, setDocuments] = useState([]);
@@ -203,6 +205,18 @@ const HomeScreen = ({ navigation }) => {
               onTokenPress={goToTokenStore}
             />
 
+            {/* Ağ durumu bildirimi */}
+            {!isConnected && (
+              <Card style={styles.offlineCard}>
+                <View style={styles.offlineContent}>
+                  <Ionicons name="cloud-offline" size={24} color="#F59E0B" />
+                  <Text variant="body2" style={styles.offlineText}>
+                    Çevrimdışı modasınız. Bazı özellikler sınırlı olabilir.
+                  </Text>
+                </View>
+              </Card>
+            )}
+
             {/* App Overview - Quick Info Card */}
             <View style={styles.overviewContainer}>
               <Card style={styles.overviewCard}>
@@ -269,10 +283,15 @@ const HomeScreen = ({ navigation }) => {
                     <TouchableOpacity
                       style={styles.addDocButton}
                       onPress={goToDocumentActions}
+                      disabled={!isConnected} // Çevrimdışıyken devre dışı bırak
                     >
                       <Text
                         variant="body2"
-                        color={theme.colors.primary}
+                        color={
+                          isConnected
+                            ? theme.colors.primary
+                            : theme.colors.textSecondary
+                        }
                         weight="semibold"
                       >
                         Add New Document
@@ -280,7 +299,11 @@ const HomeScreen = ({ navigation }) => {
                       <Ionicons
                         name="arrow-forward"
                         size={16}
-                        color={theme.colors.primary}
+                        color={
+                          isConnected
+                            ? theme.colors.primary
+                            : theme.colors.textSecondary
+                        }
                       />
                     </TouchableOpacity>
                   </View>
@@ -360,6 +383,24 @@ const styles = StyleSheet.create({
   documentItem: {
     marginHorizontal: 16,
     marginBottom: 12,
+  },
+  // Çevrimdışı mod kartı için yeni stil
+  offlineCard: {
+    marginHorizontal: 16,
+    marginVertical: 8,
+    backgroundColor: "#FEF3C7",
+    borderLeftWidth: 4,
+    borderLeftColor: "#F59E0B",
+  },
+  offlineContent: {
+    flexDirection: "row",
+    alignItems: "center",
+    padding: 12,
+  },
+  offlineText: {
+    marginLeft: 8,
+    color: "#92400E",
+    flex: 1,
   },
   overviewContainer: {
     paddingHorizontal: 16,

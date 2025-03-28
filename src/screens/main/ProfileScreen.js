@@ -150,10 +150,10 @@ const ProfileScreen = ({ navigation }) => {
         />
         <View style={styles.userInfo}>
           <Text variant="h2" style={styles.userName}>
-            {user?.displayName || "User"}
+            {user?.displayName || user?.providerData?.[0]?.displayName || ""}
           </Text>
           <Text variant="body2" color={theme.colors.textSecondary}>
-            {user?.email || "user@example.com"}
+            {user?.email || ""}
           </Text>
         </View>
       </View>
@@ -260,7 +260,7 @@ const ProfileScreen = ({ navigation }) => {
                     {t("tokens.yourBalance")}
                   </Text>
                   <Text variant="h3" style={styles.tokenCount}>
-                    {tokens || 25} tokens
+                    {tokens} tokens
                   </Text>
                 </View>
               </View>
