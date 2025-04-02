@@ -17,6 +17,7 @@ import HelpScreen from "../screens/main/HelpScreen";
 import AboutScreen from "../screens/main/AboutScreen";
 import ProfileEditScreen from "../screens/main/ProfileEditScreen";
 import DocumentDetailScreen from "../screens/main/DocumentDetailScreen";
+import AllDocumentsScreen from "../screens/main/AllDocumentsScreen";
 
 export const TabBarStyleContext = createContext(null);
 
@@ -29,6 +30,7 @@ function HomeStack() {
       <Stack.Screen name="HomeScreen" component={HomeScreen} />
       <Stack.Screen name="DocumentDetail" component={DocumentDetailScreen} />
       <Stack.Screen name="TokenStore" component={TokenStoreScreen} />
+      <Stack.Screen name="AllDocuments" component={AllDocumentsScreen} />
     </Stack.Navigator>
   );
 }
@@ -82,6 +84,7 @@ function MainNavigator() {
       "ProfileEditScreen",
       "DocumentProcessing",
       "ScanDocument",
+      "AllDocuments",
     ];
     return hiddenScreens.includes(routeName)
       ? { display: "none" }

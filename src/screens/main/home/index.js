@@ -321,13 +321,34 @@ const HomeScreen = ({ navigation }) => {
                 All Documents
               </Text>
 
-              <Badge
-                label={`${filteredDocuments.length} ${
-                  filteredDocuments.length === 1 ? "item" : "items"
-                }`}
-                variant="primary"
-                size="small"
-              />
+              <View style={styles.headerRightContainer}>
+                <Badge
+                  label={`${filteredDocuments.length} ${
+                    filteredDocuments.length === 1 ? "item" : "items"
+                  }`}
+                  variant="primary"
+                  size="small"
+                  style={styles.badge}
+                />
+                
+                <TouchableOpacity
+                  onPress={() => navigation.navigate("AllDocuments")}
+                  style={styles.viewAllButton}
+                >
+                  <Text
+                    variant="body2"
+                    color={theme.colors.primary}
+                    weight="semibold"
+                  >
+                    Tümünü Gör
+                  </Text>
+                  <Ionicons
+                    name="chevron-forward"
+                    size={16}
+                    color={theme.colors.primary}
+                  />
+                </TouchableOpacity>
+              </View>
             </View>
           </>
         }
@@ -442,11 +463,23 @@ const styles = StyleSheet.create({
   },
   documentsHeaderContainer: {
     flexDirection: "row",
-    alignItems: "center",
     justifyContent: "space-between",
+    alignItems: "center",
     paddingHorizontal: 16,
-    marginBottom: 8,
-    marginTop: 8,
+    marginVertical: 16,
+  },
+  headerRightContainer: {
+    flexDirection: "row",
+    alignItems: "center",
+  },
+  badge: {
+    marginRight: 8,
+  },
+  viewAllButton: {
+    flexDirection: "row",
+    alignItems: "center",
+    paddingVertical: 4,
+    paddingHorizontal: 8,
   },
   documentsHeader: {
     fontSize: 18,

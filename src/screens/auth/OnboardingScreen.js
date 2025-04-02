@@ -14,11 +14,14 @@ import { useTheme } from "../../context/ThemeContext";
 import { useNavigation } from "@react-navigation/native";
 const { width, height } = Dimensions.get("window");
 
-const OnboardingScreen = ({ onComplete }) => {
+const OnboardingScreen = ({ onComplete, navigation: propNavigation }) => {
   // State for tracking current page
   const [currentPage, setCurrentPage] = useState(0);
   const { theme } = useTheme();
-  const navigation = useNavigation();
+  // Kullanıcı navigation özelliğini prop olarak geçtiyse onu kullan, geçmediyse useNavigation hook'unu kullan
+  const hookNavigation = useNavigation();
+  const navigation = propNavigation || hookNavigation;
+  
   // Refs
   const flatListRef = useRef(null);
   const fadeAnim = useRef(new Animated.Value(1)).current;
@@ -71,9 +74,14 @@ const OnboardingScreen = ({ onComplete }) => {
         duration: 500,
         useNativeDriver: true,
       }).start(() => {
-        onComplete?.(); // Call the completion callback if provided
-        // Or navigate to login
-        navigation.navigate("Login");
+        // Önce onComplete callback'ini kontrol et
+        if (onComplete) {
+          onComplete();
+        } 
+        // Eğer navigation varsa ve navigate metodu varsa, kullan
+        else if (navigation && navigation.navigate) {
+          navigation.navigate("Login");
+        }
       });
     }
   };
@@ -86,9 +94,14 @@ const OnboardingScreen = ({ onComplete }) => {
       duration: 500,
       useNativeDriver: true,
     }).start(() => {
-      onComplete?.(); // Call the completion callback if provided
-      // Or navigate to login
-      navigation.navigate("Login");
+      // Önce onComplete callback'ini kontrol et
+      if (onComplete) {
+        onComplete();
+      } 
+      // Eğer navigation varsa ve navigate metodu varsa, kullan
+      else if (navigation && navigation.navigate) {
+        navigation.navigate("Login");
+      }
     });
   };
 

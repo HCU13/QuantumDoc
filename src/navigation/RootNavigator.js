@@ -6,6 +6,7 @@ import { useAuth } from "../context/AuthContext";
 import AuthNavigator from "./AuthNavigator";
 import MainNavigator from "./MainNavigator";
 import OnboardingScreen from "../screens/auth/OnboardingScreen";
+import { createStackNavigator } from "@react-navigation/stack";
 
 /**
  * Ana navigasyon kontrolü
@@ -17,6 +18,9 @@ function RootNavigator() {
   const { isAuthenticated, loading } = useAuth();
   const [hasCompletedOnboarding, setHasCompletedOnboarding] = useState(false);
   const [checkingOnboarding, setCheckingOnboarding] = useState(true);
+  
+  // Onboarding için stack navigator
+  const OnboardingStack = createStackNavigator();
 
   // Onboarding durumunu kontrol et
   useEffect(() => {
@@ -60,9 +64,15 @@ function RootNavigator() {
     );
   }
 
-  // Onboarding tamamlanmadıysa, onboarding ekranını göster
+  // Onboarding tamamlanmadıysa, onboarding navigator'ı göster
   if (!hasCompletedOnboarding) {
-    return <OnboardingScreen onComplete={completeOnboarding} />;
+    return (
+      <OnboardingStack.Navigator screenOptions={{ headerShown: false }}>
+        <OnboardingStack.Screen name="OnboardingMain">
+          {props => <OnboardingScreen {...props} onComplete={completeOnboarding} />}
+        </OnboardingStack.Screen>
+      </OnboardingStack.Navigator>
+    );
   }
 
   // Oturum durumuna göre uygun navigator'ı göster
