@@ -45,6 +45,7 @@
     "firebase": "^11.4.0",
     "i18next": "^24.2.2",
     "lottie-react-native": "7.1.0",
+    "metro-react-native-babel-preset": "^0.77.0",
     "moti": "^0.30.0",
     "react": "^18.3.1",
     "react-dom": "18.3.1",
