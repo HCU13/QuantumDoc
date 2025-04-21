@@ -1,35 +1,28 @@
 import React from "react";
 import { createStackNavigator } from "@react-navigation/stack";
-import LoginScreen from "../screens/auth/LoginScreen";
-import RegisterScreen from "../screens/auth/RegisterScreen";
-import ForgotPasswordScreen from "../screens/auth/ForgotPasswordScreen";
-import OnboardingScreen from "../screens/auth/OnboardingScreen";
+
+// Auth Screens
+import Welcome from "../screens/auth/Welcome";
+import Login from "../screens/auth/Login";
+import Register from "../screens/auth/Register";
+import ForgotPassword from "../screens/auth/ForgotPassword";
+
 const Stack = createStackNavigator();
 
-/**
- * Kimlik doğrulama navigasyonu
- * Login, Register ve ForgotPassword ekranlarını içerir
- */
-function AuthNavigator() {
+const AuthNavigator = () => {
   return (
     <Stack.Navigator
-      initialRouteName="Login"
+      initialRouteName="Welcome"
       screenOptions={{
         headerShown: false,
-        cardStyle: { backgroundColor: "white" },
-        // Ekranlar arası geçiş animasyonu
-        transitionSpec: {
-          open: { animation: "timing", config: { duration: 300 } },
-          close: { animation: "timing", config: { duration: 300 } },
-        },
       }}
     >
-      <Stack.Screen name="Login" component={LoginScreen} />
-      <Stack.Screen name="Register" component={RegisterScreen} />
-      <Stack.Screen name="ForgotPassword" component={ForgotPasswordScreen} />
-      <Stack.Screen name="OnboardingScreen" component={OnboardingScreen} />
+      <Stack.Screen name="Welcome" component={Welcome} />
+      <Stack.Screen name="Login" component={Login} />
+      <Stack.Screen name="Register" component={Register} />
+      <Stack.Screen name="ForgotPassword" component={ForgotPassword} />
     </Stack.Navigator>
   );
-}
+};
 
 export default AuthNavigator;
