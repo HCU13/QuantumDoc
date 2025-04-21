@@ -82,18 +82,21 @@ const Login = ({ navigation }) => {
   };
 
   const handleLogin = () => {
-    const isEmailValid = validateEmail();
-    const isPasswordValid = validatePassword();
-
-    if (isEmailValid && isPasswordValid) {
-      setLoading(true);
-      // API çağrısı burada yapılacak
-      setTimeout(() => {
-        setLoading(false);
-        // Başarılı giriş sonrası ana sayfaya yönlendirme
-        // navigation.navigate('Home');
-      }, 1500);
-    }
+    // const isEmailValid = validateEmail();
+    // const isPasswordValid = validatePassword();
+    // if (isEmailValid && isPasswordValid) {
+    //   setLoading(true);
+    //   // API çağrısı burada yapılacak
+    //   setTimeout(() => {
+    //     setLoading(false);
+    //     // Başarılı giriş sonrası ana sayfaya yönlendirme
+    //     // navigation.navigate('Home');
+    //   }, 1500);
+    // }
+    navigation.reset({
+      index: 0,
+      routes: [{ name: "Main" }],
+    });
   };
 
   return (

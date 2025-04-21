@@ -1,4 +1,5 @@
 import { Dimensions } from "react-native";
+import { COLORS } from "./colors";
 
 const { width, height } = Dimensions.get("window");
 
@@ -41,42 +42,29 @@ export const FONTS = {
   body5: { fontFamily: "Inter-Regular", fontSize: SIZES.body5, lineHeight: 22 },
 };
 
-export const getShadows = (isDark) => {
-  const shadowColor = isDark ? "#000000" : "#000000";
-  const shadowOpacityLight = isDark ? 0.2 : 0.1;
-  const shadowOpacityMedium = isDark ? 0.25 : 0.15;
-  const shadowOpacityDark = isDark ? 0.3 : 0.2;
+// Varsayılan sabit gölge değerleri
+export const DEFAULT_SHADOWS = {
+  standard: {
+    shadowColor: "#000",
+    shadowOffset: {
+      width: 0,
+      height: 2,
+    },
+    shadowOpacity: 0.25,
+    shadowRadius: 3.84,
+    elevation: 5,
+  }
+};
 
+export const getShadows = (isDark) => {
   return {
-    light: {
-      shadowColor,
-      shadowOffset: {
-        width: 0,
-        height: 2,
-      },
-      shadowOpacity: shadowOpacityLight,
-      shadowRadius: 3.84,
-      elevation: 2,
-    },
-    medium: {
-      shadowColor,
-      shadowOffset: {
-        width: 0,
-        height: 4,
-      },
-      shadowOpacity: shadowOpacityMedium,
-      shadowRadius: 8,
-      elevation: 4,
-    },
-    dark: {
-      shadowColor,
-      shadowOffset: {
-        width: 0,
-        height: 7,
-      },
-      shadowOpacity: shadowOpacityDark,
-      shadowRadius: 12,
-      elevation: 8,
-    },
+    standard: {
+      ...DEFAULT_SHADOWS.standard,
+      shadowColor: isDark ? "#000000" : "#000000",
+      shadowOpacity: isDark ? 0.25 : 0.25,
+    }
   };
 };
+
+// Doğrudan kullanılabilmesi için varsayılan shadows
+export const SHADOWS = DEFAULT_SHADOWS;

@@ -1,32 +1,21 @@
 import React from "react";
 import { createStackNavigator } from "@react-navigation/stack";
 import AuthNavigator from "./AuthNavigator";
-
-// App ekranları burada import edilecek
-// import HomeScreen from '../screens/home/HomeScreen';
+import MainNavigator from "./MainNavigator";
 
 const Stack = createStackNavigator();
 
 const AppNavigator = () => {
-  // Kullanıcı giriş durumu burada yönetilecek
-  const isAuthenticated = false;
-
   return (
     <Stack.Navigator
       screenOptions={{
         headerShown: false,
       }}
     >
-      {isAuthenticated ? (
-        // Kullanıcı giriş yapmışsa
-        // <Stack.Screen name="Home" component={HomeScreen} />
-        <Stack.Screen name="Auth" component={AuthNavigator} />
-      ) : (
-        // Kullanıcı giriş yapmamışsa
-        <Stack.Screen name="Auth" component={AuthNavigator} />
-      )}
+      <Stack.Screen name="Auth" component={AuthNavigator} />
+      <Stack.Screen name="Main" component={MainNavigator} />
     </Stack.Navigator>
   );
 };
 
-export default AppNavigator;
+export default AppNavigator; 

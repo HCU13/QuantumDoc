@@ -1,13 +1,13 @@
 import React, { createContext, useState, useEffect } from "react";
 import { useColorScheme } from "react-native";
 import { COLORS } from "../constants/colors";
-import { getShadows } from "../constants/theme";
+import { SHADOWS } from "../constants/theme";
 
 // Tema bağlamı oluşturma
 export const ThemeContext = createContext({
   isDark: false,
   colors: COLORS.light,
-  shadows: getShadows(false),
+  shadows: SHADOWS,
   setTheme: () => {},
   toggleTheme: () => {},
 });
@@ -37,7 +37,7 @@ export const ThemeProvider = ({ children }) => {
 
   // Mevcut tema renklerini ve gölgelerini al
   const colors = isDark ? COLORS.dark : COLORS.light;
-  const shadows = getShadows(isDark);
+  const shadows = SHADOWS;
 
   // Tema bağlamı değerleri
   const themeContext = {

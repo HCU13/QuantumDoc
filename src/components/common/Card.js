@@ -8,7 +8,6 @@ const Card = ({
   style,
   onPress,
   disabled = false,
-  shadowType = "medium",
 }) => {
   const { colors, shadows } = useTheme();
   const CardComponent = onPress ? TouchableOpacity : View;
@@ -20,18 +19,13 @@ const Card = ({
       padding: SIZES.padding,
       marginVertical: 10,
       overflow: "hidden",
+      ...shadows.standard,
     },
   });
 
   return (
     <CardComponent
-      style={[
-        cardStyles.card,
-        shadowType === "light" && shadows.light,
-        shadowType === "medium" && shadows.medium,
-        shadowType === "dark" && shadows.dark,
-        style,
-      ]}
+      style={[cardStyles.card, style]}
       onPress={onPress}
       disabled={disabled}
       activeOpacity={0.8}

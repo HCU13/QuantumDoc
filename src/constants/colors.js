@@ -15,9 +15,11 @@ export const COLORS = {
     textPrimary: "#333333",
     textSecondary: "#666666",
     textTertiary: "#999999",
-    gradientStart: "#9B4DFF", // Mor gradient başlangıç
-    gradientMiddle: "#C39FFF", // Mor gradient orta
-    gradientEnd: "#8A4FFF", // Mor gradient bitiş
+    textOnGradient: "#333333", // Gradient arka plan üzerindeki metin rengi
+    textOnPrimary: "#FFFFFF", // Primary renk üzerindeki metin rengi
+    gradientStart: "#FFC6FF", // Açık mod için canlı pastel gradient başlangıç
+    gradientMiddle: "#B5E8FF", // Açık mod için canlı pastel gradient orta
+    gradientEnd: "#FFD6A5", // Açık mod için canlı pastel gradient bitiş
     statusBar: "dark-content", // Status bar içeriği rengi
     border: "#E0E0E0",
   },
@@ -38,6 +40,8 @@ export const COLORS = {
     textPrimary: "#F5F5F5",
     textSecondary: "#DDDDDD",
     textTertiary: "#AAAAAA",
+    textOnGradient: "#FFFFFF", // Gradient arka plan üzerindeki metin rengi
+    textOnPrimary: "#FFFFFF", // Primary renk üzerindeki metin rengi
     gradientStart: "#8A4FFF", // Koyu mod gradient başlangıç
     gradientMiddle: "#A98FFF", // Koyu mod gradient orta
     gradientEnd: "#7535E5", // Koyu mod gradient bitiş

@@ -1,11 +1,10 @@
-import React, { useRef, useState } from "react";
+import React, { useState, useRef } from "react";
 import {
   View,
   StyleSheet,
   FlatList,
   SafeAreaView,
   Dimensions,
-  Animated,
 } from "react-native";
 import GradientBackground from "../../components/common/GradientBackground";
 import WelcomeMessage from "../../components/auth/WelcomeMessage";
@@ -38,13 +37,13 @@ const slides = [
 
 const Welcome = ({ navigation }) => {
   const { colors } = useTheme();
-  const scrollX = useRef(new Animated.Value(0)).current;
   const [currentIndex, setCurrentIndex] = useState(0);
   const flatListRef = useRef(null);
 
   const handleNext = () => {
     if (currentIndex < slides.length - 1) {
       flatListRef.current.scrollToIndex({ index: currentIndex + 1 });
+      setCurrentIndex(currentIndex + 1);
     } else {
       navigation.navigate("Login");
     }
@@ -55,6 +54,10 @@ const Welcome = ({ navigation }) => {
       setCurrentIndex(viewableItems[0].index);
     }
   }).current;
+
+  const viewabilityConfig = {
+    itemVisiblePercentThreshold: 50,
+  };
 
   const styles = StyleSheet.create({
     container: {
@@ -102,11 +105,9 @@ const Welcome = ({ navigation }) => {
           pagingEnabled
           showsHorizontalScrollIndicator={false}
           keyExtractor={(item) => item.key}
-          onScroll={Animated.event(
-            [{ nativeEvent: { contentOffset: { x: scrollX } } }],
-            { useNativeDriver: false }
-          )}
           onViewableItemsChanged={onViewableItemsChanged}
+          viewabilityConfig={viewabilityConfig}
+          scrollEnabled={true}
           renderItem={({ item }) => (
             <View style={styles.slide}>
               <WelcomeMessage
@@ -114,7 +115,7 @@ const Welcome = ({ navigation }) => {
                 subtitle={item.subtitle}
                 showRobot={true}
                 robotSize={180}
-                robotSource={item.image} // 👈 yeni prop
+                robotSource={item.image}
               />
             </View>
           )}
