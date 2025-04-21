@@ -1,30 +1,70 @@
-import React from "react";
-import { View, StyleSheet, Image, SafeAreaView } from "react-native";
-import { SIZES } from "../../constants/theme";
+import React, { useRef, useState } from "react";
+import {
+  View,
+  StyleSheet,
+  FlatList,
+  SafeAreaView,
+  Dimensions,
+  Animated,
+} from "react-native";
 import GradientBackground from "../../components/common/GradientBackground";
 import WelcomeMessage from "../../components/auth/WelcomeMessage";
 import Button from "../../components/common/Button";
+import { SIZES } from "../../constants/theme";
 import useTheme from "../../hooks/useTheme";
+
+const { width } = Dimensions.get("window");
+
+const slides = [
+  {
+    key: "1",
+    title: "Hey Human!",
+    subtitle: "Discover Chat AI about anything you want!",
+    image: require("../../assets/images/robot.png"),
+  },
+  {
+    key: "2",
+    title: "Talk to AI",
+    subtitle: "Chat like never before, get instant responses!",
+    image: require("../../assets/images/robot.png"), // Şimdilik aynı
+  },
+  {
+    key: "3",
+    title: "Save Your Notes",
+    subtitle: "Keep what matters. Let AI help you organize.",
+    image: require("../../assets/images/robot.png"), // Şimdilik aynı
+  },
+];
 
 const Welcome = ({ navigation }) => {
   const { colors } = useTheme();
+  const scrollX = useRef(new Animated.Value(0)).current;
+  const [currentIndex, setCurrentIndex] = useState(0);
+  const flatListRef = useRef(null);
+
+  const handleNext = () => {
+    if (currentIndex < slides.length - 1) {
+      flatListRef.current.scrollToIndex({ index: currentIndex + 1 });
+    } else {
+      navigation.navigate("Login");
+    }
+  };
+
+  const onViewableItemsChanged = useRef(({ viewableItems }) => {
+    if (viewableItems.length > 0) {
+      setCurrentIndex(viewableItems[0].index);
+    }
+  }).current;
 
   const styles = StyleSheet.create({
     container: {
       flex: 1,
-      justifyContent: "space-between",
     },
-    content: {
-      flex: 1,
+    slide: {
+      width,
       justifyContent: "center",
       alignItems: "center",
       paddingHorizontal: SIZES.padding,
-    },
-    logo: {
-      width: 80,
-      height: 80,
-      resizeMode: "contain",
-      marginBottom: 20,
     },
     buttonContainer: {
       width: "100%",
@@ -55,30 +95,47 @@ const Welcome = ({ navigation }) => {
   return (
     <GradientBackground>
       <SafeAreaView style={styles.container}>
-        <View style={styles.content}>
-          <Image
-            source={require("../../assets/images/logo.png")}
-            style={styles.logo}
-          />
-          <WelcomeMessage
-            title="Hey Human!"
-            subtitle="Discover Chat AI about anything you want!"
-            showRobot={true}
-            robotSize={180}
-          />
-        </View>
+        <FlatList
+          ref={flatListRef}
+          data={slides}
+          horizontal
+          pagingEnabled
+          showsHorizontalScrollIndicator={false}
+          keyExtractor={(item) => item.key}
+          onScroll={Animated.event(
+            [{ nativeEvent: { contentOffset: { x: scrollX } } }],
+            { useNativeDriver: false }
+          )}
+          onViewableItemsChanged={onViewableItemsChanged}
+          renderItem={({ item }) => (
+            <View style={styles.slide}>
+              <WelcomeMessage
+                title={item.title}
+                subtitle={item.subtitle}
+                showRobot={true}
+                robotSize={180}
+                robotSource={item.image} // 👈 yeni prop
+              />
+            </View>
+          )}
+        />
 
         <View style={styles.buttonContainer}>
           <View style={styles.stepIndicator}>
-            <View style={styles.activeDot} />
-            <View style={styles.dot} />
-            <View style={styles.dot} />
+            {slides.map((_, i) => (
+              <View
+                key={i}
+                style={i === currentIndex ? styles.activeDot : styles.dot}
+              />
+            ))}
           </View>
 
           <Button
-            title="Continue"
+            title={
+              currentIndex === slides.length - 1 ? "Get Started" : "Continue"
+            }
             gradient
-            onPress={() => navigation.navigate("Login")}
+            onPress={handleNext}
           />
         </View>
       </SafeAreaView>

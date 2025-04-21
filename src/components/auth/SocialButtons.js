@@ -1,10 +1,11 @@
 import React from "react";
 import { View, Text, StyleSheet, TouchableOpacity } from "react-native";
 import { FONTS, SIZES } from "../../constants/theme";
-import { Ionicons, FontAwesome } from "@expo/vector-icons";
+import { FontAwesome } from "@expo/vector-icons";
 import useTheme from "../../hooks/useTheme";
+import GradientBackground from "../../components/common/GradientBackground";
 
-const SocialButton = ({ icon, color, onPress, text }) => {
+const SocialButton = ({ icon, onPress, text }) => {
   const { colors, shadows, isDark } = useTheme();
 
   const styles = StyleSheet.create({
@@ -12,11 +13,11 @@ const SocialButton = ({ icon, color, onPress, text }) => {
       flexDirection: "row",
       alignItems: "center",
       justifyContent: "center",
-      paddingVertical: 12,
+      paddingVertical: 14,
       paddingHorizontal: 20,
-      borderRadius: SIZES.radius,
-      marginVertical: 6,
-      backgroundColor: isDark ? colors.gray : colors.white,
+      borderRadius: SIZES.radius * 1.5,
+      marginVertical: 8,
+      backgroundColor: isDark ? colors.gray : colors.card,
       ...shadows.light,
     },
     icon: {
@@ -24,7 +25,7 @@ const SocialButton = ({ icon, color, onPress, text }) => {
     },
     text: {
       ...FONTS.body4,
-      color: colors.textPrimary,
+      color: colors.textSecondary,
     },
   });
 
@@ -36,18 +37,19 @@ const SocialButton = ({ icon, color, onPress, text }) => {
   );
 };
 
-const SocialButtons = ({ containerStyle }) => {
+const SocialButtonsScreen = () => {
   const { colors, isDark } = useTheme();
 
   const styles = StyleSheet.create({
     container: {
-      width: "100%",
+      flex: 1,
       paddingHorizontal: SIZES.padding,
+      justifyContent: "center",
     },
     dividerContainer: {
       flexDirection: "row",
       alignItems: "center",
-      marginVertical: 20,
+      marginVertical: 24,
     },
     divider: {
       flex: 1,
@@ -65,55 +67,57 @@ const SocialButtons = ({ containerStyle }) => {
   });
 
   return (
-    <View style={[styles.container, containerStyle]}>
-      <View style={styles.dividerContainer}>
-        <View style={styles.divider} />
-        <Text style={styles.dividerText}>Şununla devam et</Text>
-        <View style={styles.divider} />
+    <>
+      <View style={styles.container}>
+        <View style={styles.dividerContainer}>
+          <View style={styles.divider} />
+          <Text style={styles.dividerText}>Şununla devam et</Text>
+          <View style={styles.divider} />
+        </View>
+
+        <View style={styles.buttonsContainer}>
+          <SocialButton
+            icon={
+              <FontAwesome
+                name="google"
+                size={20}
+                color={colors.secondary}
+                style={{ marginRight: 10 }}
+              />
+            }
+            text="Google ile devam et"
+            onPress={() => console.log("Google Sign In")}
+          />
+
+          <SocialButton
+            icon={
+              <FontAwesome
+                name="apple"
+                size={20}
+                color={isDark ? colors.white : colors.black}
+                style={{ marginRight: 10 }}
+              />
+            }
+            text="Apple ile devam et"
+            onPress={() => console.log("Apple Sign In")}
+          />
+
+          <SocialButton
+            icon={
+              <FontAwesome
+                name="facebook"
+                size={20}
+                color={colors.primary}
+                style={{ marginRight: 10 }}
+              />
+            }
+            text="Facebook ile devam et"
+            onPress={() => console.log("Facebook Sign In")}
+          />
+        </View>
       </View>
-
-      <View style={styles.buttonsContainer}>
-        <SocialButton
-          icon={
-            <FontAwesome
-              name="google"
-              size={20}
-              color="#DB4437"
-              style={styles.icon}
-            />
-          }
-          text="Google ile devam et"
-          onPress={() => console.log("Google Sign In")}
-        />
-
-        <SocialButton
-          icon={
-            <FontAwesome
-              name="apple"
-              size={20}
-              color={isDark ? colors.white : colors.black}
-              style={styles.icon}
-            />
-          }
-          text="Apple ile devam et"
-          onPress={() => console.log("Apple Sign In")}
-        />
-
-        <SocialButton
-          icon={
-            <FontAwesome
-              name="facebook"
-              size={20}
-              color="#3b5998"
-              style={styles.icon}
-            />
-          }
-          text="Facebook ile devam et"
-          onPress={() => console.log("Facebook Sign In")}
-        />
-      </View>
-    </View>
+    </>
   );
 };
 
-export default SocialButtons;
+export default SocialButtonsScreen;

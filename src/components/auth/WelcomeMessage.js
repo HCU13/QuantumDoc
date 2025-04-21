@@ -9,6 +9,7 @@ const WelcomeMessage = ({
   showRobot = true,
   robotSize = 150,
   containerStyle,
+  robotSource,
 }) => {
   const { colors } = useTheme();
 
@@ -46,8 +47,9 @@ const WelcomeMessage = ({
       {showRobot && (
         <View style={styles.robotContainer}>
           <Image
-            source={require("../../assets/images/robot.png")}
+            source={robotSource}
             style={styles.robotImage}
+            resizeMode="contain"
           />
         </View>
       )}

@@ -6,7 +6,7 @@ import Header from "../../components/common/Header";
 import Input from "../../components/common/Input";
 import Button from "../../components/common/Button";
 import useTheme from "../../hooks/useTheme";
-
+import GradientBackground from "../../components/common/GradientBackground";
 const ForgotPassword = ({ navigation }) => {
   const [email, setEmail] = useState("");
   const [emailError, setEmailError] = useState("");
@@ -17,7 +17,6 @@ const ForgotPassword = ({ navigation }) => {
   const styles = StyleSheet.create({
     container: {
       flex: 1,
-      backgroundColor: colors.background,
     },
     content: {
       flex: 1,
@@ -70,49 +69,51 @@ const ForgotPassword = ({ navigation }) => {
   };
 
   return (
-    <SafeAreaView style={styles.container}>
-      <Header title="Şifremi Unuttum" />
+    <GradientBackground>
+      <SafeAreaView style={styles.container}>
+        <Header title="Şifremi Unuttum" />
 
-      <View style={styles.content}>
-        <Text style={styles.title}>Şifrenizi mi unuttunuz?</Text>
-        <Text style={styles.subtitle}>
-          Endişelenmeyin! E-posta adresinizi girin, size şifre sıfırlama
-          bağlantısı gönderelim.
-        </Text>
+        <View style={styles.content}>
+          <Text style={styles.title}>Şifrenizi mi unuttunuz?</Text>
+          <Text style={styles.subtitle}>
+            Endişelenmeyin! E-posta adresinizi girin, size şifre sıfırlama
+            bağlantısı gönderelim.
+          </Text>
 
-        <View style={styles.formContainer}>
-          <Input
-            label="E-posta"
-            value={email}
-            onChangeText={setEmail}
-            placeholder="E-posta adresiniz"
-            keyboardType="email-address"
-            error={emailError}
-            icon={
-              <Ionicons
-                name="mail-outline"
-                size={20}
-                color={colors.textSecondary}
-              />
-            }
-          />
+          <View style={styles.formContainer}>
+            <Input
+              label="E-posta"
+              value={email}
+              onChangeText={setEmail}
+              placeholder="E-posta adresiniz"
+              keyboardType="email-address"
+              error={emailError}
+              icon={
+                <Ionicons
+                  name="mail-outline"
+                  size={20}
+                  color={colors.textSecondary}
+                />
+              }
+            />
 
-          <Button
-            title="Şifremi Sıfırla"
-            gradient
-            onPress={handleResetPassword}
-            loading={loading}
-          />
+            <Button
+              title="Şifremi Sıfırla"
+              gradient
+              onPress={handleResetPassword}
+              loading={loading}
+            />
 
-          <Button
-            title="Giriş Sayfasına Dön"
-            outlined
-            onPress={() => navigation.navigate("Login")}
-            containerStyle={{ marginTop: 10 }}
-          />
+            {/* <Button
+              title="Giriş Sayfasına Dön"
+              outlined
+              onPress={() => navigation.navigate("Login")}
+              containerStyle={{ marginTop: 10 }}
+            /> */}
+          </View>
         </View>
-      </View>
-    </SafeAreaView>
+      </SafeAreaView>
+    </GradientBackground>
   );
 };
 

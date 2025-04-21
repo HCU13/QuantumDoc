@@ -8,6 +8,7 @@ import Button from "../../components/common/Button";
 import SocialButtons from "../../components/auth/SocialButtons";
 import AuthFooter from "../../components/auth/AuthFooter";
 import useTheme from "../../hooks/useTheme";
+import GradientBackground from "../../components/common/GradientBackground";
 
 const Register = ({ navigation }) => {
   const [fullName, setFullName] = useState("");
@@ -25,7 +26,6 @@ const Register = ({ navigation }) => {
   const styles = StyleSheet.create({
     container: {
       flex: 1,
-      backgroundColor: colors.background,
     },
     content: {
       flex: 1,
@@ -115,101 +115,103 @@ const Register = ({ navigation }) => {
   };
 
   return (
-    <SafeAreaView style={styles.container}>
-      <Header title="Kaydol" />
+    <GradientBackground>
+      <SafeAreaView style={styles.container}>
+        <Header title="Kaydol" />
 
-      <ScrollView
-        style={styles.content}
-        showsVerticalScrollIndicator={false}
-        keyboardShouldPersistTaps="handled"
-      >
-        <Text style={styles.title}>Hesap Oluşturun</Text>
-        <Text style={styles.subtitle}>
-          AI Asistanınıza erişmek için kaydolun
-        </Text>
+        <ScrollView
+          style={styles.content}
+          showsVerticalScrollIndicator={false}
+          keyboardShouldPersistTaps="handled"
+        >
+          <Text style={styles.title}>Hesap Oluşturun</Text>
+          <Text style={styles.subtitle}>
+            AI Asistanınıza erişmek için kaydolun
+          </Text>
 
-        <View style={styles.formContainer}>
-          <Input
-            label="Ad Soyad"
-            value={fullName}
-            onChangeText={setFullName}
-            placeholder="Adınız ve soyadınız"
-            error={fullNameError}
-            autoCapitalize="words"
-            icon={
-              <Ionicons
-                name="person-outline"
-                size={20}
-                color={colors.textSecondary}
-              />
-            }
+          <View style={styles.formContainer}>
+            <Input
+              label="Ad Soyad"
+              value={fullName}
+              onChangeText={setFullName}
+              placeholder="Adınız ve soyadınız"
+              error={fullNameError}
+              autoCapitalize="words"
+              icon={
+                <Ionicons
+                  name="person-outline"
+                  size={20}
+                  color={colors.textSecondary}
+                />
+              }
+            />
+
+            <Input
+              label="E-posta"
+              value={email}
+              onChangeText={setEmail}
+              placeholder="E-posta adresiniz"
+              keyboardType="email-address"
+              error={emailError}
+              icon={
+                <Ionicons
+                  name="mail-outline"
+                  size={20}
+                  color={colors.textSecondary}
+                />
+              }
+            />
+
+            <Input
+              label="Şifre"
+              value={password}
+              onChangeText={setPassword}
+              placeholder="Şifreniz"
+              secureTextEntry
+              error={passwordError}
+              icon={
+                <Ionicons
+                  name="lock-closed-outline"
+                  size={20}
+                  color={colors.textSecondary}
+                />
+              }
+            />
+
+            <Input
+              label="Şifre Tekrarı"
+              value={confirmPassword}
+              onChangeText={setConfirmPassword}
+              placeholder="Şifrenizi tekrar girin"
+              secureTextEntry
+              error={confirmPasswordError}
+              icon={
+                <Ionicons
+                  name="lock-closed-outline"
+                  size={20}
+                  color={colors.textSecondary}
+                />
+              }
+            />
+
+            <Button
+              title="Kaydol"
+              gradient
+              onPress={handleRegister}
+              loading={loading}
+            />
+          </View>
+
+          <SocialButtons />
+
+          <AuthFooter
+            questionText="Zaten hesabınız var mı?"
+            actionText="Giriş Yapın"
+            onPress={() => navigation.navigate("Login")}
           />
-
-          <Input
-            label="E-posta"
-            value={email}
-            onChangeText={setEmail}
-            placeholder="E-posta adresiniz"
-            keyboardType="email-address"
-            error={emailError}
-            icon={
-              <Ionicons
-                name="mail-outline"
-                size={20}
-                color={colors.textSecondary}
-              />
-            }
-          />
-
-          <Input
-            label="Şifre"
-            value={password}
-            onChangeText={setPassword}
-            placeholder="Şifreniz"
-            secureTextEntry
-            error={passwordError}
-            icon={
-              <Ionicons
-                name="lock-closed-outline"
-                size={20}
-                color={colors.textSecondary}
-              />
-            }
-          />
-
-          <Input
-            label="Şifre Tekrarı"
-            value={confirmPassword}
-            onChangeText={setConfirmPassword}
-            placeholder="Şifrenizi tekrar girin"
-            secureTextEntry
-            error={confirmPasswordError}
-            icon={
-              <Ionicons
-                name="lock-closed-outline"
-                size={20}
-                color={colors.textSecondary}
-              />
-            }
-          />
-
-          <Button
-            title="Kaydol"
-            gradient
-            onPress={handleRegister}
-            loading={loading}
-          />
-        </View>
-
-        <SocialButtons />
-
-        <AuthFooter
-          questionText="Zaten hesabınız var mı?"
-          actionText="Giriş Yapın"
-          onPress={() => navigation.navigate("Login")}
-        />
-      </ScrollView>
-    </SafeAreaView>
+        </ScrollView>
+      </SafeAreaView>
+    </GradientBackground>
   );
 };
 
