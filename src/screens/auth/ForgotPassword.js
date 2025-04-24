@@ -7,6 +7,7 @@ import Input from "../../components/common/Input";
 import Button from "../../components/common/Button";
 import useTheme from "../../hooks/useTheme";
 import GradientBackground from "../../components/common/GradientBackground";
+
 const ForgotPassword = ({ navigation }) => {
   const [email, setEmail] = useState("");
   const [emailError, setEmailError] = useState("");
@@ -17,6 +18,7 @@ const ForgotPassword = ({ navigation }) => {
   const styles = StyleSheet.create({
     container: {
       flex: 1,
+      paddingTop: 25,
     },
     content: {
       flex: 1,
@@ -24,13 +26,13 @@ const ForgotPassword = ({ navigation }) => {
     },
     title: {
       ...FONTS.h2,
-      color: colors.textPrimary,
+      color: colors.textOnGradient,
       marginTop: 20,
       marginBottom: 10,
     },
     subtitle: {
       ...FONTS.body3,
-      color: colors.textSecondary,
+      color: colors.textOnGradient,
       marginBottom: 30,
     },
     formContainer: {
@@ -103,13 +105,6 @@ const ForgotPassword = ({ navigation }) => {
               onPress={handleResetPassword}
               loading={loading}
             />
-
-            {/* <Button
-              title="Giriş Sayfasına Dön"
-              outlined
-              onPress={() => navigation.navigate("Login")}
-              containerStyle={{ marginTop: 10 }}
-            /> */}
           </View>
         </View>
       </SafeAreaView>

@@ -37,8 +37,9 @@ const Input = ({
     },
     label: {
       ...FONTS.body4,
-      color: colors.textPrimary,
+      color: colors.textOnGradient,
       marginBottom: 8,
+      fontWeight: '500',
     },
     inputContainer: {
       flexDirection: 'row',

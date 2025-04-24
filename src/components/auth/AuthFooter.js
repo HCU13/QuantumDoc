@@ -15,12 +15,13 @@ const AuthFooter = ({ questionText, actionText, onPress, containerStyle }) => {
     },
     questionText: {
       ...FONTS.body4,
-      color: colors.textSecondary,
+      color: colors.textOnGradient,
       marginRight: 5,
     },
     actionText: {
       ...FONTS.h4,
       color: colors.primary,
+      fontWeight: "bold",
     },
   });
 

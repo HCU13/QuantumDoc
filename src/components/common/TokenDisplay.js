@@ -62,7 +62,7 @@ const TokenDisplay = ({
     tokenText: {
       ...FONTS.h4,
       fontSize: fontSize,
-      color: "#fff",
+      color: colors.textOnGradient,
       fontWeight: "bold",
     },
     plusButton: {
@@ -75,7 +75,7 @@ const TokenDisplay = ({
       alignItems: "center",
     },
     plusText: {
-      color: "#fff",
+      color: colors.textOnPrimary,
       fontSize: plusSize * 0.7,
       fontWeight: "bold",
       lineHeight: plusSize,

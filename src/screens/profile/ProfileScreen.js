@@ -24,6 +24,7 @@ const ProfileScreen = ({ navigation }) => {
   const styles = StyleSheet.create({
     container: {
       flex: 1,
+      paddingTop: 25,
     },
     content: {
       flex: 1,
@@ -34,6 +35,7 @@ const ProfileScreen = ({ navigation }) => {
       alignItems: "center",
       paddingHorizontal: SIZES.padding,
       height: 60,
+      justifyContent: "space-between",
     },
     backButton: {
       width: 40,
@@ -45,7 +47,7 @@ const ProfileScreen = ({ navigation }) => {
     },
     headerTitle: {
       ...FONTS.h2,
-      color: "#fff",
+      color: colors.textOnGradient,
       flex: 1,
       textAlign: "center",
       marginRight: 40,
@@ -61,7 +63,7 @@ const ProfileScreen = ({ navigation }) => {
     profileImageContainer: {
       width: 120,
       height: 120,
-      borderRadius: 60,
+      borderRadius: 20,
       overflow: "hidden",
       marginBottom: 15,
       borderWidth: 3,
@@ -91,7 +93,7 @@ const ProfileScreen = ({ navigation }) => {
     },
     nameText: {
       ...FONTS.h2,
-      color: "#fff",
+      color: colors.textOnGradient,
       marginBottom: 5,
       fontWeight: "bold",
       textShadowColor: "rgba(0,0,0,0.2)",
@@ -100,7 +102,7 @@ const ProfileScreen = ({ navigation }) => {
     },
     emailText: {
       ...FONTS.body3,
-      color: "#fff",
+      color: colors.textOnGradient,
       marginBottom: 15,
       opacity: 0.8,
     },
@@ -111,7 +113,7 @@ const ProfileScreen = ({ navigation }) => {
     },
     sectionTitle: {
       ...FONTS.h3,
-      color: "#fff",
+      color: colors.textOnGradient,
       marginTop: 25,
       marginBottom: 15,
       fontWeight: "bold",
@@ -140,7 +142,7 @@ const ProfileScreen = ({ navigation }) => {
     },
     menuItemText: {
       ...FONTS.body3,
-      color: "#fff",
+      color: colors.textOnGradient,
       flex: 1,
       marginLeft: 15,
     },
@@ -164,15 +166,19 @@ const ProfileScreen = ({ navigation }) => {
     },
     themeSwitchText: {
       ...FONTS.body3,
-      color: "#fff",
+      color: colors.textOnGradient,
       flex: 1,
       marginLeft: 15,
     },
     versionText: {
       ...FONTS.body5,
-      color: "rgba(255, 255, 255, 0.6)",
+      color: colors.textOnGradient,
+      opacity: 0.6,
       textAlign: "center",
       marginBottom: 20,
+    },
+    tokenContainer: {
+      marginLeft: 10,
     },
   });
 
@@ -180,44 +186,66 @@ const ProfileScreen = ({ navigation }) => {
     {
       id: "tokens",
       title: "Token Yönetimi",
-      icon: <Ionicons name="cash-outline" size={22} color="#fff" />,
+      icon: (
+        <Ionicons name="cash-outline" size={22} color={colors.textOnGradient} />
+      ),
       onPress: () => navigation.navigate("Tokens"),
     },
     {
       id: "account",
       title: "Hesap Bilgileri",
-      icon: <Ionicons name="person-outline" size={22} color="#fff" />,
-      onPress: () => console.log("Hesap Bilgileri"),
+      icon: (
+        <Ionicons
+          name="person-outline"
+          size={22}
+          color={colors.textOnGradient}
+        />
+      ),
+      onPress: () => navigation.navigate("AccountInfo"),
     },
     {
       id: "subscription",
       title: "Abonelik",
-      icon: <Ionicons name="card-outline" size={22} color="#fff" />,
-      onPress: () => console.log("Abonelik"),
+      icon: (
+        <Ionicons name="card-outline" size={22} color={colors.textOnGradient} />
+      ),
+      onPress: () => navigation.navigate("Subscription"),
     },
     {
       id: "language",
       title: "Dil Ayarları",
-      icon: <Ionicons name="language-outline" size={22} color="#fff" />,
-      onPress: () => console.log("Dil Ayarları"),
-    },
-    {
-      id: "notifications",
-      title: "Bildirimler",
-      icon: <Ionicons name="notifications-outline" size={22} color="#fff" />,
-      onPress: () => console.log("Bildirimler"),
+      icon: (
+        <Ionicons
+          name="language-outline"
+          size={22}
+          color={colors.textOnGradient}
+        />
+      ),
+      onPress: () => navigation.navigate("LanguageSettings"),
     },
     {
       id: "privacy",
       title: "Gizlilik",
-      icon: <Ionicons name="lock-closed-outline" size={22} color="#fff" />,
-      onPress: () => console.log("Gizlilik"),
+      icon: (
+        <Ionicons
+          name="lock-closed-outline"
+          size={22}
+          color={colors.textOnGradient}
+        />
+      ),
+      onPress: () => navigation.navigate("Privacy"),
     },
     {
       id: "help",
       title: "Yardım ve Destek",
-      icon: <Ionicons name="help-circle-outline" size={22} color="#fff" />,
-      onPress: () => console.log("Yardım ve Destek"),
+      icon: (
+        <Ionicons
+          name="help-circle-outline"
+          size={22}
+          color={colors.textOnGradient}
+        />
+      ),
+      onPress: () => navigation.navigate("HelpSupport"),
     },
   ];
 
@@ -230,21 +258,30 @@ const ProfileScreen = ({ navigation }) => {
   return (
     <GradientBackground>
       <SafeAreaView style={styles.container}>
-        <StatusBar
+        {/* <StatusBar
           barStyle="light-content"
           backgroundColor="transparent"
           translucent
-        />
+        /> */}
 
-        <View style={styles.header}>
+        {/* <View style={styles.header}>
           <TouchableOpacity
             style={styles.backButton}
             onPress={() => navigation.goBack()}
           >
-            <Ionicons name="chevron-back" size={24} color="#fff" />
+            <Ionicons
+              name="chevron-back"
+              size={24}
+              color={colors.textOnGradient}
+            />
           </TouchableOpacity>
-          <Text style={styles.headerTitle}>Profil</Text>
-        </View>
+          <View style={styles.tokenContainer}>
+            <TokenDisplay
+              size="small"
+              onPress={() => navigation.navigate("Tokens")}
+            />
+          </View>
+        </View> */}
 
         <ScrollView style={styles.content} showsVerticalScrollIndicator={false}>
           <View style={styles.profileSection}>
@@ -252,10 +289,8 @@ const ProfileScreen = ({ navigation }) => {
               <Image
                 source={{ uri: "https://i.pravatar.cc/300" }}
                 style={styles.profileImage}
+                resizeMode="cover"
               />
-              <TouchableOpacity style={styles.editImageButton}>
-                <Ionicons name="camera-outline" size={18} color="#fff" />
-              </TouchableOpacity>
             </View>
 
             <Text style={styles.nameText}>Arafat Khan</Text>
@@ -263,35 +298,39 @@ const ProfileScreen = ({ navigation }) => {
 
             <View style={styles.tokenContainer}>
               <TokenDisplay
-                size="large"
+                size="small"
                 onPress={() => navigation.navigate("Tokens")}
               />
             </View>
 
-            <Button
+            {/* <Button
               title="Profili Düzenle"
               onPress={() => console.log("Profil Düzenle")}
               neon
               icon={<Ionicons name="create-outline" size={18} color="#fff" />}
               containerStyle={{ width: 200 }}
-            />
+            /> */}
           </View>
 
           <View style={styles.card}>
             <View style={styles.themeSwitchContainer}>
               <View style={styles.iconContainer}>
                 <Ionicons
-                  name={isDark ? "moon-outline" : "sunny-outline"}
+                  name={isDark ? "moon" : "sunny"}
                   size={22}
-                  color="#fff"
+                  color={colors.textOnGradient}
                 />
               </View>
               <Text style={styles.themeSwitchText}>Koyu Tema</Text>
-              <TouchableOpacity onPress={toggleTheme}>
+              <TouchableOpacity
+                onPress={toggleTheme}
+                activeOpacity={0.7}
+                style={{ padding: 5 }} // Dokunulabilir alanı büyütmek için
+              >
                 <Ionicons
-                  name={isDark ? "toggle-sharp" : "toggle-outline"}
+                  name={isDark ? "toggle" : "toggle-outline"}
                   size={40}
-                  color="#fff"
+                  color={colors.textOnGradient}
                 />
               </TouchableOpacity>
             </View>
@@ -311,7 +350,11 @@ const ProfileScreen = ({ navigation }) => {
               >
                 <View style={styles.iconContainer}>{item.icon}</View>
                 <Text style={styles.menuItemText}>{item.title}</Text>
-                <Ionicons name="chevron-forward" size={20} color="#fff" />
+                <Ionicons
+                  name="chevron-forward"
+                  size={20}
+                  color={colors.textOnGradient}
+                />
               </TouchableOpacity>
             ))}
           </View>
@@ -325,7 +368,7 @@ const ProfileScreen = ({ navigation }) => {
               <Ionicons
                 name="log-out-outline"
                 size={18}
-                color={colors.primary}
+                color={colors.textOnGradient}
               />
             }
           />

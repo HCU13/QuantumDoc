@@ -20,7 +20,7 @@ const Loader = ({
     },
     text: {
       ...FONTS.body4,
-      color: colors.textPrimary,
+      color: colors.textOnGradient,
       marginTop: 10,
     },
   });

@@ -42,6 +42,7 @@ const TokensScreen = ({ navigation }) => {
   const styles = StyleSheet.create({
     container: {
       flex: 1,
+      paddingTop: 25,
     },
     content: {
       flex: 1,
@@ -63,7 +64,7 @@ const TokensScreen = ({ navigation }) => {
     },
     headerTitle: {
       ...FONTS.h2,
-      color: "#fff",
+      color: colors.textOnGradient,
       flex: 1,
       textAlign: "center",
       marginRight: 40,
@@ -74,7 +75,7 @@ const TokensScreen = ({ navigation }) => {
     },
     sectionTitle: {
       ...FONTS.h3,
-      color: "#fff",
+      color: colors.textOnGradient,
       marginTop: 20,
       marginBottom: 15,
       fontWeight: "bold",
@@ -84,7 +85,7 @@ const TokensScreen = ({ navigation }) => {
     },
     tokenInfoText: {
       ...FONTS.body4,
-      color: "#fff",
+      color: colors.textOnGradient,
       textAlign: "center",
       marginVertical: 15,
       backgroundColor: "rgba(255, 255, 255, 0.1)",
@@ -103,13 +104,14 @@ const TokensScreen = ({ navigation }) => {
     },
     infoCardTitle: {
       ...FONTS.h4,
-      color: "#fff",
+      color: colors.textOnGradient,
       fontWeight: "bold",
       marginBottom: 10,
     },
     infoCardText: {
       ...FONTS.body4,
-      color: "rgba(255, 255, 255, 0.8)",
+      color: colors.textOnGradient,
+      opacity: 0.8,
     },
     modalContainer: {
       flex: 1,
@@ -289,18 +291,18 @@ const TokensScreen = ({ navigation }) => {
   return (
     <GradientBackground>
       <SafeAreaView style={styles.container}>
-        <StatusBar
+        {/* <StatusBar
           barStyle="light-content"
           backgroundColor="transparent"
           translucent
-        />
+        /> */}
 
         <View style={styles.header}>
           <TouchableOpacity
             style={styles.backButton}
             onPress={() => navigation.goBack()}
           >
-            <Ionicons name="chevron-back" size={24} color="#fff" />
+            <Ionicons name="chevron-back" size={24} color={colors.textOnGradient} />
           </TouchableOpacity>
           <Text style={styles.headerTitle}>Tokenlar</Text>
         </View>

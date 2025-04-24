@@ -30,13 +30,14 @@ const WelcomeMessage = ({
     },
     title: {
       ...FONTS.h1,
-      color: colors.textPrimary,
+      color: colors.textOnGradient,
       textAlign: "center",
       marginBottom: 10,
+      fontWeight: "bold",
     },
     subtitle: {
       ...FONTS.body3,
-      color: colors.textSecondary,
+      color: colors.textOnGradient,
       textAlign: "center",
       marginBottom: 20,
     },

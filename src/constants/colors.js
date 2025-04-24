@@ -5,6 +5,9 @@ export const COLORS = {
     primaryDark: "#6932E0", // Koyu mor
     primaryLight: "#A880FF", // Açık mor
     secondary: "#FF9D55", // Turuncu vurgu rengi
+    success: "#4ECDC4", // Başarı rengi
+    warning: "#FF8A5B", // Uyarı rengi
+    info: "#4A6FA5", // Bilgi rengi
     background: "#F8F8F8",
     card: "#FFFFFF",
     white: "#FFFFFF",
@@ -15,13 +18,14 @@ export const COLORS = {
     textPrimary: "#333333",
     textSecondary: "#666666",
     textTertiary: "#999999",
-    textOnGradient: "#333333", // Gradient arka plan üzerindeki metin rengi
+    textOnGradient: "#1A1A1A", // Gradient arka plan üzerindeki metin rengi
     textOnPrimary: "#FFFFFF", // Primary renk üzerindeki metin rengi
     gradientStart: "#FFC6FF", // Açık mod için canlı pastel gradient başlangıç
     gradientMiddle: "#B5E8FF", // Açık mod için canlı pastel gradient orta
     gradientEnd: "#FFD6A5", // Açık mod için canlı pastel gradient bitiş
     statusBar: "dark-content", // Status bar içeriği rengi
     border: "#E0E0E0",
+    input: "#F5F5F7", // Input alanı arka plan rengi
   },
 
   // Koyu tema renkleri
@@ -30,6 +34,9 @@ export const COLORS = {
     primaryDark: "#7535E5", // Koyu mor
     primaryLight: "#B492FF", // Açık mor
     secondary: "#FF9D55", // Turuncu vurgu rengi (aynı kaldı)
+    success: "#4ECDC4", // Başarı rengi
+    warning: "#FF8A5B", // Uyarı rengi
+    info: "#4A6FA5", // Bilgi rengi
     background: "#121212", // Koyu arka plan
     card: "#1E1E1E", // Koyu kart arka planı
     white: "#FFFFFF",
@@ -47,5 +54,6 @@ export const COLORS = {
     gradientEnd: "#7535E5", // Koyu mod gradient bitiş
     statusBar: "light-content", // Status bar içeriği rengi
     border: "#3D3D3D",
+    input: "#2A2A2A", // Input alanı arka plan rengi
   },
 };

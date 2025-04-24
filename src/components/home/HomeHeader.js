@@ -9,6 +9,7 @@ const HomeHeader = ({
   username = "Human",
   onProfilePress,
   onSettingsPress,
+  navigation,
 }) => {
   const { colors, isDark } = useTheme();
 
@@ -84,9 +85,9 @@ const HomeHeader = ({
           containerStyle={styles.tokenDisplay}
         />
 
-        <TouchableOpacity style={styles.iconButton} onPress={onSettingsPress}>
+        {/* <TouchableOpacity style={styles.iconButton} onPress={onSettingsPress}>
           <Ionicons name="settings-outline" size={22} color={colors.primary} />
-        </TouchableOpacity>
+        </TouchableOpacity> */}
 
         <TouchableOpacity style={styles.profileButton} onPress={onProfilePress}>
           {/* Kullanıcı profil resmi */}

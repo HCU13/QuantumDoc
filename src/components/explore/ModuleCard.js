@@ -1,5 +1,5 @@
 import React from "react";
-import { View, Text, StyleSheet, TouchableOpacity } from "react-native";
+import { View, Text, StyleSheet, TouchableOpacity, Image } from "react-native";
 import { FONTS, SIZES } from "../../constants/theme";
 import { LinearGradient } from "expo-linear-gradient";
 import { useToken } from "../../contexts/TokenContext";
@@ -141,18 +141,24 @@ const ModuleCard = ({
     bottomBadge: {
       position: "absolute",
       bottom: 0,
-      right: 20,
+      right: 0,
       backgroundColor: canAfford ? colors.secondary : "rgba(255, 0, 0, 0.5)",
       paddingHorizontal: 10,
-      paddingVertical: 4,
+      paddingVertical: 1,
       borderTopLeftRadius: 10,
       borderTopRightRadius: 10,
+      borderBottomRightRadius: 20,
     },
     badgeText: {
       ...FONTS.body5,
       color: "#fff",
       fontWeight: "bold",
       fontSize: 10,
+    },
+    tokenImage: {
+      width: 12,
+      height: 12,
+      marginRight: 3,
     },
   });
 
@@ -180,6 +186,10 @@ const ModuleCard = ({
           >
             {tokenCost > 0 && (
               <View style={styles.tokenCost}>
+                <Image
+                  source={require("../../assets/images/token.png")}
+                  style={styles.tokenImage}
+                />
                 <Text style={styles.tokenText}>{tokenCost}</Text>
               </View>
             )}
@@ -201,13 +211,13 @@ const ModuleCard = ({
             </View>
           </LinearGradient>
 
-          {tokenCost > 0 && (
+          {/* {tokenCost > 0 && (
             <View style={styles.bottomBadge}>
               <Text style={styles.badgeText}>
                 {canAfford ? "KULLAN" : "YETERSİZ TOKEN"}
               </Text>
             </View>
-          )}
+          )} */}
         </TouchableOpacity>
       </View>
     );
@@ -236,6 +246,10 @@ const ModuleCard = ({
         >
           {tokenCost > 0 && (
             <View style={styles.tokenCost}>
+              <Image
+                source={require("../../assets/images/token.png")}
+                style={styles.tokenImage}
+              />
               <Text style={styles.tokenText}>{tokenCost}</Text>
             </View>
           )}
@@ -252,11 +266,11 @@ const ModuleCard = ({
           </View>
         </LinearGradient>
 
-        {tokenCost > 0 && !canAfford && (
+        {/* {tokenCost > 0 && !canAfford && (
           <View style={styles.bottomBadge}>
             <Text style={styles.badgeText}>YETERSİZ TOKEN</Text>
           </View>
-        )}
+        )} */}
       </TouchableOpacity>
     </View>
   );

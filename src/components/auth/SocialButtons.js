@@ -58,7 +58,7 @@ const SocialButtonsScreen = () => {
     },
     dividerText: {
       ...FONTS.body4,
-      color: colors.textSecondary,
+      color: colors.textOnGradient,
       paddingHorizontal: 10,
     },
     buttonsContainer: {

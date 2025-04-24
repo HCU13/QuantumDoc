@@ -28,6 +28,7 @@ const ExploreScreen = ({ navigation }) => {
   const styles = StyleSheet.create({
     container: {
       flex: 1,
+      paddingTop: 25,
     },
     content: {
       flex: 1,
@@ -45,7 +46,7 @@ const ExploreScreen = ({ navigation }) => {
     },
     title: {
       ...FONTS.h2,
-      color: "#fff",
+      color: colors.textOnGradient,
       fontWeight: "bold",
       textShadowColor: "rgba(0,0,0,0.2)",
       textShadowOffset: { width: 0, height: 1 },
@@ -53,7 +54,7 @@ const ExploreScreen = ({ navigation }) => {
     },
     subtitle: {
       ...FONTS.body4,
-      color: "rgba(255, 255, 255, 0.8)",
+      color: colors.textOnGradient,
       marginTop: 5,
     },
     section: {
@@ -61,7 +62,7 @@ const ExploreScreen = ({ navigation }) => {
     },
     sectionTitle: {
       ...FONTS.h3,
-      color: "#fff",
+      color: colors.textOnGradient,
       marginBottom: 16,
       paddingHorizontal: SIZES.padding,
       fontWeight: "bold",
@@ -88,10 +89,10 @@ const ExploreScreen = ({ navigation }) => {
     },
     categoryText: {
       ...FONTS.body4,
-      color: "#fff",
+      color: colors.textOnGradient,
     },
     categoryTextActive: {
-      color: "#fff",
+      color: colors.textOnPrimary,
       fontWeight: "bold",
     },
     modulesContainer: {
@@ -105,11 +106,11 @@ const ExploreScreen = ({ navigation }) => {
     },
     featuredContainer: {
       paddingHorizontal: SIZES.padding,
-      marginBottom: 20,
+      right: 10,
     },
     noResults: {
       ...FONTS.body3,
-      color: "#fff",
+      color: colors.textOnGradient,
       textAlign: "center",
       paddingVertical: 30,
       fontStyle: "italic",
@@ -126,7 +127,7 @@ const ExploreScreen = ({ navigation }) => {
     },
     tokensInfoText: {
       ...FONTS.body4,
-      color: "#fff",
+      color: colors.textOnGradient,
       textAlign: "center",
       marginBottom: 15,
     },
@@ -237,7 +238,7 @@ const ExploreScreen = ({ navigation }) => {
   );
 
   // Öne çıkan modüller
-  const featuredModules = allModules.filter((module) => module.featured);
+  // const featuredModules = allModules.filter((module) => module.featured);
 
   // Filtrelenmiş modüller 2'li satırlar halinde düzenleniyor
   const moduleRows = [];
@@ -283,11 +284,11 @@ const ExploreScreen = ({ navigation }) => {
   return (
     <GradientBackground>
       <SafeAreaView style={styles.container}>
-        <StatusBar
+        {/* <StatusBar
           barStyle="light-content"
           backgroundColor="transparent"
           translucent
-        />
+        /> */}
 
         <View style={styles.header}>
           <View style={styles.headerLeft}>
@@ -306,7 +307,7 @@ const ExploreScreen = ({ navigation }) => {
             onSubmit={() => console.log(`Arama: ${searchQuery}`)}
           />
 
-          {tokens < 5 && (
+          {/* {tokens < 5 && (
             <View style={styles.tokensInfoContainer}>
               <Text style={styles.tokensInfoText}>
                 Daha fazla özelliğe erişmek için token kazanın!
@@ -315,18 +316,22 @@ const ExploreScreen = ({ navigation }) => {
                 title="Token Kazan"
                 neon
                 icon={
-                  <Ionicons name="add-circle-outline" size={20} color="#fff" />
+                  <Ionicons
+                    name="add-circle-outline"
+                    size={20}
+                    color={colors.textOnGradient}
+                  />
                 }
                 onPress={() => navigation.navigate("Tokens")}
                 containerStyle={styles.getTokensButton}
                 size="small"
               />
             </View>
-          )}
+          )} */}
 
           {!searchQuery && (
             <View style={styles.section}>
-              <Text style={styles.sectionTitle}>Öne Çıkan</Text>
+              {/* <Text style={styles.sectionTitle}>Öne Çıkan</Text> */}
               <View style={styles.featuredContainer}>
                 <ModuleCard
                   title="AI Sohbet"
@@ -381,9 +386,11 @@ const ExploreScreen = ({ navigation }) => {
           </View>
 
           <View style={styles.section}>
-            <Text style={styles.sectionTitle}>
-              {searchQuery ? "Arama Sonuçları" : "Tüm Modüller"}
-            </Text>
+            {searchQuery && (
+              <Text style={styles.sectionTitle}>
+                {searchQuery ? "Arama Sonuçları" : ""}
+              </Text>
+            )}
 
             {categoryFilteredModules.length > 0 ? (
               <View style={styles.modulesContainer}>

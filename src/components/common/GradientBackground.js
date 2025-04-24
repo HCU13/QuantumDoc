@@ -1,5 +1,5 @@
 import React from "react";
-import { StyleSheet, View } from "react-native";
+import { StyleSheet, View, StatusBar, Platform } from "react-native";
 import { LinearGradient } from "expo-linear-gradient";
 import { BlurView } from "expo-blur";
 import useTheme from "../../hooks/useTheme";
@@ -16,6 +16,11 @@ const GradientBackground = ({ children, style }) => {
 
   return (
     <View style={styles.container}>
+      <StatusBar
+        barStyle={isDark ? "light-content" : "dark-content"}
+        backgroundColor="transparent"
+        translucent
+      />
       <LinearGradient
         colors={gradientColors}
         start={{ x: 0, y: 0 }}
@@ -36,12 +41,17 @@ const GradientBackground = ({ children, style }) => {
 const styles = StyleSheet.create({
   container: {
     flex: 1,
+    backgroundColor: 'transparent',
   },
   gradient: {
     flex: 1,
     width: "100%",
     height: "100%",
-    position: "relative",
+    position: "absolute",
+    top: 0,
+    left: 0,
+    right: 0,
+    bottom: 0,
   },
   blur: {
     ...StyleSheet.absoluteFillObject,

@@ -38,7 +38,7 @@ const TokenCard = ({ onGetTokenPress, onHistoryPress, containerStyle }) => {
     },
     title: {
       ...FONTS.h3,
-      color: "#fff",
+      color: colors.textOnPrimary,
       fontWeight: "bold",
     },
     historyButton: {
@@ -51,7 +51,7 @@ const TokenCard = ({ onGetTokenPress, onHistoryPress, containerStyle }) => {
     },
     historyText: {
       ...FONTS.body4,
-      color: "#fff",
+      color: colors.textOnPrimary,
       marginRight: 5,
     },
     content: {
@@ -60,7 +60,7 @@ const TokenCard = ({ onGetTokenPress, onHistoryPress, containerStyle }) => {
     },
     tokenCount: {
       ...FONTS.largeTitle,
-      color: "#fff",
+      color: colors.textOnPrimary,
       fontWeight: "bold",
       marginVertical: 10,
       textShadowColor: "rgba(0, 0, 0, 0.3)",
@@ -69,7 +69,8 @@ const TokenCard = ({ onGetTokenPress, onHistoryPress, containerStyle }) => {
     },
     tokenSubtext: {
       ...FONTS.body3,
-      color: "rgba(255, 255, 255, 0.8)",
+      color: colors.textOnPrimary,
+      opacity: 0.8,
       textAlign: "center",
     },
     footer: {
@@ -86,12 +87,13 @@ const TokenCard = ({ onGetTokenPress, onHistoryPress, containerStyle }) => {
     },
     videoTitle: {
       ...FONTS.body4,
-      color: "#fff",
+      color: colors.textOnPrimary,
       fontWeight: "bold",
     },
     videoSubtext: {
       ...FONTS.body5,
-      color: "rgba(255, 255, 255, 0.8)",
+      color: colors.textOnPrimary,
+      opacity: 0.8,
     },
     getTokenButton: {
       backgroundColor: canWatchVideoForTokens()
@@ -108,7 +110,7 @@ const TokenCard = ({ onGetTokenPress, onHistoryPress, containerStyle }) => {
     },
     buttonText: {
       ...FONTS.body4,
-      color: "#fff",
+      color: colors.textOnPrimary,
       fontWeight: "bold",
       marginRight: 5,
     },
@@ -136,7 +138,7 @@ const TokenCard = ({ onGetTokenPress, onHistoryPress, containerStyle }) => {
             onPress={onHistoryPress}
           >
             <Text style={styles.historyText}>Geçmiş</Text>
-            <Ionicons name="chevron-forward" size={16} color="#fff" />
+            <Ionicons name="chevron-forward" size={16} color={colors.textOnPrimary} />
           </TouchableOpacity>
         </View>
 
@@ -164,7 +166,7 @@ const TokenCard = ({ onGetTokenPress, onHistoryPress, containerStyle }) => {
             disabled={!canWatchVideoForTokens()}
           >
             <Text style={styles.buttonText}>Token Kazan</Text>
-            <Ionicons name="play-circle-outline" size={20} color="#fff" />
+            <Ionicons name="play-circle-outline" size={20} color={colors.textOnPrimary} />
           </TouchableOpacity>
         </View>
       </LinearGradient>

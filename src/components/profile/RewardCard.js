@@ -32,12 +32,14 @@ const RewardCard = ({ reward, onPress, containerStyle }) => {
     },
     title: {
       ...FONTS.h4,
-      color: "#fff",
+      color: colors.textOnGradient,
       marginBottom: 4,
+      fontWeight: "bold",
     },
     description: {
       ...FONTS.body5,
-      color: "rgba(255, 255, 255, 0.8)",
+      color: colors.textOnGradient,
+      opacity: 0.8,
     },
     rewardContainer: {
       flexDirection: "row",
@@ -54,7 +56,7 @@ const RewardCard = ({ reward, onPress, containerStyle }) => {
     },
     rewardText: {
       ...FONTS.body4,
-      color: "#fff",
+      color: colors.textOnGradient,
       fontWeight: "bold",
     },
   });
@@ -66,7 +68,7 @@ const RewardCard = ({ reward, onPress, containerStyle }) => {
       activeOpacity={0.8}
     >
       <View style={styles.iconContainer}>
-        <Ionicons name={reward.icon} size={24} color="#fff" />
+        <Ionicons name={reward.icon} size={24} color={colors.textOnGradient} />
       </View>
 
       <View style={styles.contentContainer}>

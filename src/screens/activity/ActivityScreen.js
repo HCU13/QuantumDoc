@@ -15,7 +15,6 @@ import { Ionicons } from "@expo/vector-icons";
 import GradientBackground from "../../components/common/GradientBackground";
 import TokenDisplay from "../../components/common/TokenDisplay";
 import SearchBar from "../../components/home/SearchBar";
-import Card from "../../components/common/Card";
 import Button from "../../components/common/Button";
 import useTheme from "../../hooks/useTheme";
 
@@ -52,13 +51,14 @@ const ActivityItem = ({ item, onPress }) => {
     },
     title: {
       ...FONTS.h4,
-      color: "#fff",
+      color: colors.textOnGradient,
       marginBottom: 4,
       fontWeight: "bold",
     },
     description: {
       ...FONTS.body5,
-      color: "rgba(255, 255, 255, 0.7)",
+      color: colors.textOnGradient,
+      opacity: 0.7,
     },
     timeContainer: {
       flexDirection: "row",
@@ -70,7 +70,8 @@ const ActivityItem = ({ item, onPress }) => {
     },
     time: {
       ...FONTS.body5,
-      color: "rgba(255, 255, 255, 0.7)",
+      color: colors.textOnGradient,
+      opacity: 0.7,
       marginLeft: 5,
     },
     itemContent: {
@@ -78,26 +79,7 @@ const ActivityItem = ({ item, onPress }) => {
     },
     contentText: {
       ...FONTS.body4,
-      color: "#fff",
-    },
-    itemFooter: {
-      flexDirection: "row",
-      justifyContent: "space-between",
-      padding: 15,
-      backgroundColor: "rgba(0, 0, 0, 0.1)",
-    },
-    footerButton: {
-      flexDirection: "row",
-      alignItems: "center",
-      backgroundColor: "rgba(255, 255, 255, 0.15)",
-      paddingHorizontal: 12,
-      paddingVertical: 6,
-      borderRadius: 15,
-    },
-    buttonText: {
-      ...FONTS.body5,
-      color: "#fff",
-      marginLeft: 5,
+      color: colors.textOnGradient,
     },
   });
 
@@ -156,7 +138,7 @@ const ActivityItem = ({ item, onPress }) => {
           <Ionicons
             name="time-outline"
             size={14}
-            color="rgba(255, 255, 255, 0.7)"
+            color={colors.textOnGradient}
           />
           <Text style={styles.time}>{item.time}</Text>
         </View>
@@ -166,23 +148,6 @@ const ActivityItem = ({ item, onPress }) => {
         <Text style={styles.contentText} numberOfLines={2}>
           {item.content || item.description}
         </Text>
-      </View>
-
-      <View style={styles.itemFooter}>
-        <TouchableOpacity style={styles.footerButton}>
-          <Ionicons name="refresh-outline" size={16} color="#fff" />
-          <Text style={styles.buttonText}>Tekrarla</Text>
-        </TouchableOpacity>
-
-        <TouchableOpacity style={styles.footerButton}>
-          <Ionicons name="share-outline" size={16} color="#fff" />
-          <Text style={styles.buttonText}>Paylaş</Text>
-        </TouchableOpacity>
-
-        <TouchableOpacity style={styles.footerButton}>
-          <Ionicons name="bookmark-outline" size={16} color="#fff" />
-          <Text style={styles.buttonText}>Kaydet</Text>
-        </TouchableOpacity>
       </View>
     </TouchableOpacity>
   );
@@ -195,10 +160,10 @@ const ActivityScreen = ({ navigation }) => {
   const styles = StyleSheet.create({
     container: {
       flex: 1,
+      paddingTop: 25,
     },
-    content: {
+    contentContainer: {
       flex: 1,
-      paddingHorizontal: SIZES.padding,
     },
     header: {
       flexDirection: "row",
@@ -213,7 +178,7 @@ const ActivityScreen = ({ navigation }) => {
     },
     title: {
       ...FONTS.h2,
-      color: "#fff",
+      color: colors.textOnGradient,
       fontWeight: "bold",
       textShadowColor: "rgba(0,0,0,0.2)",
       textShadowOffset: { width: 0, height: 1 },
@@ -221,21 +186,25 @@ const ActivityScreen = ({ navigation }) => {
     },
     subtitle: {
       ...FONTS.body4,
-      color: "rgba(255, 255, 255, 0.8)",
+      color: colors.textOnGradient,
+      opacity: 0.8,
       marginTop: 5,
     },
     filterContainer: {
       flexDirection: "row",
-      marginVertical: 15,
+      paddingHorizontal: SIZES.padding,
+      marginTop: 10,
+      marginBottom: 10,
     },
     filterButton: {
+      height: 36,
       flexDirection: "row",
       alignItems: "center",
       backgroundColor: "rgba(255, 255, 255, 0.15)",
-      paddingHorizontal: 15,
-      paddingVertical: 8,
-      borderRadius: 20,
-      marginRight: 10,
+      paddingHorizontal: 12,
+      paddingVertical: 6,
+      borderRadius: 18,
+      marginRight: 8,
       borderWidth: 1,
       borderColor: "rgba(255, 255, 255, 0.2)",
     },
@@ -245,27 +214,34 @@ const ActivityScreen = ({ navigation }) => {
     },
     filterButtonText: {
       ...FONTS.body4,
-      color: "#fff",
+      color: colors.textOnGradient,
       marginLeft: 5,
+    },
+    filterButtonTextActive: {
+      color: colors.textOnPrimary,
+      fontWeight: "bold",
     },
     emptyContainer: {
       justifyContent: "center",
       alignItems: "center",
-      marginTop: 100,
+      marginTop: 30,
       paddingHorizontal: 20,
     },
     emptyText: {
       ...FONTS.body3,
-      color: "#fff",
+      color: colors.textOnGradient,
       textAlign: "center",
       marginBottom: 20,
     },
     noResults: {
       ...FONTS.body3,
-      color: "#fff",
+      color: colors.textOnGradient,
       textAlign: "center",
-      marginTop: 30,
+      marginTop: 20,
       fontStyle: "italic",
+    },
+    listContainer: {
+      paddingHorizontal: SIZES.padding,
     },
   });
 
@@ -370,11 +346,11 @@ const ActivityScreen = ({ navigation }) => {
   return (
     <GradientBackground>
       <SafeAreaView style={styles.container}>
-        <StatusBar
+        {/* <StatusBar
           barStyle="light-content"
           backgroundColor="transparent"
           translucent
-        />
+        /> */}
 
         <View style={styles.header}>
           <View style={styles.headerLeft}>
@@ -389,81 +365,102 @@ const ActivityScreen = ({ navigation }) => {
           />
         </View>
 
-        <View style={styles.content}>
+        <View style={styles.contentContainer}>
           <SearchBar
             value={searchQuery}
             onChangeText={setSearchQuery}
             placeholder="Aktivitelerde ara..."
           />
 
-          <ScrollView
-            horizontal
-            showsHorizontalScrollIndicator={false}
-            contentContainerStyle={styles.filterContainer}
-          >
-            {filters.map((filter) => (
-              <TouchableOpacity
-                key={filter.id}
-                style={[
-                  styles.filterButton,
-                  selectedFilter === filter.id && styles.filterButtonActive,
-                ]}
-                onPress={() => setSelectedFilter(filter.id)}
-              >
-                <Ionicons name={filter.icon} size={16} color="#fff" />
-                <Text style={styles.filterButtonText}>{filter.name}</Text>
-              </TouchableOpacity>
-            ))}
-          </ScrollView>
-
-          {filteredActivities.length > 0 ? (
-            <FlatList
-              data={filteredActivities}
-              renderItem={({ item }) => (
-                <ActivityItem item={item} onPress={handleActivityPress} />
-              )}
-              keyExtractor={(item) => item.id}
-              showsVerticalScrollIndicator={false}
-              contentContainerStyle={{ paddingBottom: 30 }}
-            />
-          ) : (
-            <View style={styles.emptyContainer}>
-              {searchQuery || selectedFilter !== "all" ? (
-                <>
-                  <Text style={styles.noResults}>
-                    Arama sonucunda aktivite bulunamadı
-                  </Text>
-                  <Button
-                    title="Tüm Aktiviteleri Göster"
-                    onPress={() => {
-                      setSearchQuery("");
-                      setSelectedFilter("all");
-                    }}
-                    outlined
-                    containerStyle={{ marginTop: 15 }}
-                  />
-                </>
-              ) : (
-                <>
-                  <Text style={styles.emptyText}>
-                    Henüz hiç aktiviteniz yok. AI asistanı kullanmaya başlayın!
-                  </Text>
-                  <Button
-                    title="Sohbet Başlat"
-                    onPress={() => navigation.navigate("Chat")}
-                    neon
-                    icon={
-                      <Ionicons
-                        name="chatbubble-ellipses"
-                        size={20}
-                        color="#fff"
-                      />
+          <View>
+            <ScrollView
+              horizontal
+              showsHorizontalScrollIndicator={false}
+              contentContainerStyle={styles.filterContainer}
+            >
+              {filters.map((filter) => (
+                <TouchableOpacity
+                  key={filter.id}
+                  style={[
+                    styles.filterButton,
+                    selectedFilter === filter.id && styles.filterButtonActive,
+                  ]}
+                  onPress={() => setSelectedFilter(filter.id)}
+                >
+                  <Ionicons
+                    name={filter.icon}
+                    size={16}
+                    color={
+                      selectedFilter === filter.id
+                        ? colors.textOnPrimary
+                        : colors.textOnGradient
                     }
                   />
-                </>
-              )}
-            </View>
-          )}
+                  <Text
+                    style={[
+                      styles.filterButtonText,
+                      selectedFilter === filter.id &&
+                        styles.filterButtonTextActive,
+                    ]}
+                  >
+                    {filter.name}
+                  </Text>
+                </TouchableOpacity>
+              ))}
+            </ScrollView>
+          </View>
+
+          <View style={styles.listContainer}>
+            {filteredActivities.length > 0 ? (
+              <FlatList
+                data={filteredActivities}
+                renderItem={({ item }) => (
+                  <ActivityItem item={item} onPress={handleActivityPress} />
+                )}
+                keyExtractor={(item) => item.id}
+                showsVerticalScrollIndicator={false}
+                contentContainerStyle={{ paddingBottom: 130 }}
+              />
+            ) : (
+              <View style={styles.emptyContainer}>
+                {searchQuery || selectedFilter !== "all" ? (
+                  <>
+                    <Text style={styles.noResults}>
+                      Arama sonucunda aktivite bulunamadı
+                    </Text>
+                    <Button
+                      title="Tüm Aktiviteleri Göster"
+                      onPress={() => {
+                        setSearchQuery("");
+                        setSelectedFilter("all");
+                      }}
+                      outlined
+                      containerStyle={{ marginTop: 15 }}
+                    />
+                  </>
+                ) : (
+                  <>
+                    <Text style={styles.emptyText}>
+                      Henüz hiç aktiviteniz yok. AI asistanı kullanmaya
+                      başlayın!
+                    </Text>
+                    <Button
+                      title="Sohbet Başlat"
+                      onPress={() => navigation.navigate("Chat")}
+                      neon
+                      icon={
+                        <Ionicons
+                          name="chatbubble-ellipses"
+                          size={20}
+                          color="#fff"
+                        />
+                      }
+                    />
+                  </>
+                )}
+              </View>
+            )}
+          </View>
         </View>
       </SafeAreaView>
     </GradientBackground>

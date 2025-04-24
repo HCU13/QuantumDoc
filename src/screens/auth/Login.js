@@ -16,6 +16,7 @@ import SocialButtons from "../../components/auth/SocialButtons";
 import AuthFooter from "../../components/auth/AuthFooter";
 import useTheme from "../../hooks/useTheme";
 import GradientBackground from "../../components/common/GradientBackground";
+
 const Login = ({ navigation }) => {
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
@@ -28,6 +29,7 @@ const Login = ({ navigation }) => {
   const styles = StyleSheet.create({
     container: {
       flex: 1,
+      paddingTop: 25,
     },
     content: {
       flex: 1,
@@ -35,13 +37,13 @@ const Login = ({ navigation }) => {
     },
     title: {
       ...FONTS.h2,
-      color: colors.textPrimary,
+      color: colors.textOnGradient,
       marginTop: 20,
       marginBottom: 10,
     },
     subtitle: {
       ...FONTS.body3,
-      color: colors.textSecondary,
+      color: colors.textOnGradient,
       marginBottom: 30,
     },
     formContainer: {
@@ -103,7 +105,6 @@ const Login = ({ navigation }) => {
     <GradientBackground>
       <SafeAreaView style={styles.container}>
         <Header title="Giriş Yap" />
-
         <ScrollView
           style={styles.content}
           showsVerticalScrollIndicator={false}

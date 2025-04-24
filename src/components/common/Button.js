@@ -8,7 +8,6 @@ import {
 } from "react-native";
 import { SIZES, FONTS } from "../../constants/theme";
 import { LinearGradient } from "expo-linear-gradient";
-import { Ionicons } from "@expo/vector-icons";
 import useTheme from "../../hooks/useTheme";
 
 const Button = ({
@@ -25,7 +24,7 @@ const Button = ({
   size = "medium", // 'small', 'medium', 'large'
   icon = null,
   iconPosition = "left", // 'left', 'right'
-  fluid = false, 
+  fluid = false,
   rightContent = null,
 }) => {
   const { colors } = useTheme();
@@ -94,7 +93,7 @@ const Button = ({
       flexDirection: "row",
     },
     neonButton: {
-      backgroundColor: "rgba(255, 255, 255, 0.1)",
+      backgroundColor: colors.primaryLight + "20", // %20 opacity
       paddingVertical: paddingV,
       paddingHorizontal: paddingH,
       alignItems: "center",
@@ -110,31 +109,24 @@ const Button = ({
       justifyContent: "center",
     },
     text: {
-      color: "#fff",
+      color: colors.textOnPrimary,
       ...FONTS.h4,
       fontSize: fontSize,
       fontWeight: "bold",
-      ...(neon
-        ? {
-            textShadowColor: colors.primary,
-            textShadowOffset: { width: 0, height: 0 },
-            textShadowRadius: 10,
-          }
-        : {}),
     },
     outlinedText: {
-      color: colors.primary,
+      color: colors.textOnGradient,
       ...FONTS.h4,
       fontSize: fontSize,
       fontWeight: "bold",
     },
     disabled: {
-      backgroundColor: colors.textTertiary,
-      opacity: 0.7,
+      backgroundColor: colors.gray,
+      opacity: 0.5,
     },
     disabledOutline: {
-      borderColor: colors.textTertiary,
-      opacity: 0.7,
+      borderColor: colors.gray,
+      opacity: 0.5,
     },
     iconContainer: {
       marginRight: iconPosition === "left" ? 10 : 0,
@@ -152,12 +144,7 @@ const Button = ({
   // Neon buton
   if (neon) {
     return (
-      <View
-        style={[
-          buttonStyles.container,
-          containerStyle,
-        ]}
-      >
+      <View style={[buttonStyles.container, containerStyle]}>
         <TouchableOpacity
           style={[
             buttonStyles.neonButton,
@@ -195,15 +182,10 @@ const Button = ({
 
   // Gradient buton
   if (gradient) {
-    const gradientColors = [colors.primary, colors.primaryDark];
+    const gradientColors = [colors.primary, colors.primaryDark, colors.primaryLight];
 
     return (
-      <View
-        style={[
-          buttonStyles.container,
-          containerStyle,
-        ]}
-      >
+      <View style={[buttonStyles.container, containerStyle]}>
         <TouchableOpacity
           onPress={onPress}
           disabled={disabled || loading}
@@ -214,6 +196,7 @@ const Button = ({
             colors={gradientColors}
             start={{ x: 0, y: 0 }}
             end={{ x: 1, y: 0 }}
+            locations={[0, 0.5, 1]}
             style={[buttonStyles.button, disabled && buttonStyles.disabled]}
           >
             {loading ? (
@@ -246,12 +229,7 @@ const Button = ({
   // Outline buton
   if (outlined) {
     return (
-      <View
-        style={[
-          buttonStyles.container,
-          containerStyle,
-        ]}
-      >
+      <View style={[buttonStyles.container, containerStyle]}>
         <TouchableOpacity
           style={[
             buttonStyles.outlinedButton,
@@ -291,12 +269,7 @@ const Button = ({
 
   // Normal buton (solid)
   return (
-    <View
-      style={[
-        buttonStyles.container,
-        containerStyle,
-      ]}
-    >
+    <View style={[buttonStyles.container, containerStyle]}>
       <TouchableOpacity
         style={[buttonStyles.button, disabled && buttonStyles.disabled]}
         onPress={onPress}

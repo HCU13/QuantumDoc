@@ -39,7 +39,8 @@ const Header = ({
     },
     title: {
       ...FONTS.h3,
-      color: colors.textPrimary,
+      color: colors.textOnGradient,
+      fontWeight: "bold",
     },
     rightContainer: {
       width: 40,
@@ -58,7 +59,7 @@ const Header = ({
             <Ionicons
               name="chevron-back"
               size={24}
-              color={colors.textPrimary}
+              color={colors.textOnGradient}
             />
           </TouchableOpacity>
         )}

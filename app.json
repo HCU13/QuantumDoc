@@ -3,26 +3,33 @@
     "name": "JurnAI",
     "slug": "JurnAI",
     "version": "1.0.0",
+    "sdkVersion": "52.0.0",
     "orientation": "portrait",
-    "icon": "https://placehold.co/1024x1024/png",
     "userInterfaceStyle": "light",
-    "newArchEnabled": true,
+    "icon": "./assets/images/icon.png",
     "splash": {
-      "image": "https://placehold.co/1242x2436/png",
+      "image": "./assets/images/splash.png",
       "resizeMode": "contain",
       "backgroundColor": "#ffffff"
     },
     "ios": {
-      "supportsTablet": true
+      "supportsTablet": true,
+      "bundleIdentifier": "com.trooper13.JurnAI"
     },
     "android": {
+      "package": "com.trooper13.JurnAI",
       "adaptiveIcon": {
-        "foregroundImage": "https://placehold.co/1024x1024/png",
+        "foregroundImage": "./assets/images/adaptive-icon.png",
         "backgroundColor": "#ffffff"
       }
     },
     "web": {
-      "favicon": "https://placehold.co/32x32/png"
+      "favicon": "./assets/images/favicon.png"
+    },
+    "extra": {
+      "eas": {
+        "projectId": "83b4362c-4f03-4097-9cd6-d0de30004350"
+      }
     }
   }
 }

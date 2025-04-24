@@ -30,6 +30,7 @@ const HomeScreen = ({ navigation }) => {
   const styles = StyleSheet.create({
     container: {
       flex: 1,
+      paddingTop: 25,
     },
     content: {
       flex: 1,
@@ -125,26 +126,23 @@ const HomeScreen = ({ navigation }) => {
         navigation.navigate("Chat");
         break;
       case "math":
-        navigation.navigate("MathHome");
+        navigation.navigate("Math");
         break;
       case "write":
-        navigation.navigate("WriteHome");
+        navigation.navigate("Text");
         break;
       case "translate":
-        navigation.navigate("TranslateHome");
+        navigation.navigate("Translate");
         break;
       case "tasks":
-        navigation.navigate("TasksHome");
-        break;
-      case "voice":
-        navigation.navigate("VoiceHome");
+        navigation.navigate("Notes");
         break;
       case "assistant":
         navigation.navigate("Chat");
         break;
       default:
         // Varsayılan olarak explore sayfasına yönlendir
-        navigation.navigate("Explore");
+        navigation.navigate("Notes");
     }
   };
 
@@ -165,16 +163,17 @@ const HomeScreen = ({ navigation }) => {
   return (
     <GradientBackground>
       <SafeAreaView style={styles.container}>
-        <StatusBar
+        {/* <StatusBar
           barStyle="light-content"
           backgroundColor="transparent"
           translucent
-        />
+        /> */}
 
         <HomeHeader
           username="Arafat"
           onProfilePress={() => navigation.navigate("Profile")}
           onSettingsPress={() => navigation.navigate("Settings")}
+          navigation={navigation}
         />
 
         <ScrollView style={styles.content} showsVerticalScrollIndicator={false}>
@@ -221,7 +220,7 @@ const HomeScreen = ({ navigation }) => {
           /> */}
 
           {/* Öne Çıkan Baloncuk Butonlar */}
-          <Text style={styles.sectionTitle}>Öne Çıkan Özellikler</Text>
+          {/* <Text style={styles.sectionTitle}>Öne Çıkan Özellikler</Text>
 
           <View style={styles.bubblesContainer}>
             <BubbleFeature
@@ -238,7 +237,7 @@ const HomeScreen = ({ navigation }) => {
               onPress={() => handleModulePress({ id: "math" })}
               glowing={true}
             />
-          </View>
+          </View> */}
 
           <QuickActions onActionPress={handleModulePress} />
 

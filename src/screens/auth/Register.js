@@ -26,6 +26,7 @@ const Register = ({ navigation }) => {
   const styles = StyleSheet.create({
     container: {
       flex: 1,
+      paddingTop: 25,
     },
     content: {
       flex: 1,
@@ -33,13 +34,13 @@ const Register = ({ navigation }) => {
     },
     title: {
       ...FONTS.h2,
-      color: colors.textPrimary,
+      color: colors.textOnGradient,
       marginTop: 20,
       marginBottom: 10,
     },
     subtitle: {
       ...FONTS.body3,
-      color: colors.textSecondary,
+      color: colors.textOnGradient,
       marginBottom: 30,
     },
     formContainer: {
