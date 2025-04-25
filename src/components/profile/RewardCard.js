@@ -16,7 +16,6 @@ const RewardCard = ({ reward, onPress, containerStyle }) => {
       flexDirection: "row",
       alignItems: "center",
       borderWidth: 1,
-      borderColor: "rgba(255, 255, 255, 0.2)",
     },
     iconContainer: {
       width: 50,
@@ -63,7 +62,7 @@ const RewardCard = ({ reward, onPress, containerStyle }) => {
 
   return (
     <TouchableOpacity
-      style={[styles.container, containerStyle]}
+      style={[styles.container, containerStyle, { borderColor: colors.border }]}
       onPress={onPress}
       activeOpacity={0.8}
     >

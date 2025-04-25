@@ -5,6 +5,7 @@ import ChatScreen from "../Modules/chat/ChatScreen";
 import MathSolverScreen from "../Modules/math/MathSolverScreen";
 import TextGeneratorScreen from "../Modules/textGenerator/TextGeneratorScreen";
 import TranslationScreen from "../Modules/translate/TranslationScreen";
+import NotesNavigation from "./NotesNavigation";
 const Stack = createStackNavigator();
 
 const MainScreens = () => {
@@ -19,6 +20,7 @@ const MainScreens = () => {
       <Stack.Screen name="Math" component={MathSolverScreen} />
       <Stack.Screen name="Text" component={TextGeneratorScreen} />
       <Stack.Screen name="Translate" component={TranslationScreen} />
+      <Stack.Screen name="NotesNavigation" component={NotesNavigation} />
     </Stack.Navigator>
   );
 };

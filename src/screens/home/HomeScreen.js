@@ -46,7 +46,6 @@ const HomeScreen = ({ navigation }) => {
       padding: 20,
       backgroundColor: "rgba(255, 255, 255, 0.2)",
       borderWidth: 1,
-      borderColor: "rgba(255, 255, 255, 0.3)",
     },
     robotImage: {
       width: 80,
@@ -135,14 +134,14 @@ const HomeScreen = ({ navigation }) => {
         navigation.navigate("Translate");
         break;
       case "tasks":
-        navigation.navigate("Notes");
+        navigation.navigate("NotesNavigation", { screen: "Notes" });
         break;
       case "assistant":
         navigation.navigate("Chat");
         break;
       default:
         // Varsayılan olarak explore sayfasına yönlendir
-        navigation.navigate("Notes");
+        navigation.navigate("NotesNavigation", { screen: "Notes" });
     }
   };
 
@@ -177,7 +176,7 @@ const HomeScreen = ({ navigation }) => {
         />
 
         <ScrollView style={styles.content} showsVerticalScrollIndicator={false}>
-          <SearchBar
+          {/* <SearchBar
             value={searchQuery}
             onChangeText={setSearchQuery}
             onSubmit={handleSearch}
@@ -185,12 +184,12 @@ const HomeScreen = ({ navigation }) => {
               navigation.navigate("Chat", { voiceMode: true })
             }
             placeholder="AI Asistan ile konuşmak için tıklayın..."
-          />
+          /> */}
 
           {/* Kişisel AI Asistan Kartı */}
           <View style={styles.personalAssistantContainer}>
             <TouchableOpacity
-              style={styles.robotCard}
+              style={[styles.robotCard, { borderColor: colors.border }]}
               onPress={() => handleModulePress({ id: "assistant" })}
               activeOpacity={0.9}
             >

@@ -13,8 +13,6 @@ import {
   KeyboardAvoidingView,
   Platform,
   Share,
-  ImageBackground,
-  FlatList,
   Dimensions,
 } from "react-native";
 import { Ionicons } from "@expo/vector-icons";
@@ -39,114 +37,67 @@ const TextGeneratorScreen = ({ navigation }) => {
   const [generatedText, setGeneratedText] = useState("");
   const [showResult, setShowResult] = useState(false);
   const scrollViewRef = useRef();
-  const typeScrollRef = useRef();
 
   const tokenCost = 3; // Cost to generate text
 
-  // Yazı türleri - Genişletilmiş liste
+  // Content types with improved categorization
   const contentTypes = [
-    {
-      id: "blog",
-      label: "Blog Yazısı",
-      icon: "document-text",
-      color: colors.primary,
-    },
-    {
-      id: "social",
-      label: "Sosyal Medya",
-      icon: "share-social",
-      color: colors.secondary,
-    },
-    { id: "email", label: "E-posta", icon: "mail", color: colors.success },
-    { id: "story", label: "Hikaye", icon: "book", color: colors.warning },
-    { id: "academic", label: "Akademik", icon: "school", color: colors.info },
-    {
-      id: "business",
-      label: "İş Metni",
-      icon: "briefcase",
-      color: colors.gray,
-    },
-    { id: "cv", label: "CV/Özgeçmiş", icon: "person", color: colors.primary },
-    {
-      id: "product",
-      label: "Ürün Açıklaması",
-      icon: "pricetag",
-      color: colors.secondary,
-    },
-    {
-      id: "recipe",
-      label: "Yemek Tarifi",
-      icon: "restaurant",
-      color: colors.success,
-    },
-    {
-      id: "poem",
-      label: "Şiir/Şarkı Sözü",
-      icon: "musical-notes",
-      color: colors.warning,
-    },
-    {
-      id: "news",
-      label: "Haber Makalesi",
-      icon: "newspaper",
-      color: colors.info,
-    },
-    {
-      id: "speech",
-      label: "Konuşma/Sunum",
-      icon: "megaphone",
-      color: colors.primary,
-    },
+    { id: "blog", label: "Blog Yazısı", icon: "document-text" },
+    { id: "social", label: "Sosyal Medya", icon: "share-social" },
+    { id: "email", label: "E-posta", icon: "mail" },
+    { id: "story", label: "Hikaye", icon: "book" },
+    { id: "academic", label: "Akademik", icon: "school" },
+    { id: "business", label: "İş Metni", icon: "briefcase" },
+    { id: "cv", label: "CV/Özgeçmiş", icon: "person" },
+    { id: "product", label: "Ürün Açıklaması", icon: "pricetag" },
+    { id: "recipe", label: "Yemek Tarifi", icon: "restaurant" },
+    { id: "poem", label: "Şiir/Şarkı Sözü", icon: "musical-notes" },
+    { id: "news", label: "Haber Makalesi", icon: "newspaper" },
+    { id: "speech", label: "Konuşma/Sunum", icon: "megaphone" },
   ];
 
-  // Yazı tonları
+  // Tone options with improved descriptions
   const toneOptions = [
-    { id: "professional", label: "Profesyonel" },
-    { id: "casual", label: "Günlük" },
-    { id: "formal", label: "Resmi" },
-    { id: "friendly", label: "Arkadaşça" },
-    { id: "persuasive", label: "İkna Edici" },
-    { id: "humorous", label: "Mizahi" },
-    { id: "inspirational", label: "İlham Verici" },
-    { id: "educational", label: "Eğitici" },
+    { id: "professional", label: "Profesyonel", icon: "briefcase" },
+    { id: "casual", label: "Günlük", icon: "cafe" },
+    { id: "formal", label: "Resmi", icon: "document-text" },
+    { id: "friendly", label: "Arkadaşça", icon: "happy" },
+    { id: "persuasive", label: "İkna Edici", icon: "trending-up" },
+    { id: "humorous", label: "Mizahi", icon: "happy" },
+    { id: "inspirational", label: "İlham Verici", icon: "sparkles" },
+    { id: "educational", label: "Eğitici", icon: "school" },
   ];
 
-  // Uzunluk seçenekleri
+  // Length options with icons
   const lengthOptions = [
-    { id: "short", label: "Kısa", icon: "text" },
-    { id: "medium", label: "Orta", icon: "list" },
-    { id: "long", label: "Uzun", icon: "document" },
+    { id: "short", label: "Kısa", icon: "text", description: "250-300 kelime" },
+    {
+      id: "medium",
+      label: "Orta",
+      icon: "list",
+      description: "500-600 kelime",
+    },
+    {
+      id: "long",
+      label: "Uzun",
+      icon: "document",
+      description: "1000+ kelime",
+    },
   ];
 
-  // Kullanıcının seçimlerine göre yazı üretme
+  // Generate text based on user selections
   const generateText = async () => {
     if (!topic.trim()) {
       Alert.alert("Hata", "Lütfen bir konu girin.");
       return;
     }
 
-    // // Token kontrolü
-    // if (tokens < tokenCost) {
-    //   Alert.alert(
-    //     "Yetersiz Token",
-    //     `Bu işlem için ${tokenCost} token gerekiyor. Daha fazla token kazanın.`,
-    //     [
-    //       { text: "İptal", style: "cancel" },
-    //       { text: "Token Kazan", onPress: () => navigation.navigate("Tokens") },
-    //     ]
-    //   );
-    //   return;
-    // }
-
     Keyboard.dismiss();
     setLoading(true);
     setShowResult(false);
 
     try {
-      // Token kullanımı
-      //   await useTokens(tokenCost);
-
-      // Yazı üretme simülasyonu (gerçekte API çağrısı yapılacak)
+      // Simulate API call with timeout
       setTimeout(() => {
         const generatedContent = generateSampleText(
           contentType,
@@ -158,10 +109,10 @@ const TextGeneratorScreen = ({ navigation }) => {
         setLoading(false);
         setShowResult(true);
 
-        // Sonuçlara scroll yap
+        // Scroll to results
         setTimeout(() => {
           scrollViewRef.current?.scrollToEnd({ animated: true });
-        }, 500);
+        }, 300);
       }, 2000);
     } catch (error) {
       console.log("Error generating text:", error);
@@ -170,12 +121,12 @@ const TextGeneratorScreen = ({ navigation }) => {
     }
   };
 
-  // Örnek yazı üretme fonksiyonu (gerçekte AI API'si kullanılacak)
+  // Sample text generation (simulate AI response)
   const generateSampleText = (type, userTopic, userTone, userLength) => {
     let baseText = "";
     const topic = userTopic.charAt(0).toUpperCase() + userTopic.slice(1);
 
-    // Türe göre giriş cümlesi
+    // Type-specific intro
     switch (type) {
       case "blog":
         baseText = `# ${topic} Hakkında Bilmeniz Gerekenler\n\n`;
@@ -193,43 +144,11 @@ const TextGeneratorScreen = ({ navigation }) => {
         baseText = `# ${topic}: Bir Hikaye\n\n`;
         baseText += `Bir zamanlar, ${topic.toLowerCase()} ile derin bir bağı olan birisi vardı. Günlerden bir gün, beklenmedik bir olay gerçekleşti...\n\n`;
         break;
-      case "academic":
-        baseText = `## ${topic} Üzerine Bir İnceleme\n\n`;
-        baseText += `Özet: Bu çalışmada, ${topic.toLowerCase()} konusu akademik bir bakış açısıyla ele alınmış ve mevcut literatür ışığında değerlendirilmiştir.\n\n`;
-        break;
-      case "business":
-        baseText = `# ${topic} İş Planı\n\n`;
-        baseText += `Yönetici Özeti: Bu doküman, ${topic.toLowerCase()} alanında stratejik bir yaklaşım sunmak ve potansiyel iş fırsatlarını değerlendirmek amacıyla hazırlanmıştır.\n\n`;
-        break;
-      case "cv":
-        baseText = `# ${topic} - Özgeçmiş\n\n`;
-        baseText += `Profesyonel Özet: ${topic.toLowerCase()} alanında deneyimli, sonuç odaklı bir profesyonel.\n\n`;
-        break;
-      case "product":
-        baseText = `# ${topic} - Ürün Açıklaması\n\n`;
-        baseText += `Benzersiz ${topic.toLowerCase()} ürünümüz, hayatınızı kolaylaştırmak için tasarlandı. İşte size sunduğu avantajlar...\n\n`;
-        break;
-      case "recipe":
-        baseText = `# Lezzetli ${topic} Tarifi\n\n`;
-        baseText += `Bu enfes ${topic.toLowerCase()} tarifi, sofranıza renk katacak. İşte malzemeler ve yapılışı...\n\n`;
-        break;
-      case "poem":
-        baseText = `# ${topic} Üzerine\n\n`;
-        baseText += `Duyguların dile geldiği an,\n${topic.toLowerCase()} ile başlayan yolculuk...\n\n`;
-        break;
-      case "news":
-        baseText = `# ${topic} Konusunda Son Gelişmeler\n\n`;
-        baseText += `Son dakika: ${topic} konusundaki gelişmeler, uzmanlar tarafından yakından takip ediliyor...\n\n`;
-        break;
-      case "speech":
-        baseText = `# ${topic} Hakkında Konuşma\n\n`;
-        baseText += `Sayın dinleyiciler, bugün sizlerle ${topic.toLowerCase()} konusundaki düşüncelerimi paylaşmak istiyorum...\n\n`;
-        break;
       default:
         baseText = `# ${topic}\n\n`;
     }
 
-    // Tona göre içerik ekleme
+    // Tone-specific content
     let toneText = "";
     switch (userTone) {
       case "professional":
@@ -238,49 +157,21 @@ const TextGeneratorScreen = ({ navigation }) => {
       case "casual":
         toneText = `Hey, ${topic} hakkında konuşalım biraz! Biliyorsun, bu konu gerçekten ilginç ve herkesin hayatına dokunabiliyor. Ben şahsen bu konuyu her zaman merak etmişimdir.`;
         break;
-      case "formal":
-        toneText = `${topic} hususunda, resmi bir değerlendirme yapmak gerekirse, konunun çeşitli boyutlarını sistematik bir şekilde ele almak ve objektif kriterler çerçevesinde analiz etmek gerekmektedir.`;
-        break;
-      case "friendly":
-        toneText = `${topic} ile ilgili düşüncelerimi seninle paylaşmak istiyorum dostum! Bu konuda birlikte keşfedecek çok şey var ve eminim ki sen de en az benim kadar heyecanlısın.`;
-        break;
-      case "persuasive":
-        toneText = `${topic} konusunda harekete geçmenin tam zamanı. Düşünsenize, bu fırsatı kaçırmanın maliyeti ne olabilir? Rekabet her geçen gün artarken, şimdi adım atmamanın lüksü yok.`;
-        break;
-      case "humorous":
-        toneText = `${topic} hakkında ciddi konuşmaya çalışırken, kendimi bir komedyen gibi hissediyorum! Bu konu o kadar ilginç ki, bazen gülmekten kendimi alamıyorum. Hazır olun, gülmekten karnınız ağrıyabilir!`;
-        break;
-      case "inspirational":
-        toneText = `${topic} hayatımızda ilham verici bir yolculuk. Her adım, her deneyim bizi daha güçlü ve bilge kılıyor. Bu yolda karşılaştığımız zorluklar aslında bizi hedeflerimize daha da yaklaştıran fırsatlar.`;
-        break;
-      case "educational":
-        toneText = `${topic} konusunu öğrenirken adım adım ilerlemek önemlidir. Bu yazıda temel kavramlardan başlayarak, karmaşık konulara doğru ilerleyeceğiz. Her bölümde pratik örneklerle konuyu pekiştireceğiz.`;
-        break;
       default:
         toneText = `${topic} hakkında düşüncelerim şu şekilde...`;
     }
 
     baseText += toneText + "\n\n";
 
-    // Uzunluğa göre içerik ekleme
+    // Generate paragraphs based on length
     let paragraphs = "";
     const paragraphCount =
       userLength === "short" ? 2 : userLength === "medium" ? 4 : 6;
 
     const paragraphTemplates = [
       `${topic} alanında yapılan son araştırmalar, birçok yeni bulguyu ortaya koymuştur. Özellikle teknolojinin gelişmesiyle birlikte, bu alandaki ilerlemeler hız kazanmıştır. Uzmanlar, önümüzdeki yıllarda daha fazla yeniliğin geleceğini öngörmektedir.`,
-
       `Peki ${topic} ile ilgili bilmeniz gereken temel noktalar nelerdir? Öncelikle, bu konuya yaklaşırken bütünsel bir bakış açısı geliştirmek önemlidir. Farklı perspektiflerden değerlendirmeler yapmak, daha kapsamlı bir anlayış sağlayacaktır.`,
-
-      `${topic} konusundaki genel yanılgılardan biri, onun sadece belirli bir kesimi ilgilendirdiği düşüncesidir. Oysa yapılan araştırmalar, toplumun her kesiminin bu konudan etkilendiğini göstermektedir. Bu nedenle, konuya geniş bir perspektiften bakmak gerekmektedir.`,
-
-      `Günümüzde ${topic} ile ilgili karşılaşılan zorlukların başında, bilgi eksikliği gelmektedir. Doğru bilgiye ulaşmak ve bu bilgiyi etkili bir şekilde kullanmak, başarının anahtarıdır. Bu nedenle, güvenilir kaynaklardan bilgi edinmek büyük önem taşımaktadır.`,
-
-      `${topic} alanında uzmanlaşmak isteyenler için önerilen adımlar şunlardır: Düzenli olarak güncel bilgileri takip etmek, alanındaki uzmanlarla iletişim kurmak, pratik uygulamalar yapmak ve geri bildirimler almak. Bu adımları izleyerek, sürekli bir gelişim sağlamak mümkündür.`,
-
-      `${topic} ile ilgili gelecek trendlere baktığımızda, dijitalleşmenin etkisini görmek mümkündür. Teknolojik gelişmeler, bu alanda yeni fırsatlar sunmakta ve iş yapış şekillerini değiştirmektedir. Bu değişime ayak uydurmak, rekabet avantajı sağlayacaktır.`,
-
-      `Sonuç olarak, ${topic} hakkında doğru bilgiye sahip olmak ve bu bilgiyi etkili bir şekilde kullanmak büyük önem taşımaktadır. Bu yazıda paylaştığım bilgilerin, konuya yaklaşımınızda faydalı olacağını umuyorum.`,
+      `${topic} konusundaki genel yanılgılardan biri, onun sadece belirli bir kesimi ilgilendirdiği düşüncesidir. Oysa yapılan araştırmalar, toplumun her kesiminin bu konudan etkilendiğini göstermektedir.`,
     ];
 
     for (let i = 0; i < paragraphCount; i++) {
@@ -289,27 +180,13 @@ const TextGeneratorScreen = ({ navigation }) => {
 
     baseText += paragraphs;
 
-    // Sonuç paragrafı
-    baseText += `## Sonuç\n\n${topic} hakkında paylaştığım bu bilgilerin size faydalı olmasını umuyorum. Sorularınız veya yorumlarınız varsa, lütfen paylaşmaktan çekinmeyin. Gelecek yazılarda görüşmek üzere!`;
+    // Conclusion
+    baseText += `## Sonuç\n\n${topic} hakkında paylaştığım bu bilgilerin size faydalı olmasını umuyorum. Sorularınız veya yorumlarınız varsa, lütfen paylaşmaktan çekinmeyin.`;
 
     return baseText;
   };
 
-  // İçerik türü seçildiğinde
-  const handleSelectContentType = (typeId) => {
-    setContentType(typeId);
-    // İlgili içerik türüne scroll yapma
-    const index = contentTypes.findIndex((item) => item.id === typeId);
-    if (index !== -1) {
-      typeScrollRef.current?.scrollToIndex({
-        index,
-        animated: true,
-        viewPosition: 0.5, // Ortala
-      });
-    }
-  };
-
-  // Üretilen metni paylaşma
+  // Share generated text
   const shareGeneratedText = async () => {
     try {
       await Share.share({
@@ -320,58 +197,13 @@ const TextGeneratorScreen = ({ navigation }) => {
     }
   };
 
-  // Üretilen metni kopyalama (Gerçek uygulamada Clipboard.setString kullanılır)
+  // Copy text to clipboard
   const copyToClipboard = () => {
     // Clipboard.setString(generatedText);
     Alert.alert("Başarılı", "Metin panoya kopyalandı.");
   };
 
-  // İçerik türü kartını render etme
-  const renderContentTypeItem = ({ item, index }) => {
-    const isSelected = contentType === item.id;
-    return (
-      <TouchableOpacity
-        style={[
-          styles.contentTypeCard,
-          isSelected && styles.contentTypeCardSelected,
-          {
-            backgroundColor: isSelected
-              ? item.color + "33"
-              : isDark
-              ? colors.card
-              : colors.white,
-          },
-        ]}
-        onPress={() => handleSelectContentType(item.id)}
-        activeOpacity={0.7}
-      >
-        <View
-          style={[
-            styles.contentTypeIconContainer,
-            {
-              backgroundColor: isSelected ? item.color : colors.card,
-            },
-          ]}
-        >
-          <Ionicons
-            name={item.icon}
-            size={22}
-            color={isSelected ? "#FFFFFF" : item.color}
-          />
-        </View>
-        <Text
-          style={[
-            styles.contentTypeText,
-            isSelected && { color: item.color, fontWeight: "bold" },
-          ]}
-        >
-          {item.label}
-        </Text>
-      </TouchableOpacity>
-    );
-  };
-
-  // Giriş alanı placeholder metni
+  // Get placeholder text based on content type
   const getPlaceholderText = () => {
     switch (contentType) {
       case "blog":
@@ -380,24 +212,6 @@ const TextGeneratorScreen = ({ navigation }) => {
         return "Sosyal medya içeriğinizin konusunu girin...";
       case "email":
         return "E-posta konusunu girin...";
-      case "story":
-        return "Hikayenizin konusunu veya temasını girin...";
-      case "academic":
-        return "Akademik makalenizin konusunu girin...";
-      case "business":
-        return "İş metninizin anahtar kelimelerini girin...";
-      case "cv":
-        return "Özgeçmiş için pozisyon veya alan girin...";
-      case "product":
-        return "Ürün adı veya türünü girin...";
-      case "recipe":
-        return "Yemek veya malzemeleri girin...";
-      case "poem":
-        return "Şiir veya şarkı temasını girin...";
-      case "news":
-        return "Haber konusunu girin...";
-      case "speech":
-        return "Konuşma konusunu girin...";
       default:
         return "Yazınızın konusu ne olacak?";
     }
@@ -408,214 +222,245 @@ const TextGeneratorScreen = ({ navigation }) => {
       flex: 1,
       paddingTop: 25,
     },
-    gradientContainer: {
-      flex: 1,
-    },
     content: {
       flex: 1,
-      paddingHorizontal: SIZES.padding - 4,
-      paddingBottom: 0, // Alt padding'i kaldırıyoruz
+      paddingHorizontal: SIZES.padding,
     },
+    // Content type selection
     sectionTitle: {
-      ...FONTS.h4,
-      color: colors.textPrimary,
-      marginTop: 12,
-      marginBottom: 8,
-      paddingLeft: 4,
+      ...FONTS.h3,
+      color: colors.textOnGradient,
+      marginTop: 20,
+      marginBottom: 16,
+      fontWeight: "bold",
     },
-    // Yeni stil - Kaydırılabilir kartlar için
-    contentTypesList: {
-      marginBottom: 12,
+    contentTypeContainer: {
+      flexDirection: "row",
+      flexWrap: "wrap",
+      justifyContent: "space-between",
+      marginBottom: 24,
     },
-    contentTypeCard: {
-      width: width * 0.35,
-      height: 90,
-      marginRight: 10,
+    contentTypeItem: {
+      width: "31%",
+      backgroundColor: isDark
+        ? "rgba(255, 255, 255, 0.1)"
+        : "rgba(255, 255, 255, 0.8)",
       borderRadius: 16,
-      padding: 10,
-      justifyContent: "center",
+      padding: 12,
       alignItems: "center",
-      backgroundColor: isDark ? colors.card : colors.white,
+      marginBottom: 12,
+      borderWidth: 1,
+      borderColor: "transparent",
     },
-    contentTypeCardSelected: {
-      borderWidth: 2,
+    contentTypeItemSelected: {
       borderColor: colors.primary,
-      ...Platform.select({
-        android: {
-          borderWidth: 2.5,
-        },
-      }),
+      backgroundColor: isDark ? `${colors.primary}20` : `${colors.primary}10`,
     },
-    contentTypeIconContainer: {
-      width: 42,
-      height: 42,
-      borderRadius: 21,
+    contentTypeIcon: {
+      width: 40,
+      height: 40,
+      borderRadius: 20,
+      backgroundColor: isDark
+        ? "rgba(255, 255, 255, 0.15)"
+        : colors.primary + "20",
       justifyContent: "center",
       alignItems: "center",
-      marginBottom: 6,
-      overflow: "hidden",
+      marginBottom: 8,
+    },
+    contentTypeIconSelected: {
+      backgroundColor: colors.primary,
     },
     contentTypeText: {
       ...FONTS.body4,
-      color: colors.textPrimary,
+      color: colors.textOnGradient,
       textAlign: "center",
     },
-    inputContainer: {
-      backgroundColor: isDark ? colors.card : colors.white,
+    // Input section
+    inputSection: {
+      backgroundColor: isDark
+        ? "rgba(255, 255, 255, 0.1)"
+        : "rgba(255, 255, 255, 0.8)",
       borderRadius: 16,
-      padding: 12,
-      marginBottom: 12,
-      borderWidth: 1,
-      borderColor: isDark ? colors.border : colors.lightGray,
+      padding: 16,
+      marginBottom: 24,
     },
     inputLabel: {
-      ...FONTS.body4,
-      color: colors.textPrimary,
-      marginBottom: 8,
-      fontWeight: "500",
+      ...FONTS.h4,
+      color: colors.textOnGradient,
+      marginBottom: 12,
     },
-    input: {
-      backgroundColor: isDark ? colors.input : colors.white,
+    inputField: {
+      backgroundColor: isDark
+        ? "rgba(0, 0, 0, 0.2)"
+        : "rgba(255, 255, 255, 0.9)",
       borderRadius: 12,
-      padding: 12,
+      padding: 16,
       color: colors.textPrimary,
       borderWidth: 1,
-      borderColor: isDark ? colors.border : colors.lightGray,
-      minHeight: 80,
-      maxHeight: 120,
+      borderColor: isDark ? "rgba(255, 255, 255, 0.1)" : "rgba(0, 0, 0, 0.1)",
+      minHeight: 100,
       textAlignVertical: "top",
       ...FONTS.body3,
     },
-    // Yazı tonu ve uzunluk seçimi
+    characterCount: {
+      ...FONTS.body5,
+      color: colors.textSecondary,
+      textAlign: "right",
+      marginTop: 8,
+    },
+    // Options section
+    optionsSection: {
+      backgroundColor: isDark
+        ? "rgba(255, 255, 255, 0.1)"
+        : "rgba(255, 255, 255, 0.8)",
+      borderRadius: 16,
+      padding: 16,
+      marginBottom: 24,
+    },
+    optionTitle: {
+      ...FONTS.h4,
+      color: colors.textOnGradient,
+      marginBottom: 16,
+    },
     optionRow: {
       flexDirection: "row",
-      marginBottom: 6,
-      paddingHorizontal: 4,
+      marginBottom: 8,
     },
-    optionLabel: {
-      ...FONTS.body4,
-      color: colors.textPrimary,
-      marginRight: 10,
-      fontWeight: "500",
-      alignSelf: "center",
-      width: 80,
+    optionItem: {
+      flexDirection: "row",
+      alignItems: "center",
+      backgroundColor: isDark
+        ? "rgba(0, 0, 0, 0.2)"
+        : "rgba(255, 255, 255, 0.9)",
+      paddingVertical: 10,
+      paddingHorizontal: 16,
+      borderRadius: 12,
+      marginRight: 12,
+      marginBottom: 8,
+      borderWidth: 1,
+      borderColor: "transparent",
     },
-    optionsScrollContainer: {
-      flex: 1,
+    optionItemSelected: {
+      borderColor: colors.primary,
+      backgroundColor: isDark ? `${colors.primary}20` : `${colors.primary}10`,
     },
-    optionButton: {
-      paddingHorizontal: 14,
-      paddingVertical: 6,
-      backgroundColor: isDark ? colors.card : colors.white,
-      borderRadius: 16,
+    optionIcon: {
       marginRight: 8,
     },
-    optionButtonSelected: {
-      backgroundColor: colors.primary + "22",
-      borderColor: colors.primary,
-      ...Platform.select({
-        android: {
-          borderWidth: 1.5,
-        },
-      }),
-    },
-    optionButtonText: {
+    optionText: {
       ...FONTS.body4,
-      color: colors.textPrimary,
+      color: colors.textOnGradient,
     },
-    optionButtonTextSelected: {
+    optionTextSelected: {
+      ...FONTS.body4,
       color: colors.primary,
       fontWeight: "bold",
     },
-    // Buton stilleri
+    // Generate button
     generateButton: {
-      marginVertical: 12,
-      borderRadius: 25,
+      marginBottom: 24,
       overflow: "hidden",
+      borderRadius: 16,
+      elevation: 5,
+      shadowColor: colors.primary,
+      shadowOffset: { width: 0, height: 2 },
+      shadowOpacity: 0.3,
+      shadowRadius: 3,
     },
     generateButtonInner: {
-      height: 50,
+      flexDirection: "row",
+      height: 56,
       alignItems: "center",
       justifyContent: "center",
-      borderRadius: 25,
-      overflow: "hidden",
-    },
-    generateButtonIcon: {
-      marginRight: 8,
     },
     generateButtonText: {
-      ...FONTS.h4,
-      color: colors.white,
+      ...FONTS.h3,
+      color: "#FFFFFF",
+      fontWeight: "bold",
+      marginLeft: 12,
     },
-    // Yükleniyor ve sonuç
+    // Loading indicator
     loadingContainer: {
       alignItems: "center",
       justifyContent: "center",
-      padding: 20,
-      backgroundColor: isDark ? colors.card : colors.white,
+      padding: 30,
+      backgroundColor: isDark
+        ? "rgba(255, 255, 255, 0.1)"
+        : "rgba(255, 255, 255, 0.8)",
       borderRadius: 16,
-      marginVertical: 10,
+      marginBottom: 24,
     },
     loadingText: {
       ...FONTS.body3,
-      color: colors.textPrimary,
-      marginTop: 10,
+      color: colors.textOnGradient,
+      marginTop: 16,
+      textAlign: "center",
     },
+    // Results section
     resultContainer: {
-      backgroundColor: isDark ? colors.card : colors.white,
+      backgroundColor: isDark
+        ? "rgba(255, 255, 255, 0.1)"
+        : "rgba(255, 255, 255, 0.8)",
       borderRadius: 16,
       padding: 16,
-      marginVertical: 10,
-      elevation: 3,
+      marginBottom: 24,
     },
     resultHeader: {
       flexDirection: "row",
       justifyContent: "space-between",
       alignItems: "center",
-      marginBottom: 12,
+      paddingBottom: 16,
+      marginBottom: 16,
       borderBottomWidth: 1,
-      borderBottomColor: isDark ? colors.border : colors.lightGray,
-      paddingBottom: 8,
+      borderBottomColor: isDark
+        ? "rgba(255, 255, 255, 0.1)"
+        : "rgba(0, 0, 0, 0.1)",
     },
     resultTitle: {
       ...FONTS.h3,
-      color: colors.textPrimary,
+      color: colors.textOnGradient,
+      fontWeight: "bold",
     },
-    actionsContainer: {
+    actionButtonsContainer: {
       flexDirection: "row",
     },
     actionButton: {
       width: 36,
       height: 36,
       borderRadius: 18,
-      backgroundColor: isDark ? colors.card : colors.white,
+      backgroundColor: isDark
+        ? "rgba(255, 255, 255, 0.15)"
+        : "rgba(255, 255, 255, 0.9)",
       justifyContent: "center",
       alignItems: "center",
-      marginLeft: 8,
-      overflow: "hidden",
+      marginLeft: 10,
+      borderWidth: 1,
+      borderColor: isDark ? "rgba(255, 255, 255, 0.1)" : "rgba(0, 0, 0, 0.1)",
     },
     resultContent: {
       ...FONTS.body3,
-      color: colors.textPrimary,
-      lineHeight: 22,
+      color: colors.textOnGradient,
+      lineHeight: 24,
     },
-    // Sonuç butonları
-    newTextButton: {
-      marginTop: 16,
-      backgroundColor: colors.primary + "22",
+    // Reset button
+    resetButton: {
+      flexDirection: "row",
+      alignItems: "center",
+      justifyContent: "center",
+      backgroundColor: isDark
+        ? "rgba(255, 255, 255, 0.15)"
+        : "rgba(255, 255, 255, 0.9)",
       borderRadius: 12,
+      padding: 14,
+      marginTop: 16,
       borderWidth: 1,
       borderColor: colors.primary,
-      padding: 10,
-      flexDirection: "row",
-      justifyContent: "center",
-      alignItems: "center",
     },
-    newTextButtonText: {
-      ...FONTS.body4,
+    resetButtonText: {
+      ...FONTS.body3,
       color: colors.primary,
-      marginLeft: 6,
       fontWeight: "bold",
+      marginLeft: 8,
     },
   });
 
@@ -627,33 +472,51 @@ const TextGeneratorScreen = ({ navigation }) => {
         <KeyboardAvoidingView
           behavior={Platform.OS === "ios" ? "padding" : null}
           style={{ flex: 1 }}
-          keyboardVerticalOffset={Platform.OS === "ios" ? 0 : 0}
+          keyboardVerticalOffset={Platform.OS === "ios" ? 0 : 25}
         >
           <ScrollView
             style={styles.content}
-            contentContainerStyle={{ paddingBottom: 0 }}
             showsVerticalScrollIndicator={false}
             ref={scrollViewRef}
             keyboardShouldPersistTaps="handled"
           >
-            {/* İçerik türü seçimi - Yeni kaydırılabilir kart tasarımı */}
+            {/* Content Type Selection */}
             <Text style={styles.sectionTitle}>İçerik Türü</Text>
-            <FlatList
-              ref={typeScrollRef}
-              data={contentTypes}
-              renderItem={renderContentTypeItem}
-              keyExtractor={(item) => item.id}
-              horizontal
-              showsHorizontalScrollIndicator={false}
-              contentContainerStyle={styles.contentTypesList}
-              onScrollToIndexFailed={() => {}}
-            />
+            <View style={styles.contentTypeContainer}>
+              {contentTypes.slice(0, 6).map((item) => (
+                <TouchableOpacity
+                  key={item.id}
+                  style={[
+                    styles.contentTypeItem,
+                    contentType === item.id && styles.contentTypeItemSelected,
+                  ]}
+                  onPress={() => setContentType(item.id)}
+                  activeOpacity={0.7}
+                >
+                  <View
+                    style={[
+                      styles.contentTypeIcon,
+                      contentType === item.id && styles.contentTypeIconSelected,
+                    ]}
+                  >
+                    <Ionicons
+                      name={item.icon}
+                      size={20}
+                      color={
+                        contentType === item.id ? "#FFFFFF" : colors.primary
+                      }
+                    />
+                  </View>
+                  <Text style={styles.contentTypeText}>{item.label}</Text>
+                </TouchableOpacity>
+              ))}
+            </View>
 
-            {/* Konu girişi - Daha kompakt tasarım */}
-            <View style={styles.inputContainer}>
+            {/* Topic Input Section */}
+            <View style={styles.inputSection}>
               <Text style={styles.inputLabel}>Konu veya Anahtar Kelimeler</Text>
               <TextInput
-                style={styles.input}
+                style={styles.inputField}
                 placeholder={getPlaceholderText()}
                 placeholderTextColor={
                   isDark ? "rgba(255, 255, 255, 0.4)" : "rgba(0, 0, 0, 0.3)"
@@ -663,56 +526,38 @@ const TextGeneratorScreen = ({ navigation }) => {
                 multiline
                 maxLength={200}
               />
+              <Text style={styles.characterCount}>{topic.length}/200</Text>
             </View>
 
-            {/* Yazı tonu seçimi - Yatay kaydırmalı */}
-            <View style={styles.optionRow}>
-              <Text style={styles.optionLabel}>Yazı Tonu</Text>
-              <ScrollView
-                horizontal
-                showsHorizontalScrollIndicator={false}
-                contentContainerStyle={styles.optionsScrollContainer}
-              >
-                {toneOptions.map((option) => (
+            {/* Tone Selection */}
+            <View style={styles.optionsSection}>
+              <Text style={styles.optionTitle}>Yazı Tonu</Text>
+              <View style={{ flexDirection: "row", flexWrap: "wrap" }}>
+                {toneOptions.slice(0, 4).map((option) => (
                   <TouchableOpacity
                     key={option.id}
                     style={[
-                      styles.optionButton,
-                      tone === option.id && styles.optionButtonSelected,
+                      styles.optionItem,
+                      tone === option.id && styles.optionItemSelected,
                     ]}
                     onPress={() => setTone(option.id)}
                   >
+                    <Ionicons
+                      name={option.icon}
+                      size={18}
+                      color={
+                        tone === option.id
+                          ? colors.primary
+                          : colors.textOnGradient
+                      }
+                      style={styles.optionIcon}
+                    />
                     <Text
-                      style={[
-                        styles.optionButtonText,
-                        tone === option.id && styles.optionButtonTextSelected,
-                      ]}
-                    >
-                      {option.label}
-                    </Text>
-                  </TouchableOpacity>
-                ))}
-              </ScrollView>
-            </View>
-
-            {/* Uzunluk seçimi - Yatay kaydırmalı */}
-            <View style={styles.optionRow}>
-              <Text style={styles.optionLabel}>Uzunluk</Text>
-              <View style={styles.optionsScrollContainer}>
-                {lengthOptions.map((option) => (
-                  <TouchableOpacity
-                    key={option.id}
-                    style={[
-                      styles.optionButton,
-                      length === option.id && styles.optionButtonSelected,
-                    ]}
-                    onPress={() => setLength(option.id)}
-                  >
-                    <Text
-                      style={[
-                        styles.optionButtonText,
-                        length === option.id && styles.optionButtonTextSelected,
-                      ]}
+                      style={
+                        tone === option.id
+                          ? styles.optionTextSelected
+                          : styles.optionText
+                      }
                     >
                       {option.label}
                     </Text>
@@ -721,12 +566,55 @@ const TextGeneratorScreen = ({ navigation }) => {
               </View>
             </View>
 
-            {/* Yazı üretme butonu - Gradyan arka planlı */}
+            {/* Length Selection */}
+            <View style={styles.optionsSection}>
+              <Text style={styles.optionTitle}>Yazı Uzunluğu</Text>
+              {lengthOptions.map((option) => (
+                <TouchableOpacity
+                  key={option.id}
+                  style={[
+                    styles.optionItem,
+                    length === option.id && styles.optionItemSelected,
+                    { width: "100%", marginRight: 0 },
+                  ]}
+                  onPress={() => setLength(option.id)}
+                >
+                  <Ionicons
+                    name={option.icon}
+                    size={18}
+                    color={
+                      length === option.id
+                        ? colors.primary
+                        : colors.textOnGradient
+                    }
+                    style={styles.optionIcon}
+                  />
+                  <View>
+                    <Text
+                      style={
+                        length === option.id
+                          ? styles.optionTextSelected
+                          : styles.optionText
+                      }
+                    >
+                      {option.label}
+                    </Text>
+                    <Text
+                      style={{ ...FONTS.body5, color: colors.textSecondary }}
+                    >
+                      {option.description}
+                    </Text>
+                  </View>
+                </TouchableOpacity>
+              ))}
+            </View>
+
+            {/* Generate Button */}
             <TouchableOpacity
               style={styles.generateButton}
               onPress={generateText}
-              disabled={loading}
-              activeOpacity={0.8}
+              disabled={loading || !topic.trim()}
+              activeOpacity={0.7}
             >
               <LinearGradient
                 colors={[colors.primary, colors.primaryDark]}
@@ -734,42 +622,36 @@ const TextGeneratorScreen = ({ navigation }) => {
                 end={{ x: 1, y: 0 }}
                 style={[
                   styles.generateButtonInner,
-                  { opacity: loading ? 0.7 : 1 },
+                  { opacity: !topic.trim() || loading ? 0.7 : 1 },
                 ]}
-                borderRadius={16}
               >
                 {loading ? (
-                  <ActivityIndicator color="#fff" size="small" />
+                  <ActivityIndicator color="#FFFFFF" size="small" />
                 ) : (
-                  <View style={{ flexDirection: "row", alignItems: "center" }}>
-                    <Ionicons
-                      name="create-outline"
-                      size={22}
-                      color="#fff"
-                      style={styles.generateButtonIcon}
-                    />
-                    <Text style={styles.generateButtonText}>Yazı Üret</Text>
-                  </View>
+                  <>
+                    <Ionicons name="create-outline" size={24} color="#FFFFFF" />
+                    <Text style={styles.generateButtonText}>Yazı Oluştur</Text>
+                  </>
                 )}
               </LinearGradient>
             </TouchableOpacity>
 
-            {/* Yükleniyor göstergesi */}
+            {/* Loading Indicator */}
             {loading && (
               <View style={styles.loadingContainer}>
                 <ActivityIndicator size="large" color={colors.primary} />
                 <Text style={styles.loadingText}>
-                  Yazınız hazırlanıyor, lütfen bekleyin...
+                  Yazınız yapay zeka tarafından oluşturuluyor...
                 </Text>
               </View>
             )}
 
-            {/* Üretilen içerik */}
+            {/* Results */}
             {showResult && (
               <View style={styles.resultContainer}>
                 <View style={styles.resultHeader}>
-                  <Text style={styles.resultTitle}>Üretilen Yazı</Text>
-                  <View style={styles.actionsContainer}>
+                  <Text style={styles.resultTitle}>Oluşturulan İçerik</Text>
+                  <View style={styles.actionButtonsContainer}>
                     <TouchableOpacity
                       style={styles.actionButton}
                       onPress={copyToClipboard}
@@ -793,12 +675,10 @@ const TextGeneratorScreen = ({ navigation }) => {
                   </View>
                 </View>
 
-                {/* Markdown tarzında içerik gösterimi */}
                 <Text style={styles.resultContent}>{generatedText}</Text>
 
-                {/* Yeni yazı butonu */}
                 <TouchableOpacity
-                  style={styles.newTextButton}
+                  style={styles.resetButton}
                   onPress={() => {
                     setShowResult(false);
                     setGeneratedText("");
@@ -811,15 +691,18 @@ const TextGeneratorScreen = ({ navigation }) => {
                 >
                   <Ionicons
                     name="refresh-outline"
-                    size={18}
+                    size={20}
                     color={colors.primary}
                   />
-                  <Text style={styles.newTextButtonText}>
-                    Yeni Yazı Oluştur
+                  <Text style={styles.resetButtonText}>
+                    Yeni İçerik Oluştur
                   </Text>
                 </TouchableOpacity>
               </View>
             )}
+
+            {/* Bottom Spacing */}
+            <View style={{ height: 30 }} />
           </ScrollView>
         </KeyboardAvoidingView>
       </SafeAreaView>

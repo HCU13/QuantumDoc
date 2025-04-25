@@ -67,7 +67,7 @@ const ProfileScreen = ({ navigation }) => {
       overflow: "hidden",
       marginBottom: 15,
       borderWidth: 3,
-      borderColor: "rgba(255,255,255,0.5)",
+
       shadowColor: colors.primary,
       shadowOffset: { width: 0, height: 0 },
       shadowOpacity: 0.8,
@@ -89,7 +89,6 @@ const ProfileScreen = ({ navigation }) => {
       justifyContent: "center",
       alignItems: "center",
       borderWidth: 2,
-      borderColor: "rgba(255,255,255,0.5)",
     },
     nameText: {
       ...FONTS.h2,
@@ -126,7 +125,6 @@ const ProfileScreen = ({ navigation }) => {
       borderRadius: SIZES.radius * 1.5,
       overflow: "hidden",
       borderWidth: 1,
-      borderColor: "rgba(255, 255, 255, 0.3)",
       marginBottom: 15,
     },
     menuItem: {
@@ -135,7 +133,6 @@ const ProfileScreen = ({ navigation }) => {
       paddingVertical: 15,
       paddingHorizontal: 20,
       borderBottomWidth: 1,
-      borderBottomColor: "rgba(255, 255, 255, 0.1)",
     },
     lastMenuItem: {
       borderBottomWidth: 0,
@@ -285,7 +282,12 @@ const ProfileScreen = ({ navigation }) => {
 
         <ScrollView style={styles.content} showsVerticalScrollIndicator={false}>
           <View style={styles.profileSection}>
-            <View style={styles.profileImageContainer}>
+            <View
+              style={[
+                styles.profileImageContainer,
+                { borderColor: colors.border },
+              ]}
+            >
               <Image
                 source={{ uri: "https://i.pravatar.cc/300" }}
                 style={styles.profileImage}
@@ -312,7 +314,7 @@ const ProfileScreen = ({ navigation }) => {
             /> */}
           </View>
 
-          <View style={styles.card}>
+          <View style={[styles.card, { borderColor: colors.border }]}>
             <View style={styles.themeSwitchContainer}>
               <View style={styles.iconContainer}>
                 <Ionicons
@@ -338,12 +340,12 @@ const ProfileScreen = ({ navigation }) => {
 
           <Text style={styles.sectionTitle}>Hesap</Text>
 
-          <View style={styles.card}>
+          <View style={[styles.card, { borderColor: colors.border }]}>
             {menuItems.map((item, index) => (
               <TouchableOpacity
                 key={item.id}
                 style={[
-                  styles.menuItem,
+                  [styles.menuItem, { borderColor: colors.border }],
                   index === menuItems.length - 1 && styles.lastMenuItem,
                 ]}
                 onPress={item.onPress}

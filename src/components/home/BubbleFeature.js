@@ -28,7 +28,7 @@ const BubbleFeature = ({
       alignItems: "center",
       backgroundColor: "rgba(255, 255, 255, 0.1)",
       borderWidth: 1,
-      borderColor: "rgba(255, 255, 255, 0.3)",
+
       overflow: "visible",
       // Sabit gölge değerleri
       shadowColor: colors.primary,
@@ -60,7 +60,6 @@ const BubbleFeature = ({
       justifyContent: "center",
       alignItems: "center",
       borderWidth: 1,
-      borderColor: "rgba(255, 255, 255, 0.5)",
     },
     title: {
       ...FONTS.h4,
@@ -77,7 +76,7 @@ const BubbleFeature = ({
       onPress={onPress}
       activeOpacity={0.8}
     >
-      <View style={styles.bubbleOuter}>
+      <View style={[styles.bubbleOuter, { borderColor: colors.border }]}>
         <View style={styles.bubbleInner}>
           <LinearGradient
             colors={[colors.primary, colors.primaryDark]}
@@ -85,7 +84,11 @@ const BubbleFeature = ({
             end={{ x: 1, y: 1 }}
             style={styles.gradientBg}
           >
-            <View style={styles.iconContainer}>{icon}</View>
+            <View
+              style={[styles.iconContainer, { borderColor: colors.border }]}
+            >
+              {icon}
+            </View>
           </LinearGradient>
         </View>
       </View>

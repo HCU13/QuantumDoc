@@ -16,7 +16,6 @@ const TokenCard = ({ onGetTokenPress, onHistoryPress, containerStyle }) => {
       overflow: "hidden",
       marginVertical: 15,
       borderWidth: 1,
-      borderColor: "rgba(255, 255, 255, 0.3)",
     },
     gradient: {
       padding: 20,
@@ -117,7 +116,9 @@ const TokenCard = ({ onGetTokenPress, onHistoryPress, containerStyle }) => {
   });
 
   return (
-    <View style={[styles.container, containerStyle]}>
+    <View
+      style={[styles.container, containerStyle, { borderColor: colors.border }]}
+    >
       <LinearGradient
         colors={[colors.primary, colors.primaryDark]}
         start={{ x: 0, y: 0 }}
@@ -138,7 +139,11 @@ const TokenCard = ({ onGetTokenPress, onHistoryPress, containerStyle }) => {
             onPress={onHistoryPress}
           >
             <Text style={styles.historyText}>Geçmiş</Text>
-            <Ionicons name="chevron-forward" size={16} color={colors.textOnPrimary} />
+            <Ionicons
+              name="chevron-forward"
+              size={16}
+              color={colors.textOnPrimary}
+            />
           </TouchableOpacity>
         </View>
 
@@ -166,7 +171,11 @@ const TokenCard = ({ onGetTokenPress, onHistoryPress, containerStyle }) => {
             disabled={!canWatchVideoForTokens()}
           >
             <Text style={styles.buttonText}>Token Kazan</Text>
-            <Ionicons name="play-circle-outline" size={20} color={colors.textOnPrimary} />
+            <Ionicons
+              name="play-circle-outline"
+              size={20}
+              color={colors.textOnPrimary}
+            />
           </TouchableOpacity>
         </View>
       </LinearGradient>

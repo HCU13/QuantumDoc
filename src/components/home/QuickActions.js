@@ -33,12 +33,12 @@ const QuickActions = ({ onActionPress, containerStyle }) => {
 
   // Modüller ve özellikleri
   const quickActions = [
-    {
-      id: "chat",
-      title: "AI Sohbet",
-      icon: <Ionicons name="chatbubble-outline" size={24} color="#FFF" />,
-      gradientColors: [colors.primary, colors.primaryDark],
-    },
+    // {
+    //   id: "chat",
+    //   title: "AI Sohbet",
+    //   icon: <Ionicons name="chatbubble-outline" size={24} color="#FFF" />,
+    //   gradientColors: [colors.primary, colors.primaryDark],
+    // },
     {
       id: "math",
       title: "Matematik",

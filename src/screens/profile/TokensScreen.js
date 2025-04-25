@@ -92,7 +92,6 @@ const TokensScreen = ({ navigation }) => {
       borderRadius: SIZES.radius,
       padding: 15,
       borderWidth: 1,
-      borderColor: "rgba(255, 255, 255, 0.2)",
     },
     infoCard: {
       backgroundColor: "rgba(255, 255, 255, 0.15)",
@@ -100,7 +99,6 @@ const TokensScreen = ({ navigation }) => {
       padding: 15,
       marginBottom: 20,
       borderWidth: 1,
-      borderColor: "rgba(255, 255, 255, 0.3)",
     },
     infoCardTitle: {
       ...FONTS.h4,
@@ -302,7 +300,11 @@ const TokensScreen = ({ navigation }) => {
             style={styles.backButton}
             onPress={() => navigation.goBack()}
           >
-            <Ionicons name="chevron-back" size={24} color={colors.textOnGradient} />
+            <Ionicons
+              name="chevron-back"
+              size={24}
+              color={colors.textOnGradient}
+            />
           </TouchableOpacity>
           <Text style={styles.headerTitle}>Tokenlar</Text>
         </View>
@@ -317,7 +319,7 @@ const TokensScreen = ({ navigation }) => {
             onHistoryPress={() => console.log("Token geçmişi")}
           />
 
-          <View style={styles.infoCard}>
+          <View style={[styles.infoCard, { borderColor: colors.border }]}>
             <Text style={styles.infoCardTitle}>Tokenlar Nasıl Kullanılır?</Text>
             <Text style={styles.infoCardText}>
               Tokenlar, AI özelliklerine erişim sağlar. Farklı özelliklerin

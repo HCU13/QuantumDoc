@@ -81,11 +81,9 @@ const ExploreScreen = ({ navigation }) => {
       borderRadius: SIZES.radius,
       marginRight: 8,
       borderWidth: 1,
-      borderColor: "rgba(255, 255, 255, 0.2)",
     },
     categoryItemActive: {
       backgroundColor: colors.primary,
-      borderColor: "rgba(255, 255, 255, 0.5)",
     },
     categoryText: {
       ...FONTS.body4,
@@ -123,7 +121,7 @@ const ExploreScreen = ({ navigation }) => {
       borderRadius: SIZES.radius,
       padding: 15,
       borderWidth: 1,
-      borderColor: "rgba(255, 255, 255, 0.2)",
+
     },
     tokensInfoText: {
       ...FONTS.body4,
@@ -365,9 +363,11 @@ const ExploreScreen = ({ navigation }) => {
                 <TouchableOpacity
                   key={category.id}
                   style={[
-                    styles.categoryItem,
-                    selectedCategory === category.id &&
+                    [styles.categoryItem, { borderColor: colors.border }],
+                    selectedCategory === category.id && [
                       styles.categoryItemActive,
+                      { borderColor: colors.border },
+                    ],
                   ]}
                   onPress={() => setSelectedCategory(category.id)}
                 >

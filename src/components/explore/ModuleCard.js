@@ -65,7 +65,6 @@ const ModuleCard = ({
       marginVertical: 8,
       overflow: "visible",
       borderWidth: 1,
-      borderColor: "rgba(255, 255, 255, 0.3)",
       // Sabit gölge değerleri
       shadowColor: cardGradient[0],
       shadowOffset: { width: 0, height: 0 },
@@ -93,7 +92,6 @@ const ModuleCard = ({
       justifyContent: "center",
       marginBottom: size === "small" ? 5 : 10,
       borderWidth: 1,
-      borderColor: "rgba(255, 255, 255, 0.4)",
     },
     title: {
       ...FONTS.h4,
@@ -170,6 +168,7 @@ const ModuleCard = ({
           styles.container,
           containerStyle,
           !canAfford && styles.unavailable,
+          { borderColor: colors.border },
         ]}
       >
         <TouchableOpacity
@@ -195,7 +194,11 @@ const ModuleCard = ({
             )}
 
             <View style={styles.largeCardContent}>
-              <View style={styles.iconContainer}>{icon}</View>
+              <View
+                style={[styles.iconContainer, { borderColor: colors.border }]}
+              >
+                {icon}
+              </View>
 
               <View style={styles.largeCardTextContainer}>
                 <Text style={styles.title}>{title}</Text>
@@ -230,6 +233,7 @@ const ModuleCard = ({
         styles.container,
         containerStyle,
         !canAfford && styles.unavailable,
+        { borderColor: colors.border },
       ]}
     >
       <TouchableOpacity
@@ -254,7 +258,9 @@ const ModuleCard = ({
             </View>
           )}
 
-          <View style={styles.iconContainer}>{icon}</View>
+          <View style={[styles.iconContainer, { borderColor: colors.border }]}>
+            {icon}
+          </View>
 
           <View style={styles.contentContainer}>
             <Text style={styles.title}>{title}</Text>

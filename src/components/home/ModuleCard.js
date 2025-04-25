@@ -58,7 +58,7 @@ const ModuleCard = ({
       marginVertical: 8,
       overflow: "visible",
       borderWidth: 1,
-      borderColor: "rgba(255, 255, 255, 0.3)",
+
       // Sabit gölge değerleri
       shadowColor: cardGradient[0],
       shadowOffset: { width: 0, height: 0 },
@@ -86,7 +86,6 @@ const ModuleCard = ({
       justifyContent: "center",
       marginBottom: size === "small" ? 5 : 10,
       borderWidth: 1,
-      borderColor: "rgba(255, 255, 255, 0.4)",
     },
     title: {
       ...FONTS.h4,
@@ -112,7 +111,11 @@ const ModuleCard = ({
   if (size === "large") {
     return (
       <TouchableOpacity
-        style={[styles.container, containerStyle]}
+        style={[
+          styles.container,
+          containerStyle,
+          { borderColor: colors.border },
+        ]}
         onPress={() => onPress({ id: moduleId, title, description })}
         activeOpacity={0.8}
       >
@@ -123,7 +126,11 @@ const ModuleCard = ({
           style={styles.gradientContainer}
         >
           <View style={styles.largeCardContent}>
-            <View style={styles.iconContainer}>{icon}</View>
+            <View
+              style={[styles.iconContainer, { borderColor: colors.border }]}
+            >
+              {icon}
+            </View>
 
             <View style={styles.largeCardTextContainer}>
               <Text style={styles.title}>{title}</Text>
@@ -145,7 +152,7 @@ const ModuleCard = ({
   // Küçük ve orta boy kart layout
   return (
     <TouchableOpacity
-      style={[styles.container, containerStyle]}
+      style={[styles.container, containerStyle, { borderColor: colors.border }]}
       onPress={() => onPress({ id: moduleId, title, description })}
       activeOpacity={0.8}
     >
@@ -155,7 +162,9 @@ const ModuleCard = ({
         end={{ x: 1, y: 1 }}
         style={styles.gradientContainer}
       >
-        <View style={styles.iconContainer}>{icon}</View>
+        <View style={[styles.iconContainer, { borderColor: colors.border }]}>
+          {icon}
+        </View>
 
         <View style={styles.contentContainer}>
           <Text style={styles.title}>{title}</Text>

@@ -52,7 +52,6 @@ const TokenDisplay = ({
       paddingVertical: padding,
       paddingHorizontal: padding + 5,
       borderWidth: 1,
-      borderColor: "rgba(255, 255, 255, 0.3)",
     },
     tokenIcon: {
       width: iconSize,
@@ -85,7 +84,7 @@ const TokenDisplay = ({
 
   return (
     <TouchableOpacity
-      style={[styles.container, containerStyle]}
+      style={[styles.container, containerStyle, { borderColor: colors.border }]}
       onPress={onPress}
       activeOpacity={0.8}
     >

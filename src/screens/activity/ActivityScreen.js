@@ -27,7 +27,7 @@ const ActivityItem = ({ item, onPress }) => {
       borderRadius: SIZES.radius,
       marginBottom: 15,
       borderWidth: 1,
-      borderColor: "rgba(255, 255, 255, 0.3)",
+
       overflow: "hidden",
     },
     itemHeader: {
@@ -116,7 +116,7 @@ const ActivityItem = ({ item, onPress }) => {
 
   return (
     <TouchableOpacity
-      style={styles.itemContainer}
+      style={[styles.itemContainer, { borderColor: colors.border }]}
       onPress={() => onPress(item)}
       activeOpacity={0.9}
     >
@@ -206,11 +206,9 @@ const ActivityScreen = ({ navigation }) => {
       borderRadius: 18,
       marginRight: 8,
       borderWidth: 1,
-      borderColor: "rgba(255, 255, 255, 0.2)",
     },
     filterButtonActive: {
       backgroundColor: colors.primary,
-      borderColor: "rgba(255, 255, 255, 0.5)",
     },
     filterButtonText: {
       ...FONTS.body4,
@@ -382,8 +380,11 @@ const ActivityScreen = ({ navigation }) => {
                 <TouchableOpacity
                   key={filter.id}
                   style={[
-                    styles.filterButton,
-                    selectedFilter === filter.id && styles.filterButtonActive,
+                    [styles.filterButton, { borderColor: colors.border }],
+                    selectedFilter === filter.id && [
+                      styles.filterButtonActive,
+                      { borderColor: colors.border },
+                    ],
                   ]}
                   onPress={() => setSelectedFilter(filter.id)}
                 >
