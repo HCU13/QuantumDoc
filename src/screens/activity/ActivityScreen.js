@@ -23,7 +23,7 @@ const ActivityItem = ({ item, onPress }) => {
 
   const styles = StyleSheet.create({
     itemContainer: {
-      backgroundColor: "rgba(255, 255, 255, 0.15)",
+      backgroundColor: colors.card,
       borderRadius: SIZES.radius,
       marginBottom: 15,
       borderWidth: 1,

@@ -4,9 +4,11 @@ import { FONTS, SIZES } from "../../constants/theme";
 import { Ionicons } from "@expo/vector-icons";
 import useTheme from "../../hooks/useTheme";
 import ModuleCard from "./ModuleCard";
+import { useTranslation } from "react-i18next";
 
 const FeaturedModules = ({ onModulePress, containerStyle }) => {
   const { colors } = useTheme();
+  const { t } = useTranslation();
 
   const styles = StyleSheet.create({
     container: {
@@ -32,29 +34,29 @@ const FeaturedModules = ({ onModulePress, containerStyle }) => {
   const featuredModules = [
     {
       id: "chat",
-      title: "AI Sohbet",
-      description: "Chat AI ile konuşun",
+      title: t("modules.chat"),
+      description: t("modules.chatDescription"),
       icon: <Ionicons name="chatbubble-outline" size={28} color="#FFF" />,
       gradientColors: [colors.primary, colors.primaryDark],
     },
     {
       id: "math",
-      title: "Matematik",
-      description: "Sorularınızı çözün",
+      title: t("modules.math"),
+      description: t("modules.mathDescription"),
       icon: <Ionicons name="calculator-outline" size={28} color="#FFF" />,
       gradientColors: ["#FF7B54", "#F24C4C"],
     },
     {
       id: "write",
-      title: "Yazı Üretici",
-      description: "Metin oluşturun",
+      title: t("modules.write"),
+      description: t("modules.writeDescription"),
       icon: <Ionicons name="create-outline" size={28} color="#FFF" />,
       gradientColors: ["#4CACBC", "#1C7293"],
     },
     {
       id: "translate",
-      title: "Çeviri",
-      description: "Metinleri çevirin",
+      title: t("modules.translate"),
+      description: t("modules.translateDescription"),
       icon: <Ionicons name="language-outline" size={28} color="#FFF" />,
       gradientColors: ["#7F7FD5", "#5C5CBD"],
     },
@@ -63,7 +65,7 @@ const FeaturedModules = ({ onModulePress, containerStyle }) => {
   return (
     <View style={[styles.container, containerStyle]}>
       <View style={styles.titleContainer}>
-        <Text style={styles.title}>Öne Çıkan Özellikler</Text>
+        <Text style={styles.title}>{t("home.featuredModules")}</Text>
       </View>
 
       <View style={styles.modulesContainer}>

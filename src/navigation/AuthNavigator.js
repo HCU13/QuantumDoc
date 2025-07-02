@@ -4,6 +4,7 @@ import Login from "../screens/auth/Login";
 import Register from "../screens/auth/Register";
 import ForgotPassword from "../screens/auth/ForgotPassword";
 import Welcome from "../screens/auth/Welcome";
+import CategorySelectScreen from "../screens/auth/CategorySelectScreen";
 const Stack = createStackNavigator();
 
 const AuthNavigator = () => {
@@ -17,6 +18,7 @@ const AuthNavigator = () => {
       <Stack.Screen name="Login" component={Login} />
       <Stack.Screen name="Register" component={Register} />
       <Stack.Screen name="ForgotPassword" component={ForgotPassword} />
+      <Stack.Screen name="CategorySelect" component={CategorySelectScreen} />
     </Stack.Navigator>
   );
 };

@@ -1,0 +1,295 @@
+{
+  "common": {
+    "loading": "Loading...",
+    "error": "An error occurred",
+    "success": "Success",
+    "save": "Save",
+    "cancel": "Cancel",
+    "delete": "Delete",
+    "edit": "Edit",
+    "back": "Back"
+  },
+  "auth": {
+    "login": "Login",
+    "register": "Register",
+    "logout": "Logout",
+    "email": "Email",
+    "emailPlaceholder": "Your email address",
+    "password": "Password",
+    "passwordPlaceholder": "Your password",
+    "forgotPassword": "Forgot Password",
+    "resetPassword": "Reset Password",
+    "welcomeBack": "Welcome Back!",
+    "loginToAccount": "Login to your account",
+    "noAccount": "Don't have an account?",
+    "registerNow": "Register Now",
+    "haveAccount": "Already have an account?",
+    "createAccount": "Create Account",
+    "registerToAccess": "Register to access your AI Assistant",
+    "fullName": "Full Name",
+    "fullNamePlaceholder": "Your full name",
+    "confirmPassword": "Confirm Password",
+    "confirmPasswordPlaceholder": "Confirm your password",
+    "continueWith": "Continue with",
+    "continueWithGoogle": "Continue with Google",
+    "continueWithApple": "Continue with Apple",
+    "continueWithFacebook": "Continue with Facebook",
+    "errors": {
+      "emailRequired": "Email is required",
+      "invalidEmail": "Please enter a valid email",
+      "passwordRequired": "Password is required",
+      "passwordLength": "Password must be at least 6 characters",
+      "fullNameRequired": "Full name is required",
+      "confirmPasswordRequired": "Please confirm your password",
+      "passwordsDontMatch": "Passwords do not match"
+    }
+  },
+  "welcome": {
+    "slide1": {
+      "title": "Welcome to AI Assistant",
+      "subtitle": "Your personal AI companion for productivity and creative tasks"
+    },
+    "slide2": {
+      "title": "Talk to AI",
+      "subtitle": "Chat like never before, get instant responses to all your questions!"
+    },
+    "slide3": {
+      "title": "Boost Your Productivity",
+      "subtitle": "Let AI help you organize your thoughts, tasks, and creative ideas"
+    },
+    "getStarted": "Get Started",
+    "continue": "Continue"
+  },
+  "home": {
+    "greeting": "Hello",
+    "searchPlaceholder": "Click to chat with AI Assistant...",
+    "quickAccess": "Quick Access",
+    "featuredModules": "Featured Modules",
+    "recentActivity": "Recent Activity",
+    "assistant": {
+      "title": "AI Assistant",
+      "description": "Ready to answer your questions!"
+    }
+  },
+  "modules": {
+    "mathDescription": "Solve your questions",
+    "math": {
+      "title": "Mathematics",
+      "description": "Solve your questions",
+      "inputPlaceholder": "Enter your math question",
+      "solve": "Solve",
+      "solution": "Solution",
+      "steps": "Steps",
+      "error": "Could not solve the question",
+      "tryAgain": "Try Again"
+    },
+    "write": "Text Generator",
+    "writeDescription": "Generate text",
+    "textGenerator": {
+      "title": "Text Generator",
+      "description": "Generate text",
+      "inputPlaceholder": "Enter your prompt",
+      "generate": "Generate",
+      "generatedText": "Generated Text",
+      "copy": "Copy",
+      "copied": "Copied!",
+      "error": "Could not generate text",
+      "tryAgain": "Try Again"
+    },
+    "translateDescription": "Translate texts",
+    "translate": {
+      "title": "Translation",
+      "description": "Translate texts",
+      "inputPlaceholder": "Enter text to translate",
+      "translate": "Translate",
+      "translatedText": "Translated Text",
+      "copy": "Copy",
+      "copied": "Copied!",
+      "error": "Could not translate text",
+      "tryAgain": "Try Again",
+      "selectLanguage": "Select Language"
+    },
+    "notesDescription": "Manage your notes",
+    "notes": {
+      "title": "Notes",
+      "description": "Manage your notes",
+      "newNote": "New Note",
+      "editNote": "Edit Note",
+      "deleteNote": "Delete Note",
+      "noteTitle": "Note Title",
+      "noteContent": "Note Content",
+      "save": "Save",
+      "cancel": "Cancel",
+      "delete": "Delete",
+      "confirmDelete": "Are you sure you want to delete this note?",
+      "error": "Could not save note",
+      "tryAgain": "Try Again"
+    },
+    "tasks": "Tasks",
+    "tasksDescription": "Track your tasks",
+    "chatDescription": "Chat with AI",
+    "chat": {
+      "title": "AI Chat",
+      "description": "Chat with AI",
+      "inputPlaceholder": "Type your message...",
+      "send": "Send",
+      "newChat": "New Chat",
+      "deleteChat": "Delete Chat",
+      "confirmDelete": "Are you sure you want to delete this chat?",
+      "error": "Could not send message",
+      "tryAgain": "Try Again"
+    }
+  },
+  "profile": {
+    "title": "Profile",
+    "settings": "Settings",
+    "language": "Language",
+    "theme": "Theme",
+    "notifications": "Notifications",
+    "privacy": "Privacy",
+    "help": "Help",
+    "about": "About"
+  },
+  "settings": {
+    "language": {
+      "title": "Language Settings",
+      "current": "Current Language",
+      "select": "Select Language"
+    },
+    "theme": {
+      "title": "Theme Settings",
+      "light": "Light Theme",
+      "dark": "Dark Theme",
+      "system": "System Theme"
+    }
+  },
+  "screens": {
+    "auth": {
+      "login": {
+        "title": "Login",
+        "continue": "Continue",
+        "subtitle": "Welcome back! Please enter your details",
+        "forgotPassword": "Forgot Password?",
+        "noAccount": "Don't have an account?",
+        "register": "Register"
+      },
+      "register": {
+        "title": "Create Account",
+        "subtitle": "Create an account to get started",
+        "haveAccount": "Already have an account?",
+        "login": "Login"
+      },
+      "forgotPassword": {
+        "title": "Reset Password",
+        "subtitle": "Enter your email to reset your password",
+        "sendInstructions": "Send Instructions",
+        "backToLogin": "Back to Login"
+      },
+      "welcome": {
+        "terms": "By continuing you confirm that you agree to our Terms of Service, Privacy Policy and good behavior in chat with users.",
+        "slide1": {
+          "title": "Welcome to AI Assistant",
+          "subtitle": "Your personal AI assistant for productivity and creative tasks"
+        },
+        "slide2": {
+          "title": "No Task is Too Hard",
+          "subtitle": "Make your work easier with all modules"
+        },
+        "slide3": {
+          "title": "Customizable Experience",
+          "subtitle": "Select only the modules you need"
+        }
+      }
+    },
+    "home": {
+      "title": "Home",
+      "searchPlaceholder": "Search or ask anything...",
+      "recentSearches": "Recent Searches",
+      "clearHistory": "Clear History",
+      "noHistory": "No recent searches",
+      "seeAll": "See All"
+    },
+    "profile": {
+      "darkTheme": "Dark Theme",
+      "title": "Profile",
+      "account": "Account",
+      "editProfile": "Edit Profile",
+      "settings": "Settings",
+      "help": "Help & Support",
+      "about": "About",
+      "logout": "Logout",
+      "deleteAccount": "Delete Account",
+      "confirmDelete": "Are you sure you want to delete your account? This action cannot be undone."
+    },
+    "settings": {
+      "title": "Settings",
+      "appearance": {
+        "title": "Appearance",
+        "theme": "Theme",
+        "language": "Language"
+      },
+      "notifications": {
+        "title": "Notifications",
+        "pushNotifications": "Push Notifications",
+        "emailNotifications": "Email Notifications"
+      },
+      "privacy": {
+        "title": "Privacy",
+        "dataCollection": "Data Collection",
+        "analytics": "Analytics"
+      },
+      "about": {
+        "title": "About",
+        "version": "Version",
+        "terms": "Terms of Service",
+        "privacyPolicy": "Privacy Policy"
+      }
+    },
+    "explore": {
+      "title": "Explore",
+      "subtitle": "Discover and use all modules!",
+      "searchPlaceholder": "Search modules...",
+      "categories": {
+        "all": "All",
+        "productivity": "Productivity",
+        "education": "Education",
+        "creative": "Creativity",
+        "tools": "Tools",
+        "free": "Free"
+      },
+      "noResults": "No modules found matching your criteria.",
+      "categoriesTitle": "Categories",
+      "searchResults": "Search Results"
+    },
+    "categorySelect": {
+      "title": "Which categories do you want to see the most?",
+      "subtitle1": "Select the modules you are most interested in.",
+      "subtitle2": "You can change these later from the Explore page.",
+      "button": "Create My Feed"
+    },
+    "tabs": {
+      "home": "Home",
+      "explore": "Explore",
+      "activity": "Activity",
+      "profile": "Profile"
+    }
+  },
+  "messages": {
+    "success": "Success",
+    "error": "Error",
+    "info": "Info",
+    "login_success": "You have logged in successfully",
+    "login_error": "Login failed. Please check your credentials",
+    "register_success": "Registration completed successfully",
+    "register_error": "Registration failed. Please try again",
+    "password_reset_success": "Password reset email sent successfully",
+    "password_reset_error": "Failed to send password reset email",
+    "profile_update_success": "Profile updated successfully",
+    "profile_update_error": "Failed to update profile",
+    "token_purchase_success": "Token purchase completed successfully",
+    "token_purchase_error": "Failed to purchase tokens",
+    "module_complete_success": "Module completed successfully",
+    "module_complete_error": "Failed to complete module",
+    "general_error": "Something went wrong. Please try again"
+  }
+}

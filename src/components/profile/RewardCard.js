@@ -9,7 +9,7 @@ const RewardCard = ({ reward, onPress, containerStyle }) => {
 
   const styles = StyleSheet.create({
     container: {
-      backgroundColor: "rgba(255, 255, 255, 0.15)",
+      backgroundColor: colors.card,
       borderRadius: SIZES.radius,
       padding: 15,
       marginVertical: 8,

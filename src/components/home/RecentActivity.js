@@ -4,6 +4,7 @@ import { FONTS, SIZES } from "../../constants/theme";
 import useTheme from "../../hooks/useTheme";
 import { Ionicons } from "@expo/vector-icons";
 import Card from "../common/Card";
+import { useTranslation } from "react-i18next";
 
 const ActivityItem = ({ item, onPress }) => {
   const { colors } = useTheme();
@@ -131,6 +132,7 @@ const RecentActivity = ({
   maxItems = 3,
 }) => {
   const { colors } = useTheme();
+  const { t } = useTranslation();
 
   const styles = StyleSheet.create({
     container: {
@@ -173,11 +175,11 @@ const RecentActivity = ({
   return (
     <View style={[styles.container, containerStyle]}>
       <View style={styles.headerContainer}>
-        <Text style={styles.title}>Son Aktiviteler</Text>
+        <Text style={styles.title}>{t("home.recentActivity")}</Text>
 
         {showSeeAll && data.length > 0 && (
           <TouchableOpacity onPress={onSeeAllPress}>
-            <Text style={styles.seeAllText}>Tümünü Gör</Text>
+            <Text style={styles.seeAllText}>{t("home.seeAll")}</Text>
           </TouchableOpacity>
         )}
       </View>
@@ -189,7 +191,7 @@ const RecentActivity = ({
           ))
         ) : (
           <View style={styles.emptyContainer}>
-            <Text style={styles.emptyText}>Henüz aktiviteniz bulunmuyor.</Text>
+            <Text style={styles.emptyText}>{t("home.noActivity")}</Text>
           </View>
         )}
       </View>

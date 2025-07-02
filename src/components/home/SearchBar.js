@@ -3,16 +3,18 @@ import { View, TextInput, StyleSheet, TouchableOpacity } from "react-native";
 import { FONTS, SIZES } from "../../constants/theme";
 import { Ionicons } from "@expo/vector-icons";
 import useTheme from "../../hooks/useTheme";
+import { useTranslation } from "react-i18next";
 
 const SearchBar = ({
   value,
   onChangeText,
   onSubmit,
   onVoicePress,
-  placeholder = "AI Asistan ile konuşmak için tıklayın...",
+  placeholder,
   containerStyle,
 }) => {
   const { colors, shadows, isDark } = useTheme();
+  const { t } = useTranslation();
 
   const styles = StyleSheet.create({
     container: {
@@ -57,7 +59,7 @@ const SearchBar = ({
           style={styles.input}
           value={value}
           onChangeText={onChangeText}
-          placeholder={placeholder}
+          placeholder={placeholder || t("home.searchPlaceholder")}
           placeholderTextColor={colors.textTertiary}
           onSubmitEditing={onSubmit}
         />

@@ -590,54 +590,66 @@ const TranslationScreen = ({ navigation }) => {
             </View>
 
             {/* Çeviri butonu */}
-            <LinearGradient
-              colors={[colors.primary, colors.primaryDark]}
-              start={{ x: 0, y: 0 }}
-              end={{ x: 1, y: 0 }}
-              style={{
-                borderRadius: 12,
-                marginHorizontal: 12,
-                marginBottom: 12,
-              }}
-            >
-              <TouchableOpacity
-                style={{
-                  height: 48,
-                  alignItems: "center",
-                  justifyContent: "center",
-                  borderRadius: 12,
-                  flexDirection: "row",
-                }}
-                onPress={translateText}
-                disabled={loading || !text.trim()}
-                activeOpacity={0.8}
-              >
-                {loading ? (
-                  <ActivityIndicator color="#fff" size="small" />
-                ) : (
-                  <>
-                    <Ionicons
-                      name="language"
-                      size={20}
-                      color="#fff"
-                      style={{ marginRight: 8 }}
-                    />
-                    <Text
-                      style={{
-                        ...FONTS.h4,
-                        color: "#fff",
-                      }}
-                    >
-                      Çevir
+            <Button
+              title="Çevir"
+              gradient
+              icon={<Ionicons name="language" size={20} color="#fff" style={{ marginRight: 8 }} />}
+              onPress={translateText}
+              loading={loading}
+              disabled={loading || !text.trim()}
+              fluid
+              containerStyle={{ marginHorizontal: 12, marginBottom: 12, borderRadius: 12 }}
+              textStyle={{ marginLeft: 8 }}
+            />
+
+            {/* Çeviri sonucu - giriş alanı ve butonun hemen altında */}
+            {showResult && (
+              <View style={styles.resultContainer}>
+                <View style={styles.resultHeader}>
+                  <View style={styles.resultLanguage}>
+                    <Text style={styles.languageFlag}>
+                      {getLanguageFlag(targetLanguage)}
                     </Text>
-                  </>
-                )}
-              </TouchableOpacity>
-            </LinearGradient>
+                    <Text style={styles.resultLanguageText}>
+                      {getLanguageName(targetLanguage)}
+                    </Text>
+                  </View>
+
+                  <View style={styles.resultActions}>
+                    <TouchableOpacity
+                      style={styles.actionButton}
+                      onPress={copyToClipboard}
+                    >
+                      <Ionicons
+                        name="copy-outline"
+                        size={18}
+                        color={colors.primary}
+                      />
+                    </TouchableOpacity>
+                    <TouchableOpacity
+                      style={styles.actionButton}
+                      onPress={shareTranslation}
+                    >
+                      <Ionicons
+                        name="share-outline"
+                        size={18}
+                        color={colors.primary}
+                      />
+                    </TouchableOpacity>
+                  </View>
+                </View>
+
+                <View style={styles.resultContent}>
+                  <Text style={styles.resultText}>{translatedText}</Text>
+                </View>
+              </View>
+            )}
           </View>
 
           {/* Popüler dil seçimleri */}
-          <Text style={styles.sectionTitle}>Kaynak Dil</Text>
+          <Text style={[styles.sectionTitle, { color: colors.textPrimary }]}>
+            Kaynak Dil
+          </Text>
           <View style={styles.languageListContainer}>
             {languages.slice(0, 6).map((lang) => (
               <TouchableOpacity
@@ -655,7 +667,9 @@ const TranslationScreen = ({ navigation }) => {
             ))}
           </View>
 
-          <Text style={styles.sectionTitle}>Hedef Dil</Text>
+          <Text style={[styles.sectionTitle, { color: colors.textPrimary }]}>
+            Hedef Dil
+          </Text>
           <View style={styles.languageListContainer}>
             {languages.slice(0, 6).map((lang) => (
               <TouchableOpacity
@@ -672,49 +686,6 @@ const TranslationScreen = ({ navigation }) => {
               </TouchableOpacity>
             ))}
           </View>
-
-          {/* Çeviri sonucu */}
-          {showResult && (
-            <View style={styles.resultContainer}>
-              <View style={styles.resultHeader}>
-                <View style={styles.resultLanguage}>
-                  <Text style={styles.languageFlag}>
-                    {getLanguageFlag(targetLanguage)}
-                  </Text>
-                  <Text style={styles.resultLanguageText}>
-                    {getLanguageName(targetLanguage)}
-                  </Text>
-                </View>
-
-                <View style={styles.resultActions}>
-                  <TouchableOpacity
-                    style={styles.actionButton}
-                    onPress={copyToClipboard}
-                  >
-                    <Ionicons
-                      name="copy-outline"
-                      size={18}
-                      color={colors.primary}
-                    />
-                  </TouchableOpacity>
-                  <TouchableOpacity
-                    style={styles.actionButton}
-                    onPress={shareTranslation}
-                  >
-                    <Ionicons
-                      name="share-outline"
-                      size={18}
-                      color={colors.primary}
-                    />
-                  </TouchableOpacity>
-                </View>
-              </View>
-
-              <View style={styles.resultContent}>
-                <Text style={styles.resultText}>{translatedText}</Text>
-              </View>
-            </View>
-          )}
 
           {/* Yükleniyor göstergesi */}
           {loading && (

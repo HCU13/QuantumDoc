@@ -9,6 +9,8 @@ import {
   Text,
   Image,
   Platform,
+  Modal,
+  TextInput,
 } from "react-native";
 import {
   GiftedChat,
@@ -24,6 +26,25 @@ import { SIZES, FONTS } from "../../constants/theme";
 import useTheme from "../../hooks/useTheme";
 import { useToken } from "../../contexts/TokenContext";
 
+const TokenInfo = ({ tokens, remainingTokens, colors }) => (
+  <View style={{
+    minWidth: 56,
+    height: 36,
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'center',
+    backgroundColor: '#fff',
+    borderRadius: 20,
+    paddingHorizontal: 12,
+    paddingVertical: 4,
+    marginLeft: 8,
+    shadowColor: 'transparent',
+  }}>
+    <Image source={require('../../assets/images/token.png')} style={{ width: 14, height: 14, marginRight: 5 }} />
+    <Text style={{ fontSize: 12, fontWeight: '700', color: colors.textPrimary, textAlign: 'center' }}>{remainingTokens}</Text>
+  </View>
+);
+
 const ChatScreen = ({ navigation, route }) => {
   const { colors, isDark } = useTheme();
   const { tokens, useTokens } = useToken();
@@ -32,11 +53,19 @@ const ChatScreen = ({ navigation, route }) => {
   const [remainingTokens, setRemainingTokens] = useState(tokens);
   const [costPerMessage, setCostPerMessage] = useState(1); // Token cost per message
 
+  // roomTitle parametresini navigation'dan al
+  const { roomTitle } = route.params || {};
+
   // If there's an initial query passed through navigation
   const initialQuery = route?.params?.initialQuery || "";
 
   // Define input background color - will be used for both input and SafeAreaView
   const inputBackgroundColor = isDark ? colors.card : colors.white;
+
+  // Başlık düzenleme için state
+  const [title, setTitle] = useState(roomTitle || "AI Sohbet");
+  const [editModal, setEditModal] = useState(false);
+  const [newTitle, setNewTitle] = useState(title);
 
   useEffect(() => {
     setRemainingTokens(tokens);
@@ -394,25 +423,53 @@ const ChatScreen = ({ navigation, route }) => {
     },
   });
 
-  const renderHeader = () => (
-    <View style={styles.topBar}>
-      <View style={styles.tokenContainer}>
-        <Image
-          source={require("../../assets/images/token.png")}
-          style={styles.tokenIcon}
-        />
-        <Text style={styles.tokenText}>
-          {remainingTokens} / {tokens} token
-        </Text>
-      </View>
+  // Header başlığı ve kalem ikonu yan yana
+  const TitleWithEdit = (
+    <View style={{ flexDirection: 'row', alignItems: 'center' }}>
+      <Text style={{ fontSize: 18, fontWeight: '700', color: colors.textPrimary, maxWidth: 180 }} numberOfLines={1}>{title}</Text>
+      <TouchableOpacity onPress={() => { setNewTitle(title); setEditModal(true); }} style={{ marginLeft: 6, padding: 4 }}>
+        <Ionicons name="pencil" size={17} color={colors.textPrimary} />
+      </TouchableOpacity>
     </View>
   );
 
   return (
     <GradientBackground style={styles.container}>
       <SafeAreaView />
-      <Header title="AI Sohbet" showBackButton />
-      {renderHeader()}
+      <Header
+        title={TitleWithEdit}
+        showBackButton={true}
+        rightComponent={<TokenInfo tokens={tokens} remainingTokens={remainingTokens} colors={colors} />}
+      />
+      {/* Başlık düzenleme modalı */}
+      <Modal
+        visible={editModal}
+        transparent
+        animationType="fade"
+        onRequestClose={() => setEditModal(false)}
+      >
+        <View style={{ flex: 1, backgroundColor: 'rgba(0,0,0,0.18)', justifyContent: 'center', alignItems: 'center' }}>
+          <View style={{ backgroundColor: '#fff', borderRadius: 18, padding: 24, width: '80%' }}>
+            <Text style={{ fontSize: 16, fontWeight: '600', color: colors.textPrimary, marginBottom: 12 }}>Başlığı Düzenle</Text>
+            <TextInput
+              value={newTitle}
+              onChangeText={setNewTitle}
+              placeholder="Yeni başlık girin..."
+              style={{ borderWidth: 1, borderColor: '#eee', borderRadius: 10, padding: 10, fontSize: 15, marginBottom: 18, color: colors.textPrimary }}
+              autoFocus
+              maxLength={40}
+            />
+            <View style={{ flexDirection: 'row', justifyContent: 'flex-end' }}>
+              <TouchableOpacity onPress={() => setEditModal(false)} style={{ marginRight: 16 }}>
+                <Text style={{ color: colors.textSecondary, fontSize: 15 }}>İptal</Text>
+              </TouchableOpacity>
+              <TouchableOpacity onPress={() => { setTitle(newTitle.trim() || title); setEditModal(false); }}>
+                <Text style={{ color: colors.primary, fontWeight: '700', fontSize: 15 }}>Kaydet</Text>
+              </TouchableOpacity>
+            </View>
+          </View>
+        </View>
+      </Modal>
       <View style={styles.chatContainer}>
         <GiftedChat
           messages={messages}

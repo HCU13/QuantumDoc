@@ -1,0 +1,147 @@
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+model User {
+  id        Int      @id @default(autoincrement())
+  email     String   @unique
+  password  String
+  fullName  String
+  createdAt DateTime @default(now())
+  notes     Note[]
+  tasks     Task[]
+  chats     Chat[]
+  mathLogs  MathLog[]
+  writeLogs WriteLog[]
+  translateLogs TranslateLog[]
+  events    CalendarEvent[]
+  tokens    Int      @default(0)
+  subscriptionPlan String  @default("free")
+  subscriptionValidUntil DateTime?
+  watchedVideosToday Int   @default(0)
+  lastVideoWatchDate DateTime?
+  language String   @default("tr")
+  theme    String   @default("light")
+  profileImage String?
+  tokenLogs TokenLog[]
+  subscriptionLogs SubscriptionLog[]
+}
+
+model News {
+  id          Int      @id @default(autoincrement())
+  title       String
+  description String
+  content     String   // Detaylı içerik
+  imageUrl    String
+  icon        String
+  category    String   @default("general") // general, update, feature, campaign
+  isActive    Boolean  @default(true)
+  priority    Int      @default(0) // Sıralama için
+  actionUrl   String?  // Tıklandığında gidilecek URL
+  actionText  String?  // Action buton metni
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+}
+
+model Note {
+  id        Int      @id @default(autoincrement())
+  title     String
+  content   String
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+  user      User     @relation(fields: [userId], references: [id])
+  userId    Int
+}
+
+model Task {
+  id        Int      @id @default(autoincrement())
+  title     String
+  completed Boolean  @default(false)
+  createdAt DateTime @default(now())
+  user      User     @relation(fields: [userId], references: [id])
+  userId    Int
+}
+
+model Chat {
+  id          Int       @id @default(autoincrement())
+  title       String
+  lastMessage String?
+  updatedAt   DateTime  @updatedAt
+  createdAt   DateTime  @default(now())
+  user        User      @relation(fields: [userId], references: [id])
+  userId      Int
+  messages    Message[]
+}
+
+model Message {
+  id        Int      @id @default(autoincrement())
+  chat      Chat     @relation(fields: [chatId], references: [id])
+  chatId    Int
+  sender    String
+  content   String
+  createdAt DateTime @default(now())
+}
+
+model MathLog {
+  id        Int      @id @default(autoincrement())
+  question  String
+  answer    String
+  imageUrl  String?
+  createdAt DateTime @default(now())
+  user      User     @relation(fields: [userId], references: [id])
+  userId    Int
+}
+
+model WriteLog {
+  id        Int      @id @default(autoincrement())
+  prompt    String
+  result    String
+  createdAt DateTime @default(now())
+  user      User     @relation(fields: [userId], references: [id])
+  userId    Int
+}
+
+model TranslateLog {
+  id        Int      @id @default(autoincrement())
+  sourceText String
+  translatedText String
+  sourceLang String
+  targetLang String
+  createdAt DateTime @default(now())
+  user      User     @relation(fields: [userId], references: [id])
+  userId    Int
+}
+
+model CalendarEvent {
+  id        Int      @id @default(autoincrement())
+  title     String
+  description String?
+  date      DateTime
+  createdAt DateTime @default(now())
+  user      User     @relation(fields: [userId], references: [id])
+  userId    Int
+}
+
+model TokenLog {
+  id        Int      @id @default(autoincrement())
+  user      User     @relation(fields: [userId], references: [id])
+  userId    Int
+  amount    Int
+  type      String   // add, use, reward, purchase, etc.
+  description String?
+  createdAt DateTime @default(now())
+}
+
+model SubscriptionLog {
+  id        Int      @id @default(autoincrement())
+  user      User     @relation(fields: [userId], references: [id])
+  userId    Int
+  plan      String
+  action    String   // upgrade, cancel, renew, etc.
+  createdAt DateTime @default(now())
+}

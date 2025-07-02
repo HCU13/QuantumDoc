@@ -189,8 +189,10 @@ const NoteCategoriesScreen = ({ navigation }) => {
             <Ionicons name={item.icon} size={20} color={colors.primary} />
           </View>
           <View style={styles.textContainer}>
-            <Text style={styles.categoryName}>{item.name}</Text>
-            <Text style={styles.noteCount}>
+            <Text style={[styles.categoryName, { color: colors.textPrimary }]}>
+              {item.name}
+            </Text>
+            <Text style={[styles.noteCount, { color: colors.textSecondary }]}>
               {item.count} {item.count === 1 ? "not" : "notlar"}
             </Text>
           </View>
@@ -227,6 +229,7 @@ const NoteCategoriesScreen = ({ navigation }) => {
       style={[
         styles.iconOption,
         selectedIcon === item.name && styles.iconOptionSelected,
+        { backgroundColor: colors.card },
       ]}
       onPress={() => {
         setSelectedIcon(item.name);
@@ -243,7 +246,7 @@ const NoteCategoriesScreen = ({ navigation }) => {
           styles.iconLabel,
           selectedIcon === item.name && [
             styles.iconLabelSelected,
-            { color: colors.primary },
+            { color: colors.textPrimary },
           ],
         ]}
       >

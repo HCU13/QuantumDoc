@@ -18,14 +18,17 @@ import SearchBar from "../../components/home/SearchBar";
 import QuickActions from "../../components/home/QuickActions";
 import RecentActivity from "../../components/home/RecentActivity";
 import BubbleFeature from "../../components/home/BubbleFeature";
+import NewsSection from "../../components/home/NewsSection";
 import Button from "../../components/common/Button";
 import useTheme from "../../hooks/useTheme";
 import { useToken } from "../../contexts/TokenContext";
+import { useTranslation } from "react-i18next";
 
 const HomeScreen = ({ navigation }) => {
   const [searchQuery, setSearchQuery] = useState("");
-  const { colors } = useTheme();
+  const { colors, isDark } = useTheme();
   const { tokens } = useToken();
+  const { t } = useTranslation();
 
   const styles = StyleSheet.create({
     container: {
@@ -44,8 +47,16 @@ const HomeScreen = ({ navigation }) => {
       alignItems: "center",
       borderRadius: SIZES.radius * 2,
       padding: 20,
-      backgroundColor: "rgba(255, 255, 255, 0.2)",
+      backgroundColor: isDark
+        ? "rgba(255, 255, 255, 0.1)"
+        : "rgba(255, 255, 255, 0.8)",
       borderWidth: 1,
+      borderColor: isDark ? colors.border : "rgba(0, 0, 0, 0.05)",
+      shadowColor: "#000",
+      shadowOffset: { width: 0, height: 4 },
+      shadowOpacity: isDark ? 0.3 : 0.1,
+      shadowRadius: 8,
+      elevation: 5,
     },
     robotImage: {
       width: 80,
@@ -57,25 +68,21 @@ const HomeScreen = ({ navigation }) => {
     },
     robotTitle: {
       ...FONTS.h3,
-      color: colors.textOnGradient,
+      color: colors.textPrimary,
       marginBottom: 5,
       fontWeight: "bold",
     },
     robotDescription: {
       ...FONTS.body4,
-      color: colors.textOnGradient,
-      opacity: 0.8,
+      color: colors.textSecondary,
     },
     sectionTitle: {
       ...FONTS.h3,
-      color: colors.textOnGradient,
+      color: colors.textPrimary,
       marginTop: 10,
       marginBottom: 20,
       textAlign: "center",
       fontWeight: "bold",
-      textShadowColor: "rgba(0,0,0,0.2)",
-      textShadowOffset: { width: 0, height: 1 },
-      textShadowRadius: 3,
     },
     bubblesContainer: {
       flexDirection: "row",
@@ -115,6 +122,38 @@ const HomeScreen = ({ navigation }) => {
     },
   ];
 
+  // Örnek haberler ve kampanyalar veri seti
+  const newsData = [
+    {
+      id: "1",
+      title: "Yeni AI Modeli",
+      description: "Daha hızlı ve akıllı yanıtlar için güncellenmiş AI modeli kullanıma sunuldu",
+      icon: "sparkles",
+      imageUrl: "https://images.unsplash.com/photo-1677442136019-21780ecad995?w=400&h=200&fit=crop",
+    },
+    {
+      id: "2",
+      title: "Premium Kampanya",
+      description: "Sınırlı süre için %50 indirim! Premium özellikleri keşfedin",
+      icon: "star",
+      imageUrl: "https://images.unsplash.com/photo-1556742049-0cfed4f6a45d?w=400&h=200&fit=crop",
+    },
+    {
+      id: "3",
+      title: "Çoklu Dil Desteği",
+      description: "Artık 10 farklı dilde çeviri yapabilirsiniz",
+      icon: "language",
+      imageUrl: "https://images.unsplash.com/photo-1546410531-bb4caa6b424d?w=400&h=200&fit=crop",
+    },
+    {
+      id: "4",
+      title: "Matematik Çözücü",
+      description: "Karmaşık matematik problemlerini fotoğrafla çözün",
+      icon: "calculator",
+      imageUrl: "https://images.unsplash.com/photo-1635070041078-e363dbe005cb?w=400&h=200&fit=crop",
+    },
+  ];
+
   // Modül veya hızlı erişim butonu tıklandığında
   const handleModulePress = (module) => {
     console.log(`Modül tıklandı: ${module.id}`);
@@ -151,6 +190,11 @@ const HomeScreen = ({ navigation }) => {
     navigation.navigate("Activity");
   };
 
+  // Haber kartı tıklandığında
+  const handleNewsPress = (news) => {
+    navigation.navigate("NewsDetail", { news });
+  };
+
   // Arama sorgusu gönderildiğinde
   const handleSearch = () => {
     if (searchQuery.trim()) {
@@ -160,14 +204,8 @@ const HomeScreen = ({ navigation }) => {
   };
 
   return (
-    <GradientBackground>
+    <GradientBackground mode="default">
       <SafeAreaView style={styles.container}>
-        {/* <StatusBar
-          barStyle="light-content"
-          backgroundColor="transparent"
-          translucent
-        /> */}
-
         <HomeHeader
           username="Arafat"
           onProfilePress={() => navigation.navigate("Profile")}
@@ -176,20 +214,16 @@ const HomeScreen = ({ navigation }) => {
         />
 
         <ScrollView style={styles.content} showsVerticalScrollIndicator={false}>
-          {/* <SearchBar
-            value={searchQuery}
-            onChangeText={setSearchQuery}
-            onSubmit={handleSearch}
-            onVoicePress={() =>
-              navigation.navigate("Chat", { voiceMode: true })
-            }
-            placeholder="AI Asistan ile konuşmak için tıklayın..."
-          /> */}
+          {/* Son Yenilikler ve Kampanyalar */}
+          <NewsSection 
+            data={newsData}
+            onCardPress={handleNewsPress}
+          />
 
           {/* Kişisel AI Asistan Kartı */}
           <View style={styles.personalAssistantContainer}>
             <TouchableOpacity
-              style={[styles.robotCard, { borderColor: colors.border }]}
+              style={styles.robotCard}
               onPress={() => handleModulePress({ id: "assistant" })}
               activeOpacity={0.9}
             >
@@ -198,45 +232,13 @@ const HomeScreen = ({ navigation }) => {
                 style={styles.robotImage}
               />
               <View style={styles.robotTextContainer}>
-                <Text style={styles.robotTitle}>AI Asistan</Text>
+                <Text style={styles.robotTitle}>{t("screens.home.assistant.title")}</Text>
                 <Text style={styles.robotDescription}>
-                  Sorularınızı yanıtlamak için hazır!
+                  {t("screens.home.assistant.description")}
                 </Text>
               </View>
             </TouchableOpacity>
           </View>
-
-          {/* <Button
-            title="Sohbet Başlat"
-            neon
-            icon={
-              <Ionicons name="chatbubble-ellipses" size={22} color="#fff" />
-            }
-            fluid
-            glow
-            onPress={() => navigation.navigate("Chat")}
-            containerStyle={styles.startChatButton}
-          /> */}
-
-          {/* Öne Çıkan Baloncuk Butonlar */}
-          {/* <Text style={styles.sectionTitle}>Öne Çıkan Özellikler</Text>
-
-          <View style={styles.bubblesContainer}>
-            <BubbleFeature
-              title="AI Sohbet"
-              icon={
-                <Ionicons name="chatbubble-ellipses" size={30} color="#fff" />
-              }
-              onPress={() => handleModulePress({ id: "chat" })}
-              glowing={true}
-            />
-            <BubbleFeature
-              title="Matematik"
-              icon={<Ionicons name="calculator" size={30} color="#fff" />}
-              onPress={() => handleModulePress({ id: "math" })}
-              glowing={true}
-            />
-          </View> */}
 
           <QuickActions onActionPress={handleModulePress} />
 

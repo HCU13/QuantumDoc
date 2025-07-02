@@ -19,6 +19,7 @@ import Button from "../../components/common/Button";
 import Card from "../../components/common/Card";
 import Input from "../../components/common/Input";
 import useTheme from "../../hooks/useTheme";
+import { useTranslation } from "react-i18next";
 
 const HelpSupportScreen = ({ navigation }) => {
   const { colors, isDark } = useTheme();
@@ -32,6 +33,7 @@ const HelpSupportScreen = ({ navigation }) => {
     messageError: "",
   });
   const [isSubmitting, setIsSubmitting] = useState(false);
+  const { t } = useTranslation();
 
   const styles = StyleSheet.create({
     container: {
@@ -493,7 +495,10 @@ const HelpSupportScreen = ({ navigation }) => {
                 {categories.map((category) => (
                   <TouchableOpacity
                     key={category.id}
-                    style={styles.categoryCard}
+                    style={[
+                      styles.categoryCard,
+                      { backgroundColor: colors.card },
+                    ]}
                     onPress={() => setSelectedCategory(category.id)}
                   >
                     <View style={styles.categoryIcon}>{category.icon}</View>
@@ -504,7 +509,10 @@ const HelpSupportScreen = ({ navigation }) => {
 
               <Text style={styles.faqTitle}>Sık Sorulan Sorular</Text>
               {popularFaqs.map((faq, index) => (
-                <View key={index} style={styles.faqItem}>
+                <View
+                  key={index}
+                  style={[styles.faqItem, { backgroundColor: colors.card }]}
+                >
                   <Text style={styles.faqQuestion}>{faq.question}</Text>
                   <Text style={styles.faqAnswer}>{faq.answer}</Text>
                 </View>
@@ -512,7 +520,9 @@ const HelpSupportScreen = ({ navigation }) => {
 
               <View style={styles.contactSection}>
                 <Text style={styles.contactTitle}>Bizimle İletişime Geçin</Text>
-                <View style={styles.contactCard}>
+                <View
+                  style={[styles.contactCard, { backgroundColor: colors.card }]}
+                >
                   <TouchableOpacity
                     style={styles.contactOption}
                     onPress={handleOpenEmail}
@@ -557,7 +567,10 @@ const HelpSupportScreen = ({ navigation }) => {
 
               <View style={styles.socialMediaContainer}>
                 <TouchableOpacity
-                  style={styles.socialButton}
+                  style={[
+                    styles.socialButton,
+                    { backgroundColor: colors.card },
+                  ]}
                   onPress={() => handleSocialMedia("twitter")}
                 >
                   <Ionicons
@@ -567,7 +580,10 @@ const HelpSupportScreen = ({ navigation }) => {
                   />
                 </TouchableOpacity>
                 <TouchableOpacity
-                  style={styles.socialButton}
+                  style={[
+                    styles.socialButton,
+                    { backgroundColor: colors.card },
+                  ]}
                   onPress={() => handleSocialMedia("facebook")}
                 >
                   <Ionicons
@@ -577,7 +593,10 @@ const HelpSupportScreen = ({ navigation }) => {
                   />
                 </TouchableOpacity>
                 <TouchableOpacity
-                  style={styles.socialButton}
+                  style={[
+                    styles.socialButton,
+                    { backgroundColor: colors.card },
+                  ]}
                   onPress={() => handleSocialMedia("instagram")}
                 >
                   <Ionicons
@@ -597,13 +616,13 @@ const HelpSupportScreen = ({ navigation }) => {
                 onPress={() => setShowContactForm(false)}
               >
                 <Ionicons name="arrow-back" size={20} color={colors.primary} />
-                <Text style={styles.backButtonText}>Geri Dön</Text>
+                <Text style={styles.backButtonText}>{t("common.back")}</Text>
               </TouchableOpacity>
 
-              <Text style={styles.contactTitle}>Destek Formu</Text>
+              <Text style={styles.contactTitle}>{t("screens.profile.help.supportForm")}</Text>
               <Card>
                 <Input
-                  label="Konu"
+                  label={t("screens.profile.help.subject")}
                   value={contactForm.subject}
                   onChangeText={(text) =>
                     setContactForm({
@@ -612,7 +631,7 @@ const HelpSupportScreen = ({ navigation }) => {
                       subjectError: "",
                     })
                   }
-                  placeholder="Yardım konunuzu girin"
+                  placeholder={t("screens.profile.help.subjectPlaceholder")}
                   error={contactForm.subjectError}
                   icon={
                     <Ionicons
@@ -630,11 +649,11 @@ const HelpSupportScreen = ({ navigation }) => {
                     marginBottom: 8,
                   }}
                 >
-                  Mesajınız
+                  {t("screens.profile.help.message")}
                 </Text>
                 <TextInput
                   style={styles.messageInput}
-                  placeholder="Sorununuzu detaylı açıklayın..."
+                  placeholder={t("screens.profile.help.messagePlaceholder")}
                   placeholderTextColor={colors.textTertiary}
                   value={contactForm.message}
                   onChangeText={(text) =>
@@ -654,7 +673,7 @@ const HelpSupportScreen = ({ navigation }) => {
                 ) : null}
 
                 <Button
-                  title="Gönder"
+                  title={t("screens.profile.help.send")}
                   gradient
                   icon={
                     <Ionicons

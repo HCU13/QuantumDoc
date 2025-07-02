@@ -4,6 +4,7 @@ import { FONTS, SIZES } from "../../constants/theme";
 import { FontAwesome } from "@expo/vector-icons";
 import useTheme from "../../hooks/useTheme";
 import GradientBackground from "../../components/common/GradientBackground";
+import { useTranslation } from "react-i18next";
 
 const SocialButton = ({ icon, onPress, text }) => {
   const { colors, shadows, isDark } = useTheme();
@@ -39,6 +40,7 @@ const SocialButton = ({ icon, onPress, text }) => {
 
 const SocialButtonsScreen = () => {
   const { colors, isDark } = useTheme();
+  const { t } = useTranslation();
 
   const styles = StyleSheet.create({
     container: {
@@ -71,7 +73,7 @@ const SocialButtonsScreen = () => {
       <View style={styles.container}>
         <View style={styles.dividerContainer}>
           <View style={styles.divider} />
-          <Text style={styles.dividerText}>Şununla devam et</Text>
+          <Text style={styles.dividerText}>{t("auth.continueWith")}</Text>
           <View style={styles.divider} />
         </View>
 
@@ -85,7 +87,7 @@ const SocialButtonsScreen = () => {
                 style={{ marginRight: 10 }}
               />
             }
-            text="Google ile devam et"
+            text={t("auth.continueWithGoogle")}
             onPress={() => console.log("Google Sign In")}
           />
 
@@ -98,7 +100,7 @@ const SocialButtonsScreen = () => {
                 style={{ marginRight: 10 }}
               />
             }
-            text="Apple ile devam et"
+            text={t("auth.continueWithApple")}
             onPress={() => console.log("Apple Sign In")}
           />
 
@@ -111,7 +113,7 @@ const SocialButtonsScreen = () => {
                 style={{ marginRight: 10 }}
               />
             }
-            text="Facebook ile devam et"
+            text={t("auth.continueWithFacebook")}
             onPress={() => console.log("Facebook Sign In")}
           />
         </View>

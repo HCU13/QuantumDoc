@@ -5,7 +5,7 @@ import { tokenUtils } from "../utils/tokenUtils";
 
 // Token bağlamı oluşturma
 export const TokenContext = createContext({
-  tokens: 0,
+  tokens: 100,
   watchedVideosToday: 0,
   lastVideoWatchDate: null,
   addTokens: () => {},

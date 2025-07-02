@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from "react";
+import React, { useState, useEffect, useRef } from "react";
 import {
   View,
   Text,
@@ -32,7 +32,13 @@ const MathSolverScreen = ({ navigation }) => {
   const [solution, setSolution] = useState(null);
   const [steps, setSteps] = useState([]);
   const [solutionExpanded, setSolutionExpanded] = useState(true);
+  const [isPremium, setIsPremium] = useState(false); // UI-only premium simülasyonu
   const tokenCost = 2; // Cost to solve one math problem
+  const [showFeedback, setShowFeedback] = useState(true);
+  const [feedbackGiven, setFeedbackGiven] = useState(false);
+  const [clarityFeedbackGiven, setClarityFeedbackGiven] = useState(false);
+  const [feedback, setFeedback] = useState(null); // 'up' | 'down'
+  const [clarity, setClarity] = useState(null); // 'clear' | 'unclear'
 
   // Request camera and gallery permission when component mounts
   useEffect(() => {
@@ -433,52 +439,71 @@ const MathSolverScreen = ({ navigation }) => {
             )}
           </View>
 
-          {/* Action buttons */}
-          <View style={styles.buttonsContainer}>
-            <Button
-              title="Fotoğraf Çek"
-              icon={
-                <Ionicons
-                  name="camera-outline"
-                  size={20}
-                  color={colors.white}
-                />
-              }
-              onPress={takePicture}
-              containerStyle={{ flex: 1, marginRight: 8 }}
-              disabled={processing}
-            />
-            <Button
-              title="Galeriden Seç"
-              icon={
-                <Ionicons
-                  name="images-outline"
-                  size={20}
-                  color={colors.textOnGradient}
-                />
-              }
-              onPress={pickImage}
-              containerStyle={{ flex: 1, marginLeft: 8 }}
-              outlined
-              disabled={processing}
-            />
-          </View>
+          {/* Action buttons - sadece image ve solution yoksa göster */}
+          {!image && !solution && !processing && (
+            <View style={styles.buttonsContainer}>
+              <Button
+                title="Fotoğraf Çek"
+                icon={
+                  <Ionicons
+                    name="camera-outline"
+                    size={20}
+                    color={colors.white}
+                  />
+                }
+                onPress={takePicture}
+                containerStyle={{ flex: 1, marginRight: 8 }}
+                disabled={processing}
+              />
+              <Button
+                title="Galeriden Seç"
+                icon={
+                  <Ionicons
+                    name="images-outline"
+                    size={20}
+                    color={colors.textOnGradient}
+                  />
+                }
+                onPress={pickImage}
+                containerStyle={{ flex: 1, marginLeft: 8 }}
+                outlined
+                disabled={processing}
+              />
+            </View>
+          )}
 
+          {/* Çöz butonu - sadece image varsa ve çözüm yoksa göster */}
           {image && !solution && !processing && (
-            <Button
-              title="Çöz"
-              gradient
-              icon={
-                <Ionicons
-                  name="calculator-outline"
-                  size={20}
-                  color={colors.white}
-                />
-              }
-              onPress={handleSolve}
-              fluid
-              containerStyle={{ marginTop: 10 }}
-            />
+            <View style={{ flexDirection: "row", justifyContent: "space-between", marginTop: 10 }}>
+              <Button
+                title="Çöz"
+                gradient
+                icon={
+                  <Ionicons
+                    name="calculator-outline"
+                    size={20}
+                    color={colors.white}
+                  />
+                }
+                onPress={handleSolve}
+                fluid
+                containerStyle={{ flex: 1, marginRight: 8 }}
+              />
+              <Button
+                title="Yeniden Seç"
+                icon={
+                  <Ionicons
+                    name="refresh-outline"
+                    size={20}
+                    color={colors.primary}
+                  />
+                }
+                outlined
+                onPress={() => setImage(null)}
+                fluid
+                containerStyle={{ flex: 1, marginLeft: 8 }}
+              />
+            </View>
           )}
 
           {/* Processing indicator */}
@@ -511,26 +536,107 @@ const MathSolverScreen = ({ navigation }) => {
                   <Text style={styles.problemText}>{solution.problem}</Text>
                   <Text style={styles.resultText}>{solution.result}</Text>
 
-                  <Text style={styles.stepsTitle}>Adım adım çözüm:</Text>
-
-                  {steps.map((step) => (
-                    <View key={step.step} style={styles.stepCard}>
-                      <View style={styles.stepHeader}>
-                        <View style={styles.stepNumber}>
-                          <Text style={styles.stepNumberText}>{step.step}</Text>
+                  {/* Premium olmayanlar için adım adım çözüm blur/kapalı ve CTA */}
+                  {isPremium ? (
+                    <>
+                      <Text style={styles.stepsTitle}>Adım adım çözüm:</Text>
+                      {steps.map((step) => (
+                        <View key={step.step} style={styles.stepCard}>
+                          <View style={styles.stepHeader}>
+                            <View style={styles.stepNumber}>
+                              <Text style={styles.stepNumberText}>{step.step}</Text>
+                            </View>
+                            <Text style={styles.stepDescription}>
+                              {step.description}
+                            </Text>
+                          </View>
+                          <View style={styles.stepContent}>
+                            <Text style={styles.equationText}>{step.equation}</Text>
+                            <Text style={styles.explanationText}>
+                              {step.explanation}
+                            </Text>
+                          </View>
                         </View>
-                        <Text style={styles.stepDescription}>
-                          {step.description}
+                      ))}
+                    </>
+                  ) : (
+                    <View style={{ alignItems: "center", marginTop: 24, marginBottom: 12 }}>
+                      <View style={{
+                        width: "100%",
+                        minHeight: 120,
+                        borderRadius: 16,
+                        backgroundColor: isDark ? "rgba(255,255,255,0.08)" : "#F1F0F5",
+                        alignItems: "center",
+                        justifyContent: "center",
+                        marginBottom: 12,
+                        opacity: 0.5,
+                      }}>
+                        <Ionicons name="lock-closed-outline" size={36} color={colors.primary} style={{ marginBottom: 8 }} />
+                        <Text style={{ ...FONTS.body3, color: colors.textSecondary, textAlign: "center" }}>
+                          Adım adım çözüm sadece premium üyeler için açıktır.
                         </Text>
                       </View>
-                      <View style={styles.stepContent}>
-                        <Text style={styles.equationText}>{step.equation}</Text>
-                        <Text style={styles.explanationText}>
-                          {step.explanation}
-                        </Text>
-                      </View>
+                      <Button
+                        title="Premium'a Geç"
+                        icon={<Ionicons name="star" size={18} color={colors.white} />}
+                        onPress={() => setIsPremium(true)}
+                        gradient
+                        containerStyle={{ width: 200 }}
+                      />
                     </View>
-                  ))}
+                  )}
+
+                  {/* Feedback alanı her zaman çözümde gözüksün */}
+                  <View style={{ marginTop: 24, alignItems: "center" }}>
+                    <Text style={{ ...FONTS.body3, color: colors.textPrimary, marginBottom: 10 }}>
+                      Bu çözüm işine yaradı mı?
+                    </Text>
+                    <View style={{ flexDirection: "row", marginBottom: 8 }}>
+                      <TouchableOpacity
+                        onPress={() => { setFeedback("up"); setFeedbackGiven(true); }}
+                        disabled={feedbackGiven}
+                        style={{ marginHorizontal: 16, opacity: feedbackGiven && feedback !== "up" ? 0.5 : 1 }}
+                      >
+                        <Ionicons name="thumbs-up" size={32} color={feedback === "up" ? colors.primary : colors.textSecondary} />
+                      </TouchableOpacity>
+                      <TouchableOpacity
+                        onPress={() => { setFeedback("down"); setFeedbackGiven(true); }}
+                        disabled={feedbackGiven}
+                        style={{ marginHorizontal: 16, opacity: feedbackGiven && feedback !== "down" ? 0.5 : 1 }}
+                      >
+                        <Ionicons name="thumbs-down" size={32} color={feedback === "down" ? colors.primary : colors.textSecondary} />
+                      </TouchableOpacity>
+                    </View>
+                    {feedbackGiven && (
+                      <Text style={{ ...FONTS.body4, color: colors.textSecondary, marginBottom: 8 }}>Teşekkürler!</Text>
+                    )}
+
+                    {/* İkinci feedback: Anlaşılırlık */}
+                    <Text style={{ ...FONTS.body4, color: colors.textPrimary, marginBottom: 6, marginTop: 8 }}>
+                      Çözüm yeterince anlaşılır mıydı?
+                    </Text>
+                    <View style={{ flexDirection: "row" }}>
+                      <Button
+                        title="Anlaşılır"
+                        onPress={() => { setClarity("clear"); setClarityFeedbackGiven(true); }}
+                        disabled={clarityFeedbackGiven}
+                        gradient={clarity === "clear"}
+                        outlined={clarity !== "clear"}
+                        containerStyle={{ marginRight: 8, minWidth: 110 }}
+                      />
+                      <Button
+                        title="Yetersiz"
+                        onPress={() => { setClarity("unclear"); setClarityFeedbackGiven(true); }}
+                        disabled={clarityFeedbackGiven}
+                        gradient={clarity === "unclear"}
+                        outlined={clarity !== "unclear"}
+                        containerStyle={{ minWidth: 110 }}
+                      />
+                    </View>
+                    {clarityFeedbackGiven && (
+                      <Text style={{ ...FONTS.body4, color: colors.textSecondary, marginTop: 6 }}>Geri bildiriminiz için teşekkürler!</Text>
+                    )}
+                  </View>
 
                   <Button
                     title="Yeni Soru Çöz"

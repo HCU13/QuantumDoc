@@ -1,0 +1,285 @@
+{
+  "common": {
+    "loading": "Yükleniyor...",
+    "error": "Hata oluştu",
+    "success": "Başarılı",
+    "save": "Kaydet",
+    "cancel": "İptal",
+    "delete": "Sil",
+    "edit": "Düzenle",
+    "back": "Geri"
+  },
+  "auth": {
+    "login": "Giriş Yap",
+    "register": "Kayıt Ol",
+    "logout": "Çıkış Yap",
+    "email": "E-posta",
+    "emailPlaceholder": "E-posta adresiniz",
+    "password": "Şifre",
+    "passwordPlaceholder": "Şifreniz",
+    "forgotPassword": "Şifremi Unuttum",
+    "resetPassword": "Şifreyi Sıfırla",
+    "welcomeBack": "Tekrar Hoşgeldiniz!",
+    "loginToAccount": "Hesabınıza giriş yapın",
+    "noAccount": "Hesabınız yok mu?",
+    "registerNow": "Hemen Kaydolun",
+    "haveAccount": "Zaten hesabınız var mı?",
+    "createAccount": "Hesap Oluşturun",
+    "registerToAccess": "AI Asistanınıza erişmek için kaydolun",
+    "fullName": "Ad Soyad",
+    "fullNamePlaceholder": "Adınız ve soyadınız",
+    "confirmPassword": "Şifre Tekrarı",
+    "confirmPasswordPlaceholder": "Şifrenizi tekrar girin",
+    "continueWith": "Şununla devam et",
+    "continueWithGoogle": "Google ile devam et",
+    "continueWithApple": "Apple ile devam et",
+    "continueWithFacebook": "Facebook ile devam et",
+    "errors": {
+      "emailRequired": "E-posta adresi gerekli",
+      "invalidEmail": "Geçerli bir e-posta adresi girin",
+      "passwordRequired": "Şifre gerekli",
+      "passwordLength": "Şifre en az 6 karakter olmalı",
+      "fullNameRequired": "Ad soyad gerekli",
+      "confirmPasswordRequired": "Şifre tekrarı gerekli",
+      "passwordsDontMatch": "Şifreler eşleşmiyor"
+    }
+  },
+  "welcome": {
+    "terms": "Devam ederek Hizmet Şartları, Gizlilik Politikası ve topluluk kurallarını kabul etmiş olursunuz.",
+    "slide1": {
+      "title": "AI Asistan'a Hoş Geldiniz",
+      "subtitle": "Üretkenlik ve yaratıcı görevler için kişisel AI asistanınız"
+    },
+    "slide2": {
+      "title": "Hiçbir Görev Zor Değil",
+      "subtitle": "Tüm modüllerle işlerinizi kolaylaştırın"
+    },
+    "slide3": {
+      "title": "Kişiselleştirilebilir Deneyim",
+      "subtitle": "Sadece ihtiyacınız olan modülleri seçin"
+    },
+    "getStarted": "Başlayın",
+    "continue": "Devam Et"
+  },
+  "home": {
+    "greeting": "Merhaba",
+    "searchPlaceholder": "AI Asistan ile konuşmak için tıklayın...",
+    "quickAccess": "Hızlı Erişim",
+    "featuredModules": "Öne Çıkan Özellikler",
+    "recentActivity": "Son Aktiviteler",
+    "seeAll": "Tümünü Gör",
+    "assistant": {
+      "title": "AI Asistan",
+      "description": "Sorularınızı yanıtlamak için hazır!"
+    }
+  },
+  "modules": {
+    "mathDescription": "Sorularınızı çözün",
+    "math": {
+      "title": "Matematik",
+      "description": "Sorularınızı çözün",
+      "inputPlaceholder": "Matematik sorusunu girin",
+      "solve": "Çöz",
+      "solution": "Çözüm",
+      "steps": "Adımlar",
+      "error": "Soru çözülemedi",
+      "tryAgain": "Tekrar Dene"
+    },
+    "write": "Metin Oluşturucu",
+    "writeDescription": "Metin oluşturun",
+    "textGenerator": {
+      "title": "Metin Oluşturucu",
+      "description": "Metin oluşturun",
+      "inputPlaceholder": "İsteğinizi girin",
+      "generate": "Oluştur",
+      "generatedText": "Oluşturulan Metin",
+      "copy": "Kopyala",
+      "copied": "Kopyalandı!",
+      "error": "Metin oluşturulamadı",
+      "tryAgain": "Tekrar Dene"
+    },
+    "translateDescription": "Metinleri çevirin",
+    "translate": {
+      "title": "Çeviri",
+      "description": "Metinleri çevirin",
+      "inputPlaceholder": "Çevrilecek metni girin",
+      "translate": "Çevir",
+      "translatedText": "Çevrilen Metin",
+      "copy": "Kopyala",
+      "copied": "Kopyalandı!",
+      "error": "Metin çevrilemedi",
+      "tryAgain": "Tekrar Dene",
+      "selectLanguage": "Dil Seçin"
+    },
+    "notesDescription": "Notlarınızı yönetin",
+    "notes": {
+      "title": "Notlar",
+      "description": "Notlarınızı yönetin",
+      "newNote": "Yeni Not",
+      "editNote": "Notu Düzenle",
+      "deleteNote": "Notu Sil",
+      "noteTitle": "Not Başlığı",
+      "noteContent": "Not İçeriği",
+      "save": "Kaydet",
+      "cancel": "İptal",
+      "delete": "Sil",
+      "confirmDelete": "Bu notu silmek istediğinizden emin misiniz?",
+      "error": "Not kaydedilemedi",
+      "tryAgain": "Tekrar Dene"
+    },
+    "tasks": "Görevler",
+    "tasksDescription": "Görevlerinizi takip edin",
+    "chatDescription": "AI ile sohbet edin",
+    "chat": {
+      "title": "AI Sohbet",
+      "description": "AI ile sohbet edin",
+      "inputPlaceholder": "Mesajınızı yazın...",
+      "send": "Gönder",
+      "newChat": "Yeni Sohbet",
+      "deleteChat": "Sohbeti Sil",
+      "confirmDelete": "Bu sohbeti silmek istediğinizden emin misiniz?",
+      "error": "Mesaj gönderilemedi",
+      "tryAgain": "Tekrar Dene"
+    }
+  },
+  "profile": {
+    "title": "Profil",
+    "settings": "Ayarlar",
+    "language": "Dil",
+    "theme": "Tema",
+    "notifications": "Bildirimler",
+    "privacy": "Gizlilik",
+    "help": "Yardım",
+    "about": "Hakkında"
+  },
+  "settings": {
+    "language": {
+      "title": "Dil Ayarları",
+      "current": "Mevcut Dil",
+      "select": "Dil Seçin"
+    },
+    "theme": {
+      "title": "Tema Ayarları",
+      "light": "Açık Tema",
+      "dark": "Koyu Tema",
+      "system": "Sistem Teması"
+    }
+  },
+  "screens": {
+    "auth": {
+      "login": {
+        "continue": "Devam Et",
+        "title": "Giriş Yap",
+        "subtitle": "Tekrar hoş geldiniz! Lütfen bilgilerinizi girin",
+        "forgotPassword": "Şifremi Unuttum?",
+        "noAccount": "Hesabınız yok mu?",
+        "register": "Kayıt Ol"
+      },
+      "register": {
+        "title": "Hesap Oluştur",
+        "subtitle": "Başlamak için bir hesap oluşturun",
+        "haveAccount": "Zaten hesabınız var mı?",
+        "login": "Giriş Yap"
+      },
+      "forgotPassword": {
+        "title": "Şifre Sıfırlama",
+        "subtitle": "Şifrenizi sıfırlamak için e-posta adresinizi girin",
+        "sendInstructions": "Talimatları Gönder",
+        "backToLogin": "Girişe Dön"
+      }
+    },
+    "home": {
+      "title": "Ana Sayfa",
+      "searchPlaceholder": "Ara veya bir şey sor...",
+      "recentSearches": "Son Aramalar",
+      "clearHistory": "Geçmişi Temizle",
+      "noHistory": "Son arama yok",
+      "assistant": {
+        "title": "AI Asistan",
+        "description": "Sorularınızı yanıtlamak için hazır!"
+      }
+    },
+    "profile": {
+      "title": "Profil",
+      "darkTheme": "Dark Theme",
+      "editProfile": "Profili Düzenle",
+      "settings": "Ayarlar",
+      "account": "Hesap",
+      "help": "Yardım & Destek",
+      "about": "Hakkında",
+      "logout": "Çıkış Yap",
+      "deleteAccount": "Hesabı Sil",
+      "confirmDelete": "Hesabınızı silmek istediğinizden emin misiniz? Bu işlem geri alınamaz."
+    },
+    "settings": {
+      "title": "Ayarlar",
+      "appearance": {
+        "title": "Görünüm",
+        "theme": "Tema",
+        "language": "Dil"
+      },
+      "notifications": {
+        "title": "Bildirimler",
+        "pushNotifications": "Anlık Bildirimler",
+        "emailNotifications": "E-posta Bildirimleri"
+      },
+      "privacy": {
+        "title": "Gizlilik",
+        "dataCollection": "Veri Toplama",
+        "analytics": "Analitik"
+      },
+      "about": {
+        "title": "Hakkında",
+        "version": "Sürüm",
+        "terms": "Kullanım Koşulları",
+        "privacyPolicy": "Gizlilik Politikası"
+      }
+    },
+    "explore": {
+      "title": "Keşfet",
+      "subtitle": "Tüm modülleri keşfet ve kullan!",
+      "searchPlaceholder": "Modüllerde ara...",
+      "categories": {
+        "all": "Tümü",
+        "productivity": "Verimlilik",
+        "education": "Eğitim",
+        "creative": "Yaratıcılık",
+        "tools": "Araçlar",
+        "free": "Ücretsiz"
+      },
+      "noResults": "Aradığınız kriterlere uygun modül bulunamadı.",
+      "categoriesTitle": "Kategoriler",
+      "searchResults": "Arama Sonuçları"
+    },
+    "categorySelect": {
+      "title": "En çok hangi kategorileri görmek istersiniz?",
+      "subtitle1": "En çok ilgilendiğiniz modülleri seçin.",
+      "subtitle2": "Bunları daha sonra Explore sayfasından değiştirebilirsiniz.",
+      "button": "Akışımı Oluştur"
+    },
+    "tabs": {
+      "home": "Ana Sayfa",
+      "explore": "Keşfet",
+      "activity": "Aktivite",
+      "profile": "Profil"
+    }
+  },
+  "messages": {
+    "success": "Başarılı",
+    "error": "Hata",
+    "info": "Bilgi",
+    "login_success": "Başarıyla giriş yaptınız",
+    "login_error": "Giriş başarısız. Bilgilerinizi kontrol edin",
+    "register_success": "Kayıt başarıyla tamamlandı",
+    "register_error": "Kayıt başarısız. Lütfen tekrar deneyin",
+    "password_reset_success": "Şifre sıfırlama e-postası başarıyla gönderildi",
+    "password_reset_error": "Şifre sıfırlama e-postası gönderilemedi",
+    "profile_update_success": "Profil başarıyla güncellendi",
+    "profile_update_error": "Profil güncellenemedi",
+    "token_purchase_success": "Token satın alma işlemi başarıyla tamamlandı",
+    "token_purchase_error": "Token satın alınamadı",
+    "module_complete_success": "Modül başarıyla tamamlandı",
+    "module_complete_error": "Modül tamamlanamadı",
+    "general_error": "Bir şeyler yanlış gitti. Lütfen tekrar deneyin"
+  }
+}

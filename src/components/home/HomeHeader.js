@@ -4,6 +4,7 @@ import { FONTS, SIZES } from "../../constants/theme";
 import { Ionicons } from "@expo/vector-icons";
 import useTheme from "../../hooks/useTheme";
 import TokenDisplay from "../common/TokenDisplay";
+import { useTranslation } from "react-i18next";
 
 const HomeHeader = ({
   username = "Human",
@@ -12,6 +13,7 @@ const HomeHeader = ({
   navigation,
 }) => {
   const { colors, isDark } = useTheme();
+  const { t } = useTranslation();
 
   const styles = StyleSheet.create({
     container: {
@@ -72,7 +74,7 @@ const HomeHeader = ({
   return (
     <View style={styles.container}>
       <View style={styles.leftContainer}>
-        <Text style={styles.greeting}>Merhaba,</Text>
+        <Text style={styles.greeting}>{t("home.greeting")},</Text>
         <View style={styles.nameContainer}>
           <Text style={styles.username}>{username}</Text>
         </View>

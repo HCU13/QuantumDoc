@@ -16,10 +16,12 @@ import Button from "../../components/common/Button";
 import TokenDisplay from "../../components/common/TokenDisplay";
 import useTheme from "../../hooks/useTheme";
 import { useToken } from "../../contexts/TokenContext";
+import { useTranslation } from "react-i18next";
 
 const ProfileScreen = ({ navigation }) => {
   const { colors, isDark, toggleTheme } = useTheme();
   const { tokens } = useToken();
+  const { t } = useTranslation();
 
   const styles = StyleSheet.create({
     container: {
@@ -43,18 +45,17 @@ const ProfileScreen = ({ navigation }) => {
       justifyContent: "center",
       alignItems: "center",
       borderRadius: 20,
-      backgroundColor: "rgba(255, 255, 255, 0.15)",
+      backgroundColor: isDark
+        ? "rgba(255, 255, 255, 0.1)"
+        : "rgba(0, 0, 0, 0.05)",
     },
     headerTitle: {
       ...FONTS.h2,
-      color: colors.textOnGradient,
+      color: colors.textPrimary,
       flex: 1,
       textAlign: "center",
       marginRight: 40,
       fontWeight: "bold",
-      textShadowColor: "rgba(0,0,0,0.2)",
-      textShadowOffset: { width: 0, height: 1 },
-      textShadowRadius: 2,
     },
     profileSection: {
       alignItems: "center",
@@ -67,43 +68,27 @@ const ProfileScreen = ({ navigation }) => {
       overflow: "hidden",
       marginBottom: 15,
       borderWidth: 3,
-
+      borderColor: isDark ? colors.border : colors.lightGray,
       shadowColor: colors.primary,
       shadowOffset: { width: 0, height: 0 },
-      shadowOpacity: 0.8,
-      shadowRadius: 10,
-      elevation: 10,
+      shadowOpacity: 0.5,
+      shadowRadius: 8,
+      elevation: 8,
     },
     profileImage: {
       width: "100%",
       height: "100%",
     },
-    editImageButton: {
-      position: "absolute",
-      bottom: 0,
-      right: 0,
-      backgroundColor: colors.primary,
-      width: 36,
-      height: 36,
-      borderRadius: 18,
-      justifyContent: "center",
-      alignItems: "center",
-      borderWidth: 2,
-    },
     nameText: {
       ...FONTS.h2,
-      color: colors.textOnGradient,
+      color: colors.textPrimary,
       marginBottom: 5,
       fontWeight: "bold",
-      textShadowColor: "rgba(0,0,0,0.2)",
-      textShadowOffset: { width: 0, height: 1 },
-      textShadowRadius: 2,
     },
     emailText: {
       ...FONTS.body3,
-      color: colors.textOnGradient,
+      color: colors.textSecondary,
       marginBottom: 15,
-      opacity: 0.8,
     },
     tokenContainer: {
       flexDirection: "row",
@@ -112,20 +97,23 @@ const ProfileScreen = ({ navigation }) => {
     },
     sectionTitle: {
       ...FONTS.h3,
-      color: colors.textOnGradient,
+      color: colors.textPrimary,
       marginTop: 25,
       marginBottom: 15,
       fontWeight: "bold",
-      textShadowColor: "rgba(0,0,0,0.2)",
-      textShadowOffset: { width: 0, height: 1 },
-      textShadowRadius: 2,
     },
     card: {
-      backgroundColor: "rgba(255, 255, 255, 0.15)",
+      backgroundColor: isDark ? colors.card : "rgba(255, 255, 255, 0.8)",
       borderRadius: SIZES.radius * 1.5,
       overflow: "hidden",
       borderWidth: 1,
+      borderColor: isDark ? colors.border : "rgba(0, 0, 0, 0.05)",
       marginBottom: 15,
+      shadowColor: "#000",
+      shadowOffset: { width: 0, height: 2 },
+      shadowOpacity: isDark ? 0.2 : 0.05,
+      shadowRadius: 5,
+      elevation: 3,
     },
     menuItem: {
       flexDirection: "row",
@@ -133,13 +121,14 @@ const ProfileScreen = ({ navigation }) => {
       paddingVertical: 15,
       paddingHorizontal: 20,
       borderBottomWidth: 1,
+      borderBottomColor: isDark ? colors.border : "rgba(0, 0, 0, 0.05)",
     },
     lastMenuItem: {
       borderBottomWidth: 0,
     },
     menuItemText: {
       ...FONTS.body3,
-      color: colors.textOnGradient,
+      color: colors.textPrimary,
       flex: 1,
       marginLeft: 15,
     },
@@ -147,9 +136,14 @@ const ProfileScreen = ({ navigation }) => {
       width: 40,
       height: 40,
       borderRadius: 20,
-      backgroundColor: "rgba(255, 255, 255, 0.2)",
+      backgroundColor: isDark
+        ? "rgba(255, 255, 255, 0.1)"
+        : "rgba(0, 0, 0, 0.03)",
       alignItems: "center",
       justifyContent: "center",
+    },
+    menuItemIcon: {
+      color: isDark ? colors.white : colors.primary,
     },
     logoutButton: {
       marginTop: 20,
@@ -163,19 +157,24 @@ const ProfileScreen = ({ navigation }) => {
     },
     themeSwitchText: {
       ...FONTS.body3,
-      color: colors.textOnGradient,
+      color: colors.textPrimary,
       flex: 1,
       marginLeft: 15,
     },
     versionText: {
       ...FONTS.body5,
-      color: colors.textOnGradient,
-      opacity: 0.6,
+      color: colors.textTertiary,
       textAlign: "center",
       marginBottom: 20,
     },
-    tokenContainer: {
-      marginLeft: 10,
+    themeSwitchIcon: {
+      color: isDark ? colors.white : colors.primary,
+    },
+    chevronIcon: {
+      color: isDark ? colors.textSecondary : colors.primary,
+    },
+    toggleIcon: {
+      color: isDark ? colors.white : colors.textSecondary,
     },
   });
 
@@ -184,7 +183,7 @@ const ProfileScreen = ({ navigation }) => {
       id: "tokens",
       title: "Token Yönetimi",
       icon: (
-        <Ionicons name="cash-outline" size={22} color={colors.textOnGradient} />
+        <Ionicons name="cash-outline" size={22} style={styles.menuItemIcon} />
       ),
       onPress: () => navigation.navigate("Tokens"),
     },
@@ -192,11 +191,7 @@ const ProfileScreen = ({ navigation }) => {
       id: "account",
       title: "Hesap Bilgileri",
       icon: (
-        <Ionicons
-          name="person-outline"
-          size={22}
-          color={colors.textOnGradient}
-        />
+        <Ionicons name="person-outline" size={22} style={styles.menuItemIcon} />
       ),
       onPress: () => navigation.navigate("AccountInfo"),
     },
@@ -204,7 +199,7 @@ const ProfileScreen = ({ navigation }) => {
       id: "subscription",
       title: "Abonelik",
       icon: (
-        <Ionicons name="card-outline" size={22} color={colors.textOnGradient} />
+        <Ionicons name="card-outline" size={22} style={styles.menuItemIcon} />
       ),
       onPress: () => navigation.navigate("Subscription"),
     },
@@ -215,7 +210,7 @@ const ProfileScreen = ({ navigation }) => {
         <Ionicons
           name="language-outline"
           size={22}
-          color={colors.textOnGradient}
+          style={styles.menuItemIcon}
         />
       ),
       onPress: () => navigation.navigate("LanguageSettings"),
@@ -227,7 +222,7 @@ const ProfileScreen = ({ navigation }) => {
         <Ionicons
           name="lock-closed-outline"
           size={22}
-          color={colors.textOnGradient}
+          style={styles.menuItemIcon}
         />
       ),
       onPress: () => navigation.navigate("Privacy"),
@@ -239,7 +234,7 @@ const ProfileScreen = ({ navigation }) => {
         <Ionicons
           name="help-circle-outline"
           size={22}
-          color={colors.textOnGradient}
+          style={styles.menuItemIcon}
         />
       ),
       onPress: () => navigation.navigate("HelpSupport"),
@@ -249,45 +244,18 @@ const ProfileScreen = ({ navigation }) => {
   const handleLogout = () => {
     console.log("Çıkış yapıldı");
     // Burada çıkış işlemleri yapılacak
-    navigation.navigate("Login");
+  navigation.reset({
+      index: 0,
+      routes: [{ name: "Auth" }],
+    });
   };
 
   return (
-    <GradientBackground>
+    <GradientBackground mode="default">
       <SafeAreaView style={styles.container}>
-        {/* <StatusBar
-          barStyle="light-content"
-          backgroundColor="transparent"
-          translucent
-        /> */}
-
-        {/* <View style={styles.header}>
-          <TouchableOpacity
-            style={styles.backButton}
-            onPress={() => navigation.goBack()}
-          >
-            <Ionicons
-              name="chevron-back"
-              size={24}
-              color={colors.textOnGradient}
-            />
-          </TouchableOpacity>
-          <View style={styles.tokenContainer}>
-            <TokenDisplay
-              size="small"
-              onPress={() => navigation.navigate("Tokens")}
-            />
-          </View>
-        </View> */}
-
         <ScrollView style={styles.content} showsVerticalScrollIndicator={false}>
           <View style={styles.profileSection}>
-            <View
-              style={[
-                styles.profileImageContainer,
-                { borderColor: colors.border },
-              ]}
-            >
+            <View style={styles.profileImageContainer}>
               <Image
                 source={{ uri: "https://i.pravatar.cc/300" }}
                 style={styles.profileImage}
@@ -304,48 +272,40 @@ const ProfileScreen = ({ navigation }) => {
                 onPress={() => navigation.navigate("Tokens")}
               />
             </View>
-
-            {/* <Button
-              title="Profili Düzenle"
-              onPress={() => console.log("Profil Düzenle")}
-              neon
-              icon={<Ionicons name="create-outline" size={18} color="#fff" />}
-              containerStyle={{ width: 200 }}
-            /> */}
           </View>
 
-          <View style={[styles.card, { borderColor: colors.border }]}>
+          <View style={styles.card}>
             <View style={styles.themeSwitchContainer}>
               <View style={styles.iconContainer}>
                 <Ionicons
                   name={isDark ? "moon" : "sunny"}
                   size={22}
-                  color={colors.textOnGradient}
+                  style={styles.themeSwitchIcon}
                 />
               </View>
-              <Text style={styles.themeSwitchText}>Koyu Tema</Text>
+              <Text style={styles.themeSwitchText}>{t("screens.profile.darkTheme")}</Text>
               <TouchableOpacity
                 onPress={toggleTheme}
                 activeOpacity={0.7}
-                style={{ padding: 5 }} // Dokunulabilir alanı büyütmek için
+                style={{ padding: 5 }}
               >
                 <Ionicons
                   name={isDark ? "toggle" : "toggle-outline"}
                   size={40}
-                  color={colors.textOnGradient}
+                  style={styles.toggleIcon}
                 />
               </TouchableOpacity>
             </View>
           </View>
 
-          <Text style={styles.sectionTitle}>Hesap</Text>
+          <Text style={styles.sectionTitle}>{t("screens.profile.account")}</Text>
 
-          <View style={[styles.card, { borderColor: colors.border }]}>
+          <View style={styles.card}>
             {menuItems.map((item, index) => (
               <TouchableOpacity
                 key={item.id}
                 style={[
-                  [styles.menuItem, { borderColor: colors.border }],
+                  styles.menuItem,
                   index === menuItems.length - 1 && styles.lastMenuItem,
                 ]}
                 onPress={item.onPress}
@@ -355,7 +315,7 @@ const ProfileScreen = ({ navigation }) => {
                 <Ionicons
                   name="chevron-forward"
                   size={20}
-                  color={colors.textOnGradient}
+                  style={styles.chevronIcon}
                 />
               </TouchableOpacity>
             ))}
@@ -370,7 +330,7 @@ const ProfileScreen = ({ navigation }) => {
               <Ionicons
                 name="log-out-outline"
                 size={18}
-                color={colors.textOnGradient}
+                color={colors.textPrimary}
               />
             }
           />

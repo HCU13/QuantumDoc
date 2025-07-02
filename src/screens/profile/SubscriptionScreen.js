@@ -50,7 +50,6 @@ const SubscriptionScreen = ({ navigation }) => {
       textAlign: "center",
     },
     currentPlanCard: {
-      backgroundColor: isDark ? colors.card + "75" : colors.card + "75",
       borderRadius: SIZES.radius,
       padding: 20,
       marginBottom: 20,
@@ -343,7 +342,9 @@ const SubscriptionScreen = ({ navigation }) => {
             </Text>
           </View>
 
-          <View style={styles.currentPlanCard}>
+          <View
+            style={[styles.currentPlanCard, { backgroundColor: colors.card }]}
+          >
             <View style={styles.currentPlanHeader}>
               <Text style={styles.currentPlanTitle}>Mevcut Plan</Text>
               <View style={styles.statusBadge}>

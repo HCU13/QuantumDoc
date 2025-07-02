@@ -1,5 +1,5 @@
 import React, { useState } from "react";
-import { View, StyleSheet, SafeAreaView, Text, Alert } from "react-native";
+import { View, StyleSheet, SafeAreaView, Text, Alert, TouchableOpacity } from "react-native";
 import { SIZES, FONTS } from "../../constants/theme";
 import { Ionicons } from "@expo/vector-icons";
 import Header from "../../components/common/Header";
@@ -7,6 +7,7 @@ import Input from "../../components/common/Input";
 import Button from "../../components/common/Button";
 import useTheme from "../../hooks/useTheme";
 import GradientBackground from "../../components/common/GradientBackground";
+import { useTranslation } from "react-i18next";
 
 const ForgotPassword = ({ navigation }) => {
   const [email, setEmail] = useState("");
@@ -14,6 +15,7 @@ const ForgotPassword = ({ navigation }) => {
   const [loading, setLoading] = useState(false);
 
   const { colors } = useTheme();
+  const { t } = useTranslation();
 
   const styles = StyleSheet.create({
     container: {
@@ -37,6 +39,14 @@ const ForgotPassword = ({ navigation }) => {
     },
     formContainer: {
       marginBottom: 20,
+    },
+    backToLogin: {
+      alignItems: "center",
+      marginTop: 20,
+    },
+    backToLoginText: {
+      ...FONTS.body3,
+      color: colors.textSecondary,
     },
   });
 
@@ -76,18 +86,17 @@ const ForgotPassword = ({ navigation }) => {
         <Header title="Şifremi Unuttum" />
 
         <View style={styles.content}>
-          <Text style={styles.title}>Şifrenizi mi unuttunuz?</Text>
+          <Text style={styles.title}>{t("screens.auth.forgotPassword.title")}</Text>
           <Text style={styles.subtitle}>
-            Endişelenmeyin! E-posta adresinizi girin, size şifre sıfırlama
-            bağlantısı gönderelim.
+            {t("screens.auth.forgotPassword.subtitle")}
           </Text>
 
           <View style={styles.formContainer}>
             <Input
-              label="E-posta"
+              label={t("auth.email")}
               value={email}
               onChangeText={setEmail}
-              placeholder="E-posta adresiniz"
+              placeholder={t("auth.emailPlaceholder")}
               keyboardType="email-address"
               error={emailError}
               icon={
@@ -100,12 +109,21 @@ const ForgotPassword = ({ navigation }) => {
             />
 
             <Button
-              title="Şifremi Sıfırla"
+              title={t("screens.auth.forgotPassword.sendInstructions")}
               gradient
               onPress={handleResetPassword}
               loading={loading}
             />
           </View>
+
+          <TouchableOpacity
+            style={styles.backToLogin}
+            onPress={() => navigation.navigate("Login")}
+          >
+            <Text style={styles.backToLoginText}>
+              {t("screens.auth.forgotPassword.backToLogin")}
+            </Text>
+          </TouchableOpacity>
         </View>
       </SafeAreaView>
     </GradientBackground>

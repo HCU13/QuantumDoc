@@ -3,10 +3,12 @@ import { View, Text, StyleSheet, ScrollView } from "react-native";
 import { FONTS, SIZES } from "../../constants/theme";
 import { Ionicons } from "@expo/vector-icons";
 import useTheme from "../../hooks/useTheme";
-import ModuleCard from "./ModuleCard";
+import ModuleCard from "../explore/ModuleCard";
+import { useTranslation } from "react-i18next";
 
 const QuickActions = ({ onActionPress, containerStyle }) => {
   const { colors } = useTheme();
+  const { t } = useTranslation();
 
   const styles = StyleSheet.create({
     container: {
@@ -41,31 +43,36 @@ const QuickActions = ({ onActionPress, containerStyle }) => {
     // },
     {
       id: "math",
-      title: "Matematik",
+      title: t("modules.math.title"),
+      description: t("modules.math.description"),
       icon: <Ionicons name="calculator-outline" size={24} color="#FFF" />,
       gradientColors: ["#FF7B54", "#F24C4C"],
     },
     {
       id: "write",
-      title: "Yazı Üretici",
+      title: t("modules.write"),
+      description: t("modules.writeDescription"),
       icon: <Ionicons name="create-outline" size={24} color="#FFF" />,
       gradientColors: ["#4CACBC", "#1C7293"],
     },
     {
       id: "translate",
-      title: "Çeviri",
+      title: t("modules.translate.title"),
+      description: t("modules.translateDescription"),
       icon: <Ionicons name="language-outline" size={24} color="#FFF" />,
       gradientColors: ["#7F7FD5", "#5C5CBD"],
     },
     {
       id: "notes",
-      title: "Notlar",
+      title: t("modules.notes.title"),
+      description: t("modules.notesDescription"),
       icon: <Ionicons name="document-text-outline" size={24} color="#FFF" />,
       gradientColors: ["#3C9D9B", "#52DE97"],
     },
     {
       id: "tasks",
-      title: "Görevler",
+      title: t("modules.tasks"),
+      description: t("modules.tasksDescription"),
       icon: <Ionicons name="checkbox-outline" size={24} color="#FFF" />,
       gradientColors: ["#FF78C4", "#E252DC"],
     },
@@ -74,7 +81,7 @@ const QuickActions = ({ onActionPress, containerStyle }) => {
   return (
     <View style={[styles.container, containerStyle]}>
       <View style={styles.titleContainer}>
-        <Text style={styles.title}>Hızlı Erişim</Text>
+        <Text style={styles.title}>{t("home.quickAccess")}</Text>
       </View>
 
       <ScrollView
@@ -87,10 +94,12 @@ const QuickActions = ({ onActionPress, containerStyle }) => {
             <ModuleCard
               key={action.id}
               title={action.title}
+              description={action.description}
               icon={action.icon}
               gradientColors={action.gradientColors}
               onPress={() => onActionPress(action)}
-              size="small"
+              size="medium"
+              containerStyle={{ marginHorizontal: 4, width: 160 }}
             />
           ))}
         </View>

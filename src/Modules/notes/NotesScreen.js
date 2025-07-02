@@ -45,7 +45,7 @@ const NotesScreen = ({ navigation }) => {
       title: "Alışveriş Listesi",
       content: "Ekmek, süt, yumurta, meyve, sebze almayı unutma.",
       category: "personal",
-      color: "#9B4DFF", // Mor renk
+      color: colors.primary, // Mor renk
       createdAt: "2025-04-15T10:30:00",
       updatedAt: "2025-04-15T10:30:00",
       isPinned: true,
@@ -56,7 +56,7 @@ const NotesScreen = ({ navigation }) => {
       content:
         "Pazartesi günü yapılacak toplantı için hazırlık yapılacak. Ana gündem maddeleri: Proje durumu, hedefler, kaynaklar.",
       category: "work",
-      color: "#FF9D55", // Turuncu
+      color: colors.secondary, // Turuncu
       createdAt: "2025-04-13T15:45:00",
       updatedAt: "2025-04-14T09:15:00",
       isPinned: false,
@@ -67,7 +67,7 @@ const NotesScreen = ({ navigation }) => {
       content:
         "Yapay zeka destekli bir üretkenlik uygulaması. Kullanıcıların günlük görevleri ve hedefleri daha etkili bir şekilde yönetmelerine yardımcı olacak.",
       category: "ideas",
-      color: "#52DE97", // Yeşil
+      color: colors.success, // Yeşil
       createdAt: "2025-04-10T20:20:00",
       updatedAt: "2025-04-12T14:30:00",
       isPinned: true,
@@ -78,7 +78,7 @@ const NotesScreen = ({ navigation }) => {
       content:
         "Elektrik faturasını öde, randevularını kontrol et, projeyi bitir, ailenle görüntülü konuşma yap",
       category: "reminders",
-      color: "#4A6FA5", // Mavi
+      color: colors.info, // Mavi
       createdAt: "2025-04-08T11:10:00",
       updatedAt: "2025-04-08T11:10:00",
       isPinned: false,
@@ -89,7 +89,7 @@ const NotesScreen = ({ navigation }) => {
       content:
         "Okumak için: Sapiens, Algoritmalar, Veri Bilimi El Kitabı, Derin Öğrenme",
       category: "personal",
-      color: "#4ECDC4", // Turkuaz
+      color: colors.success, // Turkuaz/Yeşil
       createdAt: "2025-04-05T09:45:00",
       updatedAt: "2025-04-07T16:20:00",
       isPinned: false,
@@ -169,6 +169,39 @@ const NotesScreen = ({ navigation }) => {
     setNotes(updatedNotes);
   };
 
+  const CHIP_HEIGHT = 32;
+  const CategoryChip = ({ label, active, onPress }) => {
+    const { colors } = useTheme();
+    return (
+      <TouchableOpacity
+        onPress={onPress}
+        activeOpacity={0.7}
+        style={{
+          height: CHIP_HEIGHT,
+          paddingHorizontal: 16,
+          borderRadius: 16,
+          marginRight: 10,
+          borderWidth: 2,
+          borderColor: active ? colors.primary : colors.border,
+          backgroundColor: active ? colors.primary + '10' : colors.input,
+          justifyContent: 'center',
+          alignItems: 'center',
+        }}
+      >
+        <Text
+          style={{
+            color: active ? colors.primary : colors.textSecondary,
+            fontWeight: active ? '600' : '400',
+            fontSize: 15,
+            lineHeight: 20,
+          }}
+        >
+          {label}
+        </Text>
+      </TouchableOpacity>
+    );
+  };
+
   // Not kartını render et
   const renderNoteItem = ({ item }) => {
     const date = new Date(item.updatedAt);
@@ -178,7 +211,13 @@ const NotesScreen = ({ navigation }) => {
 
     return (
       <TouchableOpacity
-        style={[styles.noteCard, { borderLeftColor: item.color }]}
+        style={[
+          styles.noteCard,
+          {
+            borderLeftColor: item.color,
+            backgroundColor: colors.card,
+          },
+        ]}
         onPress={() => handleNotePress(item)}
         activeOpacity={0.8}
       >
@@ -188,12 +227,12 @@ const NotesScreen = ({ navigation }) => {
               <Ionicons
                 name="pin"
                 size={16}
-                color="#fff"
+                color={colors.primary}
                 style={styles.pinIcon}
               />
             )}
             <Text
-              style={styles.noteTitle}
+              style={[styles.noteTitle, { color: colors.textPrimary }]}
               numberOfLines={1}
               ellipsizeMode="tail"
             >
@@ -209,56 +248,32 @@ const NotesScreen = ({ navigation }) => {
               <Ionicons
                 name={item.isPinned ? "pin" : "pin-outline"}
                 size={20}
-                color="#fff"
+                color={colors.info}
               />
             </TouchableOpacity>
             <TouchableOpacity
               style={styles.actionButton}
               onPress={() => handleDeleteNote(item.id)}
             >
-              <Ionicons name="trash-outline" size={20} color="#fff" />
+              <Ionicons name="trash-outline" size={20} color={colors.warning} />
             </TouchableOpacity>
           </View>
         </View>
 
-        <Text style={styles.noteContent} numberOfLines={2} ellipsizeMode="tail">
+        <Text style={[styles.noteContent, { color: colors.textSecondary }]} numberOfLines={2} ellipsizeMode="tail">
           {item.content}
         </Text>
 
         <View style={styles.noteCardFooter}>
-          <Text style={styles.categoryText}>
+          <Text style={[styles.categoryText, { color: colors.textTertiary }]}>
             {categories.find((cat) => cat.id === item.category)?.name ||
               "Diğer"}
           </Text>
-          <Text style={styles.dateText}>{formattedDate}</Text>
+          <Text style={[styles.dateText, { color: colors.textTertiary }]}>{formattedDate}</Text>
         </View>
       </TouchableOpacity>
     );
   };
-
-  // Kategori butonu render et
-  const renderCategoryItem = ({ item }) => (
-    <TouchableOpacity
-      style={[
-        styles.categoryButton,
-        { borderColor: colors.border },
-        selectedCategory === item.id && [
-          styles.categoryButtonActive,
-          { borderColor: colors.border },
-        ],
-      ]}
-      onPress={() => setSelectedCategory(item.id)}
-    >
-      <Text
-        style={[
-          styles.categoryButtonText,
-          selectedCategory === item.id && styles.categoryButtonTextActive,
-        ]}
-      >
-        {item.name}
-      </Text>
-    </TouchableOpacity>
-  );
 
   return (
     <GradientBackground>
@@ -268,25 +283,38 @@ const NotesScreen = ({ navigation }) => {
           showBackButton={true}
           rightComponent={
             <TouchableOpacity
-              onPress={() => navigation.navigate("NoteCategories")}
-              style={styles.headerButton}
+              onPress={handleCreateNote}
+              style={{
+                width: 36,
+                height: 36,
+                borderRadius: 18,
+                backgroundColor: colors.primary,
+                justifyContent: 'center',
+                alignItems: 'center',
+                marginRight: 2,
+                shadowColor: colors.primary,
+                shadowOffset: { width: 0, height: 2 },
+                shadowOpacity: 0.18,
+                shadowRadius: 3,
+              }}
+              activeOpacity={0.8}
             >
-              <Ionicons name="options-outline" size={24} color="#fff" />
+              <Ionicons name="add" size={22} color="#fff" />
             </TouchableOpacity>
           }
         />
 
-        <View style={styles.searchContainer}>
+        <View style={[styles.searchContainer, { backgroundColor: colors.input, borderColor: colors.border, borderWidth: 1 }]}>
           <Ionicons
             name="search-outline"
             size={20}
-            color="#fff"
+            color={colors.textSecondary}
             style={styles.searchIcon}
           />
           <TextInput
-            style={styles.searchInput}
+            style={[styles.searchInput, { color: colors.textPrimary }]}
             placeholder="Notlarda ara..."
-            placeholderTextColor="rgba(255, 255, 255, 0.6)"
+            placeholderTextColor={colors.textTertiary}
             value={searchQuery}
             onChangeText={setSearchQuery}
           />
@@ -295,19 +323,27 @@ const NotesScreen = ({ navigation }) => {
               style={styles.clearButton}
               onPress={() => setSearchQuery("")}
             >
-              <Ionicons name="close-circle" size={20} color="#fff" />
+              <Ionicons name="close-circle" size={20} color={colors.textSecondary} />
             </TouchableOpacity>
           )}
         </View>
 
-        <FlatList
-          data={categories}
-          horizontal
-          renderItem={renderCategoryItem}
-          keyExtractor={(item) => item.id}
-          showsHorizontalScrollIndicator={false}
-          contentContainerStyle={styles.categoriesContainer}
-        />
+        <View style={{ height: 44, justifyContent: 'center' }}>
+          <FlatList
+            data={categories}
+            horizontal
+            showsHorizontalScrollIndicator={false}
+            keyExtractor={item => item.id}
+            contentContainerStyle={{ paddingHorizontal: SIZES.padding }}
+            renderItem={({ item }) => (
+              <CategoryChip
+                label={item.name}
+                active={selectedCategory === item.id}
+                onPress={() => setSelectedCategory(item.id)}
+              />
+            )}
+          />
+        </View>
 
         {filteredNotes.length > 0 ? (
           <FlatList
@@ -322,9 +358,9 @@ const NotesScreen = ({ navigation }) => {
             <Ionicons
               name="document-text-outline"
               size={80}
-              color="rgba(255, 255, 255, 0.4)"
+              color={colors.textTertiary + '66'}
             />
-            <Text style={styles.emptyText}>
+            <Text style={[styles.emptyText, { color: colors.textSecondary }]}>
               {searchQuery
                 ? "Aramanızla eşleşen not bulunamadı"
                 : "Henüz not eklenmemiş"}
@@ -337,16 +373,6 @@ const NotesScreen = ({ navigation }) => {
             />
           </View>
         )}
-
-        <TouchableOpacity
-          style={styles.fab}
-          onPress={handleCreateNote}
-          activeOpacity={0.8}
-        >
-          <View style={styles.fabContent}>
-            <Ionicons name="add" size={24} color="#fff" />
-          </View>
-        </TouchableOpacity>
       </SafeAreaView>
     </GradientBackground>
   );
@@ -360,11 +386,11 @@ const styles = StyleSheet.create({
   searchContainer: {
     flexDirection: "row",
     alignItems: "center",
-    backgroundColor: "rgba(255, 255, 255, 0.15)",
     marginHorizontal: SIZES.padding,
     marginVertical: 10,
     borderRadius: SIZES.radius,
     paddingHorizontal: 12,
+    height: 46,
   },
   searchIcon: {
     marginRight: 8,
@@ -372,46 +398,21 @@ const styles = StyleSheet.create({
   searchInput: {
     flex: 1,
     height: 46,
-    color: "#fff",
     ...FONTS.body3,
   },
   clearButton: {
     padding: 8,
-  },
-  categoriesContainer: {
-    paddingHorizontal: SIZES.padding,
-    paddingBottom: 10,
-  },
-  categoryButton: {
-    paddingHorizontal: 16,
-    paddingVertical: 8,
-    marginRight: 10,
-    borderRadius: 20,
-    backgroundColor: "rgba(255, 255, 255, 0.15)",
-    borderWidth: 1,
-  },
-  categoryButtonActive: {
-    backgroundColor: "rgba(255, 255, 255, 0.3)",
-  },
-  categoryButtonText: {
-    ...FONTS.body4,
-    color: "#fff",
-  },
-  categoryButtonTextActive: {
-    fontWeight: "bold",
   },
   notesContainer: {
     padding: SIZES.padding,
     paddingBottom: 100, // FAB için ekstra alt padding
   },
   noteCard: {
-    backgroundColor: "#1A1A1A", // Koyu arka plan
     borderRadius: SIZES.radius,
     padding: 16,
     marginBottom: 12,
     borderLeftWidth: 4,
     elevation: 2,
-    shadowColor: "#000",
     shadowOffset: { width: 0, height: 1 },
     shadowOpacity: 0.2,
     shadowRadius: 2,
@@ -432,7 +433,6 @@ const styles = StyleSheet.create({
   },
   noteTitle: {
     ...FONTS.h4,
-    color: "#fff",
     flex: 1,
   },
   actionButtons: {
@@ -444,7 +444,6 @@ const styles = StyleSheet.create({
   },
   noteContent: {
     ...FONTS.body4,
-    color: "rgba(255, 255, 255, 0.7)",
     marginBottom: 8,
   },
   noteCardFooter: {
@@ -455,34 +454,9 @@ const styles = StyleSheet.create({
   },
   categoryText: {
     ...FONTS.body5,
-    color: "rgba(255, 255, 255, 0.5)",
   },
   dateText: {
     ...FONTS.body5,
-    color: "rgba(255, 255, 255, 0.5)",
-  },
-  fab: {
-    position: "absolute",
-    bottom: 25,
-    right: 25,
-    width: 60,
-    height: 60,
-    borderRadius: 30,
-    backgroundColor: "#9B4DFF", // Mor renk
-    justifyContent: "center",
-    alignItems: "center",
-    elevation: 5,
-    shadowColor: "#000",
-    shadowOffset: { width: 0, height: 2 },
-    shadowOpacity: 0.25,
-    shadowRadius: 3.84,
-  },
-  fabContent: {
-    width: "100%",
-    height: "100%",
-    borderRadius: 30,
-    justifyContent: "center",
-    alignItems: "center",
   },
   emptyContainer: {
     flex: 1,
@@ -492,21 +466,12 @@ const styles = StyleSheet.create({
   },
   emptyText: {
     ...FONTS.body3,
-    color: "#fff",
     marginTop: 20,
     marginBottom: 20,
     textAlign: "center",
   },
   emptyButton: {
     width: 150,
-  },
-  headerButton: {
-    width: 40,
-    height: 40,
-    justifyContent: "center",
-    alignItems: "center",
-    borderRadius: 20,
-    backgroundColor: "rgba(255, 255, 255, 0.15)",
   },
 });
 

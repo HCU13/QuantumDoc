@@ -204,7 +204,7 @@ const LanguageSettingsScreen = ({ navigation }) => {
 
         <ScrollView style={styles.content} showsVerticalScrollIndicator={false}>
           <Text style={styles.sectionTitle}>Uygulama Dili</Text>
-          <View style={styles.card}>
+          <View style={[styles.card, { backgroundColor: colors.card }]}>
             <Text style={styles.infoText}>
               Uygulamanın arayüzünde kullanılacak dili seçin. Bu değişiklik
               uygulamanın tüm menü ve bildirimleri için geçerli olacaktır.
@@ -215,7 +215,7 @@ const LanguageSettingsScreen = ({ navigation }) => {
           </View>
 
           <Text style={styles.sectionTitle}>AI Yanıt Dili</Text>
-          <View style={styles.card}>
+          <View style={[styles.card, { backgroundColor: colors.card }]}>
             <Text style={styles.infoText}>
               AI asistanın size cevap vereceği dili seçin. Sorularınızı
               istediğiniz dilde sorabilirsiniz, AI seçtiğiniz dilde cevap

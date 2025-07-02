@@ -20,6 +20,7 @@ import Button from "../../components/common/Button";
 import { LinearGradient } from "expo-linear-gradient";
 import useTheme from "../../hooks/useTheme";
 import { useToken } from "../../contexts/TokenContext";
+import { useTranslation } from "react-i18next";
 
 const { width, height } = Dimensions.get("window");
 
@@ -32,6 +33,7 @@ const TokensScreen = ({ navigation }) => {
     watchVideoForTokens,
     addTokens,
   } = useToken();
+  const { t } = useTranslation();
 
   const [videoModalVisible, setVideoModalVisible] = useState(false);
   const [isWatchingVideo, setIsWatchingVideo] = useState(false);
@@ -94,7 +96,6 @@ const TokensScreen = ({ navigation }) => {
       borderWidth: 1,
     },
     infoCard: {
-      backgroundColor: "rgba(255, 255, 255, 0.15)",
       borderRadius: SIZES.radius,
       padding: 15,
       marginBottom: 20,
@@ -319,7 +320,12 @@ const TokensScreen = ({ navigation }) => {
             onHistoryPress={() => console.log("Token geçmişi")}
           />
 
-          <View style={[styles.infoCard, { borderColor: colors.border }]}>
+          <View
+            style={[
+              styles.infoCard,
+              { borderColor: colors.border, backgroundColor: colors.card },
+            ]}
+          >
             <Text style={styles.infoCardTitle}>Tokenlar Nasıl Kullanılır?</Text>
             <Text style={styles.infoCardText}>
               Tokenlar, AI özelliklerine erişim sağlar. Farklı özelliklerin
@@ -352,8 +358,8 @@ const TokensScreen = ({ navigation }) => {
           <View style={styles.modalContainer}>
             <Text style={styles.videoModalTitle}>
               {isWatchingVideo
-                ? "Video Oynatılıyor..."
-                : "Reklam İzle, Token Kazan!"}
+                ? t("screens.profile.tokens.watchingVideo")
+                : t("screens.profile.tokens.watchVideoTitle")}
             </Text>
 
             <View style={styles.videoContainer}>
@@ -368,8 +374,8 @@ const TokensScreen = ({ navigation }) => {
               >
                 <Text style={styles.videoPlaceholder}>
                   {isWatchingVideo
-                    ? "Video oynatılıyor..."
-                    : "Videoyu başlatmak için tıklayın"}
+                    ? t("screens.profile.tokens.watchingVideo")
+                    : t("screens.profile.tokens.clickToStart")}
                 </Text>
               </LinearGradient>
             </View>
@@ -387,20 +393,20 @@ const TokensScreen = ({ navigation }) => {
 
             {!isWatchingVideo ? (
               <Button
-                title="Videoyu İzle"
+                title={t("screens.profile.tokens.watchVideo")}
                 onPress={simulateWatchVideo}
                 gradient
                 icon={<Ionicons name="play" size={20} color="#fff" />}
               />
             ) : (
               <Text style={{ color: "#fff" }}>
-                Lütfen videoyu sonuna kadar izleyin...
+                {t("screens.profile.tokens.watchUntilEnd")}
               </Text>
             )}
 
             {!isWatchingVideo && (
               <Button
-                title="Kapat"
+                title={t("common.close")}
                 onPress={() => setVideoModalVisible(false)}
                 outlined
                 containerStyle={styles.closeButton}
@@ -423,16 +429,15 @@ const TokensScreen = ({ navigation }) => {
                 style={styles.tokenIconLarge}
               />
 
-              <Text style={styles.successTitle}>Tebrikler!</Text>
+              <Text style={styles.successTitle}>{t("screens.profile.tokens.congratulations")}</Text>
               <Text style={styles.successMessage}>
-                Token kazandınız! Şimdi daha fazla AI özelliğine
-                erişebilirsiniz.
+                {t("screens.profile.tokens.tokensEarned")}
               </Text>
 
               <Text style={styles.tokenAmount}>+{earnedTokens}</Text>
 
               <Button
-                title="Harika!"
+                title={t("screens.profile.tokens.great")}
                 onPress={() => setSuccessModalVisible(false)}
                 neon
                 containerStyle={{ width: "100%" }}

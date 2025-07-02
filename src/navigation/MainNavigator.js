@@ -8,6 +8,8 @@ import ExploreScreen from "../screens/explore/ExploreScreen";
 import ActivityScreen from "../screens/activity/ActivityScreen";
 import ProfileNavigation from "./ProfileNavigation";
 import useTheme from "../hooks/useTheme";
+import { useTranslation } from "react-i18next";
+import { Text } from "react-native";
 
 const Tab = createBottomTabNavigator();
 
@@ -35,6 +37,7 @@ const getTabBarVisibility = (route) => {
 
 const MainNavigator = () => {
   const { colors, isDark } = useTheme();
+  const { t } = useTranslation();
 
   return (
     <Tab.Navigator
@@ -51,6 +54,26 @@ const MainNavigator = () => {
             iconName = focused ? "person" : "person-outline";
           }
           return <Ionicons name={iconName} size={22} color={color} />;
+        },
+        tabBarLabel: ({ focused, color }) => {
+          let label = "";
+          switch (route.name) {
+            case "Home":
+              label = t("screens.tabs.home");
+              break;
+            case "Explore":
+              label = t("screens.tabs.explore");
+              break;
+            case "Activity":
+              label = t("screens.tabs.activity");
+              break;
+            case "Profile":
+              label = t("screens.tabs.profile");
+              break;
+            default:
+              label = route.name;
+          }
+          return <Text style={{ color, fontSize: 10 }}>{label}</Text>;
         },
         tabBarActiveTintColor: colors.primary,
         tabBarInactiveTintColor: isDark

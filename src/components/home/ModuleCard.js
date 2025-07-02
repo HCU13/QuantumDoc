@@ -24,7 +24,7 @@ const ModuleCard = ({
     case "small":
       cardWidth = SIZES.width * 0.28;
       cardHeight = SIZES.width * 0.28;
-      iconSize = 28;
+      iconSize = 24;
       descriptionLines = 0;
       break;
     case "large":
@@ -69,7 +69,7 @@ const ModuleCard = ({
     gradientContainer: {
       flex: 1,
       justifyContent: "space-between",
-      padding: size === "small" ? 12 : 16,
+      padding: size === "small" ? 10 : 16,
       borderRadius: SIZES.radius * 1.5,
       overflow: "hidden",
     },
@@ -84,18 +84,21 @@ const ModuleCard = ({
       backgroundColor: "rgba(255, 255, 255, 0.2)",
       alignItems: "center",
       justifyContent: "center",
-      marginBottom: size === "small" ? 5 : 10,
+      marginBottom: size === "small" ? 8 : 10,
       borderWidth: 1,
     },
     title: {
       ...FONTS.h4,
-      color: colors.textOnPrimary, // Using a defined color for text on primary color backgrounds
+      color: colors.textOnPrimary,
       marginBottom: size === "small" ? 2 : 5,
       fontWeight: "bold",
+      textAlign: "center",
+      fontSize: size === "small" ? 16 : FONTS.h4.fontSize,
     },
     description: {
       ...FONTS.body5,
       color: "rgba(255, 255, 255, 0.8)",
+      textAlign: "center",
     },
     largeCardContent: {
       flexDirection: "row",
@@ -167,7 +170,7 @@ const ModuleCard = ({
         </View>
 
         <View style={styles.contentContainer}>
-          <Text style={styles.title}>{title}</Text>
+          <Text style={styles.title} numberOfLines={2}>{title}</Text>
           {description && size !== "small" && (
             <Text style={styles.description} numberOfLines={descriptionLines}>
               {description}

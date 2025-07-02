@@ -45,9 +45,6 @@ const CreateNoteScreen = ({ navigation, route }) => {
     colors.success,
     colors.warning,
     colors.info,
-    "#FF6B6B", // Kırmızı
-    "#7971EA", // Mor
-    "#5ABD8C", // Yeşil
   ];
 
   // Kategori seçenekleri
@@ -189,13 +186,29 @@ const CreateNoteScreen = ({ navigation, route }) => {
           title="Yeni Not"
           showBackButton={true}
           rightComponent={
-            <Button
-              title="Kaydet"
-              size="small"
+            <TouchableOpacity
               onPress={handleSave}
-              containerStyle={styles.saveButton}
+              style={{
+                width: 36,
+                height: 36,
+                borderRadius: 18,
+                backgroundColor: colors.success,
+                justifyContent: 'center',
+                alignItems: 'center',
+                marginRight: 4,
+                shadowColor: colors.success,
+                shadowOffset: { width: 0, height: 2 },
+                shadowOpacity: 0.18,
+                shadowRadius: 3,
+                borderWidth: 1.5,
+                borderColor: colors.success,
+                opacity: !title.trim() ? 0.5 : 1,
+              }}
+              activeOpacity={0.8}
               disabled={!title.trim()}
-            />
+            >
+              <Ionicons name="checkmark-outline" size={22} color="#fff" />
+            </TouchableOpacity>
           }
         />
 
@@ -212,17 +225,22 @@ const CreateNoteScreen = ({ navigation, route }) => {
             <View
               style={[
                 styles.noteContainer,
-                { borderLeftColor: selectedColor, borderLeftWidth: 4 },
+                {
+                  borderLeftColor: selectedColor,
+                  borderLeftWidth: 4,
+                  backgroundColor: colors.card,
+                  shadowColor: colors.black,
+                },
               ]}
             >
               {/* Not başlık alanı */}
               <TextInput
                 ref={titleInputRef}
-                style={styles.titleInput}
+                style={[styles.titleInput, { color: colors.textPrimary }]}
                 value={title}
                 onChangeText={setTitle}
                 placeholder="Not başlığı..."
-                placeholderTextColor="rgba(0,0,0,0.4)"
+                placeholderTextColor={colors.textSecondary}
                 maxLength={100}
                 returnKeyType="next"
                 onSubmitEditing={() => contentInputRef.current?.focus()}
@@ -232,7 +250,11 @@ const CreateNoteScreen = ({ navigation, route }) => {
               <View style={styles.noteSettings}>
                 {/* Renk seçimi */}
                 <View style={styles.settingItem}>
-                  <Text style={styles.settingLabel}>Renk:</Text>
+                  <Text
+                    style={[styles.settingLabel, { color: colors.textPrimary }]}
+                  >
+                    Renk:
+                  </Text>
                   <TouchableOpacity
                     style={[
                       styles.colorButton,
@@ -245,7 +267,15 @@ const CreateNoteScreen = ({ navigation, route }) => {
                   />
 
                   {showColorPicker && (
-                    <View style={styles.colorPickerContainer}>
+                    <View
+                      style={[
+                        styles.colorPickerContainer,
+                        {
+                          backgroundColor: colors.card,
+                          shadowColor: colors.black,
+                        },
+                      ]}
+                    >
                       <View style={styles.colorOptions}>
                         {colorOptions.map((color) => (
                           <TouchableOpacity
@@ -267,20 +297,32 @@ const CreateNoteScreen = ({ navigation, route }) => {
 
                 {/* Kategori seçimi */}
                 <View style={styles.settingItem}>
-                  <Text style={styles.settingLabel}>Kategori:</Text>
+                  <Text
+                    style={[styles.settingLabel, { color: colors.textPrimary }]}
+                  >
+                    Kategori:
+                  </Text>
                   <TouchableOpacity
-                    style={styles.categoryButton}
+                    style={[
+                      styles.categoryButton,
+                      { backgroundColor: colors.lightGray },
+                    ]}
                     onPress={() => setShowCategoryPicker(!showCategoryPicker)}
                   >
                     {renderCategoryIcon(selectedCategory)}
-                    <Text style={styles.categoryButtonText}>
+                    <Text
+                      style={[
+                        styles.categoryButtonText,
+                        { color: colors.textPrimary },
+                      ]}
+                    >
                       {categories.find((c) => c.id === selectedCategory)
                         ?.name || "Diğer"}
                     </Text>
                     <Ionicons
                       name="chevron-down"
                       size={16}
-                      color={isDark ? colors.white : "#333"}
+                      color={colors.textPrimary}
                     />
                   </TouchableOpacity>
                 </View>
@@ -288,14 +330,20 @@ const CreateNoteScreen = ({ navigation, route }) => {
 
               {/* Kategori seçim menüsü */}
               {showCategoryPicker && (
-                <View style={styles.categoryPickerContainer}>
+                <View
+                  style={[
+                    styles.categoryPickerContainer,
+                    { backgroundColor: colors.card, shadowColor: colors.black },
+                  ]}
+                >
                   {categories.map((category) => (
                     <TouchableOpacity
                       key={category.id}
                       style={[
                         styles.categoryItem,
-                        selectedCategory === category.id &&
-                          styles.categoryItemSelected,
+                        selectedCategory === category.id && {
+                          backgroundColor: colors.primaryLight,
+                        },
                       ]}
                       onPress={() => handleCategorySelect(category.id)}
                     >
@@ -305,9 +353,7 @@ const CreateNoteScreen = ({ navigation, route }) => {
                         color={
                           selectedCategory === category.id
                             ? colors.primary
-                            : isDark
-                            ? colors.white
-                            : "#333"
+                            : colors.textPrimary
                         }
                       />
                       <Text
@@ -329,149 +375,117 @@ const CreateNoteScreen = ({ navigation, route }) => {
               {/* Not içerik alanı */}
               <TextInput
                 ref={contentInputRef}
-                style={styles.contentInput}
+                style={[styles.contentInput, { color: colors.textPrimary }]}
                 value={content}
                 onChangeText={setContent}
                 placeholder="Not içeriği..."
-                placeholderTextColor="rgba(0,0,0,0.4)"
+                placeholderTextColor={colors.textSecondary}
                 multiline
                 textAlignVertical="top"
               />
 
               {/* AI ile içerik oluşturma */}
-              {showAIInput ? (
+              {showAIInput && (
                 <View
-                  style={[
-                    styles.aiInputContainer,
-                    { borderColor: colors.border },
-                  ]}
+                  style={{
+                    marginTop: 18,
+                    borderRadius: 14,
+                    borderWidth: 1,
+                    borderColor: colors.border,
+                    backgroundColor: colors.card,
+                    overflow: 'hidden',
+                    shadowColor: colors.primary,
+                    shadowOffset: { width: 0, height: 1 },
+                    shadowOpacity: 0.08,
+                    shadowRadius: 2,
+                    elevation: 2,
+                    padding: 0,
+                  }}
                 >
-                  <View style={styles.aiPromptContainer}>
+                  <View style={{ flexDirection: 'row', alignItems: 'center', padding: 10, borderBottomWidth: 1, borderBottomColor: colors.border }}>
+                    <Ionicons name="sparkles" size={18} color={colors.primary} style={{ marginRight: 8 }} />
+                    <Text style={{ ...FONTS.body5, color: colors.primary, fontWeight: '600', fontSize: 14 }}>AI ile Not Oluştur</Text>
+                  </View>
+                  <View style={{ padding: 12 }}>
                     <TextInput
                       ref={aiInputRef}
-                      style={styles.aiPromptInput}
+                      style={{
+                        ...FONTS.body5,
+                        color: colors.textPrimary,
+                        padding: 8,
+                        minHeight: 60,
+                        textAlignVertical: 'top',
+                        backgroundColor: colors.input,
+                        borderRadius: 10,
+                        borderWidth: 1,
+                        borderColor: colors.border,
+                        fontSize: 13,
+                      }}
                       value={aiPrompt}
                       onChangeText={setAiPrompt}
-                      placeholder="AI'dan ne oluşturmasını istersiniz?"
-                      placeholderTextColor="rgba(0,0,0,0.4)"
+                      placeholder="AI'dan ne oluşturmasını istersiniz? (örn: 'Haftalık toplantı notları', 'Proje planı', 'Alışveriş listesi')"
+                      placeholderTextColor={colors.textSecondary}
                       multiline
                       maxLength={200}
                       autoFocus
                     />
-                    <Text style={styles.aiPromptCounter}>
-                      {aiPrompt.length}/200
-                    </Text>
-                  </View>
-
-                  <View style={styles.aiButtonsContainer}>
-                    <Button
-                      title="İptal"
-                      size="small"
-                      outlined
-                      onPress={() => setShowAIInput(false)}
-                      containerStyle={styles.aiCancelButton}
-                    />
-                    <Button
-                      title="AI ile Oluştur"
-                      size="small"
-                      onPress={generateWithAI}
-                      containerStyle={styles.aiGenerateButton}
-                      disabled={!aiPrompt.trim() || isAILoading}
-                      loading={isAILoading}
-                    />
-                  </View>
-
-                  <View style={styles.aiSuggestions}>
-                    <Text style={styles.aiSuggestionsTitle}>Öneriler:</Text>
-                    <ScrollView
-                      horizontal
-                      showsHorizontalScrollIndicator={false}
-                    >
-                      <TouchableOpacity
-                        style={[
-                          styles.aiSuggestion,
-                          { borderColor: colors.border },
-                        ]}
-                        onPress={() => setAiPrompt("Toplantı notları")}
-                      >
-                        <Text
-                          style={[
-                            styles.aiSuggestionText,
-                            { color: colors.primary },
-                          ]}
+                    <Text style={{ ...FONTS.body5, color: colors.textTertiary, textAlign: 'right', marginTop: 4, fontSize: 11 }}>{aiPrompt.length}/200</Text>
+                    {/* Hızlı öneriler */}
+                    <ScrollView horizontal showsHorizontalScrollIndicator={false} style={{ marginTop: 10 }}>
+                      {[
+                        { icon: 'calendar-outline', text: 'Toplantı Notları', prompt: 'Haftalık toplantı notları için ana başlıklar ve önemli noktalar' },
+                        { icon: 'list-outline', text: 'Yapılacaklar', prompt: 'Haftalık yapılacaklar listesi için kategorilere göre görevler' },
+                        { icon: 'rocket-outline', text: 'Proje Planı', prompt: 'Proje planı için aşamalar, görevler ve zaman çizelgesi' },
+                        { icon: 'cart-outline', text: 'Alışveriş Listesi', prompt: 'Alışveriş listesi için kategorilere göre ürünler' },
+                      ].map((item) => (
+                        <TouchableOpacity
+                          key={item.text}
+                          style={{
+                            flexDirection: 'row',
+                            alignItems: 'center',
+                            paddingHorizontal: 10,
+                            paddingVertical: 5,
+                            borderRadius: 14,
+                            marginRight: 8,
+                            borderWidth: 1,
+                            backgroundColor: colors.input,
+                            borderColor: colors.border,
+                            shadowColor: colors.black,
+                            shadowOffset: { width: 0, height: 1 },
+                            shadowOpacity: 0.06,
+                            shadowRadius: 1,
+                            elevation: 1,
+                          }}
+                          onPress={() => setAiPrompt(item.prompt)}
                         >
-                          Toplantı notları
-                        </Text>
-                      </TouchableOpacity>
-                      <TouchableOpacity
-                        style={[
-                          styles.aiSuggestion,
-                          { borderColor: colors.border },
-                        ]}
-                        onPress={() =>
-                          setAiPrompt("Haftalık yapılacaklar listesi")
-                        }
-                      >
-                        <Text
-                          style={[
-                            styles.aiSuggestionText,
-                            { color: colors.primary },
-                          ]}
-                        >
-                          Haftalık yapılacaklar
-                        </Text>
-                      </TouchableOpacity>
-                      <TouchableOpacity
-                        style={[
-                          styles.aiSuggestion,
-                          { borderColor: colors.border },
-                        ]}
-                        onPress={() => setAiPrompt("Proje planı")}
-                      >
-                        <Text
-                          style={[
-                            styles.aiSuggestionText,
-                            { color: colors.primary },
-                          ]}
-                        >
-                          Proje planı
-                        </Text>
-                      </TouchableOpacity>
-                      <TouchableOpacity
-                        style={[
-                          styles.aiSuggestion,
-                          { borderColor: colors.border },
-                        ]}
-                        onPress={() => setAiPrompt("Alışveriş listesi")}
-                      >
-                        <Text
-                          style={[
-                            styles.aiSuggestionText,
-                            { color: colors.primary },
-                          ]}
-                        >
-                          Alışveriş listesi
-                        </Text>
-                      </TouchableOpacity>
+                          <Ionicons name={item.icon} size={13} color={colors.primary} style={{ marginRight: 5 }} />
+                          <Text style={{ ...FONTS.body5, color: colors.textPrimary, fontSize: 12 }}>{item.text}</Text>
+                        </TouchableOpacity>
+                      ))}
                     </ScrollView>
+                    {/* Butonlar */}
+                    <View style={{ flexDirection: 'row', justifyContent: 'flex-end', marginTop: 12 }}>
+                      <Button
+                        title="İptal"
+                        size="small"
+                        outlined
+                        onPress={() => setShowAIInput(false)}
+                        containerStyle={{ minWidth: 60, marginRight: 8, borderRadius: 12, paddingVertical: 6 }}
+                        textStyle={{ fontSize: 13, fontWeight: '500' }}
+                      />
+                      <Button
+                        title={isAILoading ? 'Oluşturuluyor...' : 'AI ile Oluştur'}
+                        size="small"
+                        onPress={generateWithAI}
+                        containerStyle={{ minWidth: 110, borderRadius: 12, paddingVertical: 6 }}
+                        textStyle={{ fontSize: 13, fontWeight: '600', color: colors.textOnPrimary }}
+                        gradient
+                        disabled={!aiPrompt.trim() || isAILoading}
+                        loading={isAILoading}
+                      />
+                    </View>
                   </View>
                 </View>
-              ) : (
-                <TouchableOpacity
-                  style={[styles.aiButton, { borderColor: colors.border }]}
-                  onPress={() => setShowAIInput(true)}
-                >
-                  <Ionicons
-                    name="sparkles-outline"
-                    size={20}
-                    color={colors.primary}
-                  />
-                  <Text
-                    style={[styles.aiButtonText, { color: colors.primary }]}
-                  >
-                    AI ile Not Oluştur
-                  </Text>
-                </TouchableOpacity>
               )}
             </View>
           </ScrollView>
@@ -495,19 +509,16 @@ const styles = StyleSheet.create({
     padding: SIZES.padding,
   },
   noteContainer: {
-    backgroundColor: "rgba(255, 255, 255, 0.9)",
     borderRadius: SIZES.radius,
     padding: 16,
     marginBottom: 20,
     elevation: 2,
-    shadowColor: "#000",
     shadowOffset: { width: 0, height: 1 },
     shadowOpacity: 0.2,
     shadowRadius: 2,
   },
   titleInput: {
     ...FONTS.h3,
-    color: "#000",
     padding: 0,
     marginBottom: 15,
   },
@@ -521,7 +532,6 @@ const styles = StyleSheet.create({
   },
   settingLabel: {
     ...FONTS.body4,
-    color: "#333",
     width: 70,
   },
   colorButton: {
@@ -535,11 +545,9 @@ const styles = StyleSheet.create({
     top: 30,
     left: 70,
     zIndex: 10,
-    backgroundColor: "white",
     borderRadius: SIZES.radius,
     padding: 10,
     elevation: 5,
-    shadowColor: "#000",
     shadowOffset: { width: 0, height: 2 },
     shadowOpacity: 0.25,
     shadowRadius: 3.84,
@@ -559,23 +567,19 @@ const styles = StyleSheet.create({
   categoryButton: {
     flexDirection: "row",
     alignItems: "center",
-    backgroundColor: "rgba(0, 0, 0, 0.05)",
     paddingHorizontal: 10,
     paddingVertical: 5,
     borderRadius: 12,
   },
   categoryButtonText: {
     ...FONTS.body4,
-    color: "#333",
     marginHorizontal: 8,
   },
   categoryPickerContainer: {
-    backgroundColor: "white",
     borderRadius: SIZES.radius,
     padding: 10,
     marginBottom: 15,
     elevation: 2,
-    shadowColor: "#000",
     shadowOffset: { width: 0, height: 1 },
     shadowOpacity: 0.2,
     shadowRadius: 2,
@@ -587,12 +591,8 @@ const styles = StyleSheet.create({
     paddingHorizontal: 10,
     borderRadius: SIZES.radius,
   },
-  categoryItemSelected: {
-    backgroundColor: "rgba(138, 79, 255, 0.1)",
-  },
   categoryItemText: {
     ...FONTS.body4,
-    color: "#333",
     marginLeft: 10,
   },
   categoryItemTextSelected: {
@@ -600,7 +600,6 @@ const styles = StyleSheet.create({
   },
   contentInput: {
     ...FONTS.body3,
-    color: "#333",
     lineHeight: 22,
     padding: 0,
     minHeight: 120,
@@ -608,52 +607,38 @@ const styles = StyleSheet.create({
   saveButton: {
     marginRight: 0,
   },
-  aiButton: {
-    flexDirection: "row",
-    alignItems: "center",
-    justifyContent: "center",
-    backgroundColor: "rgba(138, 79, 255, 0.15)",
-    padding: 12,
-    borderRadius: 20,
-    marginTop: 20,
-    borderWidth: 1,
-  },
-  aiButtonText: {
-    ...FONTS.body4,
-
-    marginLeft: 10,
-    fontWeight: "500",
-  },
   aiInputContainer: {
     marginTop: 20,
-    backgroundColor: "rgba(138, 79, 255, 0.08)",
     borderRadius: SIZES.radius,
-    padding: 15,
+    padding: 0,
     borderWidth: 1,
+    overflow: "hidden",
+  },
+
+  aiHeaderText: {
+    ...FONTS.h4,
+    marginLeft: 8,
   },
   aiPromptContainer: {
-    backgroundColor: "white",
-    borderRadius: SIZES.radius,
-    padding: 10,
-    marginBottom: 10,
+    padding: 16,
+    marginBottom: 16,
   },
   aiPromptInput: {
     ...FONTS.body3,
-    color: "#333",
     padding: 0,
     minHeight: 80,
     textAlignVertical: "top",
   },
   aiPromptCounter: {
     ...FONTS.body5,
-    color: "#999",
     textAlign: "right",
-    marginTop: 5,
+    marginTop: 8,
   },
   aiButtonsContainer: {
     flexDirection: "row",
     justifyContent: "space-between",
-    marginBottom: 15,
+    paddingHorizontal: 16,
+    marginBottom: 16,
   },
   aiCancelButton: {
     flex: 1,
@@ -662,24 +647,39 @@ const styles = StyleSheet.create({
   aiGenerateButton: {
     flex: 2,
   },
-  aiSuggestions: {
-    marginTop: 5,
-  },
   aiSuggestionsTitle: {
     ...FONTS.body4,
-    color: "#333",
-    marginBottom: 8,
+    marginBottom: 12,
   },
   aiSuggestion: {
-    backgroundColor: "white",
-    paddingHorizontal: 12,
-    paddingVertical: 8,
-    borderRadius: 16,
+    flexDirection: "row",
+    alignItems: "center",
+    paddingHorizontal: 16,
+    paddingVertical: 10,
+    borderRadius: 20,
     marginRight: 10,
     borderWidth: 1,
   },
+  aiSuggestionIcon: {
+    marginRight: 8,
+  },
   aiSuggestionText: {
     ...FONTS.body4,
+  },
+  aiButton: {
+    marginTop: 20,
+    borderRadius: 20,
+    borderWidth: 1,
+    padding: 16,
+  },
+  aiButtonContent: {
+    flexDirection: "row",
+    alignItems: "center",
+    justifyContent: "center",
+  },
+  aiButtonText: {
+    ...FONTS.h4,
+    marginLeft: 8,
   },
 });
 

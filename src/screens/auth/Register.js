@@ -5,12 +5,13 @@ import { Ionicons } from "@expo/vector-icons";
 import Header from "../../components/common/Header";
 import Input from "../../components/common/Input";
 import Button from "../../components/common/Button";
-import SocialButtons from "../../components/auth/SocialButtons";
 import AuthFooter from "../../components/auth/AuthFooter";
 import useTheme from "../../hooks/useTheme";
 import GradientBackground from "../../components/common/GradientBackground";
+import { useTranslation } from "react-i18next";
 
 const Register = ({ navigation }) => {
+  const { t } = useTranslation();
   const [fullName, setFullName] = useState("");
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
@@ -39,9 +40,11 @@ const Register = ({ navigation }) => {
       marginBottom: 10,
     },
     subtitle: {
-      ...FONTS.body3,
+      ...FONTS.body4,
       color: colors.textOnGradient,
       marginBottom: 30,
+      fontSize: 15,
+      lineHeight: 21,
     },
     formContainer: {
       marginBottom: 20,
@@ -50,7 +53,7 @@ const Register = ({ navigation }) => {
 
   const validateFullName = () => {
     if (!fullName) {
-      setFullNameError("Ad Soyad gerekli");
+      setFullNameError(t("auth.errors.fullNameRequired"));
       return false;
     }
     setFullNameError("");
@@ -59,10 +62,10 @@ const Register = ({ navigation }) => {
 
   const validateEmail = () => {
     if (!email) {
-      setEmailError("E-posta adresi gerekli");
+      setEmailError(t("auth.errors.emailRequired"));
       return false;
     } else if (!/\S+@\S+\.\S+/.test(email)) {
-      setEmailError("Geçerli bir e-posta adresi girin");
+      setEmailError(t("auth.errors.invalidEmail"));
       return false;
     }
     setEmailError("");
@@ -71,10 +74,10 @@ const Register = ({ navigation }) => {
 
   const validatePassword = () => {
     if (!password) {
-      setPasswordError("Şifre gerekli");
+      setPasswordError(t("auth.errors.passwordRequired"));
       return false;
     } else if (password.length < 6) {
-      setPasswordError("Şifre en az 6 karakter olmalı");
+      setPasswordError(t("auth.errors.passwordLength"));
       return false;
     }
     setPasswordError("");
@@ -83,10 +86,10 @@ const Register = ({ navigation }) => {
 
   const validateConfirmPassword = () => {
     if (!confirmPassword) {
-      setConfirmPasswordError("Şifre tekrarı gerekli");
+      setConfirmPasswordError(t("auth.errors.confirmPasswordRequired"));
       return false;
     } else if (confirmPassword !== password) {
-      setConfirmPasswordError("Şifreler eşleşmiyor");
+      setConfirmPasswordError(t("auth.errors.passwordsDontMatch"));
       return false;
     }
     setConfirmPasswordError("");
@@ -118,24 +121,21 @@ const Register = ({ navigation }) => {
   return (
     <GradientBackground>
       <SafeAreaView style={styles.container}>
-        <Header title="Kaydol" />
-
+        <Header showBackButton />
         <ScrollView
           style={styles.content}
           showsVerticalScrollIndicator={false}
           keyboardShouldPersistTaps="handled"
         >
-          <Text style={styles.title}>Hesap Oluşturun</Text>
-          <Text style={styles.subtitle}>
-            AI Asistanınıza erişmek için kaydolun
-          </Text>
+          <Text style={styles.title}>{t("screens.auth.register.title")}</Text>
+          <Text style={styles.subtitle}>{t("screens.auth.register.subtitle")}</Text>
 
           <View style={styles.formContainer}>
             <Input
-              label="Ad Soyad"
+              label={t("auth.fullName")}
               value={fullName}
               onChangeText={setFullName}
-              placeholder="Adınız ve soyadınız"
+              placeholder={t("auth.fullNamePlaceholder")}
               error={fullNameError}
               autoCapitalize="words"
               icon={
@@ -148,10 +148,10 @@ const Register = ({ navigation }) => {
             />
 
             <Input
-              label="E-posta"
+              label={t("auth.email")}
               value={email}
               onChangeText={setEmail}
-              placeholder="E-posta adresiniz"
+              placeholder={t("auth.emailPlaceholder")}
               keyboardType="email-address"
               error={emailError}
               icon={
@@ -164,10 +164,10 @@ const Register = ({ navigation }) => {
             />
 
             <Input
-              label="Şifre"
+              label={t("auth.password")}
               value={password}
               onChangeText={setPassword}
-              placeholder="Şifreniz"
+              placeholder={t("auth.passwordPlaceholder")}
               secureTextEntry
               error={passwordError}
               icon={
@@ -180,10 +180,10 @@ const Register = ({ navigation }) => {
             />
 
             <Input
-              label="Şifre Tekrarı"
+              label={t("auth.confirmPassword")}
               value={confirmPassword}
               onChangeText={setConfirmPassword}
-              placeholder="Şifrenizi tekrar girin"
+              placeholder={t("auth.confirmPasswordPlaceholder")}
               secureTextEntry
               error={confirmPasswordError}
               icon={
@@ -196,18 +196,16 @@ const Register = ({ navigation }) => {
             />
 
             <Button
-              title="Kaydol"
+              title={t("screens.auth.register.title")}
               gradient
               onPress={handleRegister}
               loading={loading}
             />
           </View>
 
-          <SocialButtons />
-
           <AuthFooter
-            questionText="Zaten hesabınız var mı?"
-            actionText="Giriş Yapın"
+            questionText={t("screens.auth.register.haveAccount")}
+            actionText={t("screens.auth.register.login")}
             onPress={() => navigation.navigate("Login")}
           />
         </ScrollView>

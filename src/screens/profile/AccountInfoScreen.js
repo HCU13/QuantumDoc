@@ -55,7 +55,6 @@ const AccountInfoScreen = ({ navigation }) => {
       fontWeight: "bold",
     },
     infoCard: {
-      backgroundColor: isDark ? colors.card + "75" : colors.card + "75",
       borderRadius: SIZES.radius,
       padding: 20,
       marginBottom: 15,
@@ -267,7 +266,7 @@ const AccountInfoScreen = ({ navigation }) => {
                 </View>
               </>
             ) : (
-              <View style={styles.infoCard}>
+              <View style={[styles.infoCard, { backgroundColor: colors.card }]}>
                 <View style={styles.infoRow}>
                   <Text style={styles.infoLabel}>Ad Soyad:</Text>
                   <Text style={styles.infoValue}>{name}</Text>
@@ -371,7 +370,7 @@ const AccountInfoScreen = ({ navigation }) => {
                 </View>
               </>
             ) : (
-              <View style={styles.infoCard}>
+              <View style={[styles.infoCard, { backgroundColor: colors.card }]}>
                 <View style={styles.infoRow}>
                   <Text style={styles.infoLabel}>Şifre:</Text>
                   <Text style={styles.infoValue}>••••••••</Text>

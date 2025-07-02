@@ -19,11 +19,13 @@ import SearchBar from "../../components/home/SearchBar";
 import Button from "../../components/common/Button";
 import useTheme from "../../hooks/useTheme";
 import { useToken } from "../../contexts/TokenContext";
+import { useTranslation } from "react-i18next";
 
 const ExploreScreen = ({ navigation }) => {
   const [searchQuery, setSearchQuery] = useState("");
-  const { colors } = useTheme();
+  const { colors, isDark } = useTheme();
   const { tokens } = useToken();
+  const { t } = useTranslation();
 
   const styles = StyleSheet.create({
     container: {
@@ -46,51 +48,54 @@ const ExploreScreen = ({ navigation }) => {
     },
     title: {
       ...FONTS.h2,
-      color: colors.textOnGradient,
+      color: colors.textPrimary,
       fontWeight: "bold",
-      textShadowColor: "rgba(0,0,0,0.2)",
-      textShadowOffset: { width: 0, height: 1 },
-      textShadowRadius: 3,
     },
     subtitle: {
       ...FONTS.body4,
-      color: colors.textOnGradient,
+      color: colors.textSecondary,
       marginTop: 5,
     },
     section: {
-      marginBottom: 24,
+      marginBottom: 14,
     },
     sectionTitle: {
       ...FONTS.h3,
-      color: colors.textOnGradient,
+      color: colors.textPrimary,
       marginBottom: 16,
       paddingHorizontal: SIZES.padding,
       fontWeight: "bold",
-      textShadowColor: "rgba(0,0,0,0.2)",
-      textShadowOffset: { width: 0, height: 1 },
-      textShadowRadius: 3,
     },
     categoryContainer: {
       flexDirection: "row",
-      paddingHorizontal: SIZES.padding - 8,
+      paddingHorizontal: SIZES.padding - 2,
     },
     categoryItem: {
-      backgroundColor: "rgba(255, 255, 255, 0.15)",
+      backgroundColor: isDark
+        ? "rgba(255, 255, 255, 0.1)"
+        : "rgba(255, 255, 255, 0.7)",
       paddingHorizontal: 16,
       paddingVertical: 8,
       borderRadius: SIZES.radius,
       marginRight: 8,
       borderWidth: 1,
+      borderColor: isDark ? colors.border : "rgba(0, 0, 0, 0.05)",
+      shadowColor: "#000",
+      shadowOffset: { width: 0, height: 1 },
+      shadowOpacity: isDark ? 0.2 : 0.05,
+      shadowRadius: 2,
+      elevation: 1,
     },
     categoryItemActive: {
       backgroundColor: colors.primary,
+      borderColor: colors.primary,
     },
     categoryText: {
       ...FONTS.body4,
-      color: colors.textOnGradient,
+      color: colors.textPrimary,
     },
     categoryTextActive: {
-      color: colors.textOnPrimary,
+      color: colors.white,
       fontWeight: "bold",
     },
     modulesContainer: {
@@ -103,12 +108,13 @@ const ExploreScreen = ({ navigation }) => {
       marginBottom: 16,
     },
     featuredContainer: {
-      paddingHorizontal: SIZES.padding,
-      right: 10,
+      paddingHorizontal: 0,
+      alignItems: "center",
+      width: "100%",
     },
     noResults: {
       ...FONTS.body3,
-      color: colors.textOnGradient,
+      color: colors.textSecondary,
       textAlign: "center",
       paddingVertical: 30,
       fontStyle: "italic",
@@ -117,15 +123,22 @@ const ExploreScreen = ({ navigation }) => {
       alignItems: "center",
       paddingHorizontal: SIZES.padding,
       marginVertical: 20,
-      backgroundColor: "rgba(255, 255, 255, 0.1)",
+      backgroundColor: isDark
+        ? "rgba(255, 255, 255, 0.1)"
+        : "rgba(255, 255, 255, 0.7)",
       borderRadius: SIZES.radius,
       padding: 15,
       borderWidth: 1,
-
+      borderColor: isDark ? colors.border : "rgba(0, 0, 0, 0.05)",
+      shadowColor: "#000",
+      shadowOffset: { width: 0, height: 2 },
+      shadowOpacity: isDark ? 0.2 : 0.05,
+      shadowRadius: 4,
+      elevation: 2,
     },
     tokensInfoText: {
       ...FONTS.body4,
-      color: colors.textOnGradient,
+      color: colors.textPrimary,
       textAlign: "center",
       marginBottom: 15,
     },
@@ -186,22 +199,6 @@ const ExploreScreen = ({ navigation }) => {
       category: "tools",
     },
     {
-      id: "tasks",
-      title: "Görevler",
-      description: "Görevlerinizi yönetin",
-      icon: <Ionicons name="checkbox-outline" size={28} color="#FFF" />,
-      gradientColors: ["#FF78C4", "#E252DC"],
-      category: "productivity",
-    },
-    {
-      id: "voice",
-      title: "Sesli Okuma",
-      description: "Metinleri seslendirir",
-      icon: <Ionicons name="volume-high-outline" size={28} color="#FFF" />,
-      gradientColors: ["#FF9A8B", "#FF6A88"],
-      category: "tools",
-    },
-    {
       id: "notes",
       title: "Notlar",
       description: "Notlarınızı organize edin",
@@ -209,14 +206,30 @@ const ExploreScreen = ({ navigation }) => {
       gradientColors: ["#3C9D9B", "#52DE97"],
       category: "productivity",
     },
-    {
-      id: "calendar",
-      title: "Takvim",
-      description: "Etkinliklerinizi planlayın",
-      icon: <Ionicons name="calendar-outline" size={28} color="#FFF" />,
-      gradientColors: ["#A18CD1", "#FBC2EB"],
-      category: "productivity",
-    },
+    // {
+    //   id: "tasks",
+    //   title: "Görevler",
+    //   description: "Görevlerinizi yönetin",
+    //   icon: <Ionicons name="checkbox-outline" size={28} color="#FFF" />,
+    //   gradientColors: ["#FF78C4", "#E252DC"],
+    //   category: "productivity",
+    // },
+    // {
+    //   id: "voice",
+    //   title: "Sesli Okuma",
+    //   description: "Metinleri seslendirir",
+    //   icon: <Ionicons name="volume-high-outline" size={28} color="#FFF" />,
+    //   gradientColors: ["#FF9A8B", "#FF6A88"],
+    //   category: "tools",
+    // },
+    // {
+    //   id: "calendar",
+    //   title: "Takvim",
+    //   description: "Etkinliklerinizi planlayın",
+    //   icon: <Ionicons name="calendar-outline" size={28} color="#FFF" />,
+    //   gradientColors: ["#A18CD1", "#FBC2EB"],
+    //   category: "productivity",
+    // },
   ];
 
   // Arama filtrelemesi
@@ -235,9 +248,6 @@ const ExploreScreen = ({ navigation }) => {
         : module.category === selectedCategory)
   );
 
-  // Öne çıkan modüller
-  // const featuredModules = allModules.filter((module) => module.featured);
-
   // Filtrelenmiş modüller 2'li satırlar halinde düzenleniyor
   const moduleRows = [];
   for (let i = 0; i < categoryFilteredModules.length; i += 2) {
@@ -251,7 +261,7 @@ const ExploreScreen = ({ navigation }) => {
     // Modüle özgü ekranlara yönlendir
     switch (module.id) {
       case "chat":
-        navigation.navigate("Chat");
+        navigation.navigate("Chat", { screen: "ChatRooms" });
         break;
       case "math":
         navigation.navigate("MathHome");
@@ -262,36 +272,30 @@ const ExploreScreen = ({ navigation }) => {
       case "translate":
         navigation.navigate("TranslateHome");
         break;
-      case "tasks":
-        navigation.navigate("TasksHome");
-        break;
-      case "voice":
-        navigation.navigate("VoiceHome");
-        break;
       case "notes":
         navigation.navigate("NotesHome");
         break;
-      case "calendar":
-        navigation.navigate("CalendarHome");
-        break;
+      // case "tasks":
+      //   navigation.navigate("TasksHome");
+      //   break;
+      // case "voice":
+      //   navigation.navigate("VoiceHome");
+      //   break;
+      // case "calendar":
+      //   navigation.navigate("CalendarHome");
+      //   break;
       default:
         console.log(`${module.id} için henüz ekran oluşturulmadı`);
     }
   };
 
   return (
-    <GradientBackground>
+    <GradientBackground mode="default">
       <SafeAreaView style={styles.container}>
-        {/* <StatusBar
-          barStyle="light-content"
-          backgroundColor="transparent"
-          translucent
-        /> */}
-
         <View style={styles.header}>
           <View style={styles.headerLeft}>
-            <Text style={styles.title}>Keşfet</Text>
-            <Text style={styles.subtitle}>Tüm AI özellikleri</Text>
+            <Text style={styles.title}>{t("screens.explore.title")}</Text>
+            <Text style={styles.subtitle}>{t("screens.explore.subtitle")}</Text>
           </View>
 
           <TokenDisplay onPress={() => navigation.navigate("Tokens")} />
@@ -301,58 +305,20 @@ const ExploreScreen = ({ navigation }) => {
           <SearchBar
             value={searchQuery}
             onChangeText={setSearchQuery}
-            placeholder="Modül veya özellik arayın..."
+            placeholder={t("screens.explore.searchPlaceholder")}
             onSubmit={() => console.log(`Arama: ${searchQuery}`)}
           />
 
-          {/* {tokens < 5 && (
-            <View style={styles.tokensInfoContainer}>
-              <Text style={styles.tokensInfoText}>
-                Daha fazla özelliğe erişmek için token kazanın!
-              </Text>
-              <Button
-                title="Token Kazan"
-                neon
-                icon={
-                  <Ionicons
-                    name="add-circle-outline"
-                    size={20}
-                    color={colors.textOnGradient}
-                  />
-                }
-                onPress={() => navigation.navigate("Tokens")}
-                containerStyle={styles.getTokensButton}
-                size="small"
-              />
-            </View>
-          )} */}
-
           {!searchQuery && (
             <View style={styles.section}>
-              {/* <Text style={styles.sectionTitle}>Öne Çıkan</Text> */}
               <View style={styles.featuredContainer}>
-                <ModuleCard
-                  title="AI Sohbet"
-                  description="Yapay zeka asistanı ile konuşun, sorularınızı sorun"
-                  moduleId="chat"
-                  icon={
-                    <Ionicons
-                      name="chatbubble-ellipses-outline"
-                      size={36}
-                      color="#FFF"
-                    />
-                  }
-                  gradientColors={[colors.primary, colors.primaryDark]}
-                  onPress={handleModulePress}
-                  size="large"
-                  glowing={true}
-                />
+                {/* AI Sohbet (chat) kartı kaldırıldı */}
               </View>
             </View>
           )}
 
           <View style={styles.section}>
-            <Text style={styles.sectionTitle}>Kategoriler</Text>
+            {/* <Text style={styles.sectionTitle}>Kategoriler</Text> */}
 
             <ScrollView
               horizontal
@@ -363,11 +329,9 @@ const ExploreScreen = ({ navigation }) => {
                 <TouchableOpacity
                   key={category.id}
                   style={[
-                    [styles.categoryItem, { borderColor: colors.border }],
-                    selectedCategory === category.id && [
+                    styles.categoryItem,
+                    selectedCategory === category.id &&
                       styles.categoryItemActive,
-                      { borderColor: colors.border },
-                    ],
                   ]}
                   onPress={() => setSelectedCategory(category.id)}
                 >

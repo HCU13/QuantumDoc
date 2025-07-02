@@ -16,6 +16,7 @@ import SocialButtons from "../../components/auth/SocialButtons";
 import AuthFooter from "../../components/auth/AuthFooter";
 import useTheme from "../../hooks/useTheme";
 import GradientBackground from "../../components/common/GradientBackground";
+import { useTranslation } from "react-i18next";
 
 const Login = ({ navigation }) => {
   const [email, setEmail] = useState("");
@@ -25,6 +26,7 @@ const Login = ({ navigation }) => {
   const [loading, setLoading] = useState(false);
 
   const { colors } = useTheme();
+  const { t } = useTranslation();
 
   const styles = StyleSheet.create({
     container: {
@@ -42,9 +44,11 @@ const Login = ({ navigation }) => {
       marginBottom: 10,
     },
     subtitle: {
-      ...FONTS.body3,
+      ...FONTS.body4,
       color: colors.textOnGradient,
       marginBottom: 30,
+      fontSize: 15,
+      lineHeight: 21,
     },
     formContainer: {
       marginBottom: 20,
@@ -61,10 +65,10 @@ const Login = ({ navigation }) => {
 
   const validateEmail = () => {
     if (!email) {
-      setEmailError("E-posta adresi gerekli");
+      setEmailError(t("screens.auth.login.errors.emailRequired"));
       return false;
     } else if (!/\S+@\S+\.\S+/.test(email)) {
-      setEmailError("Geçerli bir e-posta adresi girin");
+      setEmailError(t("screens.auth.login.errors.invalidEmail"));
       return false;
     }
     setEmailError("");
@@ -73,10 +77,10 @@ const Login = ({ navigation }) => {
 
   const validatePassword = () => {
     if (!password) {
-      setPasswordError("Şifre gerekli");
+      setPasswordError(t("screens.auth.login.errors.passwordRequired"));
       return false;
     } else if (password.length < 6) {
-      setPasswordError("Şifre en az 6 karakter olmalı");
+      setPasswordError(t("screens.auth.login.errors.passwordLength"));
       return false;
     }
     setPasswordError("");
@@ -97,28 +101,28 @@ const Login = ({ navigation }) => {
     // }
     navigation.reset({
       index: 0,
-      routes: [{ name: "Main" }],
+      routes: [{ name: "CategorySelect" }],
     });
   };
 
   return (
     <GradientBackground>
       <SafeAreaView style={styles.container}>
-        <Header title="Giriş Yap" />
+        <Header showBackButton />
         <ScrollView
           style={styles.content}
           showsVerticalScrollIndicator={false}
           keyboardShouldPersistTaps="handled"
         >
-          <Text style={styles.title}>Tekrar Hoşgeldiniz!</Text>
-          <Text style={styles.subtitle}>Hesabınıza giriş yapın</Text>
+          <Text style={styles.title}>{t("screens.auth.login.title")}</Text>
+          <Text style={styles.subtitle}>{t("screens.auth.login.subtitle")}</Text>
 
           <View style={styles.formContainer}>
             <Input
-              label="E-posta"
+              label={t("auth.email")}
               value={email}
               onChangeText={setEmail}
-              placeholder="E-posta adresiniz"
+              placeholder={t("auth.emailPlaceholder")}
               keyboardType="email-address"
               error={emailError}
               icon={
@@ -131,10 +135,10 @@ const Login = ({ navigation }) => {
             />
 
             <Input
-              label="Şifre"
+              label={t("auth.password")}
               value={password}
               onChangeText={setPassword}
-              placeholder="Şifreniz"
+              placeholder={t("auth.passwordPlaceholder")}
               secureTextEntry
               error={passwordError}
               icon={
@@ -150,11 +154,13 @@ const Login = ({ navigation }) => {
               style={styles.forgotPassword}
               onPress={() => navigation.navigate("ForgotPassword")}
             >
-              <Text style={styles.forgotPasswordText}>Şifremi Unuttum</Text>
+              <Text style={styles.forgotPasswordText}>
+                {t("screens.auth.login.forgotPassword")}
+              </Text>
             </TouchableOpacity>
 
             <Button
-              title="Giriş Yap"
+              title={t("screens.auth.login.title")}
               gradient
               onPress={handleLogin}
               loading={loading}
@@ -164,8 +170,8 @@ const Login = ({ navigation }) => {
           <SocialButtons />
 
           <AuthFooter
-            questionText="Hesabınız yok mu?"
-            actionText="Hemen Kaydolun"
+            questionText={t("screens.auth.login.noAccount")}
+            actionText={t("screens.auth.login.register")}
             onPress={() => navigation.navigate("Register")}
           />
         </ScrollView>

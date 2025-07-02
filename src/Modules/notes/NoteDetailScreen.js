@@ -46,6 +46,9 @@ const NoteDetailScreen = ({ navigation, route }) => {
   const [showColorPicker, setShowColorPicker] = useState(false);
   const [isAILoading, setIsAILoading] = useState(false);
   const [showAIOptions, setShowAIOptions] = useState(false);
+  const [originalContent, setOriginalContent] = useState("");
+  const [showFeedback, setShowFeedback] = useState(false);
+  const [aiFeedback, setAiFeedback] = useState(null);
 
   const titleInputRef = useRef(null);
   const contentInputRef = useRef(null);
@@ -90,7 +93,20 @@ const NoteDetailScreen = ({ navigation, route }) => {
             title="Kaydet"
             size="small"
             onPress={handleSave}
-            containerStyle={{ marginRight: 10 }}
+            containerStyle={{
+              minWidth: 80,
+              paddingHorizontal: 14,
+              alignSelf: 'center',
+              flexShrink: 1,
+              marginRight: 8,
+            }}
+            textStyle={{
+              fontWeight: '600',
+              fontSize: 16,
+              flexShrink: 1,
+              textAlign: 'center',
+              letterSpacing: 0.1,
+            }}
           />
         ),
       });
@@ -172,7 +188,6 @@ const NoteDetailScreen = ({ navigation, route }) => {
 
   // AI ile not geliştirme
   const enhanceWithAI = async (type) => {
-    // Token kontrolü
     if (tokens < 1) {
       Alert.alert(
         "Yetersiz Token",
@@ -184,19 +199,15 @@ const NoteDetailScreen = ({ navigation, route }) => {
       );
       return;
     }
-
+    setOriginalContent(content); // Orijinali sakla
     setIsAILoading(true);
     setShowAIOptions(false);
-
+    setShowFeedback(false);
+    setAiFeedback(null);
     try {
-      // Gerçek uygulamada API çağrısı yapılır
-      // 1 token kullanımı simüle edelim
       await useTokens(1);
-
-      // AI işlemini simüle edelim
       setTimeout(() => {
         let enhancedContent = content;
-
         switch (type) {
           case "rewrite":
             enhancedContent = `${content}\n\n[AI tarafından yeniden yazıldı:]\n\nBu içerik daha profesyonel bir şekilde yeniden düzenlenmiştir. Cümleler daha akıcı ve anlaşılır hale getirilmiştir. Anahtar noktalar daha belirgin vurgulanmıştır.`;
@@ -211,16 +222,21 @@ const NoteDetailScreen = ({ navigation, route }) => {
             enhancedContent = `${content}\n\n[AI tarafından düzeltildi:]\n\nDilbilgisi ve yazım hataları düzeltilmiştir. Cümle yapıları optimize edilmiştir. Metin daha akıcı ve doğru hale getirilmiştir.`;
             break;
         }
-
         setContent(enhancedContent);
         setIsAILoading(false);
-        setIsEditing(true);
+        setShowFeedback(true);
       }, 1500);
     } catch (error) {
-      console.log("AI enhancement error:", error);
       setIsAILoading(false);
       Alert.alert("Hata", "İçerik geliştirme sırasında bir sorun oluştu");
     }
+  };
+
+  // Orijinale dön
+  const handleRestoreOriginal = () => {
+    setContent(originalContent);
+    setShowFeedback(false);
+    setAiFeedback(null);
   };
 
   // Geri düğmesine basıldığında
@@ -263,24 +279,41 @@ const NoteDetailScreen = ({ navigation, route }) => {
           onBackPress={handleBack}
           rightComponent={
             isEditing ? (
-              <Button
-                title="Kaydet"
-                size="small"
-                onPress={handleSave}
-                containerStyle={styles.saveButton}
-              />
+              <View style={{ alignItems: 'center' }}>
+                <TouchableOpacity
+                  onPress={handleSave}
+                  style={{
+                    width: 36,
+                    height: 36,
+                    borderRadius: 18,
+                    backgroundColor: colors.success,
+                    justifyContent: 'center',
+                    alignItems: 'center',
+                    marginRight: 4,
+                    shadowColor: colors.success,
+                    shadowOffset: { width: 0, height: 2 },
+                    shadowOpacity: 0.18,
+                    shadowRadius: 3,
+                    borderWidth: 1.5,
+                    borderColor: colors.success,
+                  }}
+                  activeOpacity={0.8}
+                >
+                  <Ionicons name="checkmark-outline" size={22} color="#fff" />
+                </TouchableOpacity>
+              </View>
             ) : (
-              <TouchableOpacity style={styles.editButton} onPress={handleEdit}>
-                <Ionicons
-                  name="create-outline"
-                  size={24}
-                  color={colors.textOnGradient}
-                />
-              </TouchableOpacity>
+              <View style={{ flexDirection: 'row', alignItems: 'center' }}>
+                <TouchableOpacity style={[styles.editButton, { backgroundColor: colors.input, marginRight: 4 }]} onPress={handleEdit}>
+                  <Ionicons name="pencil-outline" size={22} color={colors.textOnGradient} />
+                </TouchableOpacity>
+                <TouchableOpacity style={[styles.editButton, { backgroundColor: colors.input }]} onPress={handleDelete}>
+                  <Ionicons name="trash-outline" size={22} color={colors.textOnGradient} />
+                </TouchableOpacity>
+              </View>
             )
           }
         />
-
         <KeyboardAvoidingView
           behavior={Platform.OS === "ios" ? "padding" : "height"}
           style={styles.flex1}
@@ -294,7 +327,12 @@ const NoteDetailScreen = ({ navigation, route }) => {
             <View
               style={[
                 styles.noteContainer,
-                { borderLeftColor: selectedColor, borderLeftWidth: 4 },
+                {
+                  borderLeftColor: selectedColor,
+                  borderLeftWidth: 4,
+                  backgroundColor: colors.card,
+                  shadowColor: colors.primary + '22',
+                },
               ]}
             >
               {isEditing ? (
@@ -305,7 +343,7 @@ const NoteDetailScreen = ({ navigation, route }) => {
                     value={title}
                     onChangeText={setTitle}
                     placeholder="Not başlığı..."
-                    placeholderTextColor="rgba(0,0,0,0.4)"
+                    placeholderTextColor={colors.textTertiary}
                     maxLength={100}
                   />
 
@@ -349,33 +387,19 @@ const NoteDetailScreen = ({ navigation, route }) => {
                     value={content}
                     onChangeText={setContent}
                     placeholder="Not içeriği..."
-                    placeholderTextColor="rgba(0,0,0,0.4)"
+                    placeholderTextColor={colors.textTertiary}
                     multiline
                     textAlignVertical="top"
                   />
 
                   {/* AI Destekli İçerik Geliştirme */}
                   <View style={styles.aiContainer}>
-                    {isAILoading ? (
-                      <View style={styles.aiLoadingContainer}>
-                        <Text
-                          style={[styles.aiText, { color: colors.primary }]}
-                        >
-                          AI içeriği geliştiriyor...
-                        </Text>
-                        <Button
-                          title="İptal"
-                          size="small"
-                          outlined
-                          onPress={() => setIsAILoading(false)}
-                          containerStyle={styles.aiCancelButton}
-                        />
-                      </View>
-                    ) : (
+                    {/* AI paneli açılır */}
+                    {!isAILoading && !showFeedback && (
                       <TouchableOpacity
                         style={[
                           styles.aiButton,
-                          { borderColor: colors.border },
+                          { borderColor: colors.border, backgroundColor: colors.primary + '11' },
                         ]}
                         onPress={() => setShowAIOptions(!showAIOptions)}
                       >
@@ -394,56 +418,100 @@ const NoteDetailScreen = ({ navigation, route }) => {
                         </Text>
                       </TouchableOpacity>
                     )}
-
-                    {showAIOptions && (
-                      <View style={styles.aiOptions}>
+                    {/* AI seçenek paneli */}
+                    {showAIOptions && !isAILoading && !showFeedback && (
+                      <View
+                        style={[
+                          styles.aiOptions,
+                          { backgroundColor: colors.card, shadowColor: colors.primary + '22', borderColor: colors.border },
+                        ]}
+                      >
                         <TouchableOpacity
-                          style={styles.aiOption}
+                          style={[
+                            styles.aiOption,
+                            { borderBottomColor: colors.border },
+                          ]}
                           onPress={() => enhanceWithAI("rewrite")}
                         >
-                          <Ionicons
-                            name="create-outline"
-                            size={20}
-                            color={colors.primary}
-                          />
-                          <Text style={styles.aiOptionText}>Yeniden Yaz</Text>
+                          <Ionicons name="sparkles-outline" size={20} color={colors.primary} />
+                          <View style={{ marginLeft: 10 }}>
+                            <Text style={[styles.aiOptionText, { color: colors.textPrimary }]}>Yeniden Yaz</Text>
+                            <Text style={{ color: colors.textSecondary, fontSize: 12 }}>Notunu daha akıcı ve profesyonel bir dille yeniden yaz.</Text>
+                          </View>
                         </TouchableOpacity>
-
                         <TouchableOpacity
-                          style={styles.aiOption}
+                          style={[
+                            styles.aiOption,
+                            { borderBottomColor: colors.border },
+                          ]}
                           onPress={() => enhanceWithAI("summarize")}
                         >
-                          <Ionicons
-                            name="list-outline"
-                            size={20}
-                            color={colors.primary}
-                          />
-                          <Text style={styles.aiOptionText}>Özetle</Text>
+                          <Ionicons name="list-outline" size={20} color={colors.primary} />
+                          <View style={{ marginLeft: 10 }}>
+                            <Text style={[styles.aiOptionText, { color: colors.textPrimary }]}>Özetle</Text>
+                            <Text style={{ color: colors.textSecondary, fontSize: 12 }}>Uzun notları kısa ve öz bir özet haline getir.</Text>
+                          </View>
                         </TouchableOpacity>
-
                         <TouchableOpacity
-                          style={styles.aiOption}
+                          style={[
+                            styles.aiOption,
+                            { borderBottomColor: colors.border },
+                          ]}
                           onPress={() => enhanceWithAI("expand")}
                         >
-                          <Ionicons
-                            name="expand-outline"
-                            size={20}
-                            color={colors.primary}
-                          />
-                          <Text style={styles.aiOptionText}>Genişlet</Text>
+                          <Ionicons name="book-outline" size={20} color={colors.primary} />
+                          <View style={{ marginLeft: 10 }}>
+                            <Text style={[styles.aiOptionText, { color: colors.textPrimary }]}>Genişlet</Text>
+                            <Text style={{ color: colors.textSecondary, fontSize: 12 }}>Kısa notları daha detaylı ve açıklamalı hale getir.</Text>
+                          </View>
                         </TouchableOpacity>
-
                         <TouchableOpacity
                           style={styles.aiOption}
                           onPress={() => enhanceWithAI("grammar")}
                         >
-                          <Ionicons
-                            name="checkmark-done-outline"
-                            size={20}
-                            color={colors.primary}
-                          />
-                          <Text style={styles.aiOptionText}>Düzelt</Text>
+                          <Ionicons name="checkmark-done-outline" size={20} color={colors.primary} />
+                          <View style={{ marginLeft: 10 }}>
+                            <Text style={[styles.aiOptionText, { color: colors.textPrimary }]}>Düzelt</Text>
+                            <Text style={{ color: colors.textSecondary, fontSize: 12 }}>Yazım ve dilbilgisi hatalarını düzelt.</Text>
+                          </View>
                         </TouchableOpacity>
+                        <Text style={{ color: colors.textTertiary, fontSize: 11, marginTop: 10, textAlign: 'right' }}>
+                          AI ile geliştirilen notlar bulut tabanlı olarak işlenir.
+                        </Text>
+                      </View>
+                    )}
+                    {/* AI loading */}
+                    {isAILoading && (
+                      <View style={[styles.aiLoadingContainer, { backgroundColor: colors.primary + '11' }]}>
+                        <Text style={[styles.aiText, { color: colors.primary }]}>AI içeriği geliştiriyor...</Text>
+                        <Button
+                          title="İptal"
+                          size="small"
+                          outlined
+                          onPress={() => setIsAILoading(false)}
+                          containerStyle={styles.aiCancelButton}
+                        />
+                      </View>
+                    )}
+                    {/* AI feedback ve orijinale dön */}
+                    {showFeedback && !isAILoading && (
+                      <View style={{ marginTop: 10, alignItems: 'flex-end' }}>
+                        <TouchableOpacity
+                          style={{ flexDirection: 'row', alignItems: 'center', marginBottom: 8 }}
+                          onPress={handleRestoreOriginal}
+                        >
+                          <Ionicons name="arrow-undo-outline" size={18} color={colors.info} />
+                          <Text style={{ color: colors.info, marginLeft: 4, fontSize: 13 }}>Orijinale Dön</Text>
+                        </TouchableOpacity>
+                        <View style={{ flexDirection: 'row', alignItems: 'center' }}>
+                          <Text style={{ color: colors.textSecondary, fontSize: 13, marginRight: 8 }}>Bu sonuç işine yaradı mı?</Text>
+                          <TouchableOpacity onPress={() => { setAiFeedback(true); }} style={{ marginRight: 4 }}>
+                            <Ionicons name="thumbs-up-outline" size={20} color={aiFeedback === true ? colors.success : colors.textTertiary} />
+                          </TouchableOpacity>
+                          <TouchableOpacity onPress={() => { setAiFeedback(false); }}>
+                            <Ionicons name="thumbs-down-outline" size={20} color={aiFeedback === false ? colors.warning : colors.textTertiary} />
+                          </TouchableOpacity>
+                        </View>
                       </View>
                     )}
                   </View>
@@ -459,16 +527,16 @@ const NoteDetailScreen = ({ navigation, route }) => {
                         style={styles.pinIcon}
                       />
                     )}
-                    <Text style={styles.noteTitle}>{note.title}</Text>
+                    <Text style={[styles.noteTitle, { color: colors.textPrimary }]}>{note.title}</Text>
                   </View>
 
-                  <Text style={styles.noteContent}>{note.content}</Text>
+                  <Text style={[styles.noteContent, { color: colors.textSecondary }]}>{note.content}</Text>
 
                   <View style={styles.noteFooter}>
                     <View
                       style={[
                         styles.categoryBadge,
-                        { backgroundColor: `${selectedColor}20` },
+                        { backgroundColor: `${selectedColor}22` },
                       ]}
                     >
                       <Text
@@ -479,54 +547,13 @@ const NoteDetailScreen = ({ navigation, route }) => {
                       </Text>
                     </View>
 
-                    <Text style={styles.noteDate}>
-                      Son düzenleme: {formattedDate()}
-                    </Text>
+                    <Text style={[styles.noteDate, { color: colors.textTertiary }]}>Son düzenleme: {formattedDate()}</Text>
                   </View>
                 </>
               )}
             </View>
           </ScrollView>
         </KeyboardAvoidingView>
-
-        {!isEditing && (
-          <View style={styles.actionButtonsContainer}>
-            <TouchableOpacity
-              style={styles.actionButton}
-              onPress={handleTogglePin}
-            >
-              <Ionicons
-                name={note.isPinned ? "pin" : "pin-outline"}
-                size={24}
-                color={colors.textOnGradient}
-              />
-              <Text style={styles.actionButtonText}>
-                {note.isPinned ? "Sabitlemeyi Kaldır" : "Sabitle"}
-              </Text>
-            </TouchableOpacity>
-
-            <TouchableOpacity style={styles.actionButton} onPress={handleShare}>
-              <Ionicons
-                name="share-outline"
-                size={24}
-                color={colors.textOnGradient}
-              />
-              <Text style={styles.actionButtonText}>Paylaş</Text>
-            </TouchableOpacity>
-
-            <TouchableOpacity
-              style={styles.actionButton}
-              onPress={handleDelete}
-            >
-              <Ionicons
-                name="trash-outline"
-                size={24}
-                color={colors.textOnGradient}
-              />
-              <Text style={styles.actionButtonText}>Sil</Text>
-            </TouchableOpacity>
-          </View>
-        )}
       </SafeAreaView>
     </GradientBackground>
   );
@@ -546,14 +573,12 @@ const styles = StyleSheet.create({
     padding: SIZES.padding,
   },
   noteContainer: {
-    backgroundColor: "rgba(255, 255, 255, 0.9)",
     borderRadius: SIZES.radius,
     padding: 16,
     marginBottom: 20,
     elevation: 2,
-    shadowColor: "#000",
     shadowOffset: { width: 0, height: 1 },
-    shadowOpacity: 0.2,
+    shadowOpacity: 0.12,
     shadowRadius: 2,
   },
   noteTitleContainer: {
@@ -566,12 +591,10 @@ const styles = StyleSheet.create({
   },
   noteTitle: {
     ...FONTS.h3,
-    color: "#000",
     flex: 1,
   },
   noteContent: {
     ...FONTS.body3,
-    color: "#333",
     lineHeight: 22,
     marginBottom: 20,
   },
@@ -592,17 +615,14 @@ const styles = StyleSheet.create({
   },
   noteDate: {
     ...FONTS.body5,
-    color: "#666",
   },
   titleInput: {
     ...FONTS.h3,
-    color: "#000",
     padding: 0,
     marginBottom: 10,
   },
   contentInput: {
     ...FONTS.body3,
-    color: "#333",
     lineHeight: 22,
     padding: 0,
     minHeight: 200,
@@ -633,29 +653,11 @@ const styles = StyleSheet.create({
     width: 40,
     height: 40,
     borderRadius: 20,
-    backgroundColor: "rgba(255, 255, 255, 0.15)",
     justifyContent: "center",
     alignItems: "center",
   },
   saveButton: {
     marginRight: 0,
-  },
-  actionButtonsContainer: {
-    flexDirection: "row",
-    justifyContent: "space-around",
-    backgroundColor: "rgba(255, 255, 255, 0.15)",
-    paddingVertical: 12,
-    borderTopWidth: 1,
-    borderTopColor: "rgba(255, 255, 255, 0.1)",
-  },
-  actionButton: {
-    alignItems: "center",
-    paddingHorizontal: 12,
-  },
-  actionButtonText: {
-    ...FONTS.body5,
-    color: "white",
-    marginTop: 4,
   },
   aiContainer: {
     marginTop: 20,
@@ -664,7 +666,6 @@ const styles = StyleSheet.create({
   aiButton: {
     flexDirection: "row",
     alignItems: "center",
-    backgroundColor: "rgba(138, 79, 255, 0.15)",
     paddingHorizontal: 12,
     paddingVertical: 8,
     borderRadius: 20,
@@ -678,13 +679,11 @@ const styles = StyleSheet.create({
   },
   aiOptions: {
     marginTop: 10,
-    backgroundColor: "rgba(255, 255, 255, 0.95)",
     borderRadius: SIZES.radius,
     padding: 12,
     elevation: 3,
-    shadowColor: "#000",
     shadowOffset: { width: 0, height: 1 },
-    shadowOpacity: 0.2,
+    shadowOpacity: 0.12,
     shadowRadius: 3,
   },
   aiOption: {
@@ -692,18 +691,15 @@ const styles = StyleSheet.create({
     alignItems: "center",
     paddingVertical: 10,
     borderBottomWidth: 1,
-    borderBottomColor: "rgba(0, 0, 0, 0.05)",
   },
   aiOptionText: {
     ...FONTS.body4,
-    color: "#333",
     marginLeft: 10,
   },
   aiLoadingContainer: {
     flexDirection: "row",
     alignItems: "center",
     justifyContent: "space-between",
-    backgroundColor: "rgba(138, 79, 255, 0.15)",
     paddingHorizontal: 16,
     paddingVertical: 12,
     borderRadius: SIZES.radius,
