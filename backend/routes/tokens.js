@@ -1,6 +1,15 @@
 import express from "express";
-import { getTokens, addTokens, useTokens, watchVideoForTokens, getTokenHistory } from "../controllers/tokensController.js";
+import {
+  getTokens,
+  addTokens,
+  useTokens,
+  watchVideoForTokens,
+  claimDailyReward,
+  purchaseTokens,
+  getTokenHistory,
+} from "../controllers/tokensController.js";
 import { authMiddleware } from "../middleware/authMiddleware.js";
+
 const router = express.Router();
 
 /**
@@ -77,9 +86,11 @@ const router = express.Router();
 
 router.use(authMiddleware);
 router.get("/", getTokens);
-router.post("/", addTokens);
+router.post("/add", addTokens);
 router.post("/use", useTokens);
 router.post("/watch-video", watchVideoForTokens);
+router.post("/daily-reward", claimDailyReward);
+router.post("/purchase", purchaseTokens);
 router.get("/history", getTokenHistory);
 
-export default router; 
+export default router;

@@ -114,7 +114,7 @@ const Welcome = ({ navigation }) => {
             onPress={() => navigation.navigate('Register')}
             fluid
             containerStyle={styles.buttonSpacing}
-            size="large"
+            size="auth"
           />
           <Button
             title={t('auth.login')}
@@ -122,7 +122,7 @@ const Welcome = ({ navigation }) => {
             fluid
             outlined
             containerStyle={styles.buttonSpacing}
-            size="large"
+            size="auth"
           />
         </View>
 
@@ -205,7 +205,7 @@ const styles = StyleSheet.create({
     marginTop: 0,
   },
   buttonSpacing: {
-    marginBottom: 14,
+    marginBottom: 12,
     width: '100%',
   },
   bottomTextContainer: {

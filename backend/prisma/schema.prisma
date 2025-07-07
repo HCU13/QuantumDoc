@@ -20,6 +20,9 @@ model User {
   writeLogs WriteLog[]
   translateLogs TranslateLog[]
   events    CalendarEvent[]
+  activities Activity[]
+  subscription Subscription?
+  settings  UserSettings?
   tokens    Int      @default(0)
   subscriptionPlan String  @default("free")
   subscriptionValidUntil DateTime?
@@ -28,8 +31,11 @@ model User {
   language String   @default("tr")
   theme    String   @default("light")
   profileImage String?
+  lastLoginAt DateTime?
+  phone String?
   tokenLogs TokenLog[]
   subscriptionLogs SubscriptionLog[]
+  supportTickets SupportTicket[]
 }
 
 model News {
@@ -40,6 +46,7 @@ model News {
   imageUrl    String
   icon        String
   category    String   @default("general") // general, update, feature, campaign
+  featured    Boolean  @default(false)     // Öne çıkan haber
   isActive    Boolean  @default(true)
   priority    Int      @default(0) // Sıralama için
   actionUrl   String?  // Tıklandığında gidilecek URL
@@ -144,4 +151,58 @@ model SubscriptionLog {
   plan      String
   action    String   // upgrade, cancel, renew, etc.
   createdAt DateTime @default(now())
+}
+
+model SupportTicket {
+  id        Int      @id @default(autoincrement())
+  userId    Int
+  subject   String
+  message   String   @db.Text
+  priority  String   @default("medium") // low, medium, high
+  status    String   @default("open")   // open, pending, closed
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@map("support_tickets")
+}
+
+model Activity {
+  id          Int      @id @default(autoincrement())
+  userId      Int
+  type        String   // login, note_create, task_complete, chat_start, math_solve, translate, write_generate
+  title       String
+  description String?
+  metadata    Json?    // Ek veriler (JSON formatında)
+  createdAt   DateTime @default(now())
+  user        User     @relation(fields: [userId], references: [id])
+}
+
+model Subscription {
+  id        Int      @id @default(autoincrement())
+  userId    Int      @unique
+  plan      String   // free, premium, pro
+  status    String   @default("active") // active, cancelled, expired
+  startDate DateTime @default(now())
+  endDate   DateTime?
+  price     Float?
+  currency  String   @default("USD")
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+  user      User     @relation(fields: [userId], references: [id])
+}
+
+model UserSettings {
+  id            Int      @id @default(autoincrement())
+  userId        Int      @unique
+  language      String   @default("tr")
+  theme         String   @default("light")
+  notifications Boolean  @default(true)
+  emailNotifications Boolean @default(true)
+  pushNotifications Boolean @default(true)
+  autoSave      Boolean  @default(true)
+  createdAt     DateTime @default(now())
+  updatedAt     DateTime @updatedAt
+  user          User     @relation(fields: [userId], references: [id])
 }

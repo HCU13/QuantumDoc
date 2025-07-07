@@ -223,68 +223,32 @@ const TokensScreen = ({ navigation }) => {
 
   const handleRewardPress = (reward) => {
     console.log(`Ödül tıklandı: ${reward.id}`);
-
-    if (reward.claimed) {
-      return;
-    }
-
-    switch (reward.id) {
-      case "video":
-        if (canWatchVideoForTokens()) {
-          setVideoModalVisible(true);
-        }
-        break;
-      case "share":
-        // Share functionality
-        console.log("Share app");
-        setEarnedTokens(reward.tokens);
-        simulateAddTokens(reward.tokens);
-        break;
-      case "feedback":
-        // Feedback functionality
-        console.log("Give feedback");
-        setEarnedTokens(reward.tokens);
-        simulateAddTokens(reward.tokens);
-        break;
-      default:
-        console.log(`No handler for reward: ${reward.id}`);
-    }
+    // API çağrısı kaldırıldı, sadece UI kalacak
   };
 
-  // Video izleme simülasyonu
   const simulateWatchVideo = () => {
+    console.log("Video izleme simülasyonu başladı");
     setIsWatchingVideo(true);
     setVideoProgress(0);
 
-    // 5 saniyelik video simülasyonu
-    const interval = 100; // 100ms aralıklarla güncelleme
-    const duration = 5000; // 5 saniye
-    const steps = duration / interval;
-    let currentStep = 0;
-
-    const videoTimer = setInterval(() => {
-      currentStep++;
-      const progress = currentStep / steps;
-      setVideoProgress(progress);
-
-      if (progress >= 1) {
-        clearInterval(videoTimer);
-        setIsWatchingVideo(false);
-        setVideoModalVisible(false);
-
-        // Video tamamlandı, token ekle
-        const tokenAmount = 2;
-        watchVideoForTokens(tokenAmount);
-        setEarnedTokens(tokenAmount);
-        setSuccessModalVisible(true);
-      }
-    }, interval);
+    const progressInterval = setInterval(() => {
+      setVideoProgress((prev) => {
+        if (prev >= 100) {
+          clearInterval(progressInterval);
+          setIsWatchingVideo(false);
+          setVideoModalVisible(false);
+          setSuccessModalVisible(true);
+          setEarnedTokens(5);
+          return 100;
+        }
+        return prev + 2;
+      });
+    }, 100);
   };
 
-  // Token ekleme simülasyonu (paylaşım veya geri bildirim için)
   const simulateAddTokens = (amount) => {
-    addTokens(amount);
-    setSuccessModalVisible(true);
+    console.log(`${amount} token eklendi`);
+    // API çağrısı kaldırıldı, sadece UI kalacak
   };
 
   return (

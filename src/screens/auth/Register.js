@@ -128,7 +128,9 @@ const Register = ({ navigation }) => {
           keyboardShouldPersistTaps="handled"
         >
           <Text style={styles.title}>{t("screens.auth.register.title")}</Text>
-          <Text style={styles.subtitle}>{t("screens.auth.register.subtitle")}</Text>
+          <Text style={styles.subtitle}>
+            {t("screens.auth.register.subtitle")}
+          </Text>
 
           <View style={styles.formContainer}>
             <Input
@@ -194,12 +196,13 @@ const Register = ({ navigation }) => {
                 />
               }
             />
-
+            <View style={{ height: 20 }} />
             <Button
               title={t("screens.auth.register.title")}
               gradient
               onPress={handleRegister}
               loading={loading}
+              size="auth"
             />
           </View>
 

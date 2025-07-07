@@ -207,7 +207,6 @@ const HomeScreen = ({ navigation }) => {
     <GradientBackground mode="default">
       <SafeAreaView style={styles.container}>
         <HomeHeader
-          username="Arafat"
           onProfilePress={() => navigation.navigate("Profile")}
           onSettingsPress={() => navigation.navigate("Settings")}
           navigation={navigation}

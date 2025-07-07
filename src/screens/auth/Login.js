@@ -6,6 +6,7 @@ import {
   ScrollView,
   TouchableOpacity,
   Text,
+  Alert,
 } from "react-native";
 import { SIZES, FONTS } from "../../constants/theme";
 import { Ionicons } from "@expo/vector-icons";
@@ -16,16 +17,19 @@ import SocialButtons from "../../components/auth/SocialButtons";
 import AuthFooter from "../../components/auth/AuthFooter";
 import useTheme from "../../hooks/useTheme";
 import GradientBackground from "../../components/common/GradientBackground";
+import { useAuth } from "../../contexts/AuthContext";
 import { useTranslation } from "react-i18next";
 
 const Login = ({ navigation }) => {
-  const [email, setEmail] = useState("");
-  const [password, setPassword] = useState("");
+  // Test kullanıcısı bilgileri
+  const [email, setEmail] = useState("test@quantumdoc.com");
+  const [password, setPassword] = useState("test123456");
   const [emailError, setEmailError] = useState("");
   const [passwordError, setPasswordError] = useState("");
   const [loading, setLoading] = useState(false);
 
   const { colors } = useTheme();
+  const { login } = useAuth();
   const { t } = useTranslation();
 
   const styles = StyleSheet.create({
@@ -87,22 +91,25 @@ const Login = ({ navigation }) => {
     return true;
   };
 
-  const handleLogin = () => {
-    // const isEmailValid = validateEmail();
-    // const isPasswordValid = validatePassword();
-    // if (isEmailValid && isPasswordValid) {
-    //   setLoading(true);
-    //   // API çağrısı burada yapılacak
-    //   setTimeout(() => {
-    //     setLoading(false);
-    //     // Başarılı giriş sonrası ana sayfaya yönlendirme
-    //     // navigation.navigate('Home');
-    //   }, 1500);
-    // }
-    navigation.reset({
-      index: 0,
-      routes: [{ name: "CategorySelect" }],
-    });
+  const handleLogin = async () => {
+    const isEmailValid = validateEmail();
+    const isPasswordValid = validatePassword();
+    
+    if (isEmailValid && isPasswordValid) {
+      setLoading(true);
+      try {
+        await login(email, password);
+        // Başarılı giriş sonrası direkt ana sayfaya yönlendirme
+        // Navigation otomatik olarak Main navigator'a yönlendirecek
+      } catch (error) {
+        Alert.alert(
+          "Giriş Hatası",
+          error.message || "Giriş yapılırken bir hata oluştu"
+        );
+      } finally {
+        setLoading(false);
+      }
+    }
   };
 
   return (
@@ -124,6 +131,7 @@ const Login = ({ navigation }) => {
               onChangeText={setEmail}
               placeholder={t("auth.emailPlaceholder")}
               keyboardType="email-address"
+              autoCapitalize="none"
               error={emailError}
               icon={
                 <Ionicons
@@ -160,7 +168,7 @@ const Login = ({ navigation }) => {
             </TouchableOpacity>
 
             <Button
-              title={t("screens.auth.login.title")}
+              title={t("screens.auth.login.continue")}
               gradient
               onPress={handleLogin}
               loading={loading}

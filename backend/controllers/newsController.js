@@ -1,13 +1,147 @@
-const { PrismaClient } = require('@prisma/client');
+import { PrismaClient } from '@prisma/client';
 const prisma = new PrismaClient();
 
+/**
+ * @swagger
+ * components:
+ *   schemas:
+ *     News:
+ *       type: object
+ *       properties:
+ *         id:
+ *           type: integer
+ *         title:
+ *           type: string
+ *         description:
+ *           type: string
+ *         content:
+ *           type: string
+ *         imageUrl:
+ *           type: string
+ *         icon:
+ *           type: string
+ *         category:
+ *           type: string
+ *         priority:
+ *           type: integer
+ *         isActive:
+ *           type: boolean
+ *         actionUrl:
+ *           type: string
+ *         actionText:
+ *           type: string
+ *         createdAt:
+ *           type: string
+ *           format: date-time
+ *         updatedAt:
+ *           type: string
+ *           format: date-time
+ *     CreateNewsRequest:
+ *       type: object
+ *       required:
+ *         - title
+ *         - description
+ *       properties:
+ *         title:
+ *           type: string
+ *         description:
+ *           type: string
+ *         content:
+ *           type: string
+ *         imageUrl:
+ *           type: string
+ *         icon:
+ *           type: string
+ *         category:
+ *           type: string
+ *         priority:
+ *           type: integer
+ *         actionUrl:
+ *           type: string
+ *         actionText:
+ *           type: string
+ *     UpdateNewsRequest:
+ *       type: object
+ *       properties:
+ *         title:
+ *           type: string
+ *         description:
+ *           type: string
+ *         content:
+ *           type: string
+ *         imageUrl:
+ *           type: string
+ *         icon:
+ *           type: string
+ *         category:
+ *           type: string
+ *         priority:
+ *           type: integer
+ *         isActive:
+ *           type: boolean
+ *         actionUrl:
+ *           type: string
+ *         actionText:
+ *           type: string
+ */
+
+/**
+ * @swagger
+ * /api/news:
+ *   get:
+ *     summary: Tüm aktif haberleri getir
+ *     tags: [News]
+ *     parameters:
+ *       - in: query
+ *         name: category
+ *         schema:
+ *           type: string
+ *         description: Haber kategorisi (general, update, feature, campaign)
+ *       - in: query
+ *         name: featured
+ *         schema:
+ *           type: boolean
+ *         description: Sadece öne çıkan haberleri getir
+ *     responses:
+ *       200:
+ *         description: Haberler başarıyla getirildi
+ *         content:
+ *           application/json:
+ *             schema:
+ *               type: array
+ *               items:
+ *                 $ref: '#/components/schemas/News'
+ *       500:
+ *         description: Sunucu hatası
+ *         content:
+ *           application/json:
+ *             schema:
+ *               type: object
+ *               properties:
+ *                 error:
+ *                   type: string
+ */
 // Tüm aktif haberleri getir
 const getAllNews = async (req, res) => {
   try {
+    const { category, featured } = req.query;
+    
+    const whereClause = {
+      isActive: true,
+    };
+
+    // Kategori filtresi
+    if (category && category !== 'all') {
+      whereClause.category = category;
+    }
+
+    // Featured filtresi
+    if (featured === 'true') {
+      whereClause.featured = true;
+    }
+
     const news = await prisma.news.findMany({
-      where: {
-        isActive: true,
-      },
+      where: whereClause,
       orderBy: [
         { priority: 'desc' },
         { createdAt: 'desc' }
@@ -21,6 +155,45 @@ const getAllNews = async (req, res) => {
   }
 };
 
+/**
+ * @swagger
+ * /api/news/{id}:
+ *   get:
+ *     summary: ID'ye göre haber getir
+ *     tags: [News]
+ *     parameters:
+ *       - in: path
+ *         name: id
+ *         required: true
+ *         schema:
+ *           type: integer
+ *         description: Haber ID
+ *     responses:
+ *       200:
+ *         description: Haber başarıyla getirildi
+ *         content:
+ *           application/json:
+ *             schema:
+ *               $ref: '#/components/schemas/News'
+ *       404:
+ *         description: Haber bulunamadı
+ *         content:
+ *           application/json:
+ *             schema:
+ *               type: object
+ *               properties:
+ *                 error:
+ *                   type: string
+ *       500:
+ *         description: Sunucu hatası
+ *         content:
+ *           application/json:
+ *             schema:
+ *               type: object
+ *               properties:
+ *                 error:
+ *                   type: string
+ */
 // Tek bir haberi getir
 const getNewsById = async (req, res) => {
   try {
@@ -43,6 +216,37 @@ const getNewsById = async (req, res) => {
   }
 };
 
+/**
+ * @swagger
+ * /api/news:
+ *   post:
+ *     summary: Yeni haber oluştur (Admin)
+ *     tags: [News]
+ *     security:
+ *       - bearerAuth: []
+ *     requestBody:
+ *       required: true
+ *       content:
+ *         application/json:
+ *           schema:
+ *             $ref: '#/components/schemas/CreateNewsRequest'
+ *     responses:
+ *       201:
+ *         description: Haber başarıyla oluşturuldu
+ *         content:
+ *           application/json:
+ *             schema:
+ *               $ref: '#/components/schemas/News'
+ *       500:
+ *         description: Sunucu hatası
+ *         content:
+ *           application/json:
+ *             schema:
+ *               type: object
+ *               properties:
+ *                 error:
+ *                   type: string
+ */
 // Yeni haber oluştur (Admin)
 const createNews = async (req, res) => {
   try {
@@ -162,7 +366,7 @@ const getNewsByCategory = async (req, res) => {
   }
 };
 
-module.exports = {
+export default {
   getAllNews,
   getNewsById,
   createNews,

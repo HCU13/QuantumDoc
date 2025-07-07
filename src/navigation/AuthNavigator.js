@@ -5,6 +5,7 @@ import Register from "../screens/auth/Register";
 import ForgotPassword from "../screens/auth/ForgotPassword";
 import Welcome from "../screens/auth/Welcome";
 import CategorySelectScreen from "../screens/auth/CategorySelectScreen";
+
 const Stack = createStackNavigator();
 
 const AuthNavigator = () => {
@@ -13,6 +14,7 @@ const AuthNavigator = () => {
       screenOptions={{
         headerShown: false,
       }}
+      initialRouteName="Welcome"
     >
       <Stack.Screen name="Welcome" component={Welcome} />
       <Stack.Screen name="Login" component={Login} />

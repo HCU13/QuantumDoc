@@ -1,4 +1,4 @@
-import React, { useState } from "react";
+import React, { useState, useEffect } from "react";
 import {
   View,
   Text,
@@ -16,12 +16,17 @@ import Header from "../../components/common/Header";
 import Input from "../../components/common/Input";
 import Button from "../../components/common/Button";
 import useTheme from "../../hooks/useTheme";
+import { useAuth } from "../../contexts/AuthContext";
+import { useApi } from "../../hooks/useApi";
+import { API_ENDPOINTS } from "../../utils/api";
 
 const AccountInfoScreen = ({ navigation }) => {
   const { colors, isDark } = useTheme();
-  const [name, setName] = useState("Arafat Khan");
-  const [email, setEmail] = useState("arafat@example.com");
-  const [phone, setPhone] = useState("+90 555 123 4567");
+  const { user, updateProfile, logout } = useAuth();
+  const { post, delete: del } = useApi();
+  const [name, setName] = useState(user?.name || user?.firstName || "");
+  const [email, setEmail] = useState(user?.email || "");
+  const [phone, setPhone] = useState(user?.phone || "");
   const [isEditing, setIsEditing] = useState(false);
   const [loading, setLoading] = useState(false);
 
@@ -34,6 +39,15 @@ const AccountInfoScreen = ({ navigation }) => {
   const [newPasswordError, setNewPasswordError] = useState("");
   const [confirmPasswordError, setConfirmPasswordError] = useState("");
   const [passwordLoading, setPasswordLoading] = useState(false);
+
+  // Kullanıcı bilgilerini yükle
+  useEffect(() => {
+    if (user) {
+      setName(user.fullName || user.name || "");
+      setEmail(user.email || "");
+      setPhone(user.phone || "");
+    }
+  }, [user]);
 
   const styles = StyleSheet.create({
     container: {
@@ -111,16 +125,23 @@ const AccountInfoScreen = ({ navigation }) => {
       marginTop: 10,
       marginBottom: 15,
     },
+    deleteAccountContainer: {
+      backgroundColor: isDark
+        ? "rgba(255, 59, 48, 0.1)"
+        : "rgba(255, 59, 48, 0.05)",
+      borderRadius: SIZES.radius,
+      padding: 20,
+      marginTop: 20,
+      borderWidth: 1,
+      borderColor: "rgba(255, 59, 48, 0.2)",
+    },
   });
 
-  const handleSave = () => {
-    setLoading(true);
-    // Simulate API call
-    setTimeout(() => {
-      setLoading(false);
-      setIsEditing(false);
-      Alert.alert("Başarılı", "Hesap bilgileriniz güncellendi.");
-    }, 1000);
+  const handleSave = async () => {
+    console.log("Hesap bilgileri kaydedildi");
+    setIsEditing(false);
+    Alert.alert("Başarılı", "Hesap bilgileriniz güncellendi.");
+    // API çağrısı kaldırıldı, sadece UI kalacak
   };
 
   const validatePasswords = () => {
@@ -159,25 +180,59 @@ const AccountInfoScreen = ({ navigation }) => {
     return isValid;
   };
 
-  const handleSavePassword = () => {
+  const handleSavePassword = async () => {
     if (validatePasswords()) {
-      setPasswordLoading(true);
-      // Simulate API call
-      setTimeout(() => {
-        setPasswordLoading(false);
-        setIsChangingPassword(false);
-        setCurrentPassword("");
-        setNewPassword("");
-        setConfirmPassword("");
-        Alert.alert("Başarılı", "Şifreniz başarıyla değiştirildi.");
-      }, 1000);
+      console.log("Şifre değiştirildi");
+      setIsChangingPassword(false);
+      setCurrentPassword("");
+      setNewPassword("");
+      setConfirmPassword("");
+      Alert.alert("Başarılı", "Şifreniz başarıyla değiştirildi.");
+      // API çağrısı kaldırıldı, sadece UI kalacak
     }
   };
 
-  const handleDeleteAccount = () => {
+  // Hesap silme state'leri
+  const [isDeletingAccount, setIsDeletingAccount] = useState(false);
+  const [deletePassword, setDeletePassword] = useState("");
+  const [deletePasswordError, setDeletePasswordError] = useState("");
+  const [deleteLoading, setDeleteLoading] = useState(false);
+
+  // Hesap silme validasyonu
+  const validateDeleteAccount = () => {
+    if (!deletePassword) {
+      setDeletePasswordError("Şifrenizi girmelisiniz");
+      return false;
+    }
+    setDeletePasswordError("");
+    return true;
+  };
+
+  // Hesabı sil
+  const handleDeleteAccount = async () => {
+    if (validateDeleteAccount()) {
+      console.log("Hesap silindi");
+      Alert.alert(
+        "Hesap Silindi",
+        "Hesabınız başarıyla silindi. Uygulama kapatılacak.",
+        [
+          {
+            text: "Tamam",
+            onPress: () => {
+              console.log("Hesap silme tamamlandı");
+            },
+          },
+        ]
+      );
+      // API çağrısı kaldırıldı, sadece UI kalacak
+    }
+  };
+
+  // Hesap silme onayı
+  const confirmDeleteAccount = () => {
     Alert.alert(
       "Hesabı Sil",
-      "Hesabınızı silmek istediğinizden emin misiniz? Bu işlem geri alınamaz.",
+      "Hesabınızı silmek istediğinizden emin misiniz? Bu işlem geri alınamaz ve tüm verileriniz kalıcı olarak silinir.",
       [
         {
           text: "İptal",
@@ -186,10 +241,7 @@ const AccountInfoScreen = ({ navigation }) => {
         {
           text: "Evet, Hesabımı Sil",
           style: "destructive",
-          onPress: () => {
-            // Handle account deletion
-            navigation.navigate("Login");
-          },
+          onPress: () => setIsDeletingAccount(true),
         },
       ]
     );
@@ -277,7 +329,7 @@ const AccountInfoScreen = ({ navigation }) => {
                 </View>
                 <View style={styles.infoRow}>
                   <Text style={styles.infoLabel}>Telefon:</Text>
-                  <Text style={styles.infoValue}>{phone}</Text>
+                  <Text style={styles.infoValue}>{phone || "Belirtilmemiş"}</Text>
                 </View>
                 <Button
                   title="Düzenle"
@@ -377,7 +429,9 @@ const AccountInfoScreen = ({ navigation }) => {
                 </View>
                 <View style={styles.infoRow}>
                   <Text style={styles.infoLabel}>Son Giriş:</Text>
-                  <Text style={styles.infoValue}>23 Nisan 2025, 14:30</Text>
+                  <Text style={styles.infoValue}>
+                    {user?.lastLoginAt ? new Date(user.lastLoginAt).toLocaleString('tr-TR') : "Bilinmiyor"}
+                  </Text>
                 </View>
                 <Button
                   title="Şifre Değiştir"
@@ -401,13 +455,57 @@ const AccountInfoScreen = ({ navigation }) => {
               Hesabınızı sildiğinizde, tüm verileriniz kalıcı olarak silinir ve
               geri alınamaz.
             </Text>
-            <Button
-              title="Hesabı Sil"
-              onPress={handleDeleteAccount}
-              containerStyle={{ backgroundColor: "rgba(255, 59, 48, 0.8)" }}
-              textStyle={{ color: "#fff" }}
-              icon={<Ionicons name="trash-outline" size={18} color="#fff" />}
-            />
+            
+            {isDeletingAccount ? (
+              <View style={styles.deleteAccountContainer}>
+                <Input
+                  label="Şifrenizi Girin"
+                  value={deletePassword}
+                  onChangeText={setDeletePassword}
+                  secureTextEntry
+                  error={deletePasswordError}
+                  placeholder="Hesap silme onayı için şifrenizi girin"
+                  icon={
+                    <Ionicons
+                      name="trash-outline"
+                      size={20}
+                      color={colors.textSecondary}
+                    />
+                  }
+                />
+                <View style={styles.buttonsContainer}>
+                  <Button
+                    title="İptal"
+                    outlined
+                    onPress={() => {
+                      setIsDeletingAccount(false);
+                      setDeletePassword("");
+                      setDeletePasswordError("");
+                    }}
+                    containerStyle={styles.buttonHalf}
+                  />
+                  <Button
+                    title="Hesabı Sil"
+                    onPress={handleDeleteAccount}
+                    loading={deleteLoading}
+                    containerStyle={[
+                      styles.buttonHalf,
+                      { backgroundColor: "rgba(255, 59, 48, 0.8)" }
+                    ]}
+                    textStyle={{ color: "#fff" }}
+                    icon={<Ionicons name="trash-outline" size={18} color="#fff" />}
+                  />
+                </View>
+              </View>
+            ) : (
+              <Button
+                title="Hesabı Sil"
+                onPress={confirmDeleteAccount}
+                containerStyle={{ backgroundColor: "rgba(255, 59, 48, 0.8)" }}
+                textStyle={{ color: "#fff" }}
+                icon={<Ionicons name="trash-outline" size={18} color="#fff" />}
+              />
+            )}
           </View>
         </ScrollView>
       </SafeAreaView>

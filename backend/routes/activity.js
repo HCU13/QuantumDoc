@@ -1,14 +1,21 @@
 import express from "express";
-import { getAllActivities, getRecentActivities } from "../controllers/activityController.js";
+import {
+  getActivities,
+  createActivity,
+  getActivityStats,
+  getRecentActivities,
+} from "../controllers/activityController.js";
 import { authMiddleware } from "../middleware/authMiddleware.js";
+
 const router = express.Router();
 
 /**
  * @swagger
  * tags:
  *   name: Activity
- *   description: Son aktiviteler ve geçmiş
+ *   description: Kullanıcı aktivite işlemleri
  */
+
 /**
  * @swagger
  * /activity:
@@ -45,8 +52,19 @@ const router = express.Router();
  *         description: Son 4 aktivite
  */
 
+// Tüm route'lar auth middleware kullanır
 router.use(authMiddleware);
-router.get("/", getAllActivities);
+
+// Aktivite geçmişini getir
+router.get("/", getActivities);
+
+// Yeni aktivite oluştur
+router.post("/", createActivity);
+
+// Aktivite istatistiklerini getir
+router.get("/stats", getActivityStats);
+
+// Son aktiviteleri getir
 router.get("/recent", getRecentActivities);
 
 export default router; 

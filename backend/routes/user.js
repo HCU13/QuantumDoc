@@ -1,5 +1,5 @@
 import express from "express";
-import { getProfile, updateProfile, uploadProfileImage } from "../controllers/userController.js";
+import { getProfile, updateProfile, uploadProfileImage, deleteAccount } from "../controllers/userController.js";
 import { authMiddleware } from "../middleware/authMiddleware.js";
 import multer from "multer";
 const router = express.Router();
@@ -75,5 +75,6 @@ router.use(authMiddleware);
 router.get("/profile", getProfile);
 router.put("/profile", updateProfile);
 router.post("/profile/image", upload.single("image"), uploadProfileImage);
+router.delete("/account", deleteAccount);
 
 export default router; 

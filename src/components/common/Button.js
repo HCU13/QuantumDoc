@@ -21,7 +21,7 @@ const Button = ({
   outlined = false,
   glow = false,
   neon = false,
-  size = "medium", // 'small', 'medium', 'large'
+  size = "medium", // 'small', 'medium', 'large', 'auth'
   icon = null,
   iconPosition = "left", // 'left', 'right'
   fluid = false,
@@ -34,29 +34,35 @@ const Button = ({
 
   switch (size) {
     case "small":
-      paddingV = SIZES.padding * 0.4;
-      paddingH = SIZES.padding * 0.6;
-      borderRadius = SIZES.radius * 0.8;
-      fontSize = SIZES.font - 2;
+      paddingV = SIZES.padding * 0.5;
+      paddingH = SIZES.padding * 0.8;
+      borderRadius = SIZES.radius * 0.9;
+      fontSize = SIZES.font - 1;
       break;
     case "large":
-      paddingV = SIZES.padding * 0.9;
+      paddingV = SIZES.padding * 1.0;
+      paddingH = SIZES.padding * 1.4;
+      borderRadius = SIZES.radius * 1.3;
+      fontSize = SIZES.font + 3;
+      break;
+    case "auth":
+      paddingV = SIZES.padding * 0.85;
       paddingH = SIZES.padding * 1.2;
       borderRadius = SIZES.radius * 1.2;
       fontSize = SIZES.font + 2;
       break;
     case "medium":
     default:
-      paddingV = SIZES.padding * 0.6;
-      paddingH = SIZES.padding * 0.8;
-      borderRadius = SIZES.radius;
-      fontSize = SIZES.font;
+      paddingV = SIZES.padding * 0.75;
+      paddingH = SIZES.padding * 1.0;
+      borderRadius = SIZES.radius * 1.1;
+      fontSize = SIZES.font + 1;
   }
 
   const buttonStyles = StyleSheet.create({
     container: {
       borderRadius: borderRadius,
-      marginVertical: 10,
+      marginVertical: 8,
       alignSelf: fluid ? "stretch" : "auto",
       ...(glow
         ? {

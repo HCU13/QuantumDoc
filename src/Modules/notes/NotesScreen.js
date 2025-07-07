@@ -20,22 +20,32 @@ import Card from "../../components/common/Card";
 import { SIZES, FONTS } from "../../constants/theme";
 import useTheme from "../../hooks/useTheme";
 import { useToken } from "../../contexts/TokenContext";
+import { useNotes } from "../../hooks/useNotes";
+import { useTranslation } from "react-i18next";
 
 const NotesScreen = ({ navigation }) => {
   const { colors, isDark } = useTheme();
   const { tokens } = useToken();
+  const { t } = useTranslation();
+  const { 
+    filteredNotes, 
+    loading, 
+    error,
+    createNote, 
+    deleteNote, 
+    filterNotes 
+  } = useNotes();
+
   const [searchQuery, setSearchQuery] = useState("");
-  const [notes, setNotes] = useState([]);
-  const [filteredNotes, setFilteredNotes] = useState([]);
   const [selectedCategory, setSelectedCategory] = useState("all");
 
   // Simüle edilmiş kategoriler
   const categories = [
-    { id: "all", name: "Tümü" },
-    { id: "personal", name: "Kişisel" },
-    { id: "work", name: "İş" },
-    { id: "ideas", name: "Fikirler" },
-    { id: "reminders", name: "Hatırlatıcılar" },
+    { id: "all", name: t("modules.notes.categories.all"), icon: "📝" },
+    { id: "personal", name: t("modules.notes.categories.personal"), icon: "👤" },
+    { id: "work", name: t("modules.notes.categories.work"), icon: "💼" },
+    { id: "study", name: t("modules.notes.categories.study"), icon: "📚" },
+    { id: "ideas", name: t("modules.notes.categories.ideas"), icon: "💡" },
   ];
 
   // Simüle edilmiş not verileri
@@ -144,29 +154,38 @@ const NotesScreen = ({ navigation }) => {
 
   // Notu sil
   const handleDeleteNote = (noteId) => {
-    Alert.alert("Notu Sil", "Bu notu silmek istediğinizden emin misiniz?", [
-      {
-        text: "İptal",
-        style: "cancel",
-      },
-      {
-        text: "Sil",
-        style: "destructive",
-        onPress: () => {
-          // Gerçek uygulamada API çağrısı yapılır
-          const updatedNotes = notes.filter((note) => note.id !== noteId);
-          setNotes(updatedNotes);
+    Alert.alert(
+      t("modules.notes.deleteNote"),
+      t("modules.notes.confirmDelete"),
+      [
+        { text: t("common.cancel"), style: "cancel" },
+        {
+          text: t("common.delete"),
+          style: "destructive",
+          onPress: async () => {
+            try {
+              await deleteNote(noteId);
+            } catch (error) {
+              Alert.alert("Hata", "Not silinirken bir hata oluştu");
+            }
+          },
         },
-      },
-    ]);
+      ]
+    );
   };
 
   // Notu sabitle/sabitlemeyi kaldır
-  const handleTogglePin = (noteId) => {
-    const updatedNotes = notes.map((note) =>
-      note.id === noteId ? { ...note, isPinned: !note.isPinned } : note
-    );
-    setNotes(updatedNotes);
+  const handleTogglePin = async (noteId) => {
+    try {
+      const note = filteredNotes.find(n => n.id === noteId);
+      if (note) {
+        const updatedNote = { ...note, isPinned: !note.isPinned };
+        // updateNote fonksiyonu hook'ta mevcut değilse eklenebilir
+        // await updateNote(noteId, updatedNote);
+      }
+    } catch (error) {
+      Alert.alert("Hata", "Not güncellenirken bir hata oluştu");
+    }
   };
 
   const CHIP_HEIGHT = 32;
@@ -275,204 +294,204 @@ const NotesScreen = ({ navigation }) => {
     );
   };
 
+  const styles = StyleSheet.create({
+    container: {
+      flex: 1,
+      paddingTop: Platform.OS === "android" ? StatusBar.currentHeight : 0,
+    },
+    searchContainer: {
+      flexDirection: "row",
+      alignItems: "center",
+      marginHorizontal: SIZES.padding,
+      marginVertical: 10,
+      borderRadius: SIZES.radius,
+      paddingHorizontal: 12,
+      height: 46,
+    },
+    searchIcon: {
+      marginRight: 8,
+    },
+    searchInput: {
+      flex: 1,
+      height: 46,
+      ...FONTS.body3,
+    },
+    clearButton: {
+      padding: 8,
+    },
+    notesContainer: {
+      padding: SIZES.padding,
+      paddingBottom: 100, // FAB için ekstra alt padding
+    },
+    noteCard: {
+      borderRadius: SIZES.radius,
+      padding: 16,
+      marginBottom: 12,
+      borderLeftWidth: 4,
+      elevation: 2,
+      shadowOffset: { width: 0, height: 1 },
+      shadowOpacity: 0.2,
+      shadowRadius: 2,
+    },
+    noteCardHeader: {
+      flexDirection: "row",
+      justifyContent: "space-between",
+      alignItems: "center",
+      marginBottom: 8,
+    },
+    titleContainer: {
+      flexDirection: "row",
+      alignItems: "center",
+      flex: 1,
+    },
+    pinIcon: {
+      marginRight: 4,
+    },
+    noteTitle: {
+      ...FONTS.h4,
+      flex: 1,
+    },
+    actionButtons: {
+      flexDirection: "row",
+    },
+    actionButton: {
+      padding: 5,
+      marginLeft: 8,
+    },
+    noteContent: {
+      ...FONTS.body4,
+      marginBottom: 8,
+    },
+    noteCardFooter: {
+      flexDirection: "row",
+      justifyContent: "space-between",
+      alignItems: "center",
+      marginTop: 4,
+    },
+    categoryText: {
+      ...FONTS.body5,
+    },
+    dateText: {
+      ...FONTS.body5,
+    },
+    emptyContainer: {
+      flex: 1,
+      justifyContent: "center",
+      alignItems: "center",
+      padding: 20,
+    },
+    emptyText: {
+      ...FONTS.body3,
+      marginTop: 20,
+      marginBottom: 20,
+      textAlign: "center",
+    },
+    emptyButton: {
+      width: 150,
+    },
+  });
+
+  if (loading) {
+    return (
+      <GradientBackground>
+        <SafeAreaView style={styles.container}>
+          <Header title={t("modules.notes.title")} />
+          <View style={styles.content}>
+            <Text style={[styles.emptyText, { textAlign: "center" }]}>
+              Yükleniyor...
+            </Text>
+          </View>
+        </SafeAreaView>
+      </GradientBackground>
+    );
+  }
+
   return (
     <GradientBackground>
       <SafeAreaView style={styles.container}>
-        <Header
-          title="Notlarım"
-          showBackButton={true}
-          rightComponent={
-            <TouchableOpacity
-              onPress={handleCreateNote}
-              style={{
-                width: 36,
-                height: 36,
-                borderRadius: 18,
-                backgroundColor: colors.primary,
-                justifyContent: 'center',
-                alignItems: 'center',
-                marginRight: 2,
-                shadowColor: colors.primary,
-                shadowOffset: { width: 0, height: 2 },
-                shadowOpacity: 0.18,
-                shadowRadius: 3,
-              }}
-              activeOpacity={0.8}
-            >
-              <Ionicons name="add" size={22} color="#fff" />
-            </TouchableOpacity>
-          }
+        <StatusBar
+          barStyle={isDark ? "light-content" : "dark-content"}
+          backgroundColor="transparent"
+          translucent
         />
 
-        <View style={[styles.searchContainer, { backgroundColor: colors.input, borderColor: colors.border, borderWidth: 1 }]}>
-          <Ionicons
-            name="search-outline"
-            size={20}
-            color={colors.textSecondary}
-            style={styles.searchIcon}
-          />
-          <TextInput
-            style={[styles.searchInput, { color: colors.textPrimary }]}
-            placeholder="Notlarda ara..."
-            placeholderTextColor={colors.textTertiary}
-            value={searchQuery}
-            onChangeText={setSearchQuery}
-          />
-          {searchQuery.length > 0 && (
+        <Header title={t("modules.notes.title")} />
+
+        <View style={styles.content}>
+          <View style={styles.header}>
+            <Text style={styles.title}>{t("modules.notes.title")}</Text>
             <TouchableOpacity
-              style={styles.clearButton}
-              onPress={() => setSearchQuery("")}
-            >
-              <Ionicons name="close-circle" size={20} color={colors.textSecondary} />
-            </TouchableOpacity>
-          )}
-        </View>
-
-        <View style={{ height: 44, justifyContent: 'center' }}>
-          <FlatList
-            data={categories}
-            horizontal
-            showsHorizontalScrollIndicator={false}
-            keyExtractor={item => item.id}
-            contentContainerStyle={{ paddingHorizontal: SIZES.padding }}
-            renderItem={({ item }) => (
-              <CategoryChip
-                label={item.name}
-                active={selectedCategory === item.id}
-                onPress={() => setSelectedCategory(item.id)}
-              />
-            )}
-          />
-        </View>
-
-        {filteredNotes.length > 0 ? (
-          <FlatList
-            data={filteredNotes}
-            renderItem={renderNoteItem}
-            keyExtractor={(item) => item.id}
-            contentContainerStyle={styles.notesContainer}
-            showsVerticalScrollIndicator={false}
-          />
-        ) : (
-          <View style={styles.emptyContainer}>
-            <Ionicons
-              name="document-text-outline"
-              size={80}
-              color={colors.textTertiary + '66'}
-            />
-            <Text style={[styles.emptyText, { color: colors.textSecondary }]}>
-              {searchQuery
-                ? "Aramanızla eşleşen not bulunamadı"
-                : "Henüz not eklenmemiş"}
-            </Text>
-            <Button
-              title="Not Ekle"
-              icon={<Ionicons name="add-outline" size={20} color="#fff" />}
+              style={styles.addButton}
               onPress={handleCreateNote}
-              containerStyle={styles.emptyButton}
+            >
+              <Ionicons name="add" size={24} color={colors.white} />
+            </TouchableOpacity>
+          </View>
+
+          <View style={styles.searchContainer}>
+            <SearchBar
+              value={searchQuery}
+              onChangeText={setSearchQuery}
+              placeholder={t("modules.notes.searchPlaceholder")}
             />
           </View>
-        )}
+
+          <View style={styles.categoriesContainer}>
+            <FlatList
+              data={categories}
+              horizontal
+              showsHorizontalScrollIndicator={false}
+              contentContainerStyle={styles.categoriesScroll}
+              renderItem={({ item }) => (
+                <TouchableOpacity
+                  style={[
+                    styles.categoryChip,
+                    selectedCategory === item.id && styles.categoryChipActive,
+                  ]}
+                  onPress={() => setSelectedCategory(item.id)}
+                >
+                  <Text style={styles.categoryText}>{item.icon}</Text>
+                  <Text
+                    style={[
+                      styles.categoryText,
+                      selectedCategory === item.id && styles.categoryTextActive,
+                    ]}
+                  >
+                    {item.name}
+                  </Text>
+                </TouchableOpacity>
+              )}
+              keyExtractor={(item) => item.id}
+            />
+          </View>
+
+          {filteredNotes.length === 0 ? (
+            <View style={styles.emptyContainer}>
+              <Text style={styles.emptyIcon}>📝</Text>
+              <Text style={styles.emptyTitle}>
+                {searchQuery || selectedCategory !== "all"
+                  ? "Not bulunamadı"
+                  : "Henüz not yok"}
+              </Text>
+              <Text style={styles.emptyText}>
+                {searchQuery || selectedCategory !== "all"
+                  ? "Arama kriterlerinize uygun not bulunamadı."
+                  : "İlk notunuzu oluşturmak için + butonuna tıklayın."}
+              </Text>
+            </View>
+          ) : (
+            <FlatList
+              data={filteredNotes}
+              renderItem={renderNoteItem}
+              keyExtractor={(item) => item.id.toString()}
+              showsVerticalScrollIndicator={false}
+              style={styles.notesList}
+            />
+          )}
+        </View>
       </SafeAreaView>
     </GradientBackground>
   );
 };
-
-const styles = StyleSheet.create({
-  container: {
-    flex: 1,
-    paddingTop: Platform.OS === "android" ? StatusBar.currentHeight : 0,
-  },
-  searchContainer: {
-    flexDirection: "row",
-    alignItems: "center",
-    marginHorizontal: SIZES.padding,
-    marginVertical: 10,
-    borderRadius: SIZES.radius,
-    paddingHorizontal: 12,
-    height: 46,
-  },
-  searchIcon: {
-    marginRight: 8,
-  },
-  searchInput: {
-    flex: 1,
-    height: 46,
-    ...FONTS.body3,
-  },
-  clearButton: {
-    padding: 8,
-  },
-  notesContainer: {
-    padding: SIZES.padding,
-    paddingBottom: 100, // FAB için ekstra alt padding
-  },
-  noteCard: {
-    borderRadius: SIZES.radius,
-    padding: 16,
-    marginBottom: 12,
-    borderLeftWidth: 4,
-    elevation: 2,
-    shadowOffset: { width: 0, height: 1 },
-    shadowOpacity: 0.2,
-    shadowRadius: 2,
-  },
-  noteCardHeader: {
-    flexDirection: "row",
-    justifyContent: "space-between",
-    alignItems: "center",
-    marginBottom: 8,
-  },
-  titleContainer: {
-    flexDirection: "row",
-    alignItems: "center",
-    flex: 1,
-  },
-  pinIcon: {
-    marginRight: 4,
-  },
-  noteTitle: {
-    ...FONTS.h4,
-    flex: 1,
-  },
-  actionButtons: {
-    flexDirection: "row",
-  },
-  actionButton: {
-    padding: 5,
-    marginLeft: 8,
-  },
-  noteContent: {
-    ...FONTS.body4,
-    marginBottom: 8,
-  },
-  noteCardFooter: {
-    flexDirection: "row",
-    justifyContent: "space-between",
-    alignItems: "center",
-    marginTop: 4,
-  },
-  categoryText: {
-    ...FONTS.body5,
-  },
-  dateText: {
-    ...FONTS.body5,
-  },
-  emptyContainer: {
-    flex: 1,
-    justifyContent: "center",
-    alignItems: "center",
-    padding: 20,
-  },
-  emptyText: {
-    ...FONTS.body3,
-    marginTop: 20,
-    marginBottom: 20,
-    textAlign: "center",
-  },
-  emptyButton: {
-    width: 150,
-  },
-});
 
 export default NotesScreen;

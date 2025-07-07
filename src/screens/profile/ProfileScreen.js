@@ -4,7 +4,6 @@ import {
   Text,
   StyleSheet,
   SafeAreaView,
-  Image,
   TouchableOpacity,
   ScrollView,
   StatusBar,
@@ -14,14 +13,17 @@ import { Ionicons } from "@expo/vector-icons";
 import GradientBackground from "../../components/common/GradientBackground";
 import Button from "../../components/common/Button";
 import TokenDisplay from "../../components/common/TokenDisplay";
+import ProfileImage from "../../components/common/ProfileImage";
 import useTheme from "../../hooks/useTheme";
 import { useToken } from "../../contexts/TokenContext";
 import { useTranslation } from "react-i18next";
+import { useAuth } from "../../contexts/AuthContext";
 
 const ProfileScreen = ({ navigation }) => {
   const { colors, isDark, toggleTheme } = useTheme();
   const { tokens } = useToken();
   const { t } = useTranslation();
+  const { user, logout } = useAuth();
 
   const styles = StyleSheet.create({
     container: {
@@ -74,10 +76,6 @@ const ProfileScreen = ({ navigation }) => {
       shadowOpacity: 0.5,
       shadowRadius: 8,
       elevation: 8,
-    },
-    profileImage: {
-      width: "100%",
-      height: "100%",
     },
     nameText: {
       ...FONTS.h2,
@@ -242,63 +240,49 @@ const ProfileScreen = ({ navigation }) => {
   ];
 
   const handleLogout = () => {
-    console.log("Çıkış yapıldı");
-    // Burada çıkış işlemleri yapılacak
-  navigation.reset({
-      index: 0,
-      routes: [{ name: "Auth" }],
-    });
+    logout();
   };
 
   return (
-    <GradientBackground mode="default">
+    <GradientBackground>
       <SafeAreaView style={styles.container}>
+        {/* <StatusBar
+          barStyle={isDark ? "light-content" : "dark-content"}
+          backgroundColor="transparent"
+          translucent
+        /> */}
+
+        <View style={styles.header}>
+          <TouchableOpacity
+            style={styles.backButton}
+            onPress={() => navigation.goBack()}
+          >
+            <Ionicons
+              name="arrow-back"
+              size={24}
+              color={colors.textPrimary}
+            />
+          </TouchableOpacity>
+          <Text style={styles.headerTitle}>Profil</Text>
+          <View style={{ width: 40 }} />
+        </View>
+
         <ScrollView style={styles.content} showsVerticalScrollIndicator={false}>
           <View style={styles.profileSection}>
             <View style={styles.profileImageContainer}>
-              <Image
-                source={{ uri: "https://i.pravatar.cc/300" }}
-                style={styles.profileImage}
-                resizeMode="cover"
-              />
+              <ProfileImage user={user} size={120} showBorder={false} />
             </View>
-
-            <Text style={styles.nameText}>Arafat Khan</Text>
-            <Text style={styles.emailText}>arafat@example.com</Text>
+            <Text style={styles.nameText}>
+              {user?.name || user?.firstName || "Kullanıcı"}
+            </Text>
+            <Text style={styles.emailText}>
+              {user?.email || "kullanici@example.com"}
+            </Text>
 
             <View style={styles.tokenContainer}>
-              <TokenDisplay
-                size="small"
-                onPress={() => navigation.navigate("Tokens")}
-              />
+              <TokenDisplay size="medium" />
             </View>
           </View>
-
-          <View style={styles.card}>
-            <View style={styles.themeSwitchContainer}>
-              <View style={styles.iconContainer}>
-                <Ionicons
-                  name={isDark ? "moon" : "sunny"}
-                  size={22}
-                  style={styles.themeSwitchIcon}
-                />
-              </View>
-              <Text style={styles.themeSwitchText}>{t("screens.profile.darkTheme")}</Text>
-              <TouchableOpacity
-                onPress={toggleTheme}
-                activeOpacity={0.7}
-                style={{ padding: 5 }}
-              >
-                <Ionicons
-                  name={isDark ? "toggle" : "toggle-outline"}
-                  size={40}
-                  style={styles.toggleIcon}
-                />
-              </TouchableOpacity>
-            </View>
-          </View>
-
-          <Text style={styles.sectionTitle}>{t("screens.profile.account")}</Text>
 
           <View style={styles.card}>
             {menuItems.map((item, index) => (
@@ -323,16 +307,9 @@ const ProfileScreen = ({ navigation }) => {
 
           <Button
             title="Çıkış Yap"
+            gradient
             onPress={handleLogout}
             containerStyle={styles.logoutButton}
-            outlined
-            icon={
-              <Ionicons
-                name="log-out-outline"
-                size={18}
-                color={colors.textPrimary}
-              />
-            }
           />
 
           <Text style={styles.versionText}>Sürüm 1.0.0</Text>

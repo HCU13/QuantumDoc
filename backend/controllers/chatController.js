@@ -2,6 +2,98 @@ import { PrismaClient } from "@prisma/client";
 import { askClaude } from "../utils/claude.js";
 const prisma = new PrismaClient();
 
+/**
+ * @swagger
+ * components:
+ *   schemas:
+ *     ChatRoom:
+ *       type: object
+ *       properties:
+ *         id:
+ *           type: integer
+ *         title:
+ *           type: string
+ *         userId:
+ *           type: integer
+ *         lastMessage:
+ *           type: string
+ *         createdAt:
+ *           type: string
+ *           format: date-time
+ *         updatedAt:
+ *           type: string
+ *           format: date-time
+ *     Message:
+ *       type: object
+ *       properties:
+ *         id:
+ *           type: integer
+ *         chatId:
+ *           type: integer
+ *         sender:
+ *           type: string
+ *         content:
+ *           type: string
+ *         createdAt:
+ *           type: string
+ *           format: date-time
+ *     CreateChatRoomRequest:
+ *       type: object
+ *       required:
+ *         - title
+ *       properties:
+ *         title:
+ *           type: string
+ *     AddMessageRequest:
+ *       type: object
+ *       required:
+ *         - sender
+ *         - content
+ *       properties:
+ *         sender:
+ *           type: string
+ *         content:
+ *           type: string
+ *     ChatRequest:
+ *       type: object
+ *       required:
+ *         - prompt
+ *       properties:
+ *         prompt:
+ *           type: string
+ */
+
+/**
+ * @swagger
+ * /chat/rooms:
+ *   post:
+ *     summary: Yeni chat odası oluştur
+ *     tags: [Chat]
+ *     security:
+ *       - bearerAuth: []
+ *     requestBody:
+ *       required: true
+ *       content:
+ *         application/json:
+ *           schema:
+ *             $ref: '#/components/schemas/CreateChatRoomRequest'
+ *     responses:
+ *       200:
+ *         description: Chat odası başarıyla oluşturuldu
+ *         content:
+ *           application/json:
+ *             schema:
+ *               $ref: '#/components/schemas/ChatRoom'
+ *       400:
+ *         description: Başlık gerekli
+ *         content:
+ *           application/json:
+ *             schema:
+ *               type: object
+ *               properties:
+ *                 error:
+ *                   type: string
+ */
 // --- Chat Room (Oda) API'leri ---
 export const createChatRoom = async (req, res) => {
   const { title } = req.body;
@@ -13,6 +105,24 @@ export const createChatRoom = async (req, res) => {
   res.json(chat);
 };
 
+/**
+ * @swagger
+ * /chat/rooms:
+ *   get:
+ *     summary: Kullanıcının chat odalarını getir
+ *     tags: [Chat]
+ *     security:
+ *       - bearerAuth: []
+ *     responses:
+ *       200:
+ *         description: Chat odaları başarıyla getirildi
+ *         content:
+ *           application/json:
+ *             schema:
+ *               type: array
+ *               items:
+ *                 $ref: '#/components/schemas/ChatRoom'
+ */
 export const getChatRooms = async (req, res) => {
   const userId = req.user.userId;
   const chats = await prisma.chat.findMany({
@@ -61,6 +171,53 @@ export const deleteChatRoom = async (req, res) => {
 };
 
 // --- Message API'leri ---
+/**
+ * @swagger
+ * /chat/rooms/{id}/messages:
+ *   post:
+ *     summary: Chat odasına mesaj ekle
+ *     tags: [Chat]
+ *     security:
+ *       - bearerAuth: []
+ *     parameters:
+ *       - in: path
+ *         name: id
+ *         required: true
+ *         schema:
+ *           type: integer
+ *         description: Chat odası ID
+ *     requestBody:
+ *       required: true
+ *       content:
+ *         application/json:
+ *           schema:
+ *             $ref: '#/components/schemas/AddMessageRequest'
+ *     responses:
+ *       200:
+ *         description: Mesaj başarıyla eklendi
+ *         content:
+ *           application/json:
+ *             schema:
+ *               $ref: '#/components/schemas/Message'
+ *       400:
+ *         description: Mesaj ve gönderen gerekli
+ *         content:
+ *           application/json:
+ *             schema:
+ *               type: object
+ *               properties:
+ *                 error:
+ *                   type: string
+ *       404:
+ *         description: Oda bulunamadı
+ *         content:
+ *           application/json:
+ *             schema:
+ *               type: object
+ *               properties:
+ *                 error:
+ *                   type: string
+ */
 export const addMessageToRoom = async (req, res) => {
   const userId = req.user.userId;
   const { id } = req.params;
@@ -77,6 +234,40 @@ export const addMessageToRoom = async (req, res) => {
   res.json(message);
 };
 
+/**
+ * @swagger
+ * /chat/rooms/{id}/messages:
+ *   get:
+ *     summary: Chat odasındaki mesajları getir
+ *     tags: [Chat]
+ *     security:
+ *       - bearerAuth: []
+ *     parameters:
+ *       - in: path
+ *         name: id
+ *         required: true
+ *         schema:
+ *           type: integer
+ *         description: Chat odası ID
+ *     responses:
+ *       200:
+ *         description: Mesajlar başarıyla getirildi
+ *         content:
+ *           application/json:
+ *             schema:
+ *               type: array
+ *               items:
+ *                 $ref: '#/components/schemas/Message'
+ *       404:
+ *         description: Oda bulunamadı
+ *         content:
+ *           application/json:
+ *             schema:
+ *               type: object
+ *               properties:
+ *                 error:
+ *                   type: string
+ */
 export const getMessagesForRoom = async (req, res) => {
   const userId = req.user.userId;
   const { id } = req.params;

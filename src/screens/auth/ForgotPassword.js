@@ -113,6 +113,7 @@ const ForgotPassword = ({ navigation }) => {
               gradient
               onPress={handleResetPassword}
               loading={loading}
+              size="auth"
             />
           </View>
 

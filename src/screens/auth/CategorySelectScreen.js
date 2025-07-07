@@ -178,6 +178,7 @@ const CategorySelectScreen = ({ navigation }) => {
             fluid
             containerStyle={styles.button}
             disabled={selected.length === 0}
+            size="auth"
           />
         </View>
       </SafeAreaView>
@@ -248,6 +249,7 @@ const styles = StyleSheet.create({
   button: {
     width: '90%',
     alignSelf: 'center',
+    marginVertical: 8,
   },
 });
 

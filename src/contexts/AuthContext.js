@@ -1,23 +1,22 @@
-import { StyleSheet, Text, View } from "react-native";
-import React from "react";
-import { ThemeContext } from "./ThemeContext";
+import React, { createContext, useContext } from "react";
+import { useAuth as useAuthHook } from "../hooks/useAuth";
 
-export const AuthContext = ({ children }) => {
-  const getToken = () => {
-    const token = localStorage.getItem("token");
-    if (token) {
-      return token;
-    }
-  };
-  const authContext = {
-    getToken,
-  };
+const AuthContext = createContext();
+
+export const AuthProvider = ({ children }) => {
+  const authData = useAuthHook();
 
   return (
-    <ThemeContext.Provider value={authContext}>
+    <AuthContext.Provider value={authData}>
       {children}
-    </ThemeContext.Provider>
+    </AuthContext.Provider>
   );
 };
 
-const styles = StyleSheet.create({});
+export const useAuth = () => {
+  const context = useContext(AuthContext);
+  if (!context) {
+    throw new Error("useAuth must be used within an AuthProvider");
+  }
+  return context;
+}; 

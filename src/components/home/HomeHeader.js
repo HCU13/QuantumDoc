@@ -1,27 +1,25 @@
 import React from "react";
-import { View, Text, StyleSheet, TouchableOpacity, Image } from "react-native";
-import { FONTS, SIZES } from "../../constants/theme";
+import { View, Text, TouchableOpacity, StyleSheet } from "react-native";
 import { Ionicons } from "@expo/vector-icons";
-import useTheme from "../../hooks/useTheme";
-import TokenDisplay from "../common/TokenDisplay";
 import { useTranslation } from "react-i18next";
+import { SIZES, FONTS } from "../../constants/theme";
+import TokenDisplay from "../common/TokenDisplay";
+import ProfileImage from "../common/ProfileImage";
+import { useAuth } from "../../contexts/AuthContext";
+import useTheme from "../../hooks/useTheme";
 
-const HomeHeader = ({
-  username = "Human",
-  onProfilePress,
-  onSettingsPress,
-  navigation,
-}) => {
-  const { colors, isDark } = useTheme();
+const HomeHeader = ({ onProfilePress, onSettingsPress, navigation }) => {
   const { t } = useTranslation();
+  const { user } = useAuth();
+  const { colors } = useTheme();
 
   const styles = StyleSheet.create({
     container: {
       flexDirection: "row",
-      alignItems: "center",
       justifyContent: "space-between",
+      alignItems: "center",
       paddingHorizontal: SIZES.padding,
-      paddingVertical: SIZES.padding * 0.7,
+      paddingVertical: 15,
     },
     leftContainer: {
       flex: 1,
@@ -29,6 +27,7 @@ const HomeHeader = ({
     greeting: {
       ...FONTS.body4,
       color: colors.textOnGradient,
+      marginBottom: 2,
     },
     nameContainer: {
       flexDirection: "row",
@@ -43,31 +42,29 @@ const HomeHeader = ({
       flexDirection: "row",
       alignItems: "center",
     },
+    tokenDisplay: {
+      marginRight: 15,
+    },
     iconButton: {
       width: 40,
       height: 40,
       borderRadius: 20,
-      backgroundColor: isDark ? colors.gray : colors.white,
-      alignItems: "center",
+      backgroundColor: colors.card,
       justifyContent: "center",
-      marginLeft: 10,
+      alignItems: "center",
+      marginRight: 10,
     },
     profileButton: {
       width: 40,
       height: 40,
       borderRadius: 20,
-      alignItems: "center",
       justifyContent: "center",
-      marginLeft: 10,
-      overflow: "hidden",
+      alignItems: "center",
     },
     profileImage: {
-      width: "100%",
-      height: "100%",
+      width: 40,
+      height: 40,
       borderRadius: 20,
-    },
-    tokenDisplay: {
-      marginLeft: 10,
     },
   });
 
@@ -76,7 +73,9 @@ const HomeHeader = ({
       <View style={styles.leftContainer}>
         <Text style={styles.greeting}>{t("home.greeting")},</Text>
         <View style={styles.nameContainer}>
-          <Text style={styles.username}>{username}</Text>
+          <Text style={styles.username}>
+            {user?.name || user?.firstName || "Kullanıcı"}
+          </Text>
         </View>
       </View>
 
@@ -92,11 +91,7 @@ const HomeHeader = ({
         </TouchableOpacity> */}
 
         <TouchableOpacity style={styles.profileButton} onPress={onProfilePress}>
-          {/* Kullanıcı profil resmi */}
-          <Image
-            source={{ uri: "https://i.pravatar.cc/300" }}
-            style={styles.profileImage}
-          />
+          <ProfileImage user={user} size={40} />
         </TouchableOpacity>
       </View>
     </View>
