@@ -17,6 +17,7 @@ import TokenDisplay from "../../components/common/TokenDisplay";
 import SearchBar from "../../components/home/SearchBar";
 import Button from "../../components/common/Button";
 import useTheme from "../../hooks/useTheme";
+import HomeHeader from "../../components/home/HomeHeader";
 
 const ActivityItem = ({ item, onPress }) => {
   const { colors } = useTheme();
@@ -350,18 +351,12 @@ const ActivityScreen = ({ navigation }) => {
           translucent
         /> */}
 
-        <View style={styles.header}>
-          <View style={styles.headerLeft}>
-            <Text style={styles.title}>Aktiviteler</Text>
-            <Text style={styles.subtitle}>Geçmiş etkileşimleriniz</Text>
-          </View>
-
-          <TokenDisplay
-            size="small"
-            showPlus={false}
-            onPress={() => navigation.navigate("Tokens")}
-          />
-        </View>
+        <HomeHeader
+          navigation={navigation}
+          showProfileImage={false}
+          title="Aktiviteler"
+          subtitle="Geçmiş etkileşimleriniz"
+        />
 
         <View style={styles.contentContainer}>
           <SearchBar

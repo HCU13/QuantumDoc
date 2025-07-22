@@ -7,6 +7,7 @@ export const COLORS = {
     primaryLight: "#A880FF", // Açık mor
     secondary: "#FF9D55", // Turuncu vurgu rengi
     success: "#4ECDC4", // Başarı rengi
+    error: "#FF6B6B", // Hata rengi
     warning: "#FF8A5B", // Uyarı rengi
     info: "#4A6FA5", // Bilgi rengi
     background: "#F1F0F5", // Daha gri-mor tonda arka plan
@@ -24,6 +25,20 @@ export const COLORS = {
     statusBar: "dark-content", // Status bar içeriği rengi
     border: "#E0E0E0",
     input: "#F5F5F7", // Input alanı arka plan rengi
+    
+    // Modül renkleri
+    mathPrimary: "#4F8EF7", // Matematik modülü için mavi (gradientColors[0])
+    mathPrimaryDark: "#235390", // Matematik koyu mavi (gradientColors[1])
+    mathPrimaryLight: "#7BA3F7", // Matematik açık mavi
+    quizPrimary: "#F472B6", // Quiz modülü için pembe (gradientColors[0])
+    quizPrimaryDark: "#C026D3", // Quiz koyu mor (gradientColors[1])
+    quizPrimaryLight: "#F8A5D1", // Quiz açık pembe
+    chatPrimary: "#4F8EF7", // Chat modülü için mavi (gradientColors[0])
+    chatPrimaryDark: "#235390", // Chat koyu mavi (gradientColors[1])
+    chatPrimaryLight: "#7BA3F7", // Chat açık mavi
+    calculatorPrimary: "#10B981", // Hesap makinesi ana yeşil
+    calculatorSecondary: "#059669", // Hesap makinesi koyu yeşil
+    calculatorTertiary: "#34D399", // Hesap makinesi açık yeşil
   },
 
   // Koyu tema renkleri - ekran görüntülerine göre ayarlandı
@@ -33,6 +48,7 @@ export const COLORS = {
     primaryLight: "#B492FF", // Açık mor
     secondary: "#FF9D55", // Turuncu vurgu rengi (aynı kaldı)
     success: "#4ECDC4", // Başarı rengi
+    error: "#FF6B6B", // Hata rengi
     warning: "#FF8A5B", // Uyarı rengi
     info: "#4A6FA5", // Bilgi rengi
     background: "#21193A", // Koyu mor-siyah arka plan
@@ -50,5 +66,16 @@ export const COLORS = {
     statusBar: "light-content", // Status bar içeriği rengi
     border: "#3D3D5A", // Hafif mor-gri sınır
     input: "#312A4A", // Input alanı arka plan rengi
+    
+    // Modül renkleri (koyu tema için daha parlak)
+    mathPrimary: "#4F8EF7", // Matematik modülü için mavi (gradientColors[0])
+    mathPrimaryDark: "#235390", // Matematik koyu mavi (gradientColors[1])
+    mathPrimaryLight: "#7BA3F7", // Matematik açık mavi
+    quizPrimary: "#F472B6", // Quiz modülü için pembe (gradientColors[0])
+    quizPrimaryDark: "#C026D3", // Quiz koyu mor (gradientColors[1])
+    quizPrimaryLight: "#F8A5D1", // Quiz açık pembe
+    chatPrimary: "#4F8EF7", // Chat modülü için mavi (gradientColors[0])
+    chatPrimaryDark: "#235390", // Chat koyu mavi (gradientColors[1])
+    chatPrimaryLight: "#7BA3F7", // Chat açık mavi
   },
 };

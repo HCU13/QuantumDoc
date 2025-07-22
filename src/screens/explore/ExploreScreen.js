@@ -18,13 +18,14 @@ import ModuleCard from "../../components/explore/ModuleCard";
 import SearchBar from "../../components/home/SearchBar";
 import Button from "../../components/common/Button";
 import useTheme from "../../hooks/useTheme";
-import { useToken } from "../../contexts/TokenContext";
 import { useTranslation } from "react-i18next";
+import { MODULES } from "../../constants/modules";
+import HomeHeader from "../../components/home/HomeHeader";
 
 const ExploreScreen = ({ navigation }) => {
   const [searchQuery, setSearchQuery] = useState("");
   const { colors, isDark } = useTheme();
-  const { tokens } = useToken();
+  // useToken ile ilgili import ve kodlar kaldırıldı.
   const { t } = useTranslation();
 
   const styles = StyleSheet.create({
@@ -150,93 +151,22 @@ const ExploreScreen = ({ navigation }) => {
 
   // Modül kategorileri
   const categories = [
-    { id: "all", name: "Tümü" },
-    { id: "productivity", name: "Verimlilik" },
-    { id: "education", name: "Eğitim" },
-    { id: "creative", name: "Yaratıcılık" },
-    { id: "tools", name: "Araçlar" },
-    { id: "free", name: "Ücretsiz" },
+    { id: "all", name: t("screens.explore.categories.all") },
+    ...Array.from(new Set(MODULES.filter(m => m.enabled && m.category).map(m => m.category)))
+      .map(cat => ({ id: cat, name: t(`screens.explore.categories.${cat}`) }))
   ];
 
   // Seçili kategori
   const [selectedCategory, setSelectedCategory] = useState("all");
 
   // Tüm modüller
-  const allModules = [
-    {
-      id: "chat",
-      title: "AI Sohbet",
-      description: "Yapay zeka ile sohbet edin",
-      icon: <Ionicons name="chatbubble-outline" size={28} color="#FFF" />,
-      gradientColors: [colors.primary, colors.primaryDark],
-      category: "productivity",
-      featured: true,
-    },
-    {
-      id: "math",
-      title: "Matematik",
-      description: "Matematik sorularını çözün",
-      icon: <Ionicons name="calculator-outline" size={28} color="#FFF" />,
-      gradientColors: ["#FF7B54", "#F24C4C"],
-      category: "education",
-      featured: true,
-    },
-    {
-      id: "write",
-      title: "Yazı Üretici",
-      description: "Yaratıcı metinler oluşturun",
-      icon: <Ionicons name="create-outline" size={28} color="#FFF" />,
-      gradientColors: ["#4CACBC", "#1C7293"],
-      category: "creative",
-      featured: true,
-    },
-    {
-      id: "translate",
-      title: "Çeviri",
-      description: "Metinleri farklı dillere çevirin",
-      icon: <Ionicons name="language-outline" size={28} color="#FFF" />,
-      gradientColors: ["#7F7FD5", "#5C5CBD"],
-      category: "tools",
-    },
-    {
-      id: "notes",
-      title: "Notlar",
-      description: "Notlarınızı organize edin",
-      icon: <Ionicons name="document-text-outline" size={28} color="#FFF" />,
-      gradientColors: ["#3C9D9B", "#52DE97"],
-      category: "productivity",
-    },
-    // {
-    //   id: "tasks",
-    //   title: "Görevler",
-    //   description: "Görevlerinizi yönetin",
-    //   icon: <Ionicons name="checkbox-outline" size={28} color="#FFF" />,
-    //   gradientColors: ["#FF78C4", "#E252DC"],
-    //   category: "productivity",
-    // },
-    // {
-    //   id: "voice",
-    //   title: "Sesli Okuma",
-    //   description: "Metinleri seslendirir",
-    //   icon: <Ionicons name="volume-high-outline" size={28} color="#FFF" />,
-    //   gradientColors: ["#FF9A8B", "#FF6A88"],
-    //   category: "tools",
-    // },
-    // {
-    //   id: "calendar",
-    //   title: "Takvim",
-    //   description: "Etkinliklerinizi planlayın",
-    //   icon: <Ionicons name="calendar-outline" size={28} color="#FFF" />,
-    //   gradientColors: ["#A18CD1", "#FBC2EB"],
-    //   category: "productivity",
-    // },
-  ];
+  const allModules = MODULES.filter((m) => m.enabled);
 
   // Arama filtrelemesi
   const searchFilteredModules = allModules.filter(
     (module) =>
-      module.title.toLowerCase().includes(searchQuery.toLowerCase()) ||
-      module.description.toLowerCase().includes(searchQuery.toLowerCase())
+      t(module.titleKey).toLowerCase().includes(searchQuery.toLowerCase()) ||
+      t(module.descriptionKey).toLowerCase().includes(searchQuery.toLowerCase())
   );
 
   // Kategori filtrelemesi
@@ -255,52 +185,21 @@ const ExploreScreen = ({ navigation }) => {
   }
 
   // Modül tıklandığında
-  const handleModulePress = (module) => {
-    console.log(`Modül tıklandı: ${module.id}`);
-
-    // Modüle özgü ekranlara yönlendir
-    switch (module.id) {
-      case "chat":
-        navigation.navigate("Chat", { screen: "ChatRooms" });
-        break;
-      case "math":
-        navigation.navigate("MathHome");
-        break;
-      case "write":
-        navigation.navigate("WriteHome");
-        break;
-      case "translate":
-        navigation.navigate("TranslateHome");
-        break;
-      case "notes":
-        navigation.navigate("NotesHome");
-        break;
-      // case "tasks":
-      //   navigation.navigate("TasksHome");
-      //   break;
-      // case "voice":
-      //   navigation.navigate("VoiceHome");
-      //   break;
-      // case "calendar":
-      //   navigation.navigate("CalendarHome");
-      //   break;
-      default:
-        console.log(`${module.id} için henüz ekran oluşturulmadı`);
+  const handleExploreModulePress = (module) => {
+    if (module.route) {
+      navigation.navigate(module.route);
     }
   };
 
   return (
     <GradientBackground mode="default">
       <SafeAreaView style={styles.container}>
-        <View style={styles.header}>
-          <View style={styles.headerLeft}>
-            <Text style={styles.title}>{t("screens.explore.title")}</Text>
-            <Text style={styles.subtitle}>{t("screens.explore.subtitle")}</Text>
-          </View>
-
-          <TokenDisplay onPress={() => navigation.navigate("Tokens")} />
-        </View>
-
+        <HomeHeader
+          navigation={navigation}
+          showProfileImage={false}
+          title="Keşfet"
+          subtitle="Tüm modülleri keşfet"
+        />
         <ScrollView style={styles.content} showsVerticalScrollIndicator={false}>
           <SearchBar
             value={searchQuery}
@@ -318,8 +217,6 @@ const ExploreScreen = ({ navigation }) => {
           )}
 
           <View style={styles.section}>
-            {/* <Text style={styles.sectionTitle}>Kategoriler</Text> */}
-
             <ScrollView
               horizontal
               showsHorizontalScrollIndicator={false}
@@ -363,14 +260,17 @@ const ExploreScreen = ({ navigation }) => {
                     {row.map((module) => (
                       <ModuleCard
                         key={module.id}
-                        title={module.title}
-                        description={module.description}
+                        title={t(module.titleKey)}
+                        description={t(module.descriptionKey)}
                         moduleId={module.id}
                         icon={module.icon}
+                        size="medium"
                         gradientColors={module.gradientColors}
-                        onPress={handleModulePress}
+                        tokenCost={module.tokenCost}
+                        canAfford={true} // Tokens logic removed
+                        onPress={() => handleExploreModulePress(module)}
                         containerStyle={{ marginHorizontal: 0, width: "48%" }}
-                        glowing={true}
+                        // glowing={true}
                       />
                     ))}
                     {row.length === 1 && <View style={{ width: "48%" }} />}

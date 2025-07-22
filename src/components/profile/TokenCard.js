@@ -3,11 +3,16 @@ import { View, Text, StyleSheet, TouchableOpacity, Image } from "react-native";
 import { FONTS, SIZES } from "../../constants/theme";
 import { LinearGradient } from "expo-linear-gradient";
 import { Ionicons } from "@expo/vector-icons";
-import { useToken } from "../../contexts/TokenContext";
 import useTheme from "../../hooks/useTheme";
 
-const TokenCard = ({ onGetTokenPress, onHistoryPress, containerStyle }) => {
-  const { tokens, watchedVideosToday, canWatchVideoForTokens } = useToken();
+const TokenCard = ({
+  tokens = 0,
+  watchedVideosToday = 0,
+  canWatchVideoForTokens = () => false,
+  onGetTokenPress,
+  onHistoryPress,
+  containerStyle,
+}) => {
   const { colors } = useTheme();
 
   const styles = StyleSheet.create({
@@ -95,9 +100,7 @@ const TokenCard = ({ onGetTokenPress, onHistoryPress, containerStyle }) => {
       opacity: 0.8,
     },
     getTokenButton: {
-      backgroundColor: canWatchVideoForTokens()
-        ? colors.secondary
-        : "rgba(255, 255, 255, 0.2)",
+      backgroundColor: "rgba(255, 255, 255, 0.2)",
       paddingHorizontal: 15,
       paddingVertical: 8,
       borderRadius: 20,

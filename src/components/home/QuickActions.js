@@ -5,11 +5,12 @@ import { Ionicons } from "@expo/vector-icons";
 import useTheme from "../../hooks/useTheme";
 import ModuleCard from "../explore/ModuleCard";
 import { useTranslation } from "react-i18next";
-
+import { MODULES } from "../../constants/modules";
+import { useNavigation } from "@react-navigation/native";
 const QuickActions = ({ onActionPress, containerStyle }) => {
   const { colors } = useTheme();
   const { t } = useTranslation();
-
+  const navigation = useNavigation();
   const styles = StyleSheet.create({
     container: {
       width: "100%",
@@ -34,49 +35,7 @@ const QuickActions = ({ onActionPress, containerStyle }) => {
   });
 
   // Modüller ve özellikleri
-  const quickActions = [
-    // {
-    //   id: "chat",
-    //   title: "AI Sohbet",
-    //   icon: <Ionicons name="chatbubble-outline" size={24} color="#FFF" />,
-    //   gradientColors: [colors.primary, colors.primaryDark],
-    // },
-    {
-      id: "math",
-      title: t("modules.math.title"),
-      description: t("modules.math.description"),
-      icon: <Ionicons name="calculator-outline" size={24} color="#FFF" />,
-      gradientColors: ["#FF7B54", "#F24C4C"],
-    },
-    {
-      id: "write",
-      title: t("modules.write"),
-      description: t("modules.writeDescription"),
-      icon: <Ionicons name="create-outline" size={24} color="#FFF" />,
-      gradientColors: ["#4CACBC", "#1C7293"],
-    },
-    {
-      id: "translate",
-      title: t("modules.translate.title"),
-      description: t("modules.translateDescription"),
-      icon: <Ionicons name="language-outline" size={24} color="#FFF" />,
-      gradientColors: ["#7F7FD5", "#5C5CBD"],
-    },
-    {
-      id: "notes",
-      title: t("modules.notes.title"),
-      description: t("modules.notesDescription"),
-      icon: <Ionicons name="document-text-outline" size={24} color="#FFF" />,
-      gradientColors: ["#3C9D9B", "#52DE97"],
-    },
-    {
-      id: "tasks",
-      title: t("modules.tasks"),
-      description: t("modules.tasksDescription"),
-      icon: <Ionicons name="checkbox-outline" size={24} color="#FFF" />,
-      gradientColors: ["#FF78C4", "#E252DC"],
-    },
-  ];
+  const quickActions = MODULES.filter((m) => m.enabled && m.showQuickArea);
 
   return (
     <View style={[styles.container, containerStyle]}>
@@ -93,11 +52,19 @@ const QuickActions = ({ onActionPress, containerStyle }) => {
           {quickActions.map((action) => (
             <ModuleCard
               key={action.id}
-              title={action.title}
-              description={action.description}
+              title={t(action.titleKey)}
+              description={t(action.descriptionKey)}
               icon={action.icon}
               gradientColors={action.gradientColors}
-              onPress={() => onActionPress(action)}
+              tokenCost={action.tokenCost}
+              canAfford={true} // Removed tokens >= (action.tokenCost || 0)
+              onPress={() => {
+                if (action.route && navigation) {
+                  navigation.navigate(action.route);
+                } else if (onActionPress) {
+                  onActionPress(action);
+                }
+              }}
               size="medium"
               containerStyle={{ marginHorizontal: 4, width: 160 }}
             />

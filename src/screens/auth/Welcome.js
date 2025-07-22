@@ -13,8 +13,8 @@ import {
 import GradientBackground from "../../components/common/GradientBackground";
 import { SIZES, FONTS } from "../../constants/theme";
 import useTheme from "../../hooks/useTheme";
-import Button from "../../components/common/Button";
 import { useTranslation } from "react-i18next";
+import Button from "../../components/common/Button";
 
 const { width } = Dimensions.get("window");
 
@@ -56,6 +56,18 @@ const Welcome = ({ navigation }) => {
 
   const viewabilityConfig = {
     itemVisiblePercentThreshold: 50,
+  };
+
+  const handleRegister = () => {
+    // Mock navigation - gerçek API çağrısı yerine
+    console.log("Register sayfasına yönlendiriliyor");
+    navigation.navigate('Register');
+  };
+
+  const handleLogin = () => {
+    // Mock navigation - gerçek API çağrısı yerine
+    console.log("Login sayfasına yönlendiriliyor");
+    navigation.navigate('Login');
   };
 
   return (
@@ -111,14 +123,14 @@ const Welcome = ({ navigation }) => {
         <View style={styles.buttonGroup}>
           <Button
             title={t('auth.register')}
-            onPress={() => navigation.navigate('Register')}
+            onPress={handleRegister}
             fluid
             containerStyle={styles.buttonSpacing}
             size="auth"
           />
           <Button
             title={t('auth.login')}
-            onPress={() => navigation.navigate('Login')}
+            onPress={handleLogin}
             fluid
             outlined
             containerStyle={styles.buttonSpacing}

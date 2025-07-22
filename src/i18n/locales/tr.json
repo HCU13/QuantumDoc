@@ -83,7 +83,23 @@
       "solution": "Çözüm",
       "steps": "Adımlar",
       "error": "Soru çözülemedi",
-      "tryAgain": "Tekrar Dene"
+      "tryAgain": "Tekrar Dene",
+      "imagePickError": "Resim seçilirken bir hata oluştu",
+      "cameraPermission": "Kamera izni gereklidir",
+      "cameraError": "Fotoğraf çekilirken bir hata oluştu",
+      "enterProblem": "Lütfen bir matematik problemi girin",
+      "selectImageError": "Lütfen bir resim seçin",
+      "notEnoughTokens": "Bu işlem için {{cost}} token gerekiyor. Daha fazla token almak için token sayfasına gidin.",
+      "solved": "Problem başarıyla çözüldü!",
+      "solveError": "Problem çözülürken bir hata oluştu",
+      "textInput": "Metin Girişi",
+      "imageInput": "Görsel Girişi",
+      "retake": "Yeniden Çek",
+      "clear": "Temizle",
+      "takePhoto": "Fotoğraf Çek",
+      "choosePhoto": "Galeriden Seç",
+      "selectImage": "Bir görsel seçin veya fotoğraf çekin",
+      "examples": "Örnekler"
     },
     "write": "Metin Oluşturucu",
     "writeDescription": "Metin oluşturun",
@@ -140,17 +156,65 @@
       "confirmDelete": "Bu sohbeti silmek istediğinizden emin misiniz?",
       "error": "Mesaj gönderilemedi",
       "tryAgain": "Tekrar Dene"
+    },
+    "voiceNote": {
+      "title": "Sesli Not",
+      "description": "Ses kaydedin, otomatik olarak metne dönüştürün"
+    },
+    "pdfEditor": {
+      "title": "Belge/PDF Düzenleyici",
+      "description": "PDF ve belgeleri düzenleyin, özetleyin"
+    },
+    "ocr": {
+      "title": "Görselden Metin Okuma",
+      "description": "Fotoğraftan metin tanıyın ve kopyalayın"
+    },
+    "quiz": {
+      "title": "Quiz & Test",
+      "description": "AI destekli test oluştur ve çöz",
+      "createQuiz": "Test Oluştur",
+      "solveQuiz": "Test Çöz",
+      "subject": "Konu Seçin",
+      "difficulty": "Zorluk Seviyesi",
+      "questionCount": "Soru Sayısı",
+      "easy": "Kolay",
+      "medium": "Orta",
+      "hard": "Zor",
+      "createButton": "Test Oluştur",
+      "creating": "Oluşturuluyor...",
+      "next": "Sonraki",
+      "previous": "Önceki",
+      "finish": "Bitir",
+      "results": "Sonuçlar",
+      "newQuiz": "Yeni Test Oluştur",
+      "excellent": "Mükemmel!",
+      "good": "İyi!",
+      "needsImprovement": "Geliştirilmeli"
+    },
+    "calculator": {
+      "title": "Hesap Makinesi",
+      "description": "Gelişmiş hesap makinesi ile hesaplamalarınızı yapın",
+      "standard": "Standart",
+      "scientific": "Bilimsel",
+      "programmer": "Programcı",
+      "memory": "Hafıza",
+      "history": "Geçmiş",
+      "clear": "Temizle",
+      "error": "Hata",
+      "functions": {
+        "sin": "Sinüs",
+        "cos": "Kosinüs",
+        "tan": "Tanjant",
+        "log": "Logaritma",
+        "ln": "Doğal Logaritma",
+        "sqrt": "Karekök",
+        "square": "Kare",
+        "cube": "Küp",
+        "factorial": "Faktöriyel",
+        "inverse": "Ters",
+        "percent": "Yüzde"
+      }
     }
-  },
-  "profile": {
-    "title": "Profil",
-    "settings": "Ayarlar",
-    "language": "Dil",
-    "theme": "Tema",
-    "notifications": "Bildirimler",
-    "privacy": "Gizlilik",
-    "help": "Yardım",
-    "about": "Hakkında"
   },
   "settings": {
     "language": {
@@ -209,7 +273,19 @@
       "about": "Hakkında",
       "logout": "Çıkış Yap",
       "deleteAccount": "Hesabı Sil",
-      "confirmDelete": "Hesabınızı silmek istediğinizden emin misiniz? Bu işlem geri alınamaz."
+      "confirmDelete": "Hesabınızı silmek istediğinizden emin misiniz? Bu işlem geri alınamaz.",
+      "editTitle": "Bilgileri Düzenle",
+      "editName": "Ad Soyad",
+      "editUsername": "Kullanıcı Adı",
+      "editEmail": "E-posta",
+      "editPhone": "Telefon",
+      "save": "Kaydet",
+      "editSuccess": "Profil başarıyla güncellendi!",
+      "editError": "Profil güncellenemedi.",
+      "emailInvalid": "Geçerli bir e-posta adresi girin.",
+      "nameRequired": "Ad soyad gerekli.",
+      "usernameRequired": "Kullanıcı adı gerekli.",
+      "phoneRequired": "Telefon gerekli."
     },
     "settings": {
       "title": "Ayarlar",

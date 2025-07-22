@@ -5,12 +5,10 @@ import { useTranslation } from "react-i18next";
 import { SIZES, FONTS } from "../../constants/theme";
 import TokenDisplay from "../common/TokenDisplay";
 import ProfileImage from "../common/ProfileImage";
-import { useAuth } from "../../contexts/AuthContext";
 import useTheme from "../../hooks/useTheme";
 
-const HomeHeader = ({ onProfilePress, onSettingsPress, navigation }) => {
+const HomeHeader = ({ onProfilePress, onSettingsPress, navigation, showProfileImage = true, title, subtitle }) => {
   const { t } = useTranslation();
-  const { user } = useAuth();
   const { colors } = useTheme();
 
   const styles = StyleSheet.create({
@@ -71,12 +69,24 @@ const HomeHeader = ({ onProfilePress, onSettingsPress, navigation }) => {
   return (
     <View style={styles.container}>
       <View style={styles.leftContainer}>
-        <Text style={styles.greeting}>{t("home.greeting")},</Text>
-        <View style={styles.nameContainer}>
-          <Text style={styles.username}>
-            {user?.name || user?.firstName || "Kullanıcı"}
-          </Text>
-        </View>
+        {title ? (
+          <>
+            <Text style={styles.username}>{title}</Text>
+            {subtitle && (
+              <Text style={styles.greeting}>{subtitle}</Text>
+            )}
+          </>
+        ) : (
+          <>
+            <Text style={styles.greeting}>{t("home.greeting")},</Text>
+            <View style={styles.nameContainer}>
+              <Text style={styles.username}>
+                {/* {user?.name || user?.firstName || "Kullanıcı"} */}
+                Kullanıcı
+              </Text>
+            </View>
+          </>
+        )}
       </View>
 
       <View style={styles.rightContainer}>
@@ -90,9 +100,11 @@ const HomeHeader = ({ onProfilePress, onSettingsPress, navigation }) => {
           <Ionicons name="settings-outline" size={22} color={colors.primary} />
         </TouchableOpacity> */}
 
-        <TouchableOpacity style={styles.profileButton} onPress={onProfilePress}>
-          <ProfileImage user={user} size={40} />
-        </TouchableOpacity>
+        {showProfileImage && (
+          <TouchableOpacity style={styles.profileButton} onPress={onProfilePress}>
+            <ProfileImage user={null} size={40} />
+          </TouchableOpacity>
+        )}
       </View>
     </View>
   );

@@ -1,148 +1,250 @@
 import { useState, useCallback, useEffect } from 'react';
-import { useApi } from './useApi';
-import { API_ENDPOINTS } from '../utils/api';
-import { useAuth } from '../contexts/AuthContext';
 
 export const useSupport = () => {
   const [tickets, setTickets] = useState([]);
-  const [currentTicket, setCurrentTicket] = useState(null);
-  const { loading, error, get, post, put } = useApi();
-  const { token, loading: authLoading } = useAuth();
+  const [loading, setLoading] = useState(false);
+  const [error, setError] = useState(null);
+  // useAuth importu kaldırıldı
 
-  // Destek taleplerini getir
-  const fetchTickets = useCallback(async (status = null) => {
+  // Mock support data
+  const mockTickets = [
+    {
+      id: 1,
+      userId: 1,
+      subject: "Token kullanımı hakkında",
+      message: "Token'larımı nasıl daha verimli kullanabilirim?",
+      priority: "medium",
+      status: "open",
+      createdAt: new Date(Date.now() - 86400000).toISOString(),
+      updatedAt: new Date(Date.now() - 86400000).toISOString()
+    },
+    {
+      id: 2,
+      userId: 1,
+      subject: "Matematik çözücü sorunu",
+      message: "Matematik çözücü bazı problemleri çözemiyor",
+      priority: "high",
+      status: "pending",
+      createdAt: new Date(Date.now() - 172800000).toISOString(),
+      updatedAt: new Date(Date.now() - 86400000).toISOString()
+    },
+    {
+      id: 3,
+      userId: 1,
+      subject: "Premium özellikler",
+      message: "Premium özellikler hakkında bilgi almak istiyorum",
+      priority: "low",
+      status: "closed",
+      createdAt: new Date(Date.now() - 259200000).toISOString(),
+      updatedAt: new Date(Date.now() - 172800000).toISOString()
+    }
+  ];
+
+  const fetchTickets = useCallback(async () => {
+    // useAuth importu kaldırıldı
     if (!token || authLoading) return;
+    
+    setLoading(true);
+    setError(null);
+    
     try {
-      const params = status ? `?status=${status}` : '';
-      const data = await get(`${API_ENDPOINTS.GET_TICKETS}${params}`, token);
-      setTickets(data);
-    } catch (error) {
-      console.error('Destek talepleri getirilemedi:', error);
+      // Mock tickets fetch
+      setTickets(mockTickets);
+    } catch (err) {
+      setError('Destek talepleri yüklenemedi');
+      console.error('Tickets fetch error:', err);
+    } finally {
+      setLoading(false);
     }
-  }, [get, token, authLoading]);
+  }, [token, authLoading]);
 
-  // Yeni destek talebi oluştur
   const createTicket = useCallback(async (ticketData) => {
-    if (!token) throw new Error('Token gerekli');
+    // useAuth importu kaldırıldı
+    if (!token) return;
+    
+    setLoading(true);
+    setError(null);
+    
     try {
-      const newTicket = await post(API_ENDPOINTS.CREATE_TICKET, ticketData, token);
-      setTickets(prev => [newTicket, ...prev]);
-      return newTicket;
-    } catch (error) {
-      console.error('Destek talebi oluşturulamadı:', error);
-      throw error;
-    }
-  }, [post, token]);
-
-  // Destek talebini getir
-  const getTicket = useCallback(async (ticketId) => {
-    if (!token) throw new Error('Token gerekli');
-    try {
-      const data = await get(API_ENDPOINTS.GET_TICKET.replace(':id', ticketId), token);
-      setCurrentTicket(data);
-      return data;
-    } catch (error) {
-      console.error('Destek talebi getirilemedi:', error);
-      throw error;
-    }
-  }, [get, token]);
-
-  // Destek talebini güncelle
-  const updateTicket = useCallback(async (ticketId, message) => {
-    if (!token) throw new Error('Token gerekli');
-    try {
-      const updatedTicket = await put(API_ENDPOINTS.UPDATE_TICKET.replace(':id', ticketId), {
-        message
-      }, token);
+      // Mock ticket creation
+      const newTicket = {
+        id: Date.now(),
+        userId: 1,
+        ...ticketData,
+        status: "open",
+        createdAt: new Date().toISOString(),
+        updatedAt: new Date().toISOString()
+      };
       
-      // Ticket listesini güncelle
+      setTickets(prev => [newTicket, ...prev]);
+      
+      return { success: true, ticket: newTicket };
+    } catch (err) {
+      setError('Destek talebi oluşturulamadı');
+      console.error('Ticket creation error:', err);
+      throw err;
+    } finally {
+      setLoading(false);
+    }
+  }, [token]);
+
+  const updateTicket = useCallback(async (ticketId, updateData) => {
+    // useAuth importu kaldırıldı
+    if (!token) return;
+    
+    setLoading(true);
+    setError(null);
+    
+    try {
+      // Mock ticket update
       setTickets(prev => prev.map(ticket => 
-        ticket.id === ticketId ? updatedTicket : ticket
+        ticket.id === ticketId 
+          ? { ...ticket, ...updateData, updatedAt: new Date().toISOString() }
+          : ticket
       ));
       
-      // Eğer aktif ticket ise güncelle
-      if (currentTicket?.id === ticketId) {
-        setCurrentTicket(updatedTicket);
-      }
+      return { success: true };
+    } catch (err) {
+      setError('Destek talebi güncellenemedi');
+      console.error('Ticket update error:', err);
+      throw err;
+    } finally {
+      setLoading(false);
+    }
+  }, [token]);
+
+  const closeTicket = useCallback(async (ticketId) => {
+    // useAuth importu kaldırıldı
+    if (!token) return;
+    
+    return await updateTicket(ticketId, { status: "closed" });
+  }, [token, updateTicket]);
+
+  const getTicketById = useCallback(async (ticketId) => {
+    // useAuth importu kaldırıldı
+    if (!token) return null;
+    
+    try {
+      // Mock ticket fetch by ID
+      const ticket = mockTickets.find(t => t.id === ticketId);
+      return ticket || null;
+    } catch (err) {
+      console.error('Ticket fetch error:', err);
+      return null;
+    }
+  }, [token]);
+
+  const getTicketStats = useCallback(async () => {
+    // useAuth importu kaldırıldı
+    if (!token) return {};
+    
+    try {
+      // Mock ticket stats
+      const totalTickets = mockTickets.length;
+      const openTickets = mockTickets.filter(t => t.status === 'open').length;
+      const pendingTickets = mockTickets.filter(t => t.status === 'pending').length;
+      const closedTickets = mockTickets.filter(t => t.status === 'closed').length;
       
-      return updatedTicket;
-    } catch (error) {
-      console.error('Destek talebi güncellenemedi:', error);
-      throw error;
+      return {
+        total: totalTickets,
+        open: openTickets,
+        pending: pendingTickets,
+        closed: closedTickets,
+        averageResponseTime: "2.5 saat",
+        satisfactionRate: "4.8/5"
+      };
+    } catch (err) {
+      console.error('Ticket stats error:', err);
+      return {};
     }
-  }, [put, token, currentTicket]);
+  }, [token]);
 
-  // Destek taleplerini filtrele
-  const filterTickets = useCallback((status) => {
-    if (!status || status === 'all') {
-      return tickets;
+  const getFAQ = useCallback(async () => {
+    // useAuth importu kaldırıldı
+    if (!token) return [];
+    
+    try {
+      // Mock FAQ data
+      return [
+        {
+          id: 1,
+          question: "Token'larımı nasıl kullanabilirim?",
+          answer: "Token'larınızı chat, matematik çözücü, çeviri ve diğer AI özelliklerinde kullanabilirsiniz. Her işlem belirli miktarda token gerektirir.",
+          category: "tokens"
+        },
+        {
+          id: 2,
+          question: "Premium üyeliğe nasıl geçebilirim?",
+          answer: "Profil sayfanızdan 'Abonelik' bölümüne giderek Premium planını seçebilirsiniz. Ödeme işlemi güvenli bir şekilde gerçekleştirilir.",
+          category: "subscription"
+        },
+        {
+          id: 3,
+          question: "Matematik çözücü nasıl çalışır?",
+          answer: "Matematik çözücü, yazdığınız veya fotoğrafını çektiğiniz matematik problemlerini AI teknolojisi ile çözer. Desteklenen konular: cebir, geometri, kalkülüs.",
+          category: "features"
+        },
+        {
+          id: 4,
+          question: "Çeviri özelliği hangi dilleri destekler?",
+          answer: "Çeviri özelliği 10 farklı dili destekler: Türkçe, İngilizce, Almanca, Fransızca, İspanyolca, İtalyanca, Portekizce, Rusça, Japonca ve Korece.",
+          category: "features"
+        },
+        {
+          id: 5,
+          question: "Hesabımı nasıl silebilirim?",
+          answer: "Hesabınızı silmek için Profil > Hesap Bilgileri > Hesabı Sil bölümüne gidin. Bu işlem geri alınamaz.",
+          category: "account"
+        }
+      ];
+    } catch (err) {
+      console.error('FAQ error:', err);
+      return [];
     }
-    return tickets.filter(ticket => ticket.status === status);
-  }, [tickets]);
+  }, [token]);
 
-  // Destek taleplerini arama
-  const searchTickets = useCallback((query) => {
-    if (!query) {
-      return tickets;
+  const getContactInfo = useCallback(async () => {
+    // useAuth importu kaldırıldı
+    if (!token) return {};
+    
+    try {
+      // Mock contact info
+      return {
+        email: "support@quantumdoc.app",
+        phone: "+90 212 555 0123",
+        address: "İstanbul, Türkiye",
+        workingHours: "Pazartesi - Cuma: 09:00 - 18:00",
+        responseTime: "24 saat içinde"
+      };
+    } catch (err) {
+      console.error('Contact info error:', err);
+      return {};
     }
-    const searchTerm = query.toLowerCase();
-    return tickets.filter(ticket =>
-      ticket.subject.toLowerCase().includes(searchTerm) ||
-      ticket.message.toLowerCase().includes(searchTerm)
-    );
-  }, [tickets]);
+  }, [token]);
 
-  // Öncelik seviyeleri
-  const priorityLevels = [
-    { id: 'low', name: 'Düşük', color: '#4ECDC4' },
-    { id: 'medium', name: 'Orta', color: '#FF9D55' },
-    { id: 'high', name: 'Yüksek', color: '#FF6B6B' },
-  ];
+  const submitFeedback = useCallback(async (feedbackData) => {
+    // useAuth importu kaldırıldı
+    if (!token) return;
+    
+    setLoading(true);
+    setError(null);
+    
+    try {
+      // Mock feedback submission
+      console.log('Feedback submitted:', feedbackData);
+      
+      return { success: true, message: "Geri bildiriminiz için teşekkürler!" };
+    } catch (err) {
+      setError('Geri bildirim gönderilemedi');
+      console.error('Feedback submission error:', err);
+      throw err;
+    } finally {
+      setLoading(false);
+    }
+  }, [token]);
 
-  // Durum seviyeleri
-  const statusLevels = [
-    { id: 'open', name: 'Açık', color: '#4ECDC4' },
-    { id: 'pending', name: 'Beklemede', color: '#FF9D55' },
-    { id: 'closed', name: 'Kapalı', color: '#666666' },
-  ];
-
-  // Destek kategorileri
-  const supportCategories = [
-    { id: 'general', name: 'Genel', icon: '❓' },
-    { id: 'technical', name: 'Teknik', icon: '🔧' },
-    { id: 'billing', name: 'Faturalama', icon: '💳' },
-    { id: 'feature', name: 'Özellik İsteği', icon: '💡' },
-    { id: 'bug', name: 'Hata Bildirimi', icon: '🐛' },
-    { id: 'account', name: 'Hesap', icon: '👤' },
-  ];
-
-  // Hızlı şablonlar
-  const quickTemplates = [
-    {
-      id: 'bug-report',
-      title: 'Hata Bildirimi',
-      subject: 'Uygulama Hatası',
-      message: 'Hata detaylarını buraya yazın...',
-      category: 'bug'
-    },
-    {
-      id: 'feature-request',
-      title: 'Özellik İsteği',
-      subject: 'Yeni Özellik Önerisi',
-      message: 'İstediğiniz özelliği detaylandırın...',
-      category: 'feature'
-    },
-    {
-      id: 'account-issue',
-      title: 'Hesap Sorunu',
-      subject: 'Hesap ile İlgili Sorun',
-      message: 'Hesabınızla ilgili sorunu açıklayın...',
-      category: 'account'
-    },
-  ];
-
-  // İlk yükleme - sadece token varsa
   useEffect(() => {
+    // useAuth importu kaldırıldı
     if (token && !authLoading) {
       fetchTickets();
     }
@@ -150,18 +252,16 @@ export const useSupport = () => {
 
   return {
     tickets,
-    currentTicket,
     loading,
     error,
     fetchTickets,
     createTicket,
-    getTicket,
     updateTicket,
-    filterTickets,
-    searchTickets,
-    priorityLevels,
-    statusLevels,
-    supportCategories,
-    quickTemplates,
+    closeTicket,
+    getTicketById,
+    getTicketStats,
+    getFAQ,
+    getContactInfo,
+    submitFeedback,
   };
 }; 

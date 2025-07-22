@@ -21,13 +21,13 @@ import BubbleFeature from "../../components/home/BubbleFeature";
 import NewsSection from "../../components/home/NewsSection";
 import Button from "../../components/common/Button";
 import useTheme from "../../hooks/useTheme";
-import { useToken } from "../../contexts/TokenContext";
 import { useTranslation } from "react-i18next";
+import FeaturedModules from "../../components/home/FeaturedModules";
 
 const HomeScreen = ({ navigation }) => {
   const [searchQuery, setSearchQuery] = useState("");
   const { colors, isDark } = useTheme();
-  const { tokens } = useToken();
+  // useToken ile ilgili import ve kodlar kaldırıldı.
   const { t } = useTranslation();
 
   const styles = StyleSheet.create({
@@ -127,60 +127,43 @@ const HomeScreen = ({ navigation }) => {
     {
       id: "1",
       title: "Yeni AI Modeli",
-      description: "Daha hızlı ve akıllı yanıtlar için güncellenmiş AI modeli kullanıma sunuldu",
+      description:
+        "Daha hızlı ve akıllı yanıtlar için güncellenmiş AI modeli kullanıma sunuldu",
       icon: "sparkles",
-      imageUrl: "https://images.unsplash.com/photo-1677442136019-21780ecad995?w=400&h=200&fit=crop",
+      imageUrl:
+        "https://images.unsplash.com/photo-1677442136019-21780ecad995?w=400&h=200&fit=crop",
     },
     {
       id: "2",
       title: "Premium Kampanya",
-      description: "Sınırlı süre için %50 indirim! Premium özellikleri keşfedin",
+      description:
+        "Sınırlı süre için %50 indirim! Premium özellikleri keşfedin",
       icon: "star",
-      imageUrl: "https://images.unsplash.com/photo-1556742049-0cfed4f6a45d?w=400&h=200&fit=crop",
+      imageUrl:
+        "https://images.unsplash.com/photo-1556742049-0cfed4f6a45d?w=400&h=200&fit=crop",
     },
     {
       id: "3",
       title: "Çoklu Dil Desteği",
       description: "Artık 10 farklı dilde çeviri yapabilirsiniz",
       icon: "language",
-      imageUrl: "https://images.unsplash.com/photo-1546410531-bb4caa6b424d?w=400&h=200&fit=crop",
+      imageUrl:
+        "https://images.unsplash.com/photo-1546410531-bb4caa6b424d?w=400&h=200&fit=crop",
     },
     {
       id: "4",
       title: "Matematik Çözücü",
       description: "Karmaşık matematik problemlerini fotoğrafla çözün",
       icon: "calculator",
-      imageUrl: "https://images.unsplash.com/photo-1635070041078-e363dbe005cb?w=400&h=200&fit=crop",
+      imageUrl:
+        "https://images.unsplash.com/photo-1635070041078-e363dbe005cb?w=400&h=200&fit=crop",
     },
   ];
 
   // Modül veya hızlı erişim butonu tıklandığında
-  const handleModulePress = (module) => {
-    console.log(`Modül tıklandı: ${module.id}`);
-
-    // Modüle özgü ekranlara yönlendir
-    switch (module.id) {
-      case "chat":
-        navigation.navigate("Chat");
-        break;
-      case "math":
-        navigation.navigate("Math");
-        break;
-      case "write":
-        navigation.navigate("Text");
-        break;
-      case "translate":
-        navigation.navigate("Translate");
-        break;
-      case "tasks":
-        navigation.navigate("NotesNavigation", { screen: "Notes" });
-        break;
-      case "assistant":
-        navigation.navigate("Chat");
-        break;
-      default:
-        // Varsayılan olarak explore sayfasına yönlendir
-        navigation.navigate("NotesNavigation", { screen: "Notes" });
+  const handleHomeModulePress = (module) => {
+    if (module.route) {
+      navigation.navigate(module.route);
     }
   };
 
@@ -192,16 +175,9 @@ const HomeScreen = ({ navigation }) => {
 
   // Haber kartı tıklandığında
   const handleNewsPress = (news) => {
-    navigation.navigate("NewsDetail", { news });
+    navigation.navigate("News", { screen: "NewsDetail", params: { news } });
   };
 
-  // Arama sorgusu gönderildiğinde
-  const handleSearch = () => {
-    if (searchQuery.trim()) {
-      console.log(`Arama yapıldı: ${searchQuery}`);
-      navigation.navigate("Chat", { initialQuery: searchQuery });
-    }
-  };
 
   return (
     <GradientBackground mode="default">
@@ -210,20 +186,19 @@ const HomeScreen = ({ navigation }) => {
           onProfilePress={() => navigation.navigate("Profile")}
           onSettingsPress={() => navigation.navigate("Settings")}
           navigation={navigation}
+          showProfileImage={true}
+          title="Merhaba, Kullanıcı"
         />
 
         <ScrollView style={styles.content} showsVerticalScrollIndicator={false}>
           {/* Son Yenilikler ve Kampanyalar */}
-          <NewsSection 
-            data={newsData}
-            onCardPress={handleNewsPress}
-          />
+          <NewsSection data={newsData} onCardPress={handleNewsPress} />
 
           {/* Kişisel AI Asistan Kartı */}
           <View style={styles.personalAssistantContainer}>
             <TouchableOpacity
               style={styles.robotCard}
-              onPress={() => handleModulePress({ id: "assistant" })}
+              onPress={() => navigation.navigate("Chat")}
               activeOpacity={0.9}
             >
               <Image
@@ -231,15 +206,16 @@ const HomeScreen = ({ navigation }) => {
                 style={styles.robotImage}
               />
               <View style={styles.robotTextContainer}>
-                <Text style={styles.robotTitle}>{t("screens.home.assistant.title")}</Text>
+                <Text style={styles.robotTitle}>
+                  {t("screens.home.assistant.title")}
+                </Text>
                 <Text style={styles.robotDescription}>
                   {t("screens.home.assistant.description")}
                 </Text>
               </View>
             </TouchableOpacity>
           </View>
-
-          <QuickActions onActionPress={handleModulePress} />
+          <QuickActions onActionPress={handleHomeModulePress} />
 
           {/* Son Aktiviteler Bölümü */}
           <RecentActivity

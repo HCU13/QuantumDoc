@@ -2,9 +2,9 @@ import React from "react";
 import { View, Text, StyleSheet, TouchableOpacity, Image } from "react-native";
 import { FONTS, SIZES } from "../../constants/theme";
 import { LinearGradient } from "expo-linear-gradient";
-import { useToken } from "../../contexts/TokenContext";
 import { tokenUtils } from "../../utils/tokenUtils";
 import useTheme from "../../hooks/useTheme";
+import { Ionicons } from "@expo/vector-icons";
 
 const ModuleCard = ({
   title,
@@ -12,13 +12,14 @@ const ModuleCard = ({
   moduleId,
   icon,
   gradientColors,
+  tokenCost = 0,
+  canAfford = true,
   onPress,
   containerStyle,
   size = "medium", // 'small', 'medium', 'large'
   glowing = true,
 }) => {
   const { colors } = useTheme();
-  const { tokens } = useToken();
 
   // Kart boyutunu belirle
   let cardWidth, cardHeight, iconSize, descriptionLines;
@@ -44,10 +45,6 @@ const ModuleCard = ({
       descriptionLines = 1;
   }
 
-  // Token maliyeti
-  const tokenCost = moduleId ? tokenUtils.getFeatureCost(moduleId) : 0;
-  const canAfford = tokens >= tokenCost;
-
   // Eğer özel gradient renk verilmezse tema renklerini kullan
   const defaultGradient = [
     colors.primaryLight,
@@ -65,7 +62,6 @@ const ModuleCard = ({
       marginVertical: 8,
       overflow: "visible",
       borderWidth: 1,
-      // Sabit gölge değerleri
       shadowColor: cardGradient[0],
       shadowOffset: { width: 0, height: 0 },
       shadowOpacity: glowing ? 0.8 : 0,
@@ -133,9 +129,6 @@ const ModuleCard = ({
       fontWeight: "bold",
       fontSize: 10,
     },
-    unavailable: {
-      opacity: 0.7,
-    },
     bottomBadge: {
       position: "absolute",
       bottom: 0,
@@ -167,7 +160,6 @@ const ModuleCard = ({
         style={[
           styles.container,
           containerStyle,
-          !canAfford && styles.unavailable,
           { borderColor: colors.border },
         ]}
       >
@@ -197,7 +189,7 @@ const ModuleCard = ({
               <View
                 style={[styles.iconContainer, { borderColor: colors.border }]}
               >
-                {icon}
+                {icon && <Ionicons name={icon} size={28} color="#FFF" />}
               </View>
 
               <View style={styles.largeCardTextContainer}>
@@ -213,14 +205,6 @@ const ModuleCard = ({
               </View>
             </View>
           </LinearGradient>
-
-          {/* {tokenCost > 0 && (
-            <View style={styles.bottomBadge}>
-              <Text style={styles.badgeText}>
-                {canAfford ? "KULLAN" : "YETERSİZ TOKEN"}
-              </Text>
-            </View>
-          )} */}
         </TouchableOpacity>
       </View>
     );
@@ -232,7 +216,6 @@ const ModuleCard = ({
       style={[
         styles.container,
         containerStyle,
-        !canAfford && styles.unavailable,
         { borderColor: colors.border },
       ]}
     >
@@ -258,8 +241,8 @@ const ModuleCard = ({
             </View>
           )}
 
-          <View style={[styles.iconContainer, { borderColor: colors.border }]}>
-            {icon}
+          <View style={[styles.iconContainer, { borderColor: colors.border }]}> 
+            {icon && <Ionicons name={icon} size={28} color="#FFF" />}
           </View>
 
           <View style={styles.contentContainer}>
@@ -271,12 +254,6 @@ const ModuleCard = ({
             )}
           </View>
         </LinearGradient>
-
-        {/* {tokenCost > 0 && !canAfford && (
-          <View style={styles.bottomBadge}>
-            <Text style={styles.badgeText}>YETERSİZ TOKEN</Text>
-          </View>
-        )} */}
       </TouchableOpacity>
     </View>
   );

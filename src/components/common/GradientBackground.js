@@ -15,8 +15,10 @@ const GradientBackground = ({ children, style, mode = "default" }) => {
 
   switch (mode) {
     case "welcome":
-      // Welcome/onboarding ekranları için canlı gradient
-      gradientColors = [colors.primary, colors.primaryDark];
+      // Welcome/onboarding ekranları için çok soft gradient
+      gradientColors = isDark
+        ? ["#2D2940", "#3A3552", "#5B5676"]
+        : ["#F8F8FF", "#ECE9F6", "#D6D6E7"];
       gradientAngle = { x: 0, y: 1 };
       blurIntensity = 0;
       break;
@@ -32,10 +34,10 @@ const GradientBackground = ({ children, style, mode = "default" }) => {
 
     case "default":
     default:
-      // Standart ekranlar için dengeli gradient - ekran görüntülerine göre ayarlandı
+      // Standart ekranlar için çok soft gradient
       gradientColors = isDark
-        ? [colors.background, "#2A2142"] // Koyu mor-siyah gradient
-        : [colors.background, "#E9E6F3"]; // Gri-mor gradient
+        ? ["#2D2940", "#3A3552", "#5B5676"]
+        : ["#F8F8FF", "#ECE9F6", "#D6D6E7"];
       gradientAngle = { x: 0, y: 1 };
       blurIntensity = 0;
   }

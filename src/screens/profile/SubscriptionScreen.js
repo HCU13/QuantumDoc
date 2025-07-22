@@ -6,23 +6,103 @@ import {
   SafeAreaView,
   ScrollView,
   TouchableOpacity,
-  StatusBar,
   Image,
-  Alert,
 } from "react-native";
 import { SIZES, FONTS } from "../../constants/theme";
 import { Ionicons } from "@expo/vector-icons";
 import GradientBackground from "../../components/common/GradientBackground";
 import Header from "../../components/common/Header";
-import Card from "../../components/common/Card";
-import Button from "../../components/common/Button";
-import { LinearGradient } from "expo-linear-gradient";
 import useTheme from "../../hooks/useTheme";
 
-const SubscriptionScreen = ({ navigation }) => {
+const plans = [
+  {
+    id: "free",
+    title: "Ücretsiz",
+    price: "0 ₺",
+    description: "Temel özellikler için",
+    tokenAmount: 10,
+    popular: false,
+    icon: "gift-outline",
+    features: [
+      "Günlük 10 soru limiti",
+      "1 AI modülüne erişim",
+      "Temel yanıt kalitesi",
+      "Reklam destekli",
+    ],
+  },
+  {
+    id: "premium",
+    title: "Premium",
+    price: "49,99 ₺/ay",
+    description: "Daha fazla özellik için ideal",
+    tokenAmount: 100,
+    popular: true,
+    icon: "star-outline",
+    features: [
+      "Günlük 100 soru limiti",
+      "Tüm AI modüllerine erişim",
+      "Yüksek yanıt kalitesi",
+      "Reklamsız deneyim",
+      "Öncelikli destek",
+    ],
+  },
+  {
+    id: "unlimited",
+    title: "Sınırsız",
+    price: "99,99 ₺/ay",
+    description: "En iyi deneyim için",
+    tokenAmount: "Sınırsız",
+    popular: false,
+    icon: "rocket-outline",
+    features: [
+      "Sınırsız soru",
+      "Tüm AI modüllerine erişim",
+      "En yüksek yanıt kalitesi",
+      "Reklamsız deneyim",
+      "7/24 özel destek",
+      "Öncelikli işleme",
+    ],
+  },
+];
+
+const tokenPackages = [
+  {
+    id: "small",
+    title: "Hızlı Paket",
+    price: "9,99 ₺",
+    description: "Acil işlemler için ideal",
+    tokens: 50,
+    popular: false,
+    icon: "flash-outline",
+    savings: null,
+  },
+  {
+    id: "medium",
+    title: "Popüler Paket",
+    price: "24,99 ₺",
+    description: "En çok tercih edilen",
+    tokens: 150,
+    popular: true,
+    icon: "star-outline",
+    savings: "%17 tasarruf",
+  },
+  {
+    id: "large",
+    title: "Mega Paket",
+    price: "69,99 ₺",
+    description: "Yoğun kullanım için",
+    tokens: 500,
+    popular: false,
+    icon: "cube-outline",
+    savings: "%30 tasarruf",
+  },
+];
+
+const SubscriptionScreen = () => {
   const { colors, isDark } = useTheme();
-  const [selectedPlan, setSelectedPlan] = useState("free");
-  const [loading, setLoading] = useState(false);
+  const [selectedPlan, setSelectedPlan] = useState(plans[0].id);
+  const [selectedTab, setSelectedTab] = useState("subscription");
+  const [selectedToken, setSelectedToken] = useState(tokenPackages[0].id);
 
   const styles = StyleSheet.create({
     container: {
@@ -33,291 +113,194 @@ const SubscriptionScreen = ({ navigation }) => {
       flex: 1,
       paddingHorizontal: SIZES.padding,
     },
-    header: {
-      alignItems: "center",
-      marginVertical: 20,
+    tabSwitch: {
+      flexDirection: 'row',
+      backgroundColor: isDark ? colors.card + '30' : colors.gray,
+      borderRadius: 16,
+      marginBottom: 18,
+      marginTop: 8,
+      padding: 4,
+      alignSelf: 'center',
+      width: '80%', // genişlik küçültüldü
     },
-    headerTitle: {
-      ...FONTS.h2,
-      color: colors.textOnGradient,
-      fontWeight: "bold",
-      textAlign: "center",
-      marginBottom: 10,
+    tabBtn: {
+      flex: 1,
+      alignItems: 'center',
+      justifyContent: 'center',
+      paddingVertical: 10,
+      borderRadius: 12,
+      flexDirection: 'row',
     },
-    headerSubtitle: {
-      ...FONTS.body3,
-      color: colors.textSecondary,
-      textAlign: "center",
+    tabActive: {
+      backgroundColor: colors.primary,
     },
-    currentPlanCard: {
-      borderRadius: SIZES.radius,
-      padding: 20,
-      marginBottom: 20,
-      borderWidth: 1,
-      borderColor: colors.border,
+    tabInactive: {
+      backgroundColor: 'transparent',
     },
-    currentPlanHeader: {
-      flexDirection: "row",
-      justifyContent: "space-between",
-      alignItems: "center",
-      marginBottom: 15,
-    },
-    currentPlanTitle: {
-      ...FONTS.h3,
-      color: colors.textPrimary,
-      fontWeight: "bold",
-    },
-    statusBadge: {
-      backgroundColor: "rgba(52, 199, 89, 0.2)",
-      paddingHorizontal: 12,
-      paddingVertical: 6,
-      borderRadius: 15,
-      borderWidth: 1,
-      borderColor: "rgba(52, 199, 89, 0.4)",
-    },
-    statusText: {
-      ...FONTS.body5,
-      color: isDark ? "#fff" : "#1c7e17",
-      fontWeight: "bold",
-    },
-    planDetails: {
-      marginBottom: 15,
-    },
-    planDetailRow: {
-      flexDirection: "row",
-      alignItems: "center",
-      marginBottom: 8,
-    },
-    planDetailText: {
+    tabText: {
       ...FONTS.body4,
-      color: colors.textPrimary,
-      marginLeft: 10,
+      fontWeight: 'bold',
+      marginLeft: 6,
     },
-    planCardContainer: {
-      marginBottom: 12,
+    tabTextActive: {
+      color: colors.textOnPrimary,
+    },
+    tabTextInactive: {
+      color: colors.textSecondary,
     },
     planCard: {
-      padding: 20,
-      borderWidth: 2,
-      borderRadius: SIZES.radius,
+      marginBottom: 14,
+      borderRadius: 16,
+      flexDirection: 'row',
+      alignItems: 'center',
+      paddingVertical: 16,
+      paddingHorizontal: 16,
+      position: 'relative',
+      shadowColor: '#000',
+      shadowOffset: { width: 0, height: 2 },
+      shadowOpacity: 0.09,
+      shadowRadius: 8,
+      elevation: 3,
     },
-    selectedPlan: {
-      borderColor: colors.primary,
-      backgroundColor: isDark
-        ? "rgba(255, 255, 255, 0.2)"
-        : "rgba(138, 79, 255, 0.1)",
-    },
-    unselectedPlan: {
-      borderColor: colors.border,
-      backgroundColor: isDark ? colors.card + "75" : colors.card + "75",
-    },
-    planHeader: {
-      flexDirection: "row",
-      justifyContent: "space-between",
-      alignItems: "center",
-      marginBottom: 10,
-    },
-    planTitle: {
-      ...FONTS.h3,
-      color: colors.textPrimary,
-      fontWeight: "bold",
-    },
-    planPrice: {
-      ...FONTS.body3,
-      color: colors.textPrimary,
-    },
-    planDescription: {
-      ...FONTS.body4,
-      color: colors.textSecondary,
-      marginBottom: 15,
-    },
-    planFeature: {
-      flexDirection: "row",
-      alignItems: "center",
-      marginBottom: 8,
-    },
-    featureText: {
-      ...FONTS.body4,
-      color: colors.textPrimary,
-      marginLeft: 10,
+    iconBox: {
+      width: 34,
+      height: 34,
+      borderRadius: 10,
+      backgroundColor: colors.primary + '15',
+      alignItems: 'center',
+      justifyContent: 'center',
+      marginRight: 12,
     },
     popularBadge: {
-      position: "absolute",
-      top: -10,
-      right: 20,
       backgroundColor: colors.secondary,
-      paddingHorizontal: 15,
-      paddingVertical: 5,
-      borderRadius: 15,
-      zIndex: 1,
-    },
-    popularText: {
-      ...FONTS.body5,
-      color: colors.textOnPrimary,
-      fontWeight: "bold",
-    },
-    footnote: {
-      ...FONTS.body5,
-      color: colors.textTertiary,
-      textAlign: "center",
-      marginTop: 15,
-      marginBottom: 30,
-    },
-    icon: {
-      width: 24,
-      height: 24,
-      marginRight: 5,
-    },
-    tokenBadge: {
-      flexDirection: "row",
-      alignItems: "center",
-      backgroundColor: isDark
-        ? "rgba(255, 255, 255, 0.2)"
-        : "rgba(138, 79, 255, 0.1)",
-      borderRadius: 12,
+      borderRadius: 8,
       paddingHorizontal: 8,
-      paddingVertical: 3,
-      marginLeft: 10,
+      paddingVertical: 2,
+      marginLeft: 7,
+    },
+    priceBox: {
+      alignItems: 'flex-end',
+      marginLeft: 8,
+    },
+    tokenBox: {
+      flexDirection: 'row',
+      alignItems: 'center',
+      marginTop: 2,
+      backgroundColor: colors.primary + '10',
+      borderRadius: 7,
+      paddingHorizontal: 6,
+      paddingVertical: 2,
     },
     tokenIcon: {
-      width: 14,
-      height: 14,
-      marginRight: 4,
-    },
-    tokenText: {
-      ...FONTS.body5,
-      color: isDark ? colors.white : colors.primary,
-      fontWeight: "bold",
+      width: 13,
+      height: 13,
+      marginRight: 2,
     },
   });
 
-  const plans = [
-    {
-      id: "free",
-      title: "Ücretsiz",
-      price: "0 ₺",
-      description: "Temel özellikler için",
-      features: [
-        "Günlük 10 soru limiti",
-        "1 AI modülüne erişim",
-        "Temel yanıt kalitesi",
-        "Reklam destekli",
-      ],
-      tokenAmount: 10,
-      popular: false,
-    },
-    {
-      id: "premium",
-      title: "Premium",
-      price: "49,99 ₺/ay",
-      description: "Daha fazla özellik için ideal",
-      features: [
-        "Günlük 100 soru limiti",
-        "Tüm AI modüllerine erişim",
-        "Yüksek yanıt kalitesi",
-        "Reklamsız deneyim",
-        "Öncelikli destek",
-      ],
-      tokenAmount: 100,
-      popular: true,
-    },
-    {
-      id: "unlimited",
-      title: "Sınırsız",
-      price: "99,99 ₺/ay",
-      description: "En iyi deneyim için",
-      features: [
-        "Sınırsız soru",
-        "Tüm AI modüllerine erişim",
-        "En yüksek yanıt kalitesi",
-        "Reklamsız deneyim",
-        "7/24 özel destek",
-        "Öncelikli işleme",
-      ],
-      tokenAmount: "Sınırsız",
-      popular: false,
-    },
-  ];
-
-  const handleUpgrade = () => {
-    setLoading(true);
-    // Simulate API call
-    setTimeout(() => {
-      setLoading(false);
-      Alert.alert(
-        "Başarılı",
-        `${
-          plans.find((p) => p.id === selectedPlan).title
-        } planına başarıyla abone oldunuz.`
-      );
-    }, 1500);
-  };
-
   const renderPlanCard = (plan) => {
     const isSelected = selectedPlan === plan.id;
-
     return (
       <TouchableOpacity
         key={plan.id}
-        style={styles.planCardContainer}
+        activeOpacity={0.92}
         onPress={() => setSelectedPlan(plan.id)}
-        activeOpacity={0.9}
+        style={[
+          styles.planCard,
+          {
+            backgroundColor: isSelected
+              ? (isDark ? 'rgba(138,79,255,0.10)' : 'rgba(138,79,255,0.06)')
+              : colors.card,
+            borderWidth: isSelected ? 2 : 1,
+            borderColor: isSelected ? colors.primary : colors.border,
+          },
+        ]}
       >
-        {plan.popular && (
-          <View style={styles.popularBadge}>
-            <Text style={styles.popularText}>En Popüler</Text>
+        {/* İkon */}
+        <View style={styles.iconBox}>
+          <Ionicons name={plan.icon} size={20} color={colors.primary} />
+        </View>
+        {/* Bilgiler */}
+        <View style={{ flex: 1 }}>
+          <View style={{ flexDirection: 'row', alignItems: 'center' }}>
+            <Text style={{ ...FONTS.h4, color: colors.textPrimary, fontWeight: 'bold' }}>{plan.title}</Text>
+            {plan.popular && (
+              <View style={styles.popularBadge}>
+                <Text style={{ ...FONTS.body5, color: colors.textOnPrimary, fontWeight: 'bold' }}>En Popüler</Text>
+              </View>
+            )}
           </View>
-        )}
-
-        <View
-          style={[
-            styles.planCard,
-            isSelected ? styles.selectedPlan : styles.unselectedPlan,
-          ]}
-        >
-          <View style={styles.planHeader}>
-            <Text style={styles.planTitle}>{plan.title}</Text>
-            <Text style={styles.planPrice}>{plan.price}</Text>
+          <Text style={{ ...FONTS.body5, color: colors.textSecondary, marginTop: 2 }}>{plan.description}</Text>
+          {/* Özellikler */}
+          <View style={{ marginTop: 6 }}>
+            {plan.features.map((feature, idx) => (
+              <View key={idx} style={{ flexDirection: 'row', alignItems: 'center', marginBottom: 2 }}>
+                <Ionicons name="checkmark-circle" size={14} color={colors.primary} />
+                <Text style={{ ...FONTS.body5, color: colors.textPrimary, marginLeft: 5 }}>{feature}</Text>
+              </View>
+            ))}
           </View>
+        </View>
+        {/* Fiyat ve token */}
+        <View style={styles.priceBox}>
+          <Text style={{ ...FONTS.h4, color: colors.primary, fontWeight: 'bold' }}>{plan.price}</Text>
+          <View style={styles.tokenBox}>
+            <Image source={require('../../assets/images/token.png')} style={styles.tokenIcon} />
+            <Text style={{ ...FONTS.body5, color: colors.primary, fontWeight: 'bold' }}>{plan.tokenAmount}</Text>
+          </View>
+        </View>
+      </TouchableOpacity>
+    );
+  };
 
-          <Text style={styles.planDescription}>{plan.description}</Text>
-
-          <View style={styles.planDetailRow}>
-            <Ionicons
-              name="flash-outline"
-              size={18}
-              color={colors.textPrimary}
-            />
-            <Text style={styles.planDetailText}>Token:</Text>
-            <View style={styles.tokenBadge}>
-              <Image
-                source={require("../../assets/images/token.png")}
-                style={styles.tokenIcon}
-              />
-              <Text style={styles.tokenText}>{plan.tokenAmount}</Text>
+  const renderTokenCard = (pkg) => {
+    const isSelected = selectedToken === pkg.id;
+    return (
+      <TouchableOpacity
+        key={pkg.id}
+        activeOpacity={0.92}
+        onPress={() => setSelectedToken(pkg.id)}
+        style={[
+          styles.planCard,
+          {
+            backgroundColor: isSelected
+              ? (isDark ? 'rgba(138,79,255,0.10)' : 'rgba(138,79,255,0.06)')
+              : colors.card,
+            borderWidth: isSelected ? 2 : 1,
+            borderColor: isSelected ? colors.primary : colors.border,
+          },
+        ]}
+      >
+        {/* İkon */}
+        <View style={styles.iconBox}>
+          <Ionicons name={pkg.icon} size={20} color={colors.primary} />
+        </View>
+        {/* Bilgiler */}
+        <View style={{ flex: 1 }}>
+          <View style={{ flexDirection: 'row', alignItems: 'center' }}>
+            <Text style={{ ...FONTS.h4, color: colors.textPrimary, fontWeight: 'bold' }}>{pkg.title}</Text>
+            {pkg.popular && (
+              <View style={styles.popularBadge}>
+                <Text style={{ ...FONTS.body5, color: colors.textOnPrimary, fontWeight: 'bold' }}>En Popüler</Text>
+              </View>
+            )}
+          </View>
+          <Text style={{ ...FONTS.body5, color: colors.textSecondary, marginTop: 2 }}>{pkg.description}</Text>
+          {/* Tasarruf */}
+          {pkg.savings && (
+            <View style={{ flexDirection: 'row', alignItems: 'center', marginTop: 4 }}>
+              <Ionicons name="pricetag" size={14} color={colors.success} />
+              <Text style={{ ...FONTS.body5, color: colors.success, marginLeft: 5 }}>{pkg.savings}</Text>
             </View>
-          </View>
-
-          {plan.features.map((feature, index) => (
-            <View key={index} style={styles.planFeature}>
-              <Ionicons
-                name="checkmark-circle"
-                size={18}
-                color={colors.primary}
-              />
-              <Text style={styles.featureText}>{feature}</Text>
-            </View>
-          ))}
-
-          {isSelected && (
-            <Button
-              title={plan.id === "free" ? "Mevcut Plan" : "Seç"}
-              neon={plan.id !== "free"}
-              outlined={plan.id === "free"}
-              disabled={plan.id === "free"}
-              containerStyle={{ marginTop: 10 }}
-            />
           )}
+        </View>
+        {/* Fiyat ve token */}
+        <View style={styles.priceBox}>
+          <Text style={{ ...FONTS.h4, color: colors.primary, fontWeight: 'bold' }}>{pkg.price}</Text>
+          <View style={styles.tokenBox}>
+            <Image source={require('../../assets/images/token.png')} style={styles.tokenIcon} />
+            <Text style={{ ...FONTS.body5, color: colors.primary, fontWeight: 'bold' }}>{pkg.tokens}</Text>
+          </View>
         </View>
       </TouchableOpacity>
     );
@@ -326,78 +309,33 @@ const SubscriptionScreen = ({ navigation }) => {
   return (
     <GradientBackground>
       <SafeAreaView style={styles.container}>
-        {/* <StatusBar
-          barStyle={isDark ? "light-content" : "dark-content"}
-          backgroundColor="transparent"
-          translucent
-        /> */}
-
-        <Header title="Abonelik" showBackButton={true} />
-
-        <ScrollView style={styles.content} showsVerticalScrollIndicator={false}>
-          <View style={styles.header}>
-            <Text style={styles.headerTitle}>Abonelik Planları</Text>
-            <Text style={styles.headerSubtitle}>
-              İhtiyacınıza uygun planı seçin
-            </Text>
-          </View>
-
-          <View
-            style={[styles.currentPlanCard, { backgroundColor: colors.card }]}
+        <Header title="Abonelik & Token" showBackButton={true} />
+        <View style={styles.tabSwitch}>
+          <TouchableOpacity
+            style={[
+              styles.tabBtn,
+              selectedTab === "subscription" ? styles.tabActive : styles.tabInactive,
+            ]}
+            onPress={() => setSelectedTab("subscription")}
           >
-            <View style={styles.currentPlanHeader}>
-              <Text style={styles.currentPlanTitle}>Mevcut Plan</Text>
-              <View style={styles.statusBadge}>
-                <Text style={styles.statusText}>Aktif</Text>
-              </View>
-            </View>
-
-            <View style={styles.planDetails}>
-              <View style={styles.planDetailRow}>
-                <Ionicons
-                  name="cube-outline"
-                  size={18}
-                  color={colors.textPrimary}
-                />
-                <Text style={styles.planDetailText}>Ücretsiz Plan</Text>
-              </View>
-              <View style={styles.planDetailRow}>
-                <Ionicons
-                  name="calendar-outline"
-                  size={18}
-                  color={colors.textPrimary}
-                />
-                <Text style={styles.planDetailText}>Yenileme: -</Text>
-              </View>
-              <View style={styles.planDetailRow}>
-                <Ionicons
-                  name="flash-outline"
-                  size={18}
-                  color={colors.textPrimary}
-                />
-                <Text style={styles.planDetailText}>Kalan Token: 5/10</Text>
-              </View>
-            </View>
-          </View>
-
-          {plans.map(renderPlanCard)}
-
-          {selectedPlan !== "free" && (
-            <Button
-              title={`${
-                plans.find((p) => p.id === selectedPlan).title
-              } Planına Yükselt`}
-              gradient
-              onPress={handleUpgrade}
-              loading={loading}
-              containerStyle={{ marginTop: 20, marginBottom: 10 }}
-            />
-          )}
-
-          <Text style={styles.footnote}>
-            Abonelikler otomatik olarak yenilenir. İstediğiniz zaman iptal
-            edebilirsiniz.
-          </Text>
+            <Ionicons name="card-outline" size={18} color={selectedTab === "subscription" ? colors.textOnPrimary : colors.textSecondary} />
+            <Text style={[styles.tabText, selectedTab === "subscription" ? styles.tabTextActive : styles.tabTextInactive]}>Abonelik</Text>
+          </TouchableOpacity>
+          <TouchableOpacity
+            style={[
+              styles.tabBtn,
+              selectedTab === "token" ? styles.tabActive : styles.tabInactive,
+            ]}
+            onPress={() => setSelectedTab("token")}
+          >
+            <Ionicons name="flash-outline" size={18} color={selectedTab === "token" ? colors.textOnPrimary : colors.textSecondary} />
+            <Text style={[styles.tabText, selectedTab === "token" ? styles.tabTextActive : styles.tabTextInactive]}>Token Al</Text>
+          </TouchableOpacity>
+        </View>
+        <ScrollView style={styles.content} showsVerticalScrollIndicator={false}>
+          {selectedTab === "subscription"
+            ? plans.map(renderPlanCard)
+            : tokenPackages.map(renderTokenCard)}
         </ScrollView>
       </SafeAreaView>
     </GradientBackground>

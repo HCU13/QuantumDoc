@@ -1,220 +1,400 @@
 import { useState, useCallback, useEffect } from 'react';
-import { useApi } from './useApi';
-import { API_ENDPOINTS } from '../utils/api';
-import { useAuth } from '../contexts/AuthContext';
 
 export const useChat = () => {
   const [chats, setChats] = useState([]);
-  const [currentChat, setCurrentChat] = useState(null);
-  const [messages, setMessages] = useState([]);
-  const { loading, error, get, post, put, delete: del } = useApi();
-  const { token, loading: authLoading } = useAuth();
+  const [messages, setMessages] = useState({});
+  const [chatRooms, setChatRooms] = useState([]);
+  const [loading, setLoading] = useState(false);
+  const [error, setError] = useState(null);
+  // useAuth importu kaldırıldı
 
-  // Sohbetleri getir
-  const fetchChats = useCallback(async () => {
-    if (!token || authLoading) return;
-    try {
-      const data = await get(API_ENDPOINTS.GET_CHATS, token);
-      setChats(data);
-    } catch (error) {
-      console.error('Sohbetler getirilemedi:', error);
+  // Mock chat data
+  const mockChats = [
+    {
+      id: 1,
+      title: "Matematik Yardımı",
+      lastMessage: "x²+5x+6=0 denklemini çöz",
+      updatedAt: new Date().toISOString(),
+      createdAt: new Date(Date.now() - 86400000).toISOString(),
+      userId: 1
+    },
+    {
+      id: 2,
+      title: "İngilizce Çeviri",
+      lastMessage: "Bu metni İngilizceye çevir",
+      updatedAt: new Date(Date.now() - 3600000).toISOString(),
+      createdAt: new Date(Date.now() - 172800000).toISOString(),
+      userId: 1
+    },
+    {
+      id: 3,
+      title: "Kod Yazma Yardımı",
+      lastMessage: "React hook'ları nasıl kullanılır?",
+      updatedAt: new Date(Date.now() - 7200000).toISOString(),
+      createdAt: new Date(Date.now() - 259200000).toISOString(),
+      userId: 1
     }
-  }, [get, token, authLoading]);
+  ];
 
-  // Yeni sohbet oluştur
-  const createChat = useCallback(async (title = 'Yeni Sohbet') => {
-    if (!token) throw new Error('Token gerekli');
-    try {
-      const newChat = await post(API_ENDPOINTS.CREATE_CHAT, { title }, token);
-      setChats(prev => [newChat, ...prev]);
-      return newChat;
-    } catch (error) {
-      console.error('Sohbet oluşturulamadı:', error);
-      throw error;
-    }
-  }, [post, token]);
-
-  // Sohbet sil
-  const deleteChat = useCallback(async (chatId) => {
-    if (!token) throw new Error('Token gerekli');
-    try {
-      await del(API_ENDPOINTS.DELETE_CHAT.replace(':id', chatId), token);
-      setChats(prev => prev.filter(chat => chat.id !== chatId));
-      
-      // Eğer silinen sohbet aktifse, aktif sohbeti temizle
-      if (currentChat?.id === chatId) {
-        setCurrentChat(null);
-        setMessages([]);
+  const mockMessages = {
+    1: [
+      {
+        id: 1,
+        chatId: 1,
+        sender: "user",
+        content: "x²+5x+6=0 denklemini çöz",
+        createdAt: new Date(Date.now() - 300000).toISOString()
+      },
+      {
+        id: 2,
+        chatId: 1,
+        sender: "assistant",
+        content: "Bu denklemi çözmek için önce faktörlere ayıralım:\n\nx²+5x+6 = (x+2)(x+3)\n\nBu durumda x = -2 veya x = -3 olur.",
+        createdAt: new Date(Date.now() - 240000).toISOString()
       }
-    } catch (error) {
-      console.error('Sohbet silinemedi:', error);
-      throw error;
-    }
-  }, [del, token, currentChat]);
+    ],
+    2: [
+      {
+        id: 3,
+        chatId: 2,
+        sender: "user",
+        content: "Bu metni İngilizceye çevir",
+        createdAt: new Date(Date.now() - 3600000).toISOString()
+      },
+      {
+        id: 4,
+        chatId: 2,
+        sender: "assistant",
+        content: "Hangi metni çevirmemi istiyorsunuz? Lütfen çevirmek istediğiniz metni paylaşın.",
+        createdAt: new Date(Date.now() - 3540000).toISOString()
+      }
+    ],
+    3: [
+      {
+        id: 5,
+        chatId: 3,
+        sender: "user",
+        content: "React hook'ları nasıl kullanılır?",
+        createdAt: new Date(Date.now() - 7200000).toISOString()
+      },
+      {
+        id: 6,
+        chatId: 3,
+        sender: "assistant",
+        content: "React hook'ları fonksiyonel bileşenlerde state ve lifecycle yönetimi için kullanılır. En yaygın hook'lar:\n\n- useState: State yönetimi\n- useEffect: Side effects\n- useContext: Context kullanımı\n- useRef: DOM referansları",
+        createdAt: new Date(Date.now() - 7140000).toISOString()
+      }
+    ]
+  };
 
-  // Mesajları getir
-  const fetchMessages = useCallback(async (chatId) => {
-    if (!token) throw new Error('Token gerekli');
-    try {
-      const data = await get(API_ENDPOINTS.GET_MESSAGES.replace(':id', chatId), token);
-      setMessages(data);
-      return data;
-    } catch (error) {
-      console.error('Mesajlar getirilemedi:', error);
-      throw error;
+  const mockChatRooms = [
+    {
+      id: 1,
+      title: "Genel Sohbet",
+      description: "Genel konular için sohbet odası",
+      createdAt: new Date().toISOString(),
+      userId: 1
+    },
+    {
+      id: 2,
+      title: "Teknik Destek",
+      description: "Teknik sorunlar için destek odası",
+      createdAt: new Date(Date.now() - 86400000).toISOString(),
+      userId: 1
     }
-  }, [get, token]);
+  ];
 
-  // Mesaj gönder
-  const sendMessage = useCallback(async (chatId, content, sender = 'user') => {
-    if (!token) throw new Error('Token gerekli');
+  const fetchChats = useCallback(async () => {
+    // if (!token || authLoading) return; // Removed useAuth
+    
+    setLoading(true);
+    setError(null);
+    
     try {
-      const messageData = {
-        content,
-        sender,
-        timestamp: new Date().toISOString()
+      // Mock chat fetch
+      setChats(mockChats);
+    } catch (err) {
+      setError('Sohbetler yüklenemedi');
+      console.error('Chat fetch error:', err);
+    } finally {
+      setLoading(false);
+    }
+  }, []); // Removed useAuth
+
+  const createChat = useCallback(async (title) => {
+    // if (!token) return; // Removed useAuth
+    
+    setLoading(true);
+    setError(null);
+    
+    try {
+      // Mock chat creation
+      const newChat = {
+        id: Date.now(),
+        title,
+        lastMessage: null,
+        updatedAt: new Date().toISOString(),
+        createdAt: new Date().toISOString(),
+        userId: 1
       };
+      
+      setChats(prev => [newChat, ...prev]);
+      setMessages(prev => ({ ...prev, [newChat.id]: [] }));
+      
+      return newChat;
+    } catch (err) {
+      setError('Sohbet oluşturulamadı');
+      console.error('Chat creation error:', err);
+      throw err;
+    } finally {
+      setLoading(false);
+    }
+  }, []); // Removed useAuth
 
-      const newMessage = await post(
-        API_ENDPOINTS.SEND_MESSAGE.replace(':id', chatId),
-        messageData,
-        token
-      );
+  const deleteChat = useCallback(async (chatId) => {
+    // if (!token) return; // Removed useAuth
+    
+    setLoading(true);
+    setError(null);
+    
+    try {
+      // Mock chat deletion
+      setChats(prev => prev.filter(chat => chat.id !== chatId));
+      setMessages(prev => {
+        const newMessages = { ...prev };
+        delete newMessages[chatId];
+        return newMessages;
+      });
+      
+      return { success: true };
+    } catch (err) {
+      setError('Sohbet silinemedi');
+      console.error('Chat deletion error:', err);
+      throw err;
+    } finally {
+      setLoading(false);
+    }
+  }, []); // Removed useAuth
 
-      // Mesajları güncelle
-      setMessages(prev => [...prev, newMessage]);
+  const fetchMessages = useCallback(async (chatId) => {
+    // if (!token || authLoading) return; // Removed useAuth
+    
+    setLoading(true);
+    setError(null);
+    
+    try {
+      // Mock messages fetch
+      const chatMessages = mockMessages[chatId] || [];
+      setMessages(prev => ({ ...prev, [chatId]: chatMessages }));
+      
+      return chatMessages;
+    } catch (err) {
+      setError('Mesajlar yüklenemedi');
+      console.error('Messages fetch error:', err);
+    } finally {
+      setLoading(false);
+    }
+  }, []); // Removed useAuth
 
-      // Sohbet listesini güncelle
+  const sendMessage = useCallback(async (chatId, content) => {
+    // if (!token) return; // Removed useAuth
+    
+    setLoading(true);
+    setError(null);
+    
+    try {
+      // Mock message sending
+      const newMessage = {
+        id: Date.now(),
+        chatId,
+        sender: "user",
+        content,
+        createdAt: new Date().toISOString()
+      };
+      
+      // Add user message
+      setMessages(prev => ({
+        ...prev,
+        [chatId]: [...(prev[chatId] || []), newMessage]
+      }));
+      
+      // Update chat last message
       setChats(prev => prev.map(chat => 
         chat.id === chatId 
           ? { ...chat, lastMessage: content, updatedAt: new Date().toISOString() }
           : chat
       ));
-
-      return newMessage;
-    } catch (error) {
-      console.error('Mesaj gönderilemedi:', error);
-      throw error;
-    }
-  }, [post, token]);
-
-  // AI yanıtı al
-  const getAIResponse = useCallback(async (chatId, userMessage) => {
-    if (!token) throw new Error('Token gerekli');
-    try {
-      // Önce kullanıcı mesajını gönder
-      await sendMessage(chatId, userMessage, 'user');
-
-      // AI yanıtını al
-      const aiResponse = await post('/chat/ai-response', {
-        chatId,
-        message: userMessage
-      }, token);
-
-      // AI yanıtını gönder
-      await sendMessage(chatId, aiResponse.reply, 'ai');
-
-      return aiResponse;
-    } catch (error) {
-      console.error('AI yanıtı alınamadı:', error);
-      throw error;
-    }
-  }, [sendMessage, post, token]);
-
-  // Chat room'ları getir
-  const fetchChatRooms = useCallback(async () => {
-    if (!token || authLoading) return;
-    try {
-      const data = await get(API_ENDPOINTS.GET_CHAT_ROOMS, token);
-      return data;
-    } catch (error) {
-      console.error('Chat room\'lar getirilemedi:', error);
-      throw error;
-    }
-  }, [get, token, authLoading]);
-
-  // Yeni chat room oluştur
-  const createChatRoom = useCallback(async (roomData) => {
-    if (!token) throw new Error('Token gerekli');
-    try {
-      const newRoom = await post(API_ENDPOINTS.CREATE_CHAT_ROOM, roomData, token);
-      return newRoom;
-    } catch (error) {
-      console.error('Chat room oluşturulamadı:', error);
-      throw error;
-    }
-  }, [post, token]);
-
-  // Chat room'a mesaj ekle
-  const addMessageToRoom = useCallback(async (roomId, messageData) => {
-    if (!token) throw new Error('Token gerekli');
-    try {
-      const newMessage = await post(
-        API_ENDPOINTS.ADD_MESSAGE_TO_ROOM.replace(':id', roomId),
-        messageData,
-        token
-      );
-      return newMessage;
-    } catch (error) {
-      console.error('Mesaj eklenemedi:', error);
-      throw error;
-    }
-  }, [post, token]);
-
-  // Chat room mesajlarını getir
-  const getMessagesForRoom = useCallback(async (roomId) => {
-    if (!token) throw new Error('Token gerekli');
-    try {
-      const data = await get(API_ENDPOINTS.GET_MESSAGES_FOR_ROOM.replace(':id', roomId), token);
-      return data;
-    } catch (error) {
-      console.error('Chat room mesajları getirilemedi:', error);
-      throw error;
-    }
-  }, [get, token]);
-
-  // Sohbet seç
-  const selectChat = useCallback(async (chat) => {
-    setCurrentChat(chat);
-    await fetchMessages(chat.id);
-  }, [fetchMessages]);
-
-  // Sohbet başlığını güncelle
-  const updateChatTitle = useCallback(async (chatId, newTitle) => {
-    if (!token) throw new Error('Token gerekli');
-    try {
-      const updatedChat = await put(
-        API_ENDPOINTS.UPDATE_CHAT.replace(':id', chatId),
-        { title: newTitle },
-        token
-      );
       
+      return newMessage;
+    } catch (err) {
+      setError('Mesaj gönderilemedi');
+      console.error('Message sending error:', err);
+      throw err;
+    } finally {
+      setLoading(false);
+    }
+  }, []); // Removed useAuth
+
+  const getAIResponse = useCallback(async (chatId, userMessage) => {
+    setLoading(true);
+    setError(null);
+    
+    try {
+      // Mock AI response
+      setTimeout(() => {
+        const aiResponse = {
+          id: Date.now() + 1,
+          chatId,
+          sender: "assistant",
+          content: "Bu bir mock AI yanıtıdır. Gerçek API entegrasyonu ile değiştirilecek.",
+          createdAt: new Date().toISOString()
+        };
+        
+        setMessages(prev => ({
+          ...prev,
+          [chatId]: [...(prev[chatId] || []), aiResponse]
+        }));
+      }, 1000);
+      
+      return { success: true };
+    } catch (err) {
+      setError('AI yanıtı alınamadı');
+      console.error('AI response error:', err);
+      throw err;
+    } finally {
+      setLoading(false);
+    }
+  }, []); // Removed useAuth
+
+  const fetchChatRooms = useCallback(async () => {
+    // if (!token || authLoading) return; // Removed useAuth
+    
+    setLoading(true);
+    setError(null);
+    
+    try {
+      // Mock chat rooms fetch
+      setChatRooms(mockChatRooms);
+    } catch (err) {
+      setError('Sohbet odaları yüklenemedi');
+      console.error('Chat rooms fetch error:', err);
+    } finally {
+      setLoading(false);
+    }
+  }, []); // Removed useAuth
+
+  const createChatRoom = useCallback(async (roomData) => {
+    // if (!token) return; // Removed useAuth
+    
+    setLoading(true);
+    setError(null);
+    
+    try {
+      // Mock chat room creation
+      const newRoom = {
+        id: Date.now(),
+        ...roomData,
+        createdAt: new Date().toISOString(),
+        userId: 1
+      };
+      
+      setChatRooms(prev => [newRoom, ...prev]);
+      
+      return newRoom;
+    } catch (err) {
+      setError('Sohbet odası oluşturulamadı');
+      console.error('Chat room creation error:', err);
+      throw err;
+    } finally {
+      setLoading(false);
+    }
+  }, []); // Removed useAuth
+
+  const addMessageToRoom = useCallback(async (roomId, messageData) => {
+    // if (!token) return; // Removed useAuth
+    
+    setLoading(true);
+    setError(null);
+    
+    try {
+      // Mock message addition to room
+      const newMessage = {
+        id: Date.now(),
+        roomId,
+        ...messageData,
+        createdAt: new Date().toISOString()
+      };
+      
+      setMessages(prev => ({
+        ...prev,
+        [roomId]: [...(prev[roomId] || []), newMessage]
+      }));
+      
+      return newMessage;
+    } catch (err) {
+      setError('Mesaj eklenemedi');
+      console.error('Message addition error:', err);
+      throw err;
+    } finally {
+      setLoading(false);
+    }
+  }, []); // Removed useAuth
+
+  const fetchMessagesForRoom = useCallback(async (roomId) => {
+    // if (!token || authLoading) return; // Removed useAuth
+    
+    setLoading(true);
+    setError(null);
+    
+    try {
+      // Mock room messages fetch
+      const roomMessages = mockMessages[roomId] || [];
+      setMessages(prev => ({ ...prev, [roomId]: roomMessages }));
+      
+      return roomMessages;
+    } catch (err) {
+      setError('Oda mesajları yüklenemedi');
+      console.error('Room messages fetch error:', err);
+    } finally {
+      setLoading(false);
+    }
+  }, []); // Removed useAuth
+
+  const updateChat = useCallback(async (chatId, updateData) => {
+    // if (!token) return; // Removed useAuth
+    
+    setLoading(true);
+    setError(null);
+    
+    try {
+      // Mock chat update
       setChats(prev => prev.map(chat => 
-        chat.id === chatId ? updatedChat : chat
+        chat.id === chatId 
+          ? { ...chat, ...updateData, updatedAt: new Date().toISOString() }
+          : chat
       ));
       
-      if (currentChat?.id === chatId) {
-        setCurrentChat(updatedChat);
-      }
-      
-      return updatedChat;
-    } catch (error) {
-      console.error('Sohbet başlığı güncellenemedi:', error);
-      throw error;
+      return { success: true };
+    } catch (err) {
+      setError('Sohbet güncellenemedi');
+      console.error('Chat update error:', err);
+      throw err;
+    } finally {
+      setLoading(false);
     }
-  }, [put, token, currentChat]);
+  }, []); // Removed useAuth
 
-  // İlk yükleme - sadece token varsa
   useEffect(() => {
-    if (token && !authLoading) {
+    // if (token && !authLoading) { // Removed useAuth
       fetchChats();
-    }
-  }, [fetchChats, token, authLoading]);
+      fetchChatRooms();
+    // } // Removed useAuth
+  }, [fetchChats, fetchChatRooms]); // Removed useAuth
 
   return {
     chats,
-    currentChat,
     messages,
+    chatRooms,
     loading,
     error,
     fetchChats,
@@ -223,11 +403,10 @@ export const useChat = () => {
     fetchMessages,
     sendMessage,
     getAIResponse,
-    selectChat,
-    updateChatTitle,
     fetchChatRooms,
     createChatRoom,
     addMessageToRoom,
-    getMessagesForRoom,
+    fetchMessagesForRoom,
+    updateChat,
   };
 }; 

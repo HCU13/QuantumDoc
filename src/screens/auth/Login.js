@@ -17,7 +17,6 @@ import SocialButtons from "../../components/auth/SocialButtons";
 import AuthFooter from "../../components/auth/AuthFooter";
 import useTheme from "../../hooks/useTheme";
 import GradientBackground from "../../components/common/GradientBackground";
-import { useAuth } from "../../contexts/AuthContext";
 import { useTranslation } from "react-i18next";
 
 const Login = ({ navigation }) => {
@@ -29,7 +28,6 @@ const Login = ({ navigation }) => {
   const [loading, setLoading] = useState(false);
 
   const { colors } = useTheme();
-  const { login } = useAuth();
   const { t } = useTranslation();
 
   const styles = StyleSheet.create({
@@ -98,14 +96,15 @@ const Login = ({ navigation }) => {
     if (isEmailValid && isPasswordValid) {
       setLoading(true);
       try {
-        await login(email, password);
-        // Başarılı giriş sonrası direkt ana sayfaya yönlendirme
-        // Navigation otomatik olarak Main navigator'a yönlendirecek
+        // Mock login - gerçek API çağrısı yerine
+        await new Promise(resolve => setTimeout(resolve, 1000));
+        
+        console.log("Giriş başarılı:", { email, password });
+        // Başarılı giriş sonrası ana sayfaya yönlendir
+        navigation.reset({ index: 0, routes: [{ name: "Main" }] });
+        
       } catch (error) {
-        Alert.alert(
-          "Giriş Hatası",
-          error.message || "Giriş yapılırken bir hata oluştu"
-        );
+        console.error("Giriş hatası:", error);
       } finally {
         setLoading(false);
       }

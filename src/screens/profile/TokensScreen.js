@@ -19,21 +19,37 @@ import RewardCard from "../../components/profile/RewardCard";
 import Button from "../../components/common/Button";
 import { LinearGradient } from "expo-linear-gradient";
 import useTheme from "../../hooks/useTheme";
-import { useToken } from "../../contexts/TokenContext";
 import { useTranslation } from "react-i18next";
 
 const { width, height } = Dimensions.get("window");
 
 const TokensScreen = ({ navigation }) => {
+  const [loading, setLoading] = useState(false);
   const { colors } = useTheme();
-  const {
-    tokens,
-    watchedVideosToday,
-    canWatchVideoForTokens,
-    watchVideoForTokens,
-    addTokens,
-  } = useToken();
   const { t } = useTranslation();
+
+  // Mock token data
+  const [tokens, setTokens] = useState(100);
+  const [watchedVideosToday, setWatchedVideosToday] = useState(1);
+  const canWatchVideoForTokens = () => watchedVideosToday < 3;
+  const mockTokenHistory = [
+    {
+      id: "1",
+      type: "purchase",
+      amount: 50,
+      description: "Token paketi satın alındı",
+      date: "2024-01-15",
+      time: "14:30",
+    },
+    {
+      id: "2",
+      type: "usage",
+      amount: -10,
+      description: "AI sohbet kullanımı",
+      date: "2024-01-14",
+      time: "09:15",
+    },
+  ];
 
   const [videoModalVisible, setVideoModalVisible] = useState(false);
   const [isWatchingVideo, setIsWatchingVideo] = useState(false);
@@ -198,10 +214,10 @@ const TokensScreen = ({ navigation }) => {
     {
       id: "video",
       title: "Video İzle",
-      description: `Video izleyerek token kazanın (${watchedVideosToday}/3)`,
+      description: `Video izleyerek token kazanın (${tokens}/3)`,
       tokens: 2,
       icon: "play-circle-outline",
-      claimed: watchedVideosToday >= 3,
+      claimed: tokens >= 3,
     },
     {
       id: "share",
@@ -251,6 +267,22 @@ const TokensScreen = ({ navigation }) => {
     // API çağrısı kaldırıldı, sadece UI kalacak
   };
 
+  const handlePurchaseTokens = async (packageId) => {
+    setLoading(true);
+    try {
+      // Mock API çağrısı - gerçek API çağrısı yerine
+      await new Promise(resolve => setTimeout(resolve, 1000));
+      
+      console.log("Token paketi satın alındı:", packageId);
+      // Başarılı satın alma sonrası işlem
+      
+    } catch (error) {
+      console.error("Token satın alma hatası:", error);
+    } finally {
+      setLoading(false);
+    }
+  };
+
   return (
     <GradientBackground>
       <SafeAreaView style={styles.container}>
@@ -276,6 +308,9 @@ const TokensScreen = ({ navigation }) => {
 
         <ScrollView style={styles.content} showsVerticalScrollIndicator={false}>
           <TokenCard
+            tokens={tokens}
+            watchedVideosToday={watchedVideosToday}
+            canWatchVideoForTokens={canWatchVideoForTokens}
             onGetTokenPress={() => {
               if (canWatchVideoForTokens()) {
                 setVideoModalVisible(true);

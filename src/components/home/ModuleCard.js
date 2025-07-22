@@ -3,6 +3,7 @@ import { View, Text, StyleSheet, TouchableOpacity } from "react-native";
 import { FONTS, SIZES } from "../../constants/theme";
 import { LinearGradient } from "expo-linear-gradient";
 import useTheme from "../../hooks/useTheme";
+import { Ionicons } from '@expo/vector-icons';
 
 const ModuleCard = ({
   title,
@@ -132,7 +133,7 @@ const ModuleCard = ({
             <View
               style={[styles.iconContainer, { borderColor: colors.border }]}
             >
-              {icon}
+              <Ionicons name={icon} size={28} color="#FFF" />
             </View>
 
             <View style={styles.largeCardTextContainer}>
@@ -166,7 +167,7 @@ const ModuleCard = ({
         style={styles.gradientContainer}
       >
         <View style={[styles.iconContainer, { borderColor: colors.border }]}>
-          {icon}
+          <Ionicons name={icon} size={28} color="#FFF" />
         </View>
 
         <View style={styles.contentContainer}>

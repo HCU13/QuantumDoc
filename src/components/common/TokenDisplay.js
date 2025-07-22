@@ -2,7 +2,6 @@ import React from "react";
 import { View, Text, StyleSheet, Image, TouchableOpacity } from "react-native";
 import { FONTS, SIZES } from "../../constants/theme";
 import useTheme from "../../hooks/useTheme";
-import { useToken } from "../../contexts/TokenContext";
 import { tokenUtils } from "../../utils/tokenUtils";
 
 const TokenDisplay = ({
@@ -12,7 +11,8 @@ const TokenDisplay = ({
   containerStyle,
 }) => {
   const { colors } = useTheme();
-  const { tokens } = useToken();
+  // Mock token count - gerçek token context'i kaldırıldı
+  const tokens = 100;
 
   // Boyut ayarları
   let iconSize, fontSize, padding, plusSize;

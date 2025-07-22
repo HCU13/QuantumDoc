@@ -1,29 +1,26 @@
 import React from "react";
 import { createStackNavigator } from "@react-navigation/stack";
-import AuthNavigator from "./AuthNavigator";
 import MainNavigator from "./MainNavigator";
 import ChatModuleNavigator from "./ChatModuleNavigator";
-import { useAuth } from "../contexts/AuthContext";
+import MathModuleNavigator from "./MathModuleNavigator";
+import NewsModuleNavigator from "./NewsModuleNavigator";
+import QuizModuleNavigator from "./QuizModuleNavigator";
+import CalculatorModuleNavigator from "./CalculatorModuleNavigator";
+import Welcome from "../screens/auth/Welcome";
+import AuthNavigator from "./AuthNavigator";
 
 const Stack = createStackNavigator();
 
 const AppNavigator = () => {
-  const { isAuthenticated } = useAuth();
-
   return (
-    <Stack.Navigator
-      screenOptions={{
-        headerShown: false,
-      }}
-    >
-      {isAuthenticated ? (
-        // Kullanıcı login olduysa Main navigator'ı göster
-        <Stack.Screen name="Main" component={MainNavigator} />
-      ) : (
-        // Kullanıcı login olmadıysa Auth navigator'ı göster
-        <Stack.Screen name="Auth" component={AuthNavigator} />
-      )}
+    <Stack.Navigator screenOptions={{ headerShown: false }} initialRouteName="Auth">
+      <Stack.Screen name="Auth" component={AuthNavigator} />
+      <Stack.Screen name="Main" component={MainNavigator} />
       <Stack.Screen name="Chat" component={ChatModuleNavigator} />
+      <Stack.Screen name="Math" component={MathModuleNavigator} />
+      <Stack.Screen name="Quiz" component={QuizModuleNavigator} />
+      <Stack.Screen name="Calculator" component={CalculatorModuleNavigator} />
+      <Stack.Screen name="News" component={NewsModuleNavigator} />
     </Stack.Navigator>
   );
 };

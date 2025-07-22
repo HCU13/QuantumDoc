@@ -5,6 +5,7 @@ import { Ionicons } from "@expo/vector-icons";
 import useTheme from "../../hooks/useTheme";
 import ModuleCard from "./ModuleCard";
 import { useTranslation } from "react-i18next";
+import { MODULES } from '../../constants/modules';
 
 const FeaturedModules = ({ onModulePress, containerStyle }) => {
   const { colors } = useTheme();
@@ -31,36 +32,7 @@ const FeaturedModules = ({ onModulePress, containerStyle }) => {
   });
 
   // Öne çıkan modüller
-  const featuredModules = [
-    {
-      id: "chat",
-      title: t("modules.chat"),
-      description: t("modules.chatDescription"),
-      icon: <Ionicons name="chatbubble-outline" size={28} color="#FFF" />,
-      gradientColors: [colors.primary, colors.primaryDark],
-    },
-    {
-      id: "math",
-      title: t("modules.math"),
-      description: t("modules.mathDescription"),
-      icon: <Ionicons name="calculator-outline" size={28} color="#FFF" />,
-      gradientColors: ["#FF7B54", "#F24C4C"],
-    },
-    {
-      id: "write",
-      title: t("modules.write"),
-      description: t("modules.writeDescription"),
-      icon: <Ionicons name="create-outline" size={28} color="#FFF" />,
-      gradientColors: ["#4CACBC", "#1C7293"],
-    },
-    {
-      id: "translate",
-      title: t("modules.translate"),
-      description: t("modules.translateDescription"),
-      icon: <Ionicons name="language-outline" size={28} color="#FFF" />,
-      gradientColors: ["#7F7FD5", "#5C5CBD"],
-    },
-  ];
+  const featuredModules = MODULES.filter(m => m.enabled);
 
   return (
     <View style={[styles.container, containerStyle]}>

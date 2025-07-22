@@ -12,18 +12,20 @@ import { SIZES, FONTS } from "../../constants/theme";
 import { Ionicons } from "@expo/vector-icons";
 import GradientBackground from "../../components/common/GradientBackground";
 import Button from "../../components/common/Button";
-import TokenDisplay from "../../components/common/TokenDisplay";
 import ProfileImage from "../../components/common/ProfileImage";
 import useTheme from "../../hooks/useTheme";
-import { useToken } from "../../contexts/TokenContext";
 import { useTranslation } from "react-i18next";
-import { useAuth } from "../../contexts/AuthContext";
 
 const ProfileScreen = ({ navigation }) => {
   const { colors, isDark, toggleTheme } = useTheme();
-  const { tokens } = useToken();
   const { t } = useTranslation();
-  const { user, logout } = useAuth();
+  // useAuth importu kaldırıldı
+
+  // Mock user data
+  const user = {
+    fullName: "Test Kullanıcı",
+    email: "test@example.com",
+  };
 
   const styles = StyleSheet.create({
     container: {
@@ -87,11 +89,6 @@ const ProfileScreen = ({ navigation }) => {
       ...FONTS.body3,
       color: colors.textSecondary,
       marginBottom: 15,
-    },
-    tokenContainer: {
-      flexDirection: "row",
-      alignItems: "center",
-      marginVertical: 15,
     },
     sectionTitle: {
       ...FONTS.h3,
@@ -178,14 +175,6 @@ const ProfileScreen = ({ navigation }) => {
 
   const menuItems = [
     {
-      id: "tokens",
-      title: "Token Yönetimi",
-      icon: (
-        <Ionicons name="cash-outline" size={22} style={styles.menuItemIcon} />
-      ),
-      onPress: () => navigation.navigate("Tokens"),
-    },
-    {
       id: "account",
       title: "Hesap Bilgileri",
       icon: (
@@ -240,7 +229,7 @@ const ProfileScreen = ({ navigation }) => {
   ];
 
   const handleLogout = () => {
-    logout();
+    // useAuth importu kaldırıldı
   };
 
   return (
@@ -252,36 +241,17 @@ const ProfileScreen = ({ navigation }) => {
           translucent
         /> */}
 
-        <View style={styles.header}>
-          <TouchableOpacity
-            style={styles.backButton}
-            onPress={() => navigation.goBack()}
-          >
-            <Ionicons
-              name="arrow-back"
-              size={24}
-              color={colors.textPrimary}
-            />
-          </TouchableOpacity>
-          <Text style={styles.headerTitle}>Profil</Text>
-          <View style={{ width: 40 }} />
-        </View>
-
         <ScrollView style={styles.content} showsVerticalScrollIndicator={false}>
           <View style={styles.profileSection}>
             <View style={styles.profileImageContainer}>
               <ProfileImage user={user} size={120} showBorder={false} />
             </View>
             <Text style={styles.nameText}>
-              {user?.name || user?.firstName || "Kullanıcı"}
+              {user?.fullName || user?.firstName || "Kullanıcı"}
             </Text>
             <Text style={styles.emailText}>
               {user?.email || "kullanici@example.com"}
             </Text>
-
-            <View style={styles.tokenContainer}>
-              <TokenDisplay size="medium" />
-            </View>
           </View>
 
           <View style={styles.card}>
@@ -303,6 +273,33 @@ const ProfileScreen = ({ navigation }) => {
                 />
               </TouchableOpacity>
             ))}
+          </View>
+
+          {/* Tema Değiştirici */}
+          <View style={styles.card}>
+            <TouchableOpacity
+              style={styles.themeSwitchContainer}
+              onPress={toggleTheme}
+              accessibilityRole="button"
+              accessibilityLabel={isDark ? "Açık temaya geç" : "Koyu temaya geç"}
+              activeOpacity={0.8}
+            >
+              <View style={styles.iconContainer}>
+                <Ionicons
+                  name={isDark ? "moon" : "sunny"}
+                  size={22}
+                  style={styles.themeSwitchIcon}
+                />
+              </View>
+              <Text style={styles.themeSwitchText}>
+                Tema: {isDark ? "Koyu" : "Açık"}
+              </Text>
+              <Ionicons
+                name={isDark ? "toggle" : "toggle-outline"}
+                size={32}
+                style={styles.toggleIcon}
+              />
+            </TouchableOpacity>
           </View>
 
           <Button

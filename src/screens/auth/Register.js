@@ -1,5 +1,5 @@
 import React, { useState } from "react";
-import { View, StyleSheet, SafeAreaView, ScrollView, Text } from "react-native";
+import { View, StyleSheet, SafeAreaView, ScrollView, Text, TouchableOpacity, KeyboardAvoidingView, Platform } from "react-native";
 import { SIZES, FONTS } from "../../constants/theme";
 import { Ionicons } from "@expo/vector-icons";
 import Header from "../../components/common/Header";
@@ -119,99 +119,108 @@ const Register = ({ navigation }) => {
   };
 
   return (
-    <GradientBackground>
+    <GradientBackground mode="default">
       <SafeAreaView style={styles.container}>
-        <Header showBackButton />
-        <ScrollView
-          style={styles.content}
-          showsVerticalScrollIndicator={false}
-          keyboardShouldPersistTaps="handled"
+        {/* Geri Butonu */}
+        <TouchableOpacity
+          style={{ padding: 8, marginLeft: 4, marginTop: 4, alignSelf: 'flex-start' }}
+          onPress={() => navigation.goBack()}
+          accessibilityRole="button"
+          accessibilityLabel="Geri"
         >
-          <Text style={styles.title}>{t("screens.auth.register.title")}</Text>
-          <Text style={styles.subtitle}>
-            {t("screens.auth.register.subtitle")}
-          </Text>
+          <Ionicons name="chevron-back" size={28} color={colors.textPrimary} />
+        </TouchableOpacity>
+        <KeyboardAvoidingView
+          style={{ flex: 1 }}
+          behavior={Platform.OS === "ios" ? "padding" : "height"}
+        >
+          <View style={styles.content}>
+            <Text style={styles.title}>{t("screens.auth.register.title")}</Text>
+            <Text style={styles.subtitle}>
+              {t("screens.auth.register.subtitle")}
+            </Text>
 
-          <View style={styles.formContainer}>
-            <Input
-              label={t("auth.fullName")}
-              value={fullName}
-              onChangeText={setFullName}
-              placeholder={t("auth.fullNamePlaceholder")}
-              error={fullNameError}
-              autoCapitalize="words"
-              icon={
-                <Ionicons
-                  name="person-outline"
-                  size={20}
-                  color={colors.textSecondary}
-                />
-              }
-            />
+            <View style={styles.formContainer}>
+              <Input
+                label={t("auth.fullName")}
+                value={fullName}
+                onChangeText={setFullName}
+                placeholder={t("auth.fullNamePlaceholder")}
+                error={fullNameError}
+                autoCapitalize="words"
+                icon={
+                  <Ionicons
+                    name="person-outline"
+                    size={20}
+                    color={colors.textSecondary}
+                  />
+                }
+              />
 
-            <Input
-              label={t("auth.email")}
-              value={email}
-              onChangeText={setEmail}
-              placeholder={t("auth.emailPlaceholder")}
-              keyboardType="email-address"
-              error={emailError}
-              icon={
-                <Ionicons
-                  name="mail-outline"
-                  size={20}
-                  color={colors.textSecondary}
-                />
-              }
-            />
+              <Input
+                label={t("auth.email")}
+                value={email}
+                onChangeText={setEmail}
+                placeholder={t("auth.emailPlaceholder")}
+                keyboardType="email-address"
+                error={emailError}
+                icon={
+                  <Ionicons
+                    name="mail-outline"
+                    size={20}
+                    color={colors.textSecondary}
+                  />
+                }
+              />
 
-            <Input
-              label={t("auth.password")}
-              value={password}
-              onChangeText={setPassword}
-              placeholder={t("auth.passwordPlaceholder")}
-              secureTextEntry
-              error={passwordError}
-              icon={
-                <Ionicons
-                  name="lock-closed-outline"
-                  size={20}
-                  color={colors.textSecondary}
-                />
-              }
-            />
+              <Input
+                label={t("auth.password")}
+                value={password}
+                onChangeText={setPassword}
+                placeholder={t("auth.passwordPlaceholder")}
+                secureTextEntry
+                error={passwordError}
+                icon={
+                  <Ionicons
+                    name="lock-closed-outline"
+                    size={20}
+                    color={colors.textSecondary}
+                  />
+                }
+              />
 
-            <Input
-              label={t("auth.confirmPassword")}
-              value={confirmPassword}
-              onChangeText={setConfirmPassword}
-              placeholder={t("auth.confirmPasswordPlaceholder")}
-              secureTextEntry
-              error={confirmPasswordError}
-              icon={
-                <Ionicons
-                  name="lock-closed-outline"
-                  size={20}
-                  color={colors.textSecondary}
-                />
-              }
-            />
-            <View style={{ height: 20 }} />
-            <Button
-              title={t("screens.auth.register.title")}
-              gradient
-              onPress={handleRegister}
-              loading={loading}
-              size="auth"
+              <Input
+                label={t("auth.confirmPassword")}
+                value={confirmPassword}
+                onChangeText={setConfirmPassword}
+                placeholder={t("auth.confirmPasswordPlaceholder")}
+                secureTextEntry
+                error={confirmPasswordError}
+                icon={
+                  <Ionicons
+                    name="lock-closed-outline"
+                    size={20}
+                    color={colors.textSecondary}
+                  />
+                }
+              />
+              <View style={{ height: 20 }} />
+              <Button
+                title={t("screens.auth.register.title")}
+                gradient
+                onPress={handleRegister}
+                loading={loading}
+                size="auth"
+              />
+            </View>
+
+            <AuthFooter
+              questionText={t("screens.auth.register.haveAccount")}
+              actionText={t("screens.auth.register.login")}
+              onPress={() => navigation.navigate("Login")}
             />
           </View>
-
-          <AuthFooter
-            questionText={t("screens.auth.register.haveAccount")}
-            actionText={t("screens.auth.register.login")}
-            onPress={() => navigation.navigate("Login")}
-          />
-        </ScrollView>
+        </KeyboardAvoidingView>
       </SafeAreaView>
     </GradientBackground>
   );
