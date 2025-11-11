@@ -4,7 +4,7 @@ import { FontAwesome } from "@expo/vector-icons";
 import { Ionicons } from "@expo/vector-icons";
 import useTheme from "../../hooks/useTheme";
 
-const SocialButtons = ({ onGooglePress, onApplePress }) => {
+const SocialButtons = ({ onGooglePress, onApplePress, onFacebookPress }) => {
   const { colors, isDark } = useTheme();
 
   return (
@@ -14,30 +14,38 @@ const SocialButtons = ({ onGooglePress, onApplePress }) => {
         <Text style={styles.dividerText}>veya</Text>
         <View style={styles.divider} />
       </View>
-      <TouchableOpacity
-        style={styles.button}
-        onPress={onGooglePress}
-        activeOpacity={0.85}
-        accessibilityRole="button"
-        accessibilityLabel="Google ile giriş yap"
-      >
-        <View style={styles.iconContainer}>
-          <FontAwesome name="google" size={22} color="#EA4335" />
-        </View>
-        <Text style={styles.text}>Google ile Giriş Yap</Text>
-      </TouchableOpacity>
-      <TouchableOpacity
-        style={styles.button}
-        onPress={onApplePress}
-        activeOpacity={0.85}
-        accessibilityRole="button"
-        accessibilityLabel="Apple ile giriş yap"
-      >
-        <View style={styles.iconContainer}>
-          <FontAwesome name="apple" size={22} color={isDark ? colors.white : colors.black} />
-        </View>
-        <Text style={styles.text}>Apple ile Giriş Yap</Text>
-      </TouchableOpacity>
+      
+      <View style={styles.buttonsContainer}>
+        <TouchableOpacity
+          style={styles.socialButton}
+          onPress={onGooglePress}
+          activeOpacity={0.85}
+          accessibilityRole="button"
+          accessibilityLabel="Google ile giriş yap"
+        >
+          <FontAwesome name="google" size={24} color="#EA4335" />
+        </TouchableOpacity>
+        
+        <TouchableOpacity
+          style={styles.socialButton}
+          onPress={onFacebookPress}
+          activeOpacity={0.85}
+          accessibilityRole="button"
+          accessibilityLabel="Facebook ile giriş yap"
+        >
+          <FontAwesome name="facebook" size={24} color="#1877F2" />
+        </TouchableOpacity>
+        
+        <TouchableOpacity
+          style={styles.socialButton}
+          onPress={onApplePress}
+          activeOpacity={0.85}
+          accessibilityRole="button"
+          accessibilityLabel="Apple ile giriş yap"
+        >
+          <FontAwesome name="apple" size={24} color={isDark ? colors.white : colors.black} />
+        </TouchableOpacity>
+      </View>
     </View>
   );
 };
@@ -64,36 +72,26 @@ const styles = StyleSheet.create({
     paddingHorizontal: 10,
     fontWeight: "500",
   },
-  button: {
+  buttonsContainer: {
     flexDirection: "row",
-    alignItems: "center",
     justifyContent: "center",
+    alignItems: "center",
+    gap: 16,
+  },
+  socialButton: {
+    width: 56,
+    height: 56,
+    borderRadius: 12,
     backgroundColor: "#fff",
-    borderRadius: 8,
-    paddingVertical: 12,
-    paddingHorizontal: 16,
-    width: "100%",
-    marginBottom: 12,
+    justifyContent: "center",
+    alignItems: "center",
     borderWidth: 1,
     borderColor: "#E0E0E0",
     shadowColor: "#000",
-    shadowOffset: { width: 0, height: 1 },
-    shadowOpacity: 0.04,
-    shadowRadius: 2,
-    elevation: 1,
-  },
-  iconContainer: {
-    width: 24,
-    height: 24,
-    marginRight: 12,
-    alignItems: "center",
-    justifyContent: "center",
-  },
-  text: {
-    fontSize: 15,
-    color: "#222",
-    fontWeight: "600",
-    letterSpacing: 0.1,
+    shadowOffset: { width: 0, height: 2 },
+    shadowOpacity: 0.1,
+    shadowRadius: 4,
+    elevation: 2,
   },
 });
 

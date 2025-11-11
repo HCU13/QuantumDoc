@@ -3,13 +3,15 @@ import { View, Text, StyleSheet } from "react-native";
 import { FONTS, SIZES } from "../../constants/theme";
 import { Ionicons } from "@expo/vector-icons";
 import useTheme from "../../hooks/useTheme";
-import ModuleCard from "./ModuleCard";
+import ModuleCard from "../explore/ModuleCard";
 import { useTranslation } from "react-i18next";
 import { MODULES } from '../../constants/modules';
+import { useTokenContext } from '../../contexts/TokenContext';
 
 const FeaturedModules = ({ onModulePress, containerStyle }) => {
   const { colors } = useTheme();
   const { t } = useTranslation();
+  const { getTokenCost } = useTokenContext();
 
   const styles = StyleSheet.create({
     container: {
@@ -41,16 +43,23 @@ const FeaturedModules = ({ onModulePress, containerStyle }) => {
       </View>
 
       <View style={styles.modulesContainer}>
-        {featuredModules.map((module) => (
-          <ModuleCard
-            key={module.id}
-            title={module.title}
-            description={module.description}
-            icon={module.icon}
-            gradientColors={module.gradientColors}
-            onPress={() => onModulePress(module)}
-          />
-        ))}
+        {featuredModules.map((module) => {
+          // Database'den token maliyetini al
+          const tokenCost = getTokenCost(module.id) || module.tokenCost;
+          return (
+            <ModuleCard
+              key={module.id}
+              title={t(module.titleKey)}
+              description={t(module.descriptionKey)}
+              moduleId={module.id}
+              icon={module.icon}
+              gradientColors={module.gradientColors}
+              tokenCost={tokenCost}
+              tokenCostRange={module.tokenCostRange}
+              onPress={() => onModulePress(module)}
+            />
+          );
+        })}
       </View>
     </View>
   );

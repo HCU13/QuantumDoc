@@ -15,18 +15,22 @@ import GradientBackground from "../../components/common/GradientBackground";
 import Header from "../../components/common/Header";
 import Button from "../../components/common/Button";
 import useTheme from "../../hooks/useTheme";
+import { useLoading } from "../../contexts/LoadingContext";
+import { showToast } from "../../utils/toast";
+import { useTranslation } from "react-i18next";
+import { setLanguage } from "../../i18n/config";
 
 const LanguageSettingsScreen = ({ navigation }) => {
+  const { t, i18n } = useTranslation();
   const { colors, isDark } = useTheme();
-  const [selectedLanguage, setSelectedLanguage] = useState("tr"); // Default to Turkish
-  const [aiLanguage, setAiLanguage] = useState("tr"); // AI response language
-  const [loading, setLoading] = useState(false);
+  const { setLoading: setGlobalLoading } = useLoading();
+  const [selectedLanguage, setSelectedLanguage] = useState(i18n.language || "tr");
   const [hasChanges, setHasChanges] = useState(false);
 
   useEffect(() => {
     // Check if there are any changes that need to be saved
     const checkChanges = () => {
-      if (selectedLanguage !== "tr" || aiLanguage !== "tr") {
+      if (selectedLanguage !== i18n.language) {
         setHasChanges(true);
       } else {
         setHasChanges(false);
@@ -34,7 +38,7 @@ const LanguageSettingsScreen = ({ navigation }) => {
     };
 
     checkChanges();
-  }, [selectedLanguage, aiLanguage]);
+  }, [selectedLanguage, i18n.language]);
 
   const styles = StyleSheet.create({
     container: {
@@ -44,6 +48,7 @@ const LanguageSettingsScreen = ({ navigation }) => {
     content: {
       flex: 1,
       paddingHorizontal: SIZES.padding,
+      marginTop: 20,
     },
     sectionTitle: {
       ...FONTS.h3,
@@ -115,69 +120,68 @@ const LanguageSettingsScreen = ({ navigation }) => {
   const languages = [
     {
       code: "tr",
-      name: "Türkçe",
+      name: t('profile.language.languages.tr'),
       native: "Türkçe",
-      details: "Ana Dil",
+      details: t('profile.language.languageDetails.tr'),
     },
     {
       code: "en",
-      name: "İngilizce",
+      name: t('profile.language.languages.en'),
       native: "English",
-      details: "English",
+      details: t('profile.language.languageDetails.en'),
     },
     {
       code: "de",
-      name: "Almanca",
+      name: t('profile.language.languages.de'),
       native: "Deutsch",
-      details: "German",
+      details: t('profile.language.languageDetails.de'),
     },
     {
       code: "fr",
-      name: "Fransızca",
+      name: t('profile.language.languages.fr'),
       native: "Français",
-      details: "French",
+      details: t('profile.language.languageDetails.fr'),
     },
     {
       code: "es",
-      name: "İspanyolca",
+      name: t('profile.language.languages.es'),
       native: "Español",
-      details: "Spanish",
+      details: t('profile.language.languageDetails.es'),
     },
   ];
 
-  const handleSaveChanges = () => {
-    setLoading(true);
-    // Simulate API call to save language preferences
-    setTimeout(() => {
-      setLoading(false);
+  const handleSaveChanges = async () => {
+    try {
+      setGlobalLoading(true, t('profile.language.updating'), "settings");
+      
+      // Dili değiştir ve AsyncStorage'a kaydet
+      await setLanguage(selectedLanguage);
+      
+      await new Promise(resolve => setTimeout(resolve, 500));
+      
       setHasChanges(false);
-      Alert.alert("Başarılı", "Dil ayarlarınız güncellendi.");
-    }, 1000);
+      showToast("success", t('common.success'), t('profile.language.success'));
+    } catch (error) {
+      if (__DEV__) console.error('Language settings error:', error);
+      showToast("error", t('common.error'), t('profile.language.error'));
+    } finally {
+      setGlobalLoading(false);
+    }
   };
 
-  const renderLanguageOption = (language, index, isForAI = false) => {
-    const isSelected = isForAI
-      ? aiLanguage === language.code
-      : selectedLanguage === language.code;
+  const renderLanguageOption = (language, index) => {
+    const isSelected = selectedLanguage === language.code;
     const isLast = index === languages.length - 1;
 
     return (
       <TouchableOpacity
         key={language.code}
         style={[styles.languageOption, isLast && styles.lastLanguageOption]}
-        onPress={() => {
-          if (isForAI) {
-            setAiLanguage(language.code);
-          } else {
-            setSelectedLanguage(language.code);
-          }
-        }}
+        onPress={() => setSelectedLanguage(language.code)}
       >
         <View>
-          <Text style={styles.languageText}>{language.name}</Text>
-          <Text style={styles.languageDetails}>
-            {language.native} - {language.details}
-          </Text>
+          <Text style={styles.languageText}>{language.native}</Text>
+          <Text style={styles.languageDetails}>{language.details}</Text>
         </View>
         {isSelected && (
           <Ionicons
@@ -200,46 +204,30 @@ const LanguageSettingsScreen = ({ navigation }) => {
           translucent
         /> */}
 
-        <Header title="Dil Ayarları" showBackButton={true} />
+        <Header title={t('profile.language.title')} showBackButton={true} />
 
         <ScrollView style={styles.content} showsVerticalScrollIndicator={false}>
-          <Text style={styles.sectionTitle}>Uygulama Dili</Text>
+          {/* <Text style={styles.sectionTitle}>{t('profile.language.appLanguage')}</Text> */}
           <View style={[styles.card, { backgroundColor: colors.card }]}>
             <Text style={styles.infoText}>
-              Uygulamanın arayüzünde kullanılacak dili seçin. Bu değişiklik
-              uygulamanın tüm menü ve bildirimleri için geçerli olacaktır.
+              {t('profile.language.appLanguageInfo')}
             </Text>
             {languages.map((lang, index) =>
-              renderLanguageOption(lang, index, false)
-            )}
-          </View>
-
-          <Text style={styles.sectionTitle}>AI Yanıt Dili</Text>
-          <View style={[styles.card, { backgroundColor: colors.card }]}>
-            <Text style={styles.infoText}>
-              AI asistanın size cevap vereceği dili seçin. Sorularınızı
-              istediğiniz dilde sorabilirsiniz, AI seçtiğiniz dilde cevap
-              verecektir.
-            </Text>
-            {languages.map((lang, index) =>
-              renderLanguageOption(lang, index, true)
+              renderLanguageOption(lang, index)
             )}
           </View>
 
           <View style={styles.note}>
             <Text style={styles.noteText}>
-              Not: Dil değişikliği, uygulamayı yeniden başlattıktan sonra tüm
-              bölümlere uygulanacaktır. Bazı içerikler seçilen dilde
-              olmayabilir.
+              {t('profile.language.note')}
             </Text>
           </View>
 
           {hasChanges && (
             <Button
-              title="Değişiklikleri Kaydet"
+              title={t('profile.language.saveChanges')}
               gradient
               onPress={handleSaveChanges}
-              loading={loading}
               containerStyle={{ marginBottom: 30 }}
             />
           )}

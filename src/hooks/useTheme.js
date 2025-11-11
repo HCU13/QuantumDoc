@@ -9,7 +9,7 @@ const useTheme = () => {
 
   if (themeContext === undefined) {
     // Eğer context bulunamazsa, varsayılan değerler döndür
-    console.warn("useTheme must be used within a ThemeProvider");
+    if (__DEV__) console.warn("useTheme must be used within a ThemeProvider");
     return {
       isDark: false,
       colors: {},

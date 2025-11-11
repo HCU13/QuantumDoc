@@ -1,5 +1,4 @@
-// src/screens/activity/ActivityScreen.js
-import React, { useState } from "react";
+import React, { useState, useEffect, useMemo, useCallback } from "react";
 import {
   View,
   Text,
@@ -7,429 +6,599 @@ import {
   SafeAreaView,
   FlatList,
   TouchableOpacity,
-  StatusBar,
-  ScrollView,
+  RefreshControl,
+  Alert,
 } from "react-native";
-import { SIZES, FONTS } from "../../constants/theme";
+import { TEXT_STYLES, SPACING, BORDER_RADIUS, SHADOWS } from "../../constants/theme";
 import { Ionicons } from "@expo/vector-icons";
 import GradientBackground from "../../components/common/GradientBackground";
-import TokenDisplay from "../../components/common/TokenDisplay";
-import SearchBar from "../../components/home/SearchBar";
 import Button from "../../components/common/Button";
 import useTheme from "../../hooks/useTheme";
 import HomeHeader from "../../components/home/HomeHeader";
+import ActivityItem from "../../components/common/ActivityItem";
+import { MODULES } from "../../constants/modules";
+import { useActivity } from "../../hooks/useActivity";
+import { useTranslation } from "react-i18next";
+import Skeleton from "../../components/common/Skeleton";
 
-const ActivityItem = ({ item, onPress }) => {
-  const { colors } = useTheme();
-
-  const styles = StyleSheet.create({
-    itemContainer: {
-      backgroundColor: colors.card,
-      borderRadius: SIZES.radius,
-      marginBottom: 15,
-      borderWidth: 1,
-
-      overflow: "hidden",
-    },
-    itemHeader: {
-      flexDirection: "row",
-      alignItems: "center",
-      padding: 15,
-      borderBottomWidth: 1,
-      borderBottomColor: "rgba(255, 255, 255, 0.1)",
-    },
-    iconContainer: {
-      width: 40,
-      height: 40,
-      borderRadius: 20,
-      backgroundColor: getTypeColor(item.type, 0.3),
-      alignItems: "center",
-      justifyContent: "center",
-      marginRight: 12,
-    },
-    contentContainer: {
-      flex: 1,
-    },
-    title: {
-      ...FONTS.h4,
-      color: colors.textOnGradient,
-      marginBottom: 4,
-      fontWeight: "bold",
-    },
-    description: {
-      ...FONTS.body5,
-      color: colors.textOnGradient,
-      opacity: 0.7,
-    },
-    timeContainer: {
-      flexDirection: "row",
-      alignItems: "center",
-      backgroundColor: "rgba(0, 0, 0, 0.2)",
-      paddingHorizontal: 10,
-      paddingVertical: 5,
-      borderRadius: 15,
-    },
-    time: {
-      ...FONTS.body5,
-      color: colors.textOnGradient,
-      opacity: 0.7,
-      marginLeft: 5,
-    },
-    itemContent: {
-      padding: 15,
-    },
-    contentText: {
-      ...FONTS.body4,
-      color: colors.textOnGradient,
-    },
-  });
-
-  // Aktivite tipine göre renkler ve ikonlar
-  function getTypeColor(type, opacity = 1) {
-    const colors = {
-      chat: `rgba(138, 79, 255, ${opacity})`,
-      math: `rgba(242, 76, 76, ${opacity})`,
-      write: `rgba(76, 172, 188, ${opacity})`,
-      translate: `rgba(95, 92, 189, ${opacity})`,
-      note: `rgba(82, 222, 151, ${opacity})`,
-      task: `rgba(226, 82, 220, ${opacity})`,
-      voice: `rgba(255, 106, 136, ${opacity})`,
-      default: `rgba(150, 150, 150, ${opacity})`,
-    };
-
-    return colors[type] || colors["default"];
-  }
-
-  function getTypeIcon(type) {
-    const icons = {
-      chat: "chatbubble-ellipses-outline",
-      math: "calculator-outline",
-      write: "create-outline",
-      translate: "language-outline",
-      note: "document-text-outline",
-      task: "checkbox-outline",
-      voice: "volume-high-outline",
-      default: "ellipsis-horizontal",
-    };
-
-    return icons[type] || icons["default"];
-  }
-
-  return (
-    <TouchableOpacity
-      style={[styles.itemContainer, { borderColor: colors.border }]}
-      onPress={() => onPress(item)}
-      activeOpacity={0.9}
-    >
-      <View style={styles.itemHeader}>
-        <View style={styles.iconContainer}>
-          <Ionicons name={getTypeIcon(item.type)} size={22} color="#fff" />
-        </View>
-
-        <View style={styles.contentContainer}>
-          <Text style={styles.title} numberOfLines={1}>
-            {item.title}
-          </Text>
-          <Text style={styles.description} numberOfLines={1}>
-            {item.description}
-          </Text>
-        </View>
-
-        <View style={styles.timeContainer}>
-          <Ionicons
-            name="time-outline"
-            size={14}
-            color={colors.textOnGradient}
-          />
-          <Text style={styles.time}>{item.time}</Text>
-        </View>
-      </View>
-
-      <View style={styles.itemContent}>
-        <Text style={styles.contentText} numberOfLines={2}>
-          {item.content || item.description}
-        </Text>
-      </View>
-    </TouchableOpacity>
-  );
-};
-
-const ActivityScreen = ({ navigation }) => {
-  const [searchQuery, setSearchQuery] = useState("");
+const CategoryFilter = ({ categories, selectedCategory, onCategorySelect }) => {
   const { colors } = useTheme();
 
   const styles = StyleSheet.create({
     container: {
-      flex: 1,
-      paddingTop: 25,
+      paddingHorizontal: SPACING.md,
+      marginTop: SPACING.md,
+      marginBottom: SPACING.md,
     },
-    contentContainer: {
-      flex: 1,
-    },
-    header: {
+    scrollContainer: {
       flexDirection: "row",
-      alignItems: "center",
-      justifyContent: "space-between",
-      paddingHorizontal: SIZES.padding,
-      paddingTop: 10,
-      paddingBottom: 15,
-    },
-    headerLeft: {
-      flex: 1,
-    },
-    title: {
-      ...FONTS.h2,
-      color: colors.textOnGradient,
-      fontWeight: "bold",
-      textShadowColor: "rgba(0,0,0,0.2)",
-      textShadowOffset: { width: 0, height: 1 },
-      textShadowRadius: 3,
-    },
-    subtitle: {
-      ...FONTS.body4,
-      color: colors.textOnGradient,
-      opacity: 0.8,
-      marginTop: 5,
-    },
-    filterContainer: {
-      flexDirection: "row",
-      paddingHorizontal: SIZES.padding,
-      marginTop: 10,
-      marginBottom: 10,
     },
     filterButton: {
-      height: 36,
+      height: 32,
       flexDirection: "row",
       alignItems: "center",
       backgroundColor: "rgba(255, 255, 255, 0.15)",
-      paddingHorizontal: 12,
-      paddingVertical: 6,
-      borderRadius: 18,
-      marginRight: 8,
+      paddingHorizontal: SPACING.sm,
+      paddingVertical: SPACING.xs,
+      borderRadius: BORDER_RADIUS.md,
+      marginRight: SPACING.xs,
       borderWidth: 1,
+      borderColor: colors.border,
     },
     filterButtonActive: {
       backgroundColor: colors.primary,
     },
     filterButtonText: {
-      ...FONTS.body4,
+      ...TEXT_STYLES.labelSmall,
       color: colors.textOnGradient,
-      marginLeft: 5,
+      marginLeft: SPACING.xs,
     },
     filterButtonTextActive: {
       color: colors.textOnPrimary,
-      fontWeight: "bold",
+      fontWeight: "600",
+    },
+  });
+
+  return (
+    <View style={styles.container}>
+      <FlatList
+        horizontal
+        showsHorizontalScrollIndicator={false}
+        data={categories}
+        keyExtractor={(item) => item.id}
+        contentContainerStyle={styles.scrollContainer}
+        renderItem={({ item }) => (
+          <TouchableOpacity
+            style={[
+              styles.filterButton,
+              selectedCategory === item.id && styles.filterButtonActive,
+            ]}
+            onPress={() => onCategorySelect(item.id)}
+          >
+            <Ionicons
+              name={item.icon}
+              size={14}
+              color={
+                selectedCategory === item.id
+                  ? colors.textOnPrimary
+                  : colors.textOnGradient
+              }
+            />
+            <Text
+              style={[
+                styles.filterButtonText,
+                selectedCategory === item.id && styles.filterButtonTextActive,
+              ]}
+            >
+              {item.name}
+            </Text>
+          </TouchableOpacity>
+        )}
+      />
+    </View>
+  );
+};
+
+const ActivityScreen = ({ navigation }) => {
+  const { t } = useTranslation();
+  const { colors } = useTheme();
+  const { activities, loading, hasMore, filterByCategory, loadMore, refresh, clearAllActivities, deleteActivity, deleteMultipleActivities } = useActivity();
+  
+  const [selectedFilter, setSelectedFilter] = useState("all");
+  const [refreshing, setRefreshing] = useState(false);
+  const [selectionMode, setSelectionMode] = useState(false);
+  const [selectedActivities, setSelectedActivities] = useState([]);
+  const [groupByDate, setGroupByDate] = useState(true);
+
+  // Tarih bazlı gruplandırma helper - useCallback ile optimize et
+  const groupActivitiesByDate = useCallback((activityList) => {
+    if (!groupByDate) return { all: activityList };
+
+    const groups = {
+      today: [],
+      yesterday: [],
+      thisWeek: [],
+      thisMonth: [],
+      older: [],
+    };
+
+    try {
+      const now = new Date();
+      const today = new Date(now.getFullYear(), now.getMonth(), now.getDate());
+      const yesterday = new Date(today);
+      yesterday.setDate(yesterday.getDate() - 1);
+      const thisWeek = new Date(today);
+      thisWeek.setDate(thisWeek.getDate() - 7);
+      const thisMonth = new Date(today);
+      thisMonth.setMonth(thisMonth.getMonth() - 1);
+
+      activityList.forEach(activity => {
+        if (!activity.created_at) return;
+        
+        try {
+          const activityDate = new Date(activity.created_at);
+          // Geçersiz tarih kontrolü
+          if (isNaN(activityDate.getTime())) return;
+          
+          if (activityDate >= today) {
+            groups.today.push(activity);
+          } else if (activityDate >= yesterday) {
+            groups.yesterday.push(activity);
+          } else if (activityDate >= thisWeek) {
+            groups.thisWeek.push(activity);
+          } else if (activityDate >= thisMonth) {
+            groups.thisMonth.push(activity);
+          } else {
+            groups.older.push(activity);
+          }
+        } catch (e) {
+          // Tarih parsing hatası - activity'yi atla
+          if (__DEV__) console.warn('Activity date parsing error:', e);
+        }
+      });
+    } catch (e) {
+      // Hata durumunda tüm aktiviteleri 'all' grubuna ekle
+      if (__DEV__) console.warn('Group activities by date error:', e);
+      return { all: activityList };
+    }
+
+    return groups;
+  }, [groupByDate]);
+
+  const styles = StyleSheet.create({
+    container: {
+      flex: 1,
+    },
+    contentContainer: {
+      flex: 1,
+    },
+    listContainer: {
+      paddingHorizontal: SPACING.md,
     },
     emptyContainer: {
       justifyContent: "center",
       alignItems: "center",
-      marginTop: 30,
-      paddingHorizontal: 20,
+      marginTop: SPACING.xl,
+      paddingHorizontal: SPACING.lg,
     },
     emptyText: {
-      ...FONTS.body3,
+      ...TEXT_STYLES.bodyMedium,
       color: colors.textOnGradient,
       textAlign: "center",
-      marginBottom: 20,
+      marginBottom: SPACING.lg,
     },
     noResults: {
-      ...FONTS.body3,
+      ...TEXT_STYLES.bodyMedium,
       color: colors.textOnGradient,
       textAlign: "center",
-      marginTop: 20,
+      marginTop: SPACING.lg,
       fontStyle: "italic",
-    },
-    listContainer: {
-      paddingHorizontal: SIZES.padding,
     },
   });
 
-  // Örnek aktiviteler
-  const allActivities = [
-    {
-      id: "1",
-      title: "Matematik Sorusu",
-      description: "x²+5x+6=0 denklemini çöz",
-      time: "1s önce",
-      type: "math",
-      content:
-        "Denklem: x²+5x+6=0\nÇözüm adımları:\n1. x²+5x+6=0\n2. (x+2)(x+3)=0\n3. x=-2 veya x=-3",
-    },
-    {
-      id: "2",
-      title: "İngilizce Çeviri",
-      description: "Türkçe metni İngilizceye çevir",
-      time: "3s önce",
-      type: "translate",
-      content:
-        'Türkçe: "Yapay zeka günümüzde hayatımızın her alanında kullanılıyor."\n\nİngilizce: "Artificial intelligence is used in every aspect of our lives today."',
-    },
-    {
-      id: "3",
-      title: "Toplantı Notu",
-      description: "Proje planlaması hakkında not",
-      time: "5s önce",
-      type: "note",
-      content:
-        "Proje Planlaması Toplantı Notları:\n- Yeni UI tasarımı 2 hafta içinde tamamlanacak\n- Backend API güncellemeleri Mayıs sonuna kadar bitecek\n- Test süreci Haziran başında başlayacak",
-    },
-    {
-      id: "4",
-      title: "AI Sohbet",
-      description: "Kuantum bilgisayarlar hakkında konuşma",
-      time: "1g önce",
-      type: "chat",
-      content:
-        'Soru: "Kuantum bilgisayarlar nasıl çalışır?"\n\nCevap: "Kuantum bilgisayarlar, kuantum mekaniğinin süperpozisyon ve dolanıklık gibi özelliklerini kullanarak klasik bilgisayarlardan çok daha hızlı hesaplama yapabilir..."',
-    },
-    {
-      id: "5",
-      title: "Yazı Üretme",
-      description: "Blog yazısı taslağı",
-      time: "2g önce",
-      type: "write",
-      content:
-        "AI Teknolojilerinin İş Dünyasına Etkisi\n\nGiriş: Yapay zeka, günümüzde şirketlerin rekabet avantajı sağlamasında kritik bir rol oynamaktadır...",
-    },
-  ];
-
-  const [selectedFilter, setSelectedFilter] = useState("all");
-  const filters = [
-    { id: "all", name: "Tümü", icon: "apps-outline" },
-    { id: "chat", name: "Sohbet", icon: "chatbubble-outline" },
-    { id: "math", name: "Matematik", icon: "calculator-outline" },
-    { id: "write", name: "Yazı", icon: "create-outline" },
-  ];
-
-  // Filtreleme ve arama
-  const filteredActivities = allActivities
-    .filter(
-      (activity) => selectedFilter === "all" || activity.type === selectedFilter
-    )
-    .filter(
-      (activity) =>
-        activity.title.toLowerCase().includes(searchQuery.toLowerCase()) ||
-        activity.description
-          .toLowerCase()
-          .includes(searchQuery.toLowerCase()) ||
-        (activity.content &&
-          activity.content.toLowerCase().includes(searchQuery.toLowerCase()))
+  // Aktivite tiplerine göre filtreler - modules.js'den otomatik al
+  const filters = useMemo(() => {
+    const baseFilters = [
+      { id: "all", name: t('activity.filters.all'), icon: "apps-outline" },
+    ];
+    
+    // MODULES'den aktivite tipi olan modülleri filtre olarak ekle
+    const activityModules = MODULES.filter(m => 
+      ['chat', 'math', 'textEditor', 'imageAnalyzer', 'noteGenerator'].includes(m.id)
     );
+    
+    const moduleFilters = activityModules.map(module => {
+      // Translation key kontrolü - önce activity.filters'da ara, yoksa modules.title kullan
+      const filterKey = `activity.filters.${module.id}`;
+      const moduleTitleKey = module.titleKey;
+      
+      return {
+        id: module.id,
+        name: t(filterKey) !== filterKey ? t(filterKey) : t(moduleTitleKey),
+        icon: module.icon,
+      };
+    });
+    
+    return [...baseFilters, ...moduleFilters];
+  }, [t]);
 
-  // Aktivite öğesi tıklandığında
-  const handleActivityPress = (activity) => {
-    console.log(`Aktivite tıklandı: ${activity.id}`);
+  // Filtre değiştiğinde kategoriye göre filtrele
+  useEffect(() => {
+    filterByCategory(selectedFilter);
+  }, [selectedFilter]);
 
-    // Aktiviteye özgü ekranlara yönlendir
-    switch (activity.type) {
-      case "chat":
-        navigation.navigate("Chat", { activity });
-        break;
-      case "math":
-        navigation.navigate("MathSolver", { activity });
-        break;
-      case "translate":
-        navigation.navigate("TranslateDetail", { activity });
-        break;
-      case "note":
-        navigation.navigate("NotesDetail", { activity });
-        break;
-      case "write":
-        navigation.navigate("TextGenerator", { activity });
-        break;
-      default:
-        console.log(`${activity.type} için henüz ekran oluşturulmadı`);
+  // Refresh işlemi
+  const handleRefresh = async () => {
+    setRefreshing(true);
+    await refresh();
+    setRefreshing(false);
+  };
+
+  // Aktivite geçmişini temizle
+  const handleClearActivities = () => {
+    Alert.alert(
+      t('activity.clear.title'),
+      t('activity.clear.message'),
+      [
+        { text: t('common.cancel'), style: "cancel" },
+        {
+          text: t('activity.clear.confirm'),
+          style: "destructive",
+          onPress: async () => {
+            try {
+              const success = await clearAllActivities();
+              if (success) {
+                Alert.alert(t('common.success'), t('activity.clear.success'));
+              } else {
+                Alert.alert(t('common.error'), t('activity.clear.error'));
+              }
+            } catch (error) {
+              Alert.alert(t('common.error'), t('activity.clear.error'));
+            }
+          },
+        },
+      ]
+    );
+  };
+
+  // Aktiviteleri UI formatına çevir ve tarih bazlı grupla - useMemo ile optimize et
+  const groupedActivities = useMemo(() => {
+    try {
+      return groupActivitiesByDate(activities);
+    } catch (e) {
+      // Hata durumunda boş grup döndür
+      if (__DEV__) console.warn('Group activities error:', e);
+      return { all: activities };
     }
+  }, [activities, groupActivitiesByDate]);
+  
+  const groupedKeys = useMemo(() => 
+    Object.keys(groupedActivities).filter(key => groupedActivities[key].length > 0),
+    [groupedActivities]
+  );
+
+  // Tek aktivite silme
+  const handleDeleteActivity = async (activityId, activityType) => {
+    Alert.alert(
+      t('activity.delete.title'),
+      t('activity.delete.message'),
+      [
+        { text: t('common.cancel'), style: "cancel" },
+        {
+          text: t('common.delete'),
+          style: "destructive",
+          onPress: async () => {
+            const success = await deleteActivity(activityId, activityType);
+            if (success) {
+              // Başarılı toast gösterilebilir
+            } else {
+              Alert.alert(t('common.error'), t('activity.delete.error'));
+            }
+          },
+        },
+      ]
+    );
+  };
+
+  // Seçim modu toggle
+  const toggleSelectionMode = () => {
+    setSelectionMode(!selectionMode);
+    setSelectedActivities([]);
+  };
+
+  // Aktivite seç/seçimi kaldır
+  const handleToggleSelect = (activityId) => {
+    setSelectedActivities(prev => {
+      if (prev.includes(activityId)) {
+        return prev.filter(id => id !== activityId);
+      } else {
+        return [...prev, activityId];
+      }
+    });
+  };
+
+  // Tümünü seç/seçimi kaldır
+  const handleSelectAll = () => {
+    if (selectedActivities.length === activities.length) {
+      setSelectedActivities([]);
+    } else {
+      setSelectedActivities(activities.map(a => a.id));
+    }
+  };
+
+  // Seçili aktiviteleri sil
+  const handleDeleteSelected = () => {
+    if (selectedActivities.length === 0) return;
+
+    Alert.alert(
+      t('activity.deleteMultiple.title'),
+      t('activity.deleteMultiple.message', { count: selectedActivities.length }),
+      [
+        { text: t('common.cancel'), style: "cancel" },
+        {
+          text: t('common.delete'),
+          style: "destructive",
+          onPress: async () => {
+            const success = await deleteMultipleActivities(selectedActivities);
+            if (success) {
+              setSelectedActivities([]);
+              setSelectionMode(false);
+              // Başarılı toast gösterilebilir
+            } else {
+              Alert.alert(t('common.error'), t('activity.deleteMultiple.error'));
+            }
+          },
+        },
+      ]
+    );
+  };
+
+  // Aktivite öğesi tıklandığında - Detay genişletme için
+  const handleActivityPress = (activity) => {
+    // ActivityItem içinde zaten handle ediliyor
   };
 
   return (
     <GradientBackground>
       <SafeAreaView style={styles.container}>
-        {/* <StatusBar
-          barStyle="light-content"
-          backgroundColor="transparent"
-          translucent
-        /> */}
-
         <HomeHeader
           navigation={navigation}
           showProfileImage={false}
-          title="Aktiviteler"
-          subtitle="Geçmiş etkileşimleriniz"
+          title={selectionMode ? `${selectedActivities.length} ${t('activity.selected')}` : t("activity.title")}
+          subtitle={selectionMode ? t("activity.selectionMode") : t("activity.subtitle")}
+          rightButton={
+            selectionMode ? (
+              <View style={{ flexDirection: 'row', gap: SPACING.xs }}>
+                {selectedActivities.length > 0 && (
+                  <TouchableOpacity
+                    onPress={handleDeleteSelected}
+                    style={{
+                      backgroundColor: '#ef4444',
+                      borderRadius: BORDER_RADIUS.md,
+                      padding: SPACING.xs,
+                      marginRight: SPACING.xs,
+                    }}
+                    activeOpacity={0.7}
+                  >
+                    <Ionicons
+                      name="trash"
+                      size={20}
+                      color="#fff"
+                    />
+                  </TouchableOpacity>
+                )}
+                <TouchableOpacity
+                  onPress={handleSelectAll}
+                  style={{
+                    backgroundColor: 'rgba(255, 255, 255, 0.15)',
+                    borderRadius: BORDER_RADIUS.md,
+                    padding: SPACING.xs,
+                    marginRight: SPACING.xs,
+                  }}
+                  activeOpacity={0.7}
+                >
+                  <Ionicons
+                    name={selectedActivities.length === activities.length ? "square" : "checkbox"}
+                    size={20}
+                    color={colors.textOnGradient}
+                  />
+                </TouchableOpacity>
+                <TouchableOpacity
+                  onPress={toggleSelectionMode}
+                  style={{
+                    backgroundColor: 'rgba(255, 255, 255, 0.15)',
+                    borderRadius: BORDER_RADIUS.md,
+                    padding: SPACING.xs,
+                    marginRight: SPACING.sm,
+                  }}
+                  activeOpacity={0.7}
+                >
+                  <Ionicons
+                    name="close"
+                    size={20}
+                    color={colors.textOnGradient}
+                  />
+                </TouchableOpacity>
+              </View>
+            ) : activities.length > 0 ? (
+              <View style={{ flexDirection: 'row', gap: SPACING.xs }}>
+                <TouchableOpacity
+                  onPress={toggleSelectionMode}
+                  style={{
+                    backgroundColor: 'rgba(255, 255, 255, 0.15)',
+                    borderRadius: BORDER_RADIUS.md,
+                    padding: SPACING.xs,
+                    marginRight: SPACING.xs,
+                  }}
+                  activeOpacity={0.7}
+                >
+                  <Ionicons
+                    name="checkbox-outline"
+                    size={20}
+                    color={colors.textOnGradient}
+                  />
+                </TouchableOpacity>
+                <TouchableOpacity
+                  onPress={handleClearActivities}
+                  style={{
+                    backgroundColor: 'rgba(255, 255, 255, 0.15)',
+                    borderRadius: BORDER_RADIUS.md,
+                    padding: SPACING.xs,
+                    marginRight: SPACING.sm,
+                  }}
+                  activeOpacity={0.7}
+                >
+                  <Ionicons
+                    name="trash-outline"
+                    size={20}
+                    color={colors.textOnGradient}
+                  />
+                </TouchableOpacity>
+              </View>
+            ) : null
+          }
         />
 
         <View style={styles.contentContainer}>
-          <SearchBar
-            value={searchQuery}
-            onChangeText={setSearchQuery}
-            placeholder="Aktivitelerde ara..."
+          <CategoryFilter
+            categories={filters}
+            selectedCategory={selectedFilter}
+            onCategorySelect={setSelectedFilter}
           />
 
-          <View>
-            <ScrollView
-              horizontal
-              showsHorizontalScrollIndicator={false}
-              contentContainerStyle={styles.filterContainer}
-            >
-              {filters.map((filter) => (
-                <TouchableOpacity
-                  key={filter.id}
-                  style={[
-                    [styles.filterButton, { borderColor: colors.border }],
-                    selectedFilter === filter.id && [
-                      styles.filterButtonActive,
-                      { borderColor: colors.border },
-                    ],
-                  ]}
-                  onPress={() => setSelectedFilter(filter.id)}
-                >
-                  <Ionicons
-                    name={filter.icon}
-                    size={16}
-                    color={
-                      selectedFilter === filter.id
-                        ? colors.textOnPrimary
-                        : colors.textOnGradient
-                    }
-                  />
-                  <Text
-                    style={[
-                      styles.filterButtonText,
-                      selectedFilter === filter.id &&
-                        styles.filterButtonTextActive,
-                    ]}
-                  >
-                    {filter.name}
-                  </Text>
-                </TouchableOpacity>
-              ))}
-            </ScrollView>
-          </View>
-
           <View style={styles.listContainer}>
-            {filteredActivities.length > 0 ? (
-              <FlatList
-                data={filteredActivities}
-                renderItem={({ item }) => (
-                  <ActivityItem item={item} onPress={handleActivityPress} />
-                )}
-                keyExtractor={(item) => item.id}
-                showsVerticalScrollIndicator={false}
-                contentContainerStyle={{ paddingBottom: 130 }}
-              />
+            {loading && activities.length === 0 ? (
+              // Loading Skeleton
+              <View style={{ paddingTop: SPACING.md }}>
+                {[1, 2, 3, 4, 5].map((_, index) => (
+                  <View
+                    key={index}
+                    style={{
+                      backgroundColor: colors.card,
+                      borderRadius: BORDER_RADIUS.md,
+                      marginBottom: SPACING.xs,
+                      borderWidth: 1,
+                      borderColor: colors.border,
+                    }}
+                  >
+                    {/* Header */}
+                    <View style={{ 
+                      flexDirection: 'row', 
+                      alignItems: 'center',
+                      padding: SPACING.sm,
+                      borderBottomWidth: 1,
+                      borderBottomColor: colors.border + '20',
+                    }}>
+                      <Skeleton circle width={32} height={32} style={{ marginRight: SPACING.sm }} />
+                      <View style={{ flex: 1 }}>
+                        <Skeleton width="70%" height={16} style={{ marginBottom: 4 }} />
+                        <Skeleton width="50%" height={13} />
+                      </View>
+                      <Skeleton width={60} height={24} borderRadius={BORDER_RADIUS.sm} />
+                    </View>
+                    {/* Content */}
+                    <View style={{ padding: SPACING.sm, paddingTop: SPACING.xs }}>
+                      <Skeleton width="90%" height={13} style={{ marginBottom: 4 }} />
+                      <Skeleton width="75%" height={13} />
+                    </View>
+                  </View>
+                ))}
+              </View>
+            ) : activities.length > 0 ? (
+              groupByDate && groupedKeys.length > 0 ? (
+                <FlatList
+                  data={groupedKeys}
+                  keyExtractor={(key) => key}
+                  showsVerticalScrollIndicator={false}
+                  contentContainerStyle={{ paddingBottom: 130 }}
+                  refreshControl={
+                    <RefreshControl
+                      refreshing={refreshing}
+                      onRefresh={handleRefresh}
+                      tintColor={colors.primary}
+                      colors={[colors.primary]}
+                    />
+                  }
+                  renderItem={({ item: groupKey }) => {
+                    const groupActivities = groupedActivities[groupKey];
+                    const groupLabels = {
+                      today: t('activity.groups.today'),
+                      yesterday: t('activity.groups.yesterday'),
+                      thisWeek: t('activity.groups.thisWeek'),
+                      thisMonth: t('activity.groups.thisMonth'),
+                      older: t('activity.groups.older'),
+                    };
+
+                    return (
+                      <View style={{ marginBottom: SPACING.md }}>
+                        <Text style={{
+                          ...TEXT_STYLES.titleSmall,
+                          color: colors.textOnGradient,
+                          marginBottom: SPACING.sm,
+                          paddingHorizontal: SPACING.xs,
+                          fontWeight: '700',
+                        }}>
+                          {groupLabels[groupKey]} ({groupActivities.length})
+                        </Text>
+                        {groupActivities.map((activity) => (
+                          <ActivityItem
+                            key={activity.id}
+                            item={activity}
+                            onPress={handleActivityPress}
+                            onDelete={handleDeleteActivity}
+                            onSelect={handleToggleSelect}
+                            isSelected={selectedActivities.includes(activity.id)}
+                            isSelectionMode={selectionMode}
+                          />
+                        ))}
+                      </View>
+                    );
+                  }}
+                  nestedScrollEnabled={false}
+                  onEndReached={loadMore}
+                  onEndReachedThreshold={0.5}
+                  ListFooterComponent={() => null}
+                />
+              ) : (
+                <FlatList
+                  data={activities}
+                  renderItem={({ item }) => (
+                    <ActivityItem
+                      item={item}
+                      onPress={handleActivityPress}
+                      onDelete={handleDeleteActivity}
+                      onSelect={handleToggleSelect}
+                      isSelected={selectedActivities.includes(item.id)}
+                      isSelectionMode={selectionMode}
+                    />
+                  )}
+                  keyExtractor={(item) => item.id}
+                  showsVerticalScrollIndicator={false}
+                  contentContainerStyle={{ paddingBottom: 130 }}
+                  nestedScrollEnabled={false}
+                  refreshControl={
+                    <RefreshControl
+                      refreshing={refreshing}
+                      onRefresh={handleRefresh}
+                      tintColor={colors.primary}
+                      colors={[colors.primary]}
+                    />
+                  }
+                  onEndReached={loadMore}
+                  onEndReachedThreshold={0.5}
+                  ListFooterComponent={() => null}
+                />
+              )
             ) : (
               <View style={styles.emptyContainer}>
-                {searchQuery || selectedFilter !== "all" ? (
+                {selectedFilter !== "all" ? (
                   <>
                     <Text style={styles.noResults}>
-                      Arama sonucunda aktivite bulunamadı
+                      {t("activity.noCategoryResults")}
                     </Text>
                     <Button
-                      title="Tüm Aktiviteleri Göster"
-                      onPress={() => {
-                        setSearchQuery("");
-                        setSelectedFilter("all");
-                      }}
+                      title={t("activity.showAllActivities")}
+                      onPress={() => setSelectedFilter("all")}
                       outlined
                       containerStyle={{ marginTop: 15 }}
                     />
@@ -437,11 +606,10 @@ const ActivityScreen = ({ navigation }) => {
                 ) : (
                   <>
                     <Text style={styles.emptyText}>
-                      Henüz hiç aktiviteniz yok. AI asistanı kullanmaya
-                      başlayın!
+                      {t("activity.emptyState")}
                     </Text>
                     <Button
-                      title="Sohbet Başlat"
+                      title={t("activity.startChat")}
                       onPress={() => navigation.navigate("Chat")}
                       neon
                       icon={

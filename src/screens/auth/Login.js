@@ -1,4 +1,4 @@
-import React, { useState } from "react";
+import React, { useState, useEffect } from "react";
 import {
   View,
   StyleSheet,
@@ -7,10 +7,10 @@ import {
   TouchableOpacity,
   Text,
   Alert,
+  Image,
 } from "react-native";
 import { SIZES, FONTS } from "../../constants/theme";
 import { Ionicons } from "@expo/vector-icons";
-import Header from "../../components/common/Header";
 import Input from "../../components/common/Input";
 import Button from "../../components/common/Button";
 import SocialButtons from "../../components/auth/SocialButtons";
@@ -18,17 +18,34 @@ import AuthFooter from "../../components/auth/AuthFooter";
 import useTheme from "../../hooks/useTheme";
 import GradientBackground from "../../components/common/GradientBackground";
 import { useTranslation } from "react-i18next";
+import { useAuth } from "../../contexts/AuthContext";
+import { showSuccess } from "../../utils/toast";
 
-const Login = ({ navigation }) => {
-  // Test kullanıcısı bilgileri
-  const [email, setEmail] = useState("test@quantumdoc.com");
-  const [password, setPassword] = useState("test123456");
+const Login = ({ navigation, route }) => {
+  const verifiedEmail = route?.params?.verifiedEmail || "";
+  const welcomeMessage = route?.params?.message || "";
+
+  const [email, setEmail] = useState(
+    verifiedEmail || "trooperzone13@gmail.com"
+  );
+  const [password, setPassword] = useState("123123Aa");
+  // const [email, setEmail] = useState(verifiedEmail || "");
+  // const [password, setPassword] = useState("");
   const [emailError, setEmailError] = useState("");
   const [passwordError, setPasswordError] = useState("");
-  const [loading, setLoading] = useState(false);
 
   const { colors } = useTheme();
   const { t } = useTranslation();
+  const { login, loading: authLoading } = useAuth();
+
+  // Welcome mesajını göster
+  useEffect(() => {
+    if (welcomeMessage) {
+      setTimeout(() => {
+        showSuccess("Başarılı", welcomeMessage);
+      }, 500);
+    }
+  }, [welcomeMessage]);
 
   const styles = StyleSheet.create({
     container: {
@@ -39,29 +56,42 @@ const Login = ({ navigation }) => {
       flex: 1,
       paddingHorizontal: SIZES.padding,
     },
+    logoContainer: {
+      alignItems: "center",
+      marginTop: 40,
+      marginBottom: 40,
+    },
+    logo: {
+      width: 120,
+      height: 120,
+      borderRadius: 60,
+      backgroundColor: colors.primary + "20",
+      justifyContent: "center",
+      alignItems: "center",
+      marginBottom: 20,
+      overflow: 'hidden',
+    },
+    logoImage: {
+      width: 100,
+      height: 100,
+    },
     title: {
       ...FONTS.h2,
       color: colors.textOnGradient,
-      marginTop: 20,
-      marginBottom: 10,
-    },
-    subtitle: {
-      ...FONTS.body4,
-      color: colors.textOnGradient,
-      marginBottom: 30,
-      fontSize: 15,
-      lineHeight: 21,
+      fontWeight: "bold",
+      textAlign: "center",
     },
     formContainer: {
       marginBottom: 20,
     },
-    forgotPassword: {
-      alignSelf: "flex-end",
-      marginBottom: 20,
+    forgotPasswordCentered: {
+      alignItems: "center",
+      marginBottom: 30,
     },
     forgotPasswordText: {
       ...FONTS.body4,
       color: colors.primary,
+      textAlign: "center",
     },
   });
 
@@ -92,36 +122,54 @@ const Login = ({ navigation }) => {
   const handleLogin = async () => {
     const isEmailValid = validateEmail();
     const isPasswordValid = validatePassword();
-    
-    if (isEmailValid && isPasswordValid) {
-      setLoading(true);
-      try {
-        // Mock login - gerçek API çağrısı yerine
-        await new Promise(resolve => setTimeout(resolve, 1000));
-        
-        console.log("Giriş başarılı:", { email, password });
-        // Başarılı giriş sonrası ana sayfaya yönlendir
-        navigation.reset({ index: 0, routes: [{ name: "Main" }] });
-        
-      } catch (error) {
-        console.error("Giriş hatası:", error);
-      } finally {
-        setLoading(false);
+
+    if (!isEmailValid || !isPasswordValid) return;
+
+    try {
+      const result = await login(email, password, navigation);
+
+      // Email doğrulama gerekiyorsa, login fonksiyonu zaten yönlendirdi
+      if (result?.needsVerification) {
+        if (__DEV__)
+          console.log(
+            "📧 Email verification needed, redirected to verification screen"
+          );
+        return;
       }
+
+      if (result?.success) {
+        // Login başarılı - AuthContext state'i güncellendi, AppNavigator otomatik yönlendirecek
+        if (__DEV__)
+          console.log(
+            "✅ Login successful, AuthContext updated, AppNavigator will redirect to Main"
+          );
+      }
+    } catch (error) {
+      // Hata durumunda Login screen'de kal - navigation yapmıyoruz
+      if (__DEV__) console.log("❌ Login failed, staying on login screen");
+      // Error toast AuthContext'de zaten gösterildi
     }
   };
 
   return (
     <GradientBackground>
       <SafeAreaView style={styles.container}>
-        <Header showBackButton />
         <ScrollView
           style={styles.content}
           showsVerticalScrollIndicator={false}
           keyboardShouldPersistTaps="handled"
         >
-          <Text style={styles.title}>{t("screens.auth.login.title")}</Text>
-          <Text style={styles.subtitle}>{t("screens.auth.login.subtitle")}</Text>
+          {/* Logo ve Title */}
+          <View style={styles.logoContainer}>
+            <View style={styles.logo}>
+              <Image
+                source={require("../../assets/images/logo.png")}
+                style={styles.logoImage}
+                resizeMode="contain"
+              />
+            </View>
+            <Text style={styles.title}>{t("screens.auth.login.title")}</Text>
+          </View>
 
           <View style={styles.formContainer}>
             <Input
@@ -157,9 +205,10 @@ const Login = ({ navigation }) => {
               }
             />
 
+            {/* Şifremi Unuttum - Ortalanmış */}
             <TouchableOpacity
-              style={styles.forgotPassword}
-              onPress={() => navigation.navigate("ForgotPassword")}
+              style={styles.forgotPasswordCentered}
+              onPress={() => navigation.navigate("ResetPassword")}
             >
               <Text style={styles.forgotPasswordText}>
                 {t("screens.auth.login.forgotPassword")}
@@ -170,11 +219,18 @@ const Login = ({ navigation }) => {
               title={t("screens.auth.login.continue")}
               gradient
               onPress={handleLogin}
-              loading={loading}
+              loading={authLoading}
+              disabled={authLoading}
             />
           </View>
 
-          <SocialButtons />
+          {/* Social Login - Gelecekte eklenecek
+          <SocialButtons
+            onGooglePress={handleGoogleLogin}
+            onApplePress={handleAppleLogin}
+            onFacebookPress={handleFacebookLogin}
+          />
+          */}
 
           <AuthFooter
             questionText={t("screens.auth.login.noAccount")}

@@ -1,6 +1,6 @@
 import React from "react";
 import { View, TextInput, StyleSheet, TouchableOpacity } from "react-native";
-import { FONTS, SIZES } from "../../constants/theme";
+import { FONTS, SIZES, TEXT_STYLES, SPACING, BORDER_RADIUS, SHADOWS } from "../../constants/theme";
 import { Ionicons } from "@expo/vector-icons";
 import useTheme from "../../hooks/useTheme";
 import { useTranslation } from "react-i18next";
@@ -19,29 +19,35 @@ const SearchBar = ({
   const styles = StyleSheet.create({
     container: {
       width: "100%",
-      paddingHorizontal: SIZES.padding,
-      marginVertical: 10,
+      paddingHorizontal: SPACING.md,
+      marginVertical: SPACING.xs,
     },
     searchContainer: {
       flexDirection: "row",
       alignItems: "center",
-      backgroundColor: isDark ? colors.gray : colors.white,
-      borderRadius: SIZES.radius * 2,
-      paddingHorizontal: 15,
-      height: 50,
-      ...shadows.light,
+      backgroundColor: isDark ? colors.card + '80' : colors.white + 'F0',
+      borderRadius: BORDER_RADIUS.md,
+      paddingHorizontal: SPACING.md,
+      height: 42,
+      borderWidth: 1,
+      borderColor: isDark ? colors.border + '40' : colors.border + '60',
+      ...SHADOWS.small,
     },
     input: {
       flex: 1,
-      ...FONTS.body3,
+      ...TEXT_STYLES.bodyMedium,
       color: colors.textPrimary,
-      paddingVertical: 10,
+      paddingVertical: 0,
+      height: '100%',
+      textAlignVertical: 'center',
     },
     searchIcon: {
-      marginRight: 10,
+      marginRight: SPACING.xs,
+      opacity: 0.7,
     },
     voiceButton: {
-      padding: 5,
+      padding: SPACING.xs,
+      borderRadius: BORDER_RADIUS.xs,
     },
   });
 
@@ -50,8 +56,8 @@ const SearchBar = ({
       <View style={styles.searchContainer}>
         <Ionicons
           name="search-outline"
-          size={20}
-          color={colors.primary}
+          size={18}
+          color={colors.textSecondary}
           style={styles.searchIcon}
         />
 
@@ -64,9 +70,11 @@ const SearchBar = ({
           onSubmitEditing={onSubmit}
         />
 
-        <TouchableOpacity style={styles.voiceButton} onPress={onVoicePress}>
-          <Ionicons name="mic-outline" size={20} color={colors.primary} />
-        </TouchableOpacity>
+        {onVoicePress && (
+          <TouchableOpacity style={styles.voiceButton} onPress={onVoicePress}>
+            <Ionicons name="mic-outline" size={18} color={colors.textSecondary} />
+          </TouchableOpacity>
+        )}
       </View>
     </View>
   );

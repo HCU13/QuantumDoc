@@ -1,150 +1,188 @@
 import { useState, useCallback, useEffect } from 'react';
+import { useTranslation } from 'react-i18next';
+import { supabase, TABLES } from '../services/supabase';
+import { useAuth } from '../contexts/AuthContext';
+
+// Helper: JSONB i18n alanından doğru dili al
+const getLocalizedField = (i18nField, language, fallback = '') => {
+  if (!i18nField) return fallback;
+  return i18nField[language] || i18nField['tr'] || i18nField['en'] || fallback;
+};
 
 export const useSupport = () => {
+  const { user } = useAuth();
+  const { i18n } = useTranslation();
   const [tickets, setTickets] = useState([]);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState(null);
-  // useAuth importu kaldırıldı
-
-  // Mock support data
-  const mockTickets = [
-    {
-      id: 1,
-      userId: 1,
-      subject: "Token kullanımı hakkında",
-      message: "Token'larımı nasıl daha verimli kullanabilirim?",
-      priority: "medium",
-      status: "open",
-      createdAt: new Date(Date.now() - 86400000).toISOString(),
-      updatedAt: new Date(Date.now() - 86400000).toISOString()
-    },
-    {
-      id: 2,
-      userId: 1,
-      subject: "Matematik çözücü sorunu",
-      message: "Matematik çözücü bazı problemleri çözemiyor",
-      priority: "high",
-      status: "pending",
-      createdAt: new Date(Date.now() - 172800000).toISOString(),
-      updatedAt: new Date(Date.now() - 86400000).toISOString()
-    },
-    {
-      id: 3,
-      userId: 1,
-      subject: "Premium özellikler",
-      message: "Premium özellikler hakkında bilgi almak istiyorum",
-      priority: "low",
-      status: "closed",
-      createdAt: new Date(Date.now() - 259200000).toISOString(),
-      updatedAt: new Date(Date.now() - 172800000).toISOString()
-    }
-  ];
 
   const fetchTickets = useCallback(async () => {
-    // useAuth importu kaldırıldı
-    if (!token || authLoading) return;
-    
+    if (!user?.id) {
+      setTickets([]);
+      return;
+    }
+
     setLoading(true);
     setError(null);
-    
+
     try {
-      // Mock tickets fetch
-      setTickets(mockTickets);
+      const { data, error: fetchError } = await supabase
+        .from(TABLES.SUPPORT_TICKETS)
+        .select('*')
+        .eq('user_id', user.id)
+        .order('created_at', { ascending: false });
+
+      if (fetchError) throw fetchError;
+
+      // Format data to match frontend structure
+      const formattedTickets = data.map(ticket => ({
+        id: ticket.id,
+        userId: ticket.user_id,
+        subject: ticket.subject,
+        message: ticket.message,
+        priority: ticket.priority,
+        status: ticket.status,
+        createdAt: ticket.created_at,
+        updatedAt: ticket.updated_at,
+      }));
+
+      setTickets(formattedTickets);
     } catch (err) {
       setError('Destek talepleri yüklenemedi');
-      console.error('Tickets fetch error:', err);
+      if (__DEV__) console.error('Tickets fetch error:', err);
     } finally {
       setLoading(false);
     }
-  }, [token, authLoading]);
+  }, [user?.id]);
 
   const createTicket = useCallback(async (ticketData) => {
-    // useAuth importu kaldırıldı
-    if (!token) return;
-    
+    if (!user?.id) {
+      throw new Error('Kullanıcı girişi gerekli');
+    }
+
     setLoading(true);
     setError(null);
-    
+
     try {
-      // Mock ticket creation
+      const { data, error: insertError } = await supabase
+        .from(TABLES.SUPPORT_TICKETS)
+        .insert({
+          user_id: user.id,
+          subject: ticketData.subject,
+          message: ticketData.message,
+          priority: ticketData.priority || 'medium',
+          status: 'open',
+        })
+        .select()
+        .single();
+
+      if (insertError) throw insertError;
+
       const newTicket = {
-        id: Date.now(),
-        userId: 1,
-        ...ticketData,
-        status: "open",
-        createdAt: new Date().toISOString(),
-        updatedAt: new Date().toISOString()
+        id: data.id,
+        userId: data.user_id,
+        subject: data.subject,
+        message: data.message,
+        priority: data.priority,
+        status: data.status,
+        createdAt: data.created_at,
+        updatedAt: data.updated_at,
       };
-      
+
       setTickets(prev => [newTicket, ...prev]);
-      
+
       return { success: true, ticket: newTicket };
     } catch (err) {
       setError('Destek talebi oluşturulamadı');
-      console.error('Ticket creation error:', err);
+      if (__DEV__) console.error('Ticket creation error:', err);
       throw err;
     } finally {
       setLoading(false);
     }
-  }, [token]);
+  }, [user?.id]);
 
   const updateTicket = useCallback(async (ticketId, updateData) => {
-    // useAuth importu kaldırıldı
-    if (!token) return;
-    
     setLoading(true);
     setError(null);
-    
+
     try {
-      // Mock ticket update
-      setTickets(prev => prev.map(ticket => 
-        ticket.id === ticketId 
+      const { error: updateError } = await supabase
+        .from(TABLES.SUPPORT_TICKETS)
+        .update(updateData)
+        .eq('id', ticketId);
+
+      if (updateError) throw updateError;
+
+      // Update local state
+      setTickets(prev => prev.map(ticket =>
+        ticket.id === ticketId
           ? { ...ticket, ...updateData, updatedAt: new Date().toISOString() }
           : ticket
       ));
-      
+
       return { success: true };
     } catch (err) {
       setError('Destek talebi güncellenemedi');
-      console.error('Ticket update error:', err);
+      if (__DEV__) console.error('Ticket update error:', err);
       throw err;
     } finally {
       setLoading(false);
     }
-  }, [token]);
+  }, []);
 
   const closeTicket = useCallback(async (ticketId) => {
-    // useAuth importu kaldırıldı
-    if (!token) return;
-    
     return await updateTicket(ticketId, { status: "closed" });
-  }, [token, updateTicket]);
+  }, [updateTicket]);
 
   const getTicketById = useCallback(async (ticketId) => {
-    // useAuth importu kaldırıldı
-    if (!token) return null;
-    
     try {
-      // Mock ticket fetch by ID
-      const ticket = mockTickets.find(t => t.id === ticketId);
-      return ticket || null;
+      const { data, error: fetchError } = await supabase
+        .from(TABLES.SUPPORT_TICKETS)
+        .select('*')
+        .eq('id', ticketId)
+        .single();
+
+      if (fetchError) throw fetchError;
+
+      return {
+        id: data.id,
+        userId: data.user_id,
+        subject: data.subject,
+        message: data.message,
+        priority: data.priority,
+        status: data.status,
+        createdAt: data.created_at,
+        updatedAt: data.updated_at,
+      };
     } catch (err) {
-      console.error('Ticket fetch error:', err);
+      if (__DEV__) console.error('Ticket fetch error:', err);
       return null;
     }
-  }, [token]);
+  }, []);
 
   const getTicketStats = useCallback(async () => {
-    // useAuth importu kaldırıldı
-    if (!token) return {};
-    
+    if (!user?.id) {
+      return {
+        total: 0,
+        open: 0,
+        pending: 0,
+        closed: 0,
+      };
+    }
+
     try {
-      // Mock ticket stats
-      const totalTickets = mockTickets.length;
-      const openTickets = mockTickets.filter(t => t.status === 'open').length;
-      const pendingTickets = mockTickets.filter(t => t.status === 'pending').length;
-      const closedTickets = mockTickets.filter(t => t.status === 'closed').length;
-      
+      const { data, error: fetchError } = await supabase
+        .from(TABLES.SUPPORT_TICKETS)
+        .select('status')
+        .eq('user_id', user.id);
+
+      if (fetchError) throw fetchError;
+
+      const totalTickets = data.length;
+      const openTickets = data.filter(t => t.status === 'open').length;
+      const pendingTickets = data.filter(t => t.status === 'pending').length;
+      const closedTickets = data.filter(t => t.status === 'closed').length;
+
       return {
         total: totalTickets,
         open: openTickets,
@@ -154,101 +192,82 @@ export const useSupport = () => {
         satisfactionRate: "4.8/5"
       };
     } catch (err) {
-      console.error('Ticket stats error:', err);
+      if (__DEV__) console.error('Ticket stats error:', err);
       return {};
     }
-  }, [token]);
+  }, [user?.id]);
 
-  const getFAQ = useCallback(async () => {
-    // useAuth importu kaldırıldı
-    if (!token) return [];
-    
+  const getFAQ = useCallback(async (category = null) => {
     try {
-      // Mock FAQ data
-      return [
-        {
-          id: 1,
-          question: "Token'larımı nasıl kullanabilirim?",
-          answer: "Token'larınızı chat, matematik çözücü, çeviri ve diğer AI özelliklerinde kullanabilirsiniz. Her işlem belirli miktarda token gerektirir.",
-          category: "tokens"
-        },
-        {
-          id: 2,
-          question: "Premium üyeliğe nasıl geçebilirim?",
-          answer: "Profil sayfanızdan 'Abonelik' bölümüne giderek Premium planını seçebilirsiniz. Ödeme işlemi güvenli bir şekilde gerçekleştirilir.",
-          category: "subscription"
-        },
-        {
-          id: 3,
-          question: "Matematik çözücü nasıl çalışır?",
-          answer: "Matematik çözücü, yazdığınız veya fotoğrafını çektiğiniz matematik problemlerini AI teknolojisi ile çözer. Desteklenen konular: cebir, geometri, kalkülüs.",
-          category: "features"
-        },
-        {
-          id: 4,
-          question: "Çeviri özelliği hangi dilleri destekler?",
-          answer: "Çeviri özelliği 10 farklı dili destekler: Türkçe, İngilizce, Almanca, Fransızca, İspanyolca, İtalyanca, Portekizce, Rusça, Japonca ve Korece.",
-          category: "features"
-        },
-        {
-          id: 5,
-          question: "Hesabımı nasıl silebilirim?",
-          answer: "Hesabınızı silmek için Profil > Hesap Bilgileri > Hesabı Sil bölümüne gidin. Bu işlem geri alınamaz.",
-          category: "account"
-        }
-      ];
+      let query = supabase
+        .from(TABLES.FAQ)
+        .select('*')
+        .order('order_index', { ascending: true });
+
+      // Category filter (optional)
+      if (category) {
+        query = query.eq('category', category);
+      }
+
+      const { data, error: fetchError } = await query;
+
+      if (fetchError) throw fetchError;
+
+      // i18n desteği ile formatla
+      const currentLanguage = i18n.language;
+      const localizedFAQ = (data || []).map(item => ({
+        id: item.id,
+        question: getLocalizedField(item.question_i18n, currentLanguage, item.question),
+        answer: getLocalizedField(item.answer_i18n, currentLanguage, item.answer),
+        category: item.category,
+        isPopular: item.is_popular,
+        orderIndex: item.order_index,
+        createdAt: item.created_at,
+        updatedAt: item.updated_at,
+      }));
+
+      return localizedFAQ;
     } catch (err) {
-      console.error('FAQ error:', err);
+      if (__DEV__) console.error('FAQ error:', err);
       return [];
     }
-  }, [token]);
+  }, [i18n]);
 
   const getContactInfo = useCallback(async () => {
-    // useAuth importu kaldırıldı
-    if (!token) return {};
-    
     try {
       // Mock contact info
       return {
-        email: "support@quantumdoc.app",
+        email: "support@quorax.app",
         phone: "+90 212 555 0123",
         address: "İstanbul, Türkiye",
         workingHours: "Pazartesi - Cuma: 09:00 - 18:00",
         responseTime: "24 saat içinde"
       };
     } catch (err) {
-      console.error('Contact info error:', err);
+      if (__DEV__) console.error('Contact info error:', err);
       return {};
     }
-  }, [token]);
+  }, []);
 
   const submitFeedback = useCallback(async (feedbackData) => {
-    // useAuth importu kaldırıldı
-    if (!token) return;
-    
     setLoading(true);
     setError(null);
-    
+
     try {
       // Mock feedback submission
-      console.log('Feedback submitted:', feedbackData);
-      
       return { success: true, message: "Geri bildiriminiz için teşekkürler!" };
     } catch (err) {
       setError('Geri bildirim gönderilemedi');
-      console.error('Feedback submission error:', err);
+      if (__DEV__) console.error('Feedback submission error:', err);
       throw err;
     } finally {
       setLoading(false);
     }
-  }, [token]);
+  }, []);
 
   useEffect(() => {
-    // useAuth importu kaldırıldı
-    if (token && !authLoading) {
-      fetchTickets();
-    }
-  }, [fetchTickets, token, authLoading]);
+    fetchTickets();
+  }, [fetchTickets]);
 
   return {
     tickets,
@@ -264,4 +283,4 @@ export const useSupport = () => {
     getContactInfo,
     submitFeedback,
   };
-}; 
+};

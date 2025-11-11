@@ -1,8 +1,9 @@
 import React from "react";
-import { View, Text, StyleSheet, Image, TouchableOpacity } from "react-native";
+import { View, Text, StyleSheet, Image, TouchableOpacity, ActivityIndicator } from "react-native";
 import { FONTS, SIZES } from "../../constants/theme";
 import useTheme from "../../hooks/useTheme";
 import { tokenUtils } from "../../utils/tokenUtils";
+import { useTokenContext } from "../../contexts/TokenContext";
 
 const TokenDisplay = ({
   onPress,
@@ -11,8 +12,7 @@ const TokenDisplay = ({
   containerStyle,
 }) => {
   const { colors } = useTheme();
-  // Mock token count - gerçek token context'i kaldırıldı
-  const tokens = 100;
+  const { tokens, loading } = useTokenContext();
 
   // Boyut ayarları
   let iconSize, fontSize, padding, plusSize;
@@ -87,16 +87,21 @@ const TokenDisplay = ({
       style={[styles.container, containerStyle, { borderColor: colors.border }]}
       onPress={onPress}
       activeOpacity={0.8}
+      disabled={loading}
     >
       <Image
         source={require("../../assets/images/token.png")}
         style={styles.tokenIcon}
       />
-      <Text style={styles.tokenText}>
-        {tokenUtils.formatTokenCount(tokens)}
-      </Text>
+      {loading ? (
+        <ActivityIndicator size="small" color={colors.textOnGradient} style={{ marginRight: 5 }} />
+      ) : (
+        <Text style={styles.tokenText}>
+          {tokenUtils.formatTokenCount(tokens)}
+        </Text>
+      )}
 
-      {showPlus && (
+      {showPlus && !loading && (
         <View style={styles.plusButton}>
           <Text style={styles.plusText}>+</Text>
         </View>

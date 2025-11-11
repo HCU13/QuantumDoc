@@ -1,10 +1,18 @@
 import React from "react";
 import { View, Text, StyleSheet, TouchableOpacity, Image } from "react-native";
-import { FONTS, SIZES } from "../../constants/theme";
+import {
+  FONTS,
+  SIZES,
+  TEXT_STYLES,
+  BORDER_RADIUS,
+  SPACING,
+} from "../../constants/theme";
 import { LinearGradient } from "expo-linear-gradient";
-import { tokenUtils } from "../../utils/tokenUtils";
 import useTheme from "../../hooks/useTheme";
 import { Ionicons } from "@expo/vector-icons";
+import { useTokenContext } from "../../contexts/TokenContext";
+import { useTranslation } from "react-i18next";
+import { MODULES } from "../../constants/modules";
 
 const ModuleCard = ({
   title,
@@ -12,226 +20,351 @@ const ModuleCard = ({
   moduleId,
   icon,
   gradientColors,
-  tokenCost = 0,
-  canAfford = true,
   onPress,
   containerStyle,
-  size = "medium", // 'small', 'medium', 'large'
+  size = "medium",
   glowing = true,
+  tokenCost = null,
+  tokenCostRange = null,
+  category = null,
+  isSelectionMode = false,
+  isSelected = false,
+  onSelect = null,
 }) => {
   const { colors } = useTheme();
+  const { hasEnoughTokens } = useTokenContext();
+  const { t } = useTranslation();
 
-  // Kart boyutunu belirle
-  let cardWidth, cardHeight, iconSize, descriptionLines;
+  // Token yoksa veya 0 ise her zaman erişilebilir
+  const canAfford =
+    !tokenCost || tokenCost === 0 || hasEnoughTokens("math_short");
 
-  switch (size) {
-    case "small":
-      cardWidth = SIZES.width * 0.28;
-      cardHeight = SIZES.width * 0.28;
-      iconSize = 28;
-      descriptionLines = 0;
-      break;
-    case "large":
-      cardWidth = SIZES.width * 0.9;
-      cardHeight = SIZES.width * 0.3;
-      iconSize = 36;
-      descriptionLines = 2;
-      break;
-    case "medium":
-    default:
-      cardWidth = SIZES.width * 0.43;
-      cardHeight = SIZES.width * 0.43;
-      iconSize = 32;
-      descriptionLines = 1;
-  }
+  // modules.js'den modül bilgisini al
+  const moduleInfo = MODULES.find((m) => m.id === moduleId);
 
-  // Eğer özel gradient renk verilmezse tema renklerini kullan
-  const defaultGradient = [
-    colors.primaryLight,
-    colors.primary,
-    colors.primaryDark,
-  ];
-  const cardGradient = gradientColors || defaultGradient;
+  // Modül tipine göre özel içerik belirle
+  const getModuleContent = () => {
+    // modules.js'den görsel ve bilgileri al
+    const baseContent = {
+      mainText: moduleInfo
+        ? t(moduleInfo.titleKey)
+        : title || t("common.module"),
+      description: moduleInfo
+        ? t(moduleInfo.descriptionKey)
+        : description || t("common.moduleDescription"),
+      decorativeImage: moduleInfo?.decorativeImage || null,
+    };
+
+    switch (moduleId) {
+      case "math":
+        return {
+          ...baseContent,
+          actionText: t("modules.math.quickAction"),
+          actionIcon: "flash",
+          decorativeIcon: "checkmark-circle",
+        };
+      case "chat":
+        return {
+          ...baseContent,
+          actionText: t("modules.chat.quickAction"),
+          actionIcon: "chatbubble-ellipses",
+          decorativeIcon: "chatbubbles",
+        };
+      case "news":
+        return {
+          ...baseContent,
+          actionText: t("modules.news.quickAction"),
+          actionIcon: "telescope",
+          decorativeIcon: "notifications",
+          decorativeImage: "https://img.icons8.com/3d-fluency/94/news.png", // News modülü modules.js'de yok
+        };
+      case "calculator":
+        return {
+          ...baseContent,
+          actionText: t("modules.calculator.quickAction"),
+          actionIcon: "calculator",
+          decorativeIcon: "calculator",
+        };
+      case "textEditor":
+        return {
+          ...baseContent,
+          actionText: t("modules.textEditor.quickAction"),
+          actionIcon: "create",
+          decorativeIcon: "document-text",
+        };
+      case "imageAnalyzer":
+        return {
+          ...baseContent,
+          actionText: t("modules.imageAnalyzer.quickAction"),
+          actionIcon: "image",
+          decorativeIcon: "images",
+        };
+      case "noteGenerator":
+        return {
+          ...baseContent,
+          actionText: t("modules.noteGenerator.quickAction"),
+          actionIcon: "document-text",
+          decorativeIcon: "clipboard",
+        };
+      default:
+        return {
+          ...baseContent,
+          actionText: t("common.start"),
+          actionIcon: "play",
+          decorativeIcon: "star",
+        };
+    }
+  };
+
+  const moduleContent = getModuleContent();
+  const cardGradient = gradientColors || [colors.primary, colors.primaryDark];
+
+  // Kategori ismini al
+  const getCategoryName = () => {
+    if (!category) return null;
+    return t(`explore.categories.${category}`);
+  };
 
   const styles = StyleSheet.create({
     container: {
-      width: cardWidth,
-      height: cardHeight,
-      borderRadius: SIZES.radius * 1.5,
-      marginHorizontal: 8,
-      marginVertical: 8,
-      overflow: "visible",
-      borderWidth: 1,
+      width: SIZES.width * 0.9,
+      height: 110,
+      borderRadius: 20,
+      borderTopLeftRadius: isSelectionMode ? 0 : 20,
+      borderBottomLeftRadius: isSelectionMode ? 0 : 20,
+      marginVertical: 6,
       shadowColor: cardGradient[0],
-      shadowOffset: { width: 0, height: 0 },
-      shadowOpacity: glowing ? 0.8 : 0,
-      shadowRadius: glowing ? 8 : 0,
-      elevation: glowing ? 10 : 0,
+      shadowOffset: { width: 0, height: 4 },
+      shadowOpacity: canAfford ? 0.2 : 0.1,
+      shadowRadius: 8,
+      elevation: 5,
+      opacity: canAfford ? 1 : 0.6,
     },
-    gradientContainer: {
+    cardContent: {
       flex: 1,
-      justifyContent: "space-between",
-      padding: size === "small" ? 12 : 16,
-      borderRadius: SIZES.radius * 1.5,
-      overflow: "hidden",
-    },
-    contentContainer: {
-      flex: 1,
-      justifyContent: size === "large" ? "center" : "flex-end",
-    },
-    iconContainer: {
-      width: iconSize * 1.5,
-      height: iconSize * 1.5,
-      borderRadius: iconSize,
-      backgroundColor: "rgba(255, 255, 255, 0.2)",
-      alignItems: "center",
-      justifyContent: "center",
-      marginBottom: size === "small" ? 5 : 10,
-      borderWidth: 1,
-    },
-    title: {
-      ...FONTS.h4,
-      color: "#fff",
-      marginBottom: size === "small" ? 2 : 5,
-      fontWeight: "bold",
-    },
-    description: {
-      ...FONTS.body5,
-      color: "rgba(255, 255, 255, 0.8)",
-    },
-    largeCardContent: {
       flexDirection: "row",
       alignItems: "center",
     },
-    largeCardTextContainer: {
-      marginLeft: 16,
+    itemContainerSelected: {},
+    gradientContainer: {
       flex: 1,
+      borderRadius: 20,
+      padding: 20,
+      justifyContent: "space-between",
+      position: "relative",
+      overflow: "hidden",
     },
     tokenCost: {
       position: "absolute",
       top: 12,
       right: 12,
-      backgroundColor: "rgba(0, 0, 0, 0.3)",
-      borderRadius: 12,
-      paddingHorizontal: 8,
-      paddingVertical: 2,
+      backgroundColor: "rgba(255, 255, 255, 0.9)",
       flexDirection: "row",
       alignItems: "center",
-    },
-    tokenIcon: {
-      width: 12,
-      height: 12,
-      marginRight: 3,
-    },
-    tokenText: {
-      ...FONTS.body5,
-      color: "#fff",
-      fontWeight: "bold",
-      fontSize: 10,
-    },
-    bottomBadge: {
-      position: "absolute",
-      bottom: 0,
-      right: 0,
-      backgroundColor: canAfford ? colors.secondary : "rgba(255, 0, 0, 0.5)",
-      paddingHorizontal: 10,
-      paddingVertical: 1,
-      borderTopLeftRadius: 10,
-      borderTopRightRadius: 10,
-      borderBottomRightRadius: 20,
-    },
-    badgeText: {
-      ...FONTS.body5,
-      color: "#fff",
-      fontWeight: "bold",
-      fontSize: 10,
+      paddingHorizontal: 8,
+      paddingVertical: 4,
+      borderRadius: 12,
+      zIndex: 2,
     },
     tokenImage: {
       width: 12,
       height: 12,
-      marginRight: 3,
+      marginRight: 4,
+    },
+    tokenText: {
+      fontSize: 11,
+      fontWeight: "700",
+      color: cardGradient[1],
+    },
+    contentSection: {
+      flex: 1,
+      justifyContent: "center",
+    },
+    mainTitle: {
+      fontSize: 22,
+      fontWeight: "bold",
+      color: "#FFFFFF",
+    },
+    descriptionText: {
+      fontSize: 13,
+      color: "rgba(255, 255, 255, 0.9)",
+      lineHeight: 18,
+      bottom: 2,
+    },
+    bottomSection: {
+      flexDirection: "row",
+      justifyContent: "flex-start",
+      alignItems: "flex-end",
+      marginTop: 18,
+      position: "relative",
+      paddingBottom: 2,
+    },
+    actionButton: {
+      backgroundColor: "rgba(255, 255, 255, 0.95)",
+      paddingHorizontal: 12,
+      paddingVertical: 3,
+      borderRadius: 16,
+      shadowColor: "#000",
+      shadowOffset: { width: 0, height: 2 },
+      shadowOpacity: 0.15,
+      shadowRadius: 4,
+      elevation: 3,
+      transform: [{ rotate: "-4deg" }],
+    },
+    actionText: {
+      ...TEXT_STYLES.labelSmall,
+      color: cardGradient[1],
+      fontWeight: "600",
+    },
+    decorativeIcon: {
+      position: "absolute",
+      right: 20,
+      top: "50%",
+      marginTop: -20,
+      opacity: 0.15,
+    },
+    decorativeImage: {
+      position: "absolute",
+      right: 15,
+      bottom: 15,
+      width: 50,
+      height: 50,
+      opacity: 0.8,
+    },
+    decorativeShape: {
+      position: "absolute",
+      right: -20,
+      top: -20,
+      width: 80,
+      height: 80,
+      backgroundColor: "rgba(255, 255, 255, 0.08)",
+      borderRadius: 40,
+      transform: [{ rotate: "45deg" }],
+    },
+    decorativeShape2: {
+      position: "absolute",
+      left: -10,
+      top: -10,
+      width: 40,
+      height: 40,
+      backgroundColor: "rgba(255, 255, 255, 0.05)",
+      borderRadius: 20,
+      transform: [{ rotate: "30deg" }],
+    },
+    disabledOverlay: {
+      position: "absolute",
+      top: 0,
+      left: 0,
+      right: 0,
+      bottom: 0,
+      backgroundColor: "rgba(0, 0, 0, 0.4)",
+      borderRadius: 20,
+      justifyContent: "center",
+      alignItems: "center",
+      zIndex: 3,
+    },
+    disabledContent: {
+      alignItems: "center",
+    },
+    disabledText: {
+      color: "#FFFFFF",
+      fontWeight: "600",
+      fontSize: 12,
+      marginTop: 4,
+    },
+    categoryBadge: {
+      position: "absolute",
+      top: 12,
+      left: 12,
+      backgroundColor: "rgba(255, 255, 255, 0.25)",
+      paddingHorizontal: 8,
+      paddingVertical: 4,
+      borderRadius: 12,
+      borderWidth: 1,
+      borderColor: "rgba(255, 255, 255, 0.4)",
+      zIndex: 2,
+    },
+    categoryText: {
+      fontSize: 10,
+      fontWeight: "600",
+      color: "#FFFFFF",
+      textTransform: "uppercase",
+    },
+    checkboxContainer: {
+      marginRight: SPACING.sm,
+      justifyContent: "center",
+    },
+    checkbox: {
+      width: 24,
+      height: 24,
+      borderRadius: BORDER_RADIUS.sm,
+      borderWidth: 2,
+      borderColor: colors.border,
+      backgroundColor: colors.card,
+      alignItems: "center",
+      justifyContent: "center",
+    },
+    checkboxSelected: {
+      backgroundColor: colors.primary,
+      borderColor: colors.primary,
     },
   });
 
-  // Büyük kart için farklı layout
-  if (size === "large") {
-    return (
-      <View
-        style={[
-          styles.container,
-          containerStyle,
-          { borderColor: colors.border },
-        ]}
-      >
-        <TouchableOpacity
-          style={{ flex: 1 }}
-          onPress={() => onPress({ id: moduleId, title, description })}
-          activeOpacity={0.8}
-          disabled={!canAfford}
-        >
-          <LinearGradient
-            colors={cardGradient}
-            start={{ x: 0, y: 0 }}
-            end={{ x: 1, y: 1 }}
-            style={styles.gradientContainer}
-          >
-            {tokenCost > 0 && (
-              <View style={styles.tokenCost}>
-                <Image
-                  source={require("../../assets/images/token.png")}
-                  style={styles.tokenImage}
-                />
-                <Text style={styles.tokenText}>{tokenCost}</Text>
-              </View>
-            )}
+  const handlePress = () => {
+    if (isSelectionMode && onSelect) {
+      onSelect(moduleId);
+    } else {
+      onPress({ id: moduleId, title, description });
+    }
+  };
 
-            <View style={styles.largeCardContent}>
-              <View
-                style={[styles.iconContainer, { borderColor: colors.border }]}
-              >
-                {icon && <Ionicons name={icon} size={28} color="#FFF" />}
-              </View>
-
-              <View style={styles.largeCardTextContainer}>
-                <Text style={styles.title}>{title}</Text>
-                {description && (
-                  <Text
-                    style={styles.description}
-                    numberOfLines={descriptionLines}
-                  >
-                    {description}
-                  </Text>
-                )}
-              </View>
-            </View>
-          </LinearGradient>
-        </TouchableOpacity>
-      </View>
-    );
-  }
-
-  // Küçük ve orta boy kart layout
   return (
     <View
       style={[
         styles.container,
         containerStyle,
-        { borderColor: colors.border },
+        isSelectionMode && isSelected && styles.itemContainerSelected,
       ]}
     >
       <TouchableOpacity
-        style={{ flex: 1 }}
-        onPress={() => onPress({ id: moduleId, title, description })}
-        activeOpacity={0.8}
-        disabled={!canAfford}
+        style={styles.cardContent}
+        onPress={handlePress}
+        activeOpacity={isSelectionMode ? 1 : 0.8}
+        disabled={isSelectionMode ? false : !canAfford}
       >
+        {/* Seçim modu checkbox - sol tarafta */}
+        {isSelectionMode && (
+          <TouchableOpacity
+            style={styles.checkboxContainer}
+            onPress={() => onSelect && onSelect(moduleId)}
+            activeOpacity={0.7}
+          >
+            <View
+              style={[styles.checkbox, isSelected && styles.checkboxSelected]}
+            >
+              {isSelected && (
+                <Ionicons name="checkmark" size={14} color="#fff" />
+              )}
+            </View>
+          </TouchableOpacity>
+        )}
+
         <LinearGradient
           colors={cardGradient}
           start={{ x: 0, y: 0 }}
           end={{ x: 1, y: 1 }}
           style={styles.gradientContainer}
         >
-          {tokenCost > 0 && (
+          {/* Token maliyet gösterimi */}
+          {tokenCostRange ? (
+            <View style={styles.tokenCost}>
+              <Image
+                source={require("../../assets/images/token.png")}
+                style={styles.tokenImage}
+              />
+              <Text style={styles.tokenText}>{tokenCostRange}</Text>
+            </View>
+          ) : tokenCost > 0 ? (
             <View style={styles.tokenCost}>
               <Image
                 source={require("../../assets/images/token.png")}
@@ -239,20 +372,54 @@ const ModuleCard = ({
               />
               <Text style={styles.tokenText}>{tokenCost}</Text>
             </View>
+          ) : null}
+
+          {/* Dekoratif şekiller */}
+          <View style={styles.decorativeShape} />
+          <View style={styles.decorativeShape2} />
+
+          {/* 3D Dekoratif görsel */}
+          {moduleContent.decorativeImage && (
+            <Image
+              source={
+                typeof moduleContent.decorativeImage === "number"
+                  ? moduleContent.decorativeImage
+                  : typeof moduleContent.decorativeImage === "string" && moduleContent.decorativeImage
+                  ? { uri: moduleContent.decorativeImage }
+                  : null
+              }
+              style={styles.decorativeImage}
+              resizeMode="contain"
+            />
           )}
 
-          <View style={[styles.iconContainer, { borderColor: colors.border }]}> 
-            {icon && <Ionicons name={icon} size={28} color="#FFF" />}
+          {/* Ana içerik */}
+          <View style={styles.contentSection}>
+            <Text style={styles.mainTitle}>{moduleContent.mainText}</Text>
+            <Text style={styles.descriptionText} numberOfLines={1}>
+              {moduleContent.description?.slice(0, 45) ||
+                moduleContent.description}
+            </Text>
           </View>
 
-          <View style={styles.contentContainer}>
-            <Text style={styles.title}>{title}</Text>
-            {description && size !== "small" && (
-              <Text style={styles.description} numberOfLines={descriptionLines}>
-                {description}
-              </Text>
-            )}
+          {/* Alt kısım - Action button */}
+          <View style={styles.bottomSection}>
+            <View style={styles.actionButton}>
+              <Text style={styles.actionText}>{moduleContent.actionText}</Text>
+            </View>
           </View>
+
+          {/* Disabled overlay */}
+          {!canAfford && tokenCost > 0 && (
+            <View style={styles.disabledOverlay}>
+              <View style={styles.disabledContent}>
+                <Ionicons name="lock-closed" size={24} color="#FFFFFF" />
+                <Text style={styles.disabledText}>
+                  {tokenCostRange || `${tokenCost} Token`} Gerekli
+                </Text>
+              </View>
+            </View>
+          )}
         </LinearGradient>
       </TouchableOpacity>
     </View>

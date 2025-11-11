@@ -6,33 +6,62 @@ node_modules/
 # Expo
 .expo/
 dist/
-web-build/
-expo-env.d.ts
-
-# Native
-*.orig.*
+npm-debug.*
 *.jks
 *.p8
 *.p12
 *.key
 *.mobileprovision
-
-# Metro
-.metro-health-check*
-
-# debug
-npm-debug.*
-yarn-debug.*
-yarn-error.*
+*.orig.*
+web-build/
 
 # macOS
 .DS_Store
-*.pem
 
-# local env files
-.env*.local
+# Node
+npm-debug.log
+yarn-error.log
+yarn.lock
 
-# typescript
-*.tsbuildinfo
+# Environment
+.env
+.env.local
+.env.*.local
 
-app-example
+# IDE
+.vscode/*
+!.vscode/settings.json
+!.vscode/tasks.json
+!.vscode/launch.json
+!.vscode/extensions.json
+.idea/
+*.swp
+*.swo
+*~
+
+# Testing
+coverage/
+
+# Debugging
+*.log
+.expo-shared
+
+# iOS
+ios/Pods/
+ios/**/*.xcworkspace/xcuserdata/
+ios/**/*.xcworkspace/xcshareddata/
+ios/build/
+
+# Android
+android/build/
+android/app/build/
+android/.gradle/
+android/app/release/
+*.apk
+*.aab
+
+# Local config
+.env.local
+.env.development.local
+.env.test.local
+.env.production.local

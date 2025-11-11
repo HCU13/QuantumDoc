@@ -1,41 +1,18 @@
 import React from "react";
-import { View, Text, Image, StyleSheet } from "react-native";
+import { View, StyleSheet } from "react-native";
 import useTheme from "../../hooks/useTheme";
+import { stringToAvatar } from "../../utils/avatarUtils";
+import Avatar from "@zamplyy/react-native-nice-avatar";
+import { useAuth } from "../../contexts/AuthContext";
 
-const ProfileImage = ({ 
-  user, 
-  size = 40, 
+const ProfileImage = ({
+  user,
+  size = 40,
   style,
-  showBorder = true 
+  showBorder = true
 }) => {
   const { colors } = useTheme();
-
-  const getInitials = (name) => {
-    if (!name) return "?";
-    return name
-      .split(" ")
-      .map(word => word.charAt(0))
-      .join("")
-      .toUpperCase()
-      .slice(0, 2);
-  };
-
-  const getRandomColor = (name) => {
-    if (!name) return colors.primary;
-    
-    const colorArray = [
-      "#FF6B6B", "#4ECDC4", "#45B7D1", "#96CEB4", 
-      "#FFEAA7", "#DDA0DD", "#98D8C8", "#F7DC6F",
-      "#BB8FCE", "#85C1E9", "#F8C471", "#82E0AA"
-    ];
-    
-    let hash = 0;
-    for (let i = 0; i < name.length; i++) {
-      hash = name.charCodeAt(i) + ((hash << 5) - hash);
-    }
-    
-    return colorArray[Math.abs(hash) % colorArray.length];
-  };
+  const { currentAvatar } = useAuth();
 
   const containerStyle = [
     styles.container,
@@ -45,42 +22,44 @@ const ProfileImage = ({
       borderRadius: size / 2,
       borderWidth: showBorder ? 2 : 0,
       borderColor: colors.border,
+      backgroundColor: colors.card,
     },
     style,
   ];
 
-  const textStyle = [
-    styles.text,
-    {
-      fontSize: size * 0.4,
-      color: "#fff",
-    },
-  ];
+  // Avatar'ı al
+  const getAvatar = () => {
+    // Önce global state'teki avatar'ı kontrol et
+    if (currentAvatar) {
+      return currentAvatar;
+    }
+    
+    // Profiles tablosundan avatar_url'yi kontrol et
+    if (user?.avatar_url) {
+      return stringToAvatar(user.avatar_url);
+    }
+    
+    // Eğer avatar yoksa null döndür
+    return null;
+  };
 
-  if (user?.profileImage) {
+  const avatar = getAvatar();
+
+  // Eğer avatar yoksa placeholder göster
+  if (!avatar) {
     return (
-      <Image
-        source={{ uri: user.profileImage }}
-        style={containerStyle}
-        resizeMode="cover"
-      />
+      <View style={[containerStyle, { backgroundColor: colors.primary + '20' }]}>
+        <View style={[styles.placeholder, { backgroundColor: colors.primary }]} />
+      </View>
     );
   }
 
   return (
-    <View
-      style={[
-        containerStyle,
-        {
-          backgroundColor: getRandomColor(user?.name || "User"),
-          justifyContent: "center",
-          alignItems: "center",
-        },
-      ]}
-    >
-      <Text style={textStyle}>
-        {getInitials(user?.name || "User")}
-      </Text>
+    <View style={containerStyle}>
+      <Avatar
+        style={{ width: size, height: size }}
+        {...avatar}
+      />
     </View>
   );
 };
@@ -90,8 +69,10 @@ const styles = StyleSheet.create({
     justifyContent: "center",
     alignItems: "center",
   },
-  text: {
-    fontWeight: "bold",
+  placeholder: {
+    width: 12,
+    height: 12,
+    borderRadius: 6,
   },
 });
 

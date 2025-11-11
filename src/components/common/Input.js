@@ -32,59 +32,79 @@ const Input = ({
   
   const inputStyles = StyleSheet.create({
     container: {
-      marginBottom: SIZES.padding * 0.7,
+      marginBottom: 20,
       width: '100%',
     },
     label: {
       ...FONTS.body4,
-      color: colors.textOnGradient,
-      marginBottom: 8,
+      color: colors.textSecondary,
+      marginBottom: 6,
       fontWeight: '500',
+      fontSize: 13,
     },
     inputContainer: {
       flexDirection: 'row',
       alignItems: 'center',
-      backgroundColor: isDark ? colors.gray : colors.white,
-      borderRadius: SIZES.radius,
-      paddingHorizontal: SIZES.padding * 0.7,
-      borderWidth: 1,
-      borderColor: colors.gray,
-      height: 55,
-      ...shadows.light,
+      backgroundColor: isDark ? colors.card + '80' : colors.white + 'F0',
+      borderRadius: 16,
+      paddingHorizontal: 16,
+      borderWidth: 1.5,
+      borderColor: isDark ? colors.border + '40' : colors.border + '60',
+      height: 52,
+      shadowColor: colors.primary,
+      shadowOffset: { width: 0, height: 2 },
+      shadowOpacity: 0.08,
+      shadowRadius: 8,
+      elevation: 2,
+    },
+    multilineInputContainer: {
+      height: 120,
+      alignItems: 'flex-start',
+      paddingVertical: 12,
     },
     input: {
       flex: 1,
-      ...FONTS.body3,
+      ...FONTS.body4,
       color: colors.textPrimary,
       height: '100%',
-      paddingVertical: 10,
+      paddingVertical: 0,
+      fontSize: 15,
+      textAlignVertical: 'center',
     },
     multilineInput: {
-      height: 100,
+      height: '100%',
       textAlignVertical: 'top',
-      paddingTop: 10,
+      paddingTop: 0,
     },
     focusedInput: {
-      borderColor: colors.primary,
-      borderWidth: 1.5,
+      borderColor: colors.primary + '80',
+      borderWidth: 2,
+      backgroundColor: isDark ? colors.card + 'A0' : colors.white,
+      shadowOpacity: 0.15,
+      shadowRadius: 12,
     },
     errorInput: {
-      borderColor: 'red',
+      borderColor: colors.error || '#FF6B6B',
+      backgroundColor: isDark ? colors.error + '10' : colors.error + '05',
     },
     errorText: {
-      color: 'red',
+      color: colors.error || '#FF6B6B',
       ...FONTS.body5,
-      marginTop: 5,
-      marginLeft: 5,
+      marginTop: 6,
+      marginLeft: 4,
+      fontSize: 12,
     },
     iconContainer: {
-      marginRight: 10,
+      marginRight: 12,
+      opacity: 0.7,
     },
     eyeIcon: {
-      padding: 5,
+      padding: 8,
+      borderRadius: 8,
     },
     iconRight: {
-      padding: 5,
+      padding: 8,
+      borderRadius: 8,
     },
   });
 
@@ -94,6 +114,7 @@ const Input = ({
       
       <View style={[
         inputStyles.inputContainer,
+        multiline && inputStyles.multilineInputContainer,
         isFocused && inputStyles.focusedInput,
         error && inputStyles.errorInput
       ]}>
@@ -122,6 +143,7 @@ const Input = ({
           <TouchableOpacity 
             style={inputStyles.eyeIcon}
             onPress={() => setIsPasswordVisible(!isPasswordVisible)}
+            activeOpacity={0.7}
           >
             <Ionicons 
               name={isPasswordVisible ? 'eye-off-outline' : 'eye-outline'} 
@@ -132,7 +154,11 @@ const Input = ({
         )}
         
         {onIconPress && icon && (
-          <TouchableOpacity style={inputStyles.iconRight} onPress={onIconPress}>
+          <TouchableOpacity 
+            style={inputStyles.iconRight} 
+            onPress={onIconPress}
+            activeOpacity={0.7}
+          >
             {icon}
           </TouchableOpacity>
         )}

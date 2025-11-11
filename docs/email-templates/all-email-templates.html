@@ -1,0 +1,271 @@
+<!-- ========== 1. EMAIL VERIFICATION (OTP) TEMPLATE ========== -->
+<!DOCTYPE html>
+<html>
+<head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>QuantumDoc - Email Verification</title>
+</head>
+<body style="font-family: Arial, sans-serif; line-height: 1.5; color: #333333; background-color: #f4f4f4; margin: 0; padding: 0;">
+    <div style="max-width: 600px; margin: 40px auto; background: #ffffff; border: 1px solid #dddddd;">
+        <div style="background: #ffffff; padding: 30px 40px 20px; border-bottom: 1px solid #dddddd;">
+            <h1 style="margin: 0; font-size: 24px; font-weight: 400; color: #232f3e;">QuantumDoc</h1>
+        </div>
+        
+        <div style="padding: 30px 40px;">
+            <h2 style="font-size: 18px; font-weight: 400; color: #232f3e; margin: 0 0 20px 0;">Email Adresinizi Doğrulayın</h2>
+            <p style="font-size: 14px; color: #333333; margin: 0 0 20px 0;">Merhaba,</p>
+            <p style="font-size: 14px; color: #333333; margin: 0 0 20px 0;">QuantumDoc hesabınızı oluşturduğunuz için teşekkür ederiz. Hesabınızı aktifleştirmek için aşağıdaki doğrulama kodunu kullanın.</p>
+
+            <div style="background: #f9f9f9; border: 1px solid #dddddd; padding: 20px; text-align: center; margin: 30px 0;">
+                <div style="font-size: 12px; color: #666666; text-transform: uppercase; margin-bottom: 10px; font-weight: 600;">Doğrulama Kodu</div>
+                <div style="font-size: 28px; font-weight: 700; color: #232f3e; letter-spacing: 4px; font-family: 'Courier New', monospace; margin: 10px 0;">{{ .Token }}</div>
+                <div style="font-size: 12px; color: #666666; margin-top: 10px;">Bu kod 10 dakika geçerlidir</div>
+            </div>
+
+            <div style="background: #f9f9f9; border: 1px solid #dddddd; padding: 20px; margin: 20px 0;">
+                <h3 style="margin: 0 0 15px 0; color: #232f3e; font-size: 14px; font-weight: 600;">Nasıl Kullanılır:</h3>
+                <ol style="margin: 0; padding-left: 18px; font-size: 14px;">
+                    <li style="margin-bottom: 6px; color: #333333;">QuantumDoc uygulamasını açın</li>
+                    <li style="margin-bottom: 6px; color: #333333;">Email doğrulama sayfasında 6 haneli kodu girin</li>
+                    <li style="margin-bottom: 6px; color: #333333;">Hesabınız otomatik olarak aktifleşecek</li>
+                </ol>
+            </div>
+
+            <div style="background: #fff5f5; border: 1px solid #ffcccc; padding: 15px; margin: 20px 0;">
+                <p style="margin: 0; font-size: 13px; color: #cc0000;"><strong>Güvenlik Uyarısı:</strong> Bu kodu kimseyle paylaşmayın. QuantumDoc asla kodunuzu e-posta ile istemez.</p>
+            </div>
+
+            <p style="font-size: 14px; color: #333333; margin: 0 0 20px 0;">Eğer bu hesabı siz oluşturmadıysanız, bu e-postayı görmezden gelebilirsiniz.</p>
+        </div>
+
+        <div style="background: #f9f9f9; padding: 20px 40px; text-align: center; border-top: 1px solid #dddddd;">
+            <p style="margin: 5px 0; font-size: 12px; color: #666666;"><strong>QuantumDoc Ekibi</strong></p>
+            <p style="margin: 5px 0; font-size: 12px; color: #666666;">Sorularınız için: <a href="mailto:support@quantumdoc.app" style="color: #0066cc; text-decoration: none;">support@quantumdoc.app</a></p>
+        </div>
+    </div>
+</body>
+</html>
+
+<!-- ========== 2. EMAIL CONFIRMATION TEMPLATE ========== -->
+<!DOCTYPE html>
+<html>
+<head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>QuantumDoc - Email Confirmation</title>
+</head>
+<body style="font-family: Arial, sans-serif; line-height: 1.5; color: #333333; background-color: #f4f4f4; margin: 0; padding: 0;">
+    <div style="max-width: 600px; margin: 40px auto; background: #ffffff; border: 1px solid #dddddd;">
+        <div style="background: #ffffff; padding: 30px 40px 20px; border-bottom: 1px solid #dddddd;">
+            <h1 style="margin: 0; font-size: 24px; font-weight: 400; color: #232f3e;">QuantumDoc</h1>
+        </div>
+        
+        <div style="padding: 30px 40px;">
+            <h2 style="font-size: 18px; font-weight: 400; color: #232f3e; margin: 0 0 20px 0;">Hesabınızı Onaylayın</h2>
+            <p style="font-size: 14px; color: #333333; margin: 0 0 20px 0;">Merhaba,</p>
+            <p style="font-size: 14px; color: #333333; margin: 0 0 20px 0;">QuantumDoc'a hoş geldiniz! Hesabınızı aktifleştirmek için aşağıdaki butona tıklayın:</p>
+
+            <div style="background: #f9f9f9; border: 1px solid #dddddd; padding: 20px; text-align: center; margin: 30px 0;">
+                <a href="{{ .ConfirmationURL }}" style="display: inline-block; background-color: #ff9900; color: #ffffff; text-decoration: none; padding: 12px 24px; font-size: 14px; font-weight: 600; border-radius: 3px; margin: 10px 0;">Hesabımı Onayla</a>
+                <div style="font-size: 12px; color: #666666; margin-top: 10px;">Bu bağlantı 24 saat geçerlidir</div>
+            </div>
+
+            <div style="background: #f9f9f9; border: 1px solid #dddddd; padding: 20px; margin: 20px 0;">
+                <h3 style="margin: 0 0 15px 0; color: #232f3e; font-size: 14px; font-weight: 600;">Sorun mu yaşıyorsunuz?</h3>
+                <ol style="margin: 0; padding-left: 18px; font-size: 14px;">
+                    <li style="margin-bottom: 6px; color: #333333;">Bağlantıya tıklayamıyorsanız, aşağıdaki URL'yi tarayıcınıza kopyalayın:</li>
+                    <li style="margin-bottom: 6px; color: #333333;">{{ .ConfirmationURL }}</li>
+                </ol>
+            </div>
+
+            <p style="font-size: 14px; color: #333333; margin: 0 0 20px 0;">Eğer bu hesabı siz oluşturmadıysanız, bu e-postayı görmezden gelebilirsiniz.</p>
+        </div>
+
+        <div style="background: #f9f9f9; padding: 20px 40px; text-align: center; border-top: 1px solid #dddddd;">
+            <p style="margin: 5px 0; font-size: 12px; color: #666666;"><strong>QuantumDoc Ekibi</strong></p>
+            <p style="margin: 5px 0; font-size: 12px; color: #666666;">Sorularınız için: <a href="mailto:support@quantumdoc.app" style="color: #0066cc; text-decoration: none;">support@quantumdoc.app</a></p>
+        </div>
+    </div>
+</body>
+</html>
+
+<!-- ========== 3. PASSWORD RESET TEMPLATE ========== -->
+<!DOCTYPE html>
+<html>
+<head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>QuantumDoc - Password Reset</title>
+</head>
+<body style="font-family: Arial, sans-serif; line-height: 1.5; color: #333333; background-color: #f4f4f4; margin: 0; padding: 0;">
+    <div style="max-width: 600px; margin: 40px auto; background: #ffffff; border: 1px solid #dddddd;">
+        <div style="background: #ffffff; padding: 30px 40px 20px; border-bottom: 1px solid #dddddd;">
+            <h1 style="margin: 0; font-size: 24px; font-weight: 400; color: #232f3e;">QuantumDoc</h1>
+        </div>
+        
+        <div style="padding: 30px 40px;">
+            <h2 style="font-size: 18px; font-weight: 400; color: #232f3e; margin: 0 0 20px 0;">Şifre Sıfırlama</h2>
+            <p style="font-size: 14px; color: #333333; margin: 0 0 20px 0;">Merhaba,</p>
+            <p style="font-size: 14px; color: #333333; margin: 0 0 20px 0;">QuantumDoc hesabınız için şifre sıfırlama talebinde bulundunuz. Yeni şifre oluşturmak için aşağıdaki butona tıklayın:</p>
+
+            <div style="background: #f9f9f9; border: 1px solid #dddddd; padding: 20px; text-align: center; margin: 30px 0;">
+                <a href="{{ .ConfirmationURL }}" style="display: inline-block; background-color: #ff9900; color: #ffffff; text-decoration: none; padding: 12px 24px; font-size: 14px; font-weight: 600; border-radius: 3px; margin: 10px 0;">Şifremi Sıfırla</a>
+                <div style="font-size: 12px; color: #666666; margin-top: 10px;">Bu bağlantı 1 saat geçerlidir</div>
+            </div>
+
+            <div style="background: #fff5f5; border: 1px solid #ffcccc; padding: 15px; margin: 20px 0;">
+                <p style="margin: 0; font-size: 13px; color: #cc0000;"><strong>Önemli:</strong> Eğer bu talebi siz yapmadıysanız, hesap güvenliğiniz için bu e-postayı görmezden gelin ve şifrenizi değiştirmeyin.</p>
+            </div>
+
+            <div style="background: #f9f9f9; border: 1px solid #dddddd; padding: 20px; margin: 20px 0;">
+                <h3 style="margin: 0 0 15px 0; color: #232f3e; font-size: 14px; font-weight: 600;">Güvenlik İpuçları:</h3>
+                <ol style="margin: 0; padding-left: 18px; font-size: 14px;">
+                    <li style="margin-bottom: 6px; color: #333333;">Güçlü bir şifre seçin (en az 8 karakter)</li>
+                    <li style="margin-bottom: 6px; color: #333333;">Büyük harf, küçük harf ve sayı kullanın</li>
+                    <li style="margin-bottom: 6px; color: #333333;">Şifrenizi kimseyle paylaşmayın</li>
+                </ol>
+            </div>
+        </div>
+
+        <div style="background: #f9f9f9; padding: 20px 40px; text-align: center; border-top: 1px solid #dddddd;">
+            <p style="margin: 5px 0; font-size: 12px; color: #666666;"><strong>QuantumDoc Ekibi</strong></p>
+            <p style="margin: 5px 0; font-size: 12px; color: #666666;">Sorularınız için: <a href="mailto:support@quantumdoc.app" style="color: #0066cc; text-decoration: none;">support@quantumdoc.app</a></p>
+        </div>
+    </div>
+</body>
+</html>
+
+<!-- ========== 4. MAGIC LINK TEMPLATE ========== -->
+<!DOCTYPE html>
+<html>
+<head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>QuantumDoc - Magic Link</title>
+</head>
+<body style="font-family: Arial, sans-serif; line-height: 1.5; color: #333333; background-color: #f4f4f4; margin: 0; padding: 0;">
+    <div style="max-width: 600px; margin: 40px auto; background: #ffffff; border: 1px solid #dddddd;">
+        <div style="background: #ffffff; padding: 30px 40px 20px; border-bottom: 1px solid #dddddd;">
+            <h1 style="margin: 0; font-size: 24px; font-weight: 400; color: #232f3e;">QuantumDoc</h1>
+        </div>
+        
+        <div style="padding: 30px 40px;">
+            <h2 style="font-size: 18px; font-weight: 400; color: #232f3e; margin: 0 0 20px 0;">Hızlı Giriş</h2>
+            <p style="font-size: 14px; color: #333333; margin: 0 0 20px 0;">Merhaba,</p>
+            <p style="font-size: 14px; color: #333333; margin: 0 0 20px 0;">QuantumDoc'a hızlı giriş yapmak için aşağıdaki butona tıklayın:</p>
+
+            <div style="background: #f9f9f9; border: 1px solid #dddddd; padding: 20px; text-align: center; margin: 30px 0;">
+                <a href="{{ .ConfirmationURL }}" style="display: inline-block; background-color: #ff9900; color: #ffffff; text-decoration: none; padding: 12px 24px; font-size: 14px; font-weight: 600; border-radius: 3px; margin: 10px 0;">Giriş Yap</a>
+                <div style="font-size: 12px; color: #666666; margin-top: 10px;">Bu bağlantı tek kullanımlıktır ve 15 dakika geçerlidir</div>
+            </div>
+
+            <div style="background: #f9f9f9; border: 1px solid #dddddd; padding: 20px; margin: 20px 0;">
+                <h3 style="margin: 0 0 15px 0; color: #232f3e; font-size: 14px; font-weight: 600;">Güvenlik Bilgisi:</h3>
+                <ol style="margin: 0; padding-left: 18px; font-size: 14px;">
+                    <li style="margin-bottom: 6px; color: #333333;">Bu bağlantı sadece sizin için oluşturulmuştur</li>
+                    <li style="margin-bottom: 6px; color: #333333;">Tek seferlik kullanımdır</li>
+                    <li style="margin-bottom: 6px; color: #333333;">Kimseyle paylaşmayın</li>
+                </ol>
+            </div>
+
+            <p style="font-size: 14px; color: #333333; margin: 0 0 20px 0;">Eğer giriş talebinde bulunmadıysanız, bu e-postayı güvenle silebilirsiniz.</p>
+        </div>
+
+        <div style="background: #f9f9f9; padding: 20px 40px; text-align: center; border-top: 1px solid #dddddd;">
+            <p style="margin: 5px 0; font-size: 12px; color: #666666;"><strong>QuantumDoc Ekibi</strong></p>
+            <p style="margin: 5px 0; font-size: 12px; color: #666666;">Sorularınız için: <a href="mailto:support@quantumdoc.app" style="color: #0066cc; text-decoration: none;">support@quantumdoc.app</a></p>
+        </div>
+    </div>
+</body>
+</html>
+
+<!-- ========== 5. INVITE TEMPLATE ========== -->
+<!DOCTYPE html>
+<html>
+<head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>QuantumDoc - Invitation</title>
+</head>
+<body style="font-family: Arial, sans-serif; line-height: 1.5; color: #333333; background-color: #f4f4f4; margin: 0; padding: 0;">
+    <div style="max-width: 600px; margin: 40px auto; background: #ffffff; border: 1px solid #dddddd;">
+        <div style="background: #ffffff; padding: 30px 40px 20px; border-bottom: 1px solid #dddddd;">
+            <h1 style="margin: 0; font-size: 24px; font-weight: 400; color: #232f3e;">QuantumDoc</h1>
+        </div>
+        
+        <div style="padding: 30px 40px;">
+            <h2 style="font-size: 18px; font-weight: 400; color: #232f3e; margin: 0 0 20px 0;">Davetiye</h2>
+            <p style="font-size: 14px; color: #333333; margin: 0 0 20px 0;">Merhaba,</p>
+            <p style="font-size: 14px; color: #333333; margin: 0 0 20px 0;">{{ .InviterName }} sizi QuantumDoc'a davet etti. Hesabınızı oluşturmak için aşağıdaki butona tıklayın:</p>
+
+            <div style="background: #f9f9f9; border: 1px solid #dddddd; padding: 20px; text-align: center; margin: 30px 0;">
+                <a href="{{ .ConfirmationURL }}" style="display: inline-block; background-color: #ff9900; color: #ffffff; text-decoration: none; padding: 12px 24px; font-size: 14px; font-weight: 600; border-radius: 3px; margin: 10px 0;">Hesap Oluştur</a>
+                <div style="font-size: 12px; color: #666666; margin-top: 10px;">Bu davet 7 gün geçerlidir</div>
+            </div>
+
+            <div style="background: #f9f9f9; border: 1px solid #dddddd; padding: 20px; margin: 20px 0;">
+                <h3 style="margin: 0 0 15px 0; color: #232f3e; font-size: 14px; font-weight: 600;">QuantumDoc Nedir?</h3>
+                <ol style="margin: 0; padding-left: 18px; font-size: 14px;">
+                    <li style="margin-bottom: 6px; color: #333333;">AI destekli öğrenme platformu</li>
+                    <li style="margin-bottom: 6px; color: #333333;">Kişiselleştirilmiş eğitim içerikleri</li>
+                    <li style="margin-bottom: 6px; color: #333333;">İnteraktif öğrenme deneyimi</li>
+                </ol>
+            </div>
+
+            <p style="font-size: 14px; color: #333333; margin: 0 0 20px 0;">Bu daveti kabul etmek istemiyorsanız, bu e-postayı görmezden gelebilirsiniz.</p>
+        </div>
+
+        <div style="background: #f9f9f9; padding: 20px 40px; text-align: center; border-top: 1px solid #dddddd;">
+            <p style="margin: 5px 0; font-size: 12px; color: #666666;"><strong>QuantumDoc Ekibi</strong></p>
+            <p style="margin: 5px 0; font-size: 12px; color: #666666;">Sorularınız için: <a href="mailto:support@quantumdoc.app" style="color: #0066cc; text-decoration: none;">support@quantumdoc.app</a></p>
+        </div>
+    </div>
+</body>
+</html>
+
+<!-- ========== 6. ACCOUNT RECOVERY TEMPLATE ========== -->
+<!DOCTYPE html>
+<html>
+<head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>QuantumDoc - Account Recovery</title>
+</head>
+<body style="font-family: Arial, sans-serif; line-height: 1.5; color: #333333; background-color: #f4f4f4; margin: 0; padding: 0;">
+    <div style="max-width: 600px; margin: 40px auto; background: #ffffff; border: 1px solid #dddddd;">
+        <div style="background: #ffffff; padding: 30px 40px 20px; border-bottom: 1px solid #dddddd;">
+            <h1 style="margin: 0; font-size: 24px; font-weight: 400; color: #232f3e;">QuantumDoc</h1>
+        </div>
+        
+        <div style="padding: 30px 40px;">
+            <h2 style="font-size: 18px; font-weight: 400; color: #232f3e; margin: 0 0 20px 0;">Hesap Kurtarma</h2>
+            <p style="font-size: 14px; color: #333333; margin: 0 0 20px 0;">Merhaba,</p>
+            <p style="font-size: 14px; color: #333333; margin: 0 0 20px 0;">Hesabınızı kurtarmak için bir talep aldık. Hesabınıza erişimi geri kazanmak için aşağıdaki butona tıklayın:</p>
+
+            <div style="background: #f9f9f9; border: 1px solid #dddddd; padding: 20px; text-align: center; margin: 30px 0;">
+                <a href="{{ .ConfirmationURL }}" style="display: inline-block; background-color: #ff9900; color: #ffffff; text-decoration: none; padding: 12px 24px; font-size: 14px; font-weight: 600; border-radius: 3px; margin: 10px 0;">Hesabımı Kurtar</a>
+                <div style="font-size: 12px; color: #666666; margin-top: 10px;">Bu bağlantı 24 saat geçerlidir</div>
+            </div>
+
+            <div style="background: #fff5f5; border: 1px solid #ffcccc; padding: 15px; margin: 20px 0;">
+                <p style="margin: 0; font-size: 13px; color: #cc0000;"><strong>Dikkat:</strong> Bu talebi siz yapmadıysanız, hesap güvenliğiniz risk altında olabilir. Derhal bizimle iletişime geçin.</p>
+            </div>
+
+            <div style="background: #f9f9f9; border: 1px solid #dddddd; padding: 20px; margin: 20px 0;">
+                <h3 style="margin: 0 0 15px 0; color: #232f3e; font-size: 14px; font-weight: 600;">Sonraki Adımlar:</h3>
+                <ol style="margin: 0; padding-left: 18px; font-size: 14px;">
+                    <li style="margin-bottom: 6px; color: #333333;">Yukarıdaki butona tıklayın</li>
+                    <li style="margin-bottom: 6px; color: #333333;">Kimlik doğrulama işlemini tamamlayın</li>
+                    <li style="margin-bottom: 6px; color: #333333;">Yeni bir güvenli şifre oluşturun</li>
+                </ol>
+            </div>
+        </div>
+
+        <div style="background: #f9f9f9; padding: 20px 40px; text-align: center; border-top: 1px solid #dddddd;">
+            <p style="margin: 5px 0; font-size: 12px; color: #666666;"><strong>QuantumDoc Ekibi</strong></p>
+            <p style="margin: 5px 0; font-size: 12px; color: #666666;">Acil Destek: <a href="mailto:security@quantumdoc.app" style="color: #0066cc; text-decoration: none;">security@quantumdoc.app</a></p>
+        </div>
+    </div>
+</body>
+</html>

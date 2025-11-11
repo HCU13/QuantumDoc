@@ -1,132 +1,17 @@
 import React from "react";
 import { View, Text, StyleSheet, TouchableOpacity } from "react-native";
-import { FONTS, SIZES } from "../../constants/theme";
+import { TEXT_STYLES, SPACING, BORDER_RADIUS, SHADOWS } from "../../constants/theme";
 import useTheme from "../../hooks/useTheme";
 import { Ionicons } from "@expo/vector-icons";
-import Card from "../common/Card";
 import { useTranslation } from "react-i18next";
-
-const ActivityItem = ({ item, onPress }) => {
-  const { colors } = useTheme();
-
-  const styles = StyleSheet.create({
-    itemContainer: {
-      flexDirection: "row",
-      alignItems: "center",
-      padding: 12,
-    },
-    iconContainer: {
-      width: 40,
-      height: 40,
-      borderRadius: 20,
-      backgroundColor: colors.primary + "20", // %20 opacity
-      alignItems: "center",
-      justifyContent: "center",
-      marginRight: 12,
-    },
-    contentContainer: {
-      flex: 1,
-    },
-    title: {
-      ...FONTS.body3,
-      color: colors.textPrimary,
-      marginBottom: 4,
-    },
-    subtitle: {
-      ...FONTS.body5,
-      color: colors.textSecondary,
-    },
-    timeContainer: {
-      marginLeft: 10,
-    },
-    time: {
-      ...FONTS.body5,
-      color: colors.textTertiary,
-    },
-    arrowIcon: {
-      marginLeft: 5,
-    },
-  });
-
-  // İkon tipine göre içerik belirleme
-  const getIcon = () => {
-    switch (item.type) {
-      case "chat":
-        return (
-          <Ionicons
-            name="chatbubble-outline"
-            size={20}
-            color={colors.primary}
-          />
-        );
-      case "math":
-        return (
-          <Ionicons
-            name="calculator-outline"
-            size={20}
-            color={colors.primary}
-          />
-        );
-      case "note":
-        return (
-          <Ionicons
-            name="document-text-outline"
-            size={20}
-            color={colors.primary}
-          />
-        );
-      case "translate":
-        return (
-          <Ionicons name="language-outline" size={20} color={colors.primary} />
-        );
-      case "task":
-        return (
-          <Ionicons name="checkbox-outline" size={20} color={colors.primary} />
-        );
-      default:
-        return (
-          <Ionicons
-            name="ellipsis-horizontal"
-            size={20}
-            color={colors.primary}
-          />
-        );
-    }
-  };
-
-  return (
-    <Card shadowType="light" onPress={() => onPress(item)}>
-      <View style={styles.itemContainer}>
-        <View style={styles.iconContainer}>{getIcon()}</View>
-
-        <View style={styles.contentContainer}>
-          <Text style={styles.title} numberOfLines={1}>
-            {item.title}
-          </Text>
-          <Text style={styles.subtitle} numberOfLines={1}>
-            {item.description}
-          </Text>
-        </View>
-
-        <View style={styles.timeContainer}>
-          <Text style={styles.time}>{item.time}</Text>
-        </View>
-
-        <Ionicons
-          name="chevron-forward"
-          size={18}
-          color={colors.textTertiary}
-          style={styles.arrowIcon}
-        />
-      </View>
-    </Card>
-  );
-};
+import ActivityItem from "../common/ActivityItem";
 
 const RecentActivity = ({
   data,
+  chatData = [],
   onItemPress,
   onSeeAllPress,
+  onNavigate,
   containerStyle,
   showSeeAll = true,
   maxItems = 3,
@@ -137,35 +22,91 @@ const RecentActivity = ({
   const styles = StyleSheet.create({
     container: {
       width: "100%",
-      paddingHorizontal: SIZES.padding,
-      marginVertical: 10,
+      paddingHorizontal: SPACING.md,
+      marginVertical: SPACING.xs,
     },
     headerContainer: {
       flexDirection: "row",
       justifyContent: "space-between",
       alignItems: "center",
-      marginBottom: 10,
+      marginBottom: SPACING.sm,
     },
     title: {
-      ...FONTS.h3,
+      ...TEXT_STYLES.titleLarge,
       color: colors.textOnGradient,
-      fontWeight: "bold",
+      fontWeight: 'bold',
     },
     seeAllText: {
-      ...FONTS.body4,
+      ...TEXT_STYLES.labelMedium,
       color: colors.primary,
+      fontWeight: '600',
     },
     listContainer: {
       width: "100%",
     },
     emptyContainer: {
+      backgroundColor: colors.card,
+      borderRadius: BORDER_RADIUS.lg,
       alignItems: "center",
-      padding: SIZES.padding,
+      padding: SPACING.lg,
+      borderWidth: 1,
+      borderColor: colors.border,
+      ...SHADOWS.small,
+    },
+    emptyIcon: {
+      marginBottom: SPACING.sm,
     },
     emptyText: {
-      ...FONTS.body4,
-      color: colors.textOnGradient,
+      ...TEXT_STYLES.bodyMedium,
+      color: colors.textSecondary,
       textAlign: "center",
+    },
+    chatSection: {
+      marginBottom: SPACING.md,
+    },
+    sectionTitle: {
+      ...TEXT_STYLES.titleSmall,
+      color: colors.textSecondary,
+      marginBottom: SPACING.sm,
+      fontWeight: '600',
+    },
+    chatItem: {
+      flexDirection: 'row',
+      alignItems: 'center',
+      backgroundColor: colors.card,
+      borderRadius: BORDER_RADIUS.md,
+      padding: SPACING.sm,
+      marginBottom: SPACING.xs,
+      borderWidth: 1,
+      borderColor: colors.border,
+      ...SHADOWS.small,
+    },
+    chatIcon: {
+      width: 32,
+      height: 32,
+      borderRadius: 16,
+      backgroundColor: colors.primary + '15',
+      justifyContent: 'center',
+      alignItems: 'center',
+      marginRight: SPACING.sm,
+    },
+    chatInfo: {
+      flex: 1,
+    },
+    chatTitle: {
+      ...TEXT_STYLES.titleSmall,
+      color: colors.textPrimary,
+      fontWeight: '600',
+      marginBottom: 2,
+    },
+    chatMessage: {
+      ...TEXT_STYLES.bodySmall,
+      color: colors.textSecondary,
+    },
+    chatTime: {
+      ...TEXT_STYLES.labelSmall,
+      color: colors.textTertiary,
+      fontSize: 10,
     },
   });
 
@@ -187,14 +128,22 @@ const RecentActivity = ({
       <View style={styles.listContainer}>
         {data.length > 0 ? (
           displayData.map((item) => (
-            <ActivityItem key={item.id} item={item} onPress={onItemPress} />
+            <ActivityItem key={item.id} item={item} onPress={undefined} />
           ))
         ) : (
           <View style={styles.emptyContainer}>
+            <Ionicons 
+              name="time-outline" 
+              size={48} 
+              color={colors.textSecondary} 
+              style={styles.emptyIcon}
+            />
             <Text style={styles.emptyText}>{t("home.noActivity")}</Text>
           </View>
         )}
       </View>
+
+      {/* Activity Detail Modal - Devre dışı bırakıldı */}
     </View>
   );
 };

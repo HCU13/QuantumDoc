@@ -1,41 +1,63 @@
-import React from "react";
+import React, { useMemo } from "react";
 import { View, Text, StyleSheet, ScrollView } from "react-native";
-import { FONTS, SIZES } from "../../constants/theme";
+import { FONTS, SIZES, TEXT_STYLES, SPACING } from "../../constants/theme";
 import { Ionicons } from "@expo/vector-icons";
 import useTheme from "../../hooks/useTheme";
 import ModuleCard from "../explore/ModuleCard";
 import { useTranslation } from "react-i18next";
 import { MODULES } from "../../constants/modules";
 import { useNavigation } from "@react-navigation/native";
+import { useTokenContext } from '../../contexts/TokenContext';
+import { useFavoriteModules } from '../../hooks/useFavoriteModules';
+
 const QuickActions = ({ onActionPress, containerStyle }) => {
   const { colors } = useTheme();
   const { t } = useTranslation();
   const navigation = useNavigation();
+  const { getTokenCost } = useTokenContext();
+  const { favoriteModules, loading: favoritesLoading } = useFavoriteModules();
   const styles = StyleSheet.create({
     container: {
       width: "100%",
-      marginVertical: 10,
+      marginVertical: SPACING.xs,
     },
     titleContainer: {
-      paddingHorizontal: SIZES.padding,
-      marginBottom: 10,
+      paddingHorizontal: SPACING.md,
+      marginBottom: SPACING.xs,
     },
     title: {
-      ...FONTS.h3,
+      ...TEXT_STYLES.titleLarge,
       color: colors.textOnGradient,
-      fontWeight: "bold",
     },
     scrollContainer: {
-      paddingHorizontal: SIZES.padding - 8, // 8px, kart içindeki marginHorizontal'ı dengelemek için
+      paddingHorizontal: SPACING.md,
     },
     cardsContainer: {
-      flexDirection: "row",
-      paddingVertical: 10,
+      paddingVertical: SPACING.xs,
     },
   });
 
-  // Modüller ve özellikleri
-  const quickActions = MODULES.filter((m) => m.enabled && m.showQuickArea);
+  // Sadece favori modülleri göster (tüm favoriler, showQuickArea filtresi yok)
+  const quickActions = useMemo(() => {
+    if (favoritesLoading) {
+      return [];
+    }
+
+    if (favoriteModules.length === 0) {
+      return [];
+    }
+
+    // Favori modüllerden sadece enabled olanları göster (showQuickArea filtresi yok)
+    return MODULES.filter((m) => 
+      m.enabled && 
+      favoriteModules.includes(m.id)
+    );
+  }, [favoriteModules, favoritesLoading]);
+
+  // Eğer favori modül yoksa hiçbir şey gösterme
+  if (quickActions.length === 0 && !favoritesLoading) {
+    return null;
+  }
 
   return (
     <View style={[styles.container, containerStyle]}>
@@ -43,34 +65,35 @@ const QuickActions = ({ onActionPress, containerStyle }) => {
         <Text style={styles.title}>{t("home.quickAccess")}</Text>
       </View>
 
-      <ScrollView
-        horizontal
-        showsHorizontalScrollIndicator={false}
-        contentContainerStyle={styles.scrollContainer}
-      >
+      <View style={styles.scrollContainer}>
         <View style={styles.cardsContainer}>
-          {quickActions.map((action) => (
-            <ModuleCard
-              key={action.id}
-              title={t(action.titleKey)}
-              description={t(action.descriptionKey)}
-              icon={action.icon}
-              gradientColors={action.gradientColors}
-              tokenCost={action.tokenCost}
-              canAfford={true} // Removed tokens >= (action.tokenCost || 0)
-              onPress={() => {
-                if (action.route && navigation) {
-                  navigation.navigate(action.route);
-                } else if (onActionPress) {
-                  onActionPress(action);
-                }
-              }}
-              size="medium"
-              containerStyle={{ marginHorizontal: 4, width: 160 }}
-            />
-          ))}
+          {quickActions.map((action) => {
+            // Database'den token maliyetini al
+            const tokenCost = getTokenCost(action.id) || action.tokenCost;
+            return (
+              <ModuleCard
+                key={action.id}
+                moduleId={action.id}
+                title={t(action.titleKey)}
+                description={t(action.descriptionKey)}
+                icon={action.icon}
+                gradientColors={action.gradientColors}
+                tokenCost={tokenCost}
+                tokenCostRange={action.tokenCostRange}
+                onPress={() => {
+                  if (action.route && navigation) {
+                    navigation.navigate(action.route);
+                  } else if (onActionPress) {
+                    onActionPress(action);
+                  }
+                }}
+                size="medium"
+                containerStyle={{ marginBottom: SPACING.xs }}
+              />
+            );
+          })}
         </View>
-      </ScrollView>
+      </View>
     </View>
   );
 };

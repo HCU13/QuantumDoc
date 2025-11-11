@@ -2,6 +2,7 @@ import React, { useState, useRef } from 'react';
 import { View, Text, FlatList, TextInput, TouchableOpacity, StyleSheet, KeyboardAvoidingView, Platform, Modal } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
 import { COLORS } from '../../constants/colors';
+import { useTranslation } from 'react-i18next';
 
 const initialMessages = {
   1: [
@@ -17,6 +18,7 @@ const initialMessages = {
 };
 
 const ChatDetailScreen = ({ route, navigation }) => {
+  const { t } = useTranslation();
   const { chatId, title: initialTitle } = route.params;
   const [messages, setMessages] = useState(initialMessages[chatId] || []);
   const [input, setInput] = useState('');
@@ -67,7 +69,7 @@ const ChatDetailScreen = ({ route, navigation }) => {
           <Ionicons name="arrow-back" size={22} color={COLORS.primary} />
         </TouchableOpacity>
         <TouchableOpacity onLongPress={() => setEditModal(true)}>
-          <Text style={styles.header}>{title || 'Sohbet'}</Text>
+          <Text style={styles.header}>{title || t('chat.messages.chat')}</Text>
         </TouchableOpacity>
         <Modal
           visible={editModal}
@@ -77,10 +79,10 @@ const ChatDetailScreen = ({ route, navigation }) => {
         >
           <View style={styles.modalOverlay}>
             <View style={styles.modalContent}>
-              <Text style={styles.modalTitle}>Başlığı Düzenle</Text>
+              <Text style={styles.modalTitle}>{t('chat.messages.editTitle')}</Text>
               <TextInput
                 style={styles.input}
-                placeholder="Sohbet başlığı"
+                placeholder={t('chat.messages.chatTitlePlaceholder')}
                 value={newTitle}
                 onChangeText={setNewTitle}
                 placeholderTextColor={COLORS.textTertiary}
@@ -88,10 +90,10 @@ const ChatDetailScreen = ({ route, navigation }) => {
               />
               <View style={styles.modalButtons}>
                 <TouchableOpacity style={styles.modalButton} onPress={() => setEditModal(false)}>
-                  <Text style={{ color: COLORS.textSecondary }}>İptal</Text>
+                  <Text style={{ color: COLORS.textSecondary }}>{t('chat.cancel')}</Text>
                 </TouchableOpacity>
                 <TouchableOpacity style={[styles.modalButton, { backgroundColor: COLORS.primary }]} onPress={handleEditTitle}>
-                  <Text style={{ color: '#fff' }}>Kaydet</Text>
+                  <Text style={{ color: '#fff' }}>{t('chat.messages.save')}</Text>
                 </TouchableOpacity>
               </View>
             </View>
@@ -111,7 +113,7 @@ const ChatDetailScreen = ({ route, navigation }) => {
           style={styles.input}
           value={input}
           onChangeText={setInput}
-          placeholder="Mesajınızı yazın..."
+          placeholder={t('chat.typeMessage')}
           placeholderTextColor={COLORS.textTertiary}
         />
         <TouchableOpacity style={styles.sendButton} onPress={handleSend}>

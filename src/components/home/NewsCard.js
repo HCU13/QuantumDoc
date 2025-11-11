@@ -9,7 +9,6 @@ const NewsCard = ({
   title, 
   description, 
   icon, 
-  gradientColors, 
   imageUrl,
   onPress,
   containerStyle 
@@ -18,16 +17,16 @@ const NewsCard = ({
 
   const styles = StyleSheet.create({
     container: {
-      width: 260,
-      height: 140,
-      marginRight: 12,
-      borderRadius: 16,
+      height: 180,
+      borderRadius: 20,
       overflow: "hidden",
-      elevation: 3,
-      shadowColor: "#000",
-      shadowOffset: { width: 0, height: 2 },
-      shadowOpacity: 0.1,
-      shadowRadius: 4,
+      elevation: 8,
+      shadowColor: colors.primary,
+      shadowOffset: { width: 0, height: 4 },
+      shadowOpacity: 0.2,
+      shadowRadius: 8,
+      borderWidth: 1,
+      borderColor: isDark ? "rgba(255, 255, 255, 0.1)" : "rgba(0, 0, 0, 0.05)",
     },
     imageBackground: {
       flex: 1,
@@ -36,39 +35,57 @@ const NewsCard = ({
     },
     overlay: {
       flex: 1,
-      backgroundColor: "rgba(0, 0, 0, 0.4)",
-      padding: 16,
+      background: "linear-gradient(180deg, rgba(0,0,0,0.3) 0%, rgba(0,0,0,0.7) 100%)",
+      padding: 20,
       justifyContent: "space-between",
+    },
+    gradientOverlay: {
+      position: "absolute",
+      left: 0,
+      right: 0,
+      top: 0,
+      bottom: 0,
     },
     header: {
       flexDirection: "row",
       alignItems: "center",
       justifyContent: "flex-start",
+      zIndex: 2,
     },
     iconContainer: {
-      width: 36,
-      height: 36,
-      borderRadius: 18,
-      backgroundColor: "rgba(255, 255, 255, 0.2)",
+      width: 44,
+      height: 44,
+      borderRadius: 22,
+      backgroundColor: "rgba(255, 255, 255, 0.25)",
+      backdropFilter: "blur(10px)",
       alignItems: "center",
       justifyContent: "center",
+      borderWidth: 1,
+      borderColor: "rgba(255, 255, 255, 0.3)",
     },
     content: {
       flex: 1,
       justifyContent: "flex-end",
+      zIndex: 2,
     },
     title: {
-      ...FONTS.h4,
+      ...FONTS.h3,
       color: "#fff",
       fontWeight: "bold",
-      marginBottom: 4,
-      fontSize: 16,
+      marginBottom: 6,
+      fontSize: 18,
+      textShadowColor: "rgba(0, 0, 0, 0.5)",
+      textShadowOffset: { width: 0, height: 1 },
+      textShadowRadius: 3,
     },
     description: {
       ...FONTS.body4,
-      color: "rgba(255, 255, 255, 0.9)",
-      lineHeight: 16,
-      fontSize: 12,
+      color: "rgba(255, 255, 255, 0.95)",
+      lineHeight: 18,
+      fontSize: 13,
+      textShadowColor: "rgba(0, 0, 0, 0.5)",
+      textShadowOffset: { width: 0, height: 1 },
+      textShadowRadius: 2,
     },
   });
 
@@ -76,22 +93,28 @@ const NewsCard = ({
     <TouchableOpacity
       style={[styles.container, containerStyle]}
       onPress={onPress}
-      activeOpacity={0.9}
+      activeOpacity={0.85}
     >
       <ImageBackground
         source={{ uri: imageUrl }}
         style={styles.imageBackground}
-        imageStyle={{ borderRadius: 16 }}
+        imageStyle={{ borderRadius: 20 }}
+        resizeMode="cover"
       >
+        <LinearGradient
+          colors={['rgba(0,0,0,0.2)', 'rgba(0,0,0,0.7)']}
+          style={styles.gradientOverlay}
+        />
+        
         <View style={styles.overlay}>
           <View style={styles.header}>
             <View style={styles.iconContainer}>
-              <Ionicons name={icon} size={18} color="#FFD700" />
+              <Ionicons name={icon || "sparkles"} size={22} color="#FFD700" />
             </View>
           </View>
           
           <View style={styles.content}>
-            <Text style={styles.title} numberOfLines={1}>
+            <Text style={styles.title} numberOfLines={2}>
               {title}
             </Text>
             <Text style={styles.description} numberOfLines={2}>

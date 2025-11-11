@@ -33,7 +33,6 @@ export const ThemeProvider = ({ children }) => {
           setIsDark(colorScheme === "dark");
         }
       } catch (error) {
-        console.log("Error loading theme preference:", error);
         setIsDark(colorScheme === "dark");
       }
     };
@@ -51,7 +50,6 @@ export const ThemeProvider = ({ children }) => {
         newTheme ? "dark" : "light"
       );
     } catch (error) {
-      console.log("Error saving theme preference:", error);
     }
   };
 
@@ -62,7 +60,6 @@ export const ThemeProvider = ({ children }) => {
       setIsDark(newIsDark);
       await AsyncStorage.setItem("themePreference", theme);
     } catch (error) {
-      console.log("Error saving theme preference:", error);
     }
   };
 

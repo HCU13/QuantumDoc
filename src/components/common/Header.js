@@ -9,15 +9,29 @@ const Header = ({
   title,
   showBackButton = true,
   rightComponent = null,
+  rightIcon = null, // Custom right icon
+  onRightPress = null, // Custom right icon handler
+  leftIcon = null, // Custom left icon
+  onLeftPress = null, // Custom left icon handler
   titleStyle,
   containerStyle,
+  onBack = null, // Custom back handler
+  alignLeft = false, // Başlığı sola yasla
 }) => {
   const navigation = useNavigation();
   const { colors } = useTheme();
 
+  const handleBack = () => {
+    if (onBack) {
+      onBack();
+    } else {
+      navigation.goBack();
+    }
+  };
+
   const headerStyles = StyleSheet.create({
     container: {
-      height: 60,
+      height: 40,
       flexDirection: "row",
       alignItems: "center",
       paddingHorizontal: SIZES.padding,
@@ -34,27 +48,37 @@ const Header = ({
     },
     titleContainer: {
       flex: 1,
-      alignItems: "center",
+      alignItems: alignLeft ? "flex-start" : "center",
       justifyContent: "center",
+      paddingLeft: alignLeft ? 0 : 0,
     },
     title: {
-      ...FONTS.h3,
+      ...FONTS.h4,
       color: colors.textOnGradient,
       fontWeight: "bold",
     },
     rightContainer: {
-      width: 40,
+      minWidth: 40,
       alignItems: "flex-end",
+      justifyContent: "center",
+      flexShrink: 0,
     },
   });
 
   return (
     <View style={[headerStyles.container, containerStyle]}>
       <View style={headerStyles.leftContainer}>
-        {showBackButton && (
+        {leftIcon ? (
           <TouchableOpacity
             style={headerStyles.backButton}
-            onPress={() => navigation.goBack()}
+            onPress={onLeftPress}
+          >
+            {leftIcon}
+          </TouchableOpacity>
+        ) : showBackButton ? (
+          <TouchableOpacity
+            style={headerStyles.backButton}
+            onPress={handleBack}
           >
             <Ionicons
               name="chevron-back"
@@ -62,7 +86,7 @@ const Header = ({
               color={colors.textOnGradient}
             />
           </TouchableOpacity>
-        )}
+        ) : null}
       </View>
 
       <View style={headerStyles.titleContainer}>
@@ -71,7 +95,19 @@ const Header = ({
         </Text>
       </View>
 
-      <View style={headerStyles.rightContainer}>{rightComponent}</View>
+      <View style={headerStyles.rightContainer}>
+        {rightIcon ? (
+          onRightPress ? (
+            <TouchableOpacity onPress={onRightPress}>
+              {rightIcon}
+            </TouchableOpacity>
+          ) : (
+            rightIcon
+          )
+        ) : (
+          rightComponent
+        )}
+      </View>
     </View>
   );
 };

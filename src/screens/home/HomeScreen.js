@@ -1,5 +1,5 @@
 // src/screens/home/HomeScreen.js
-import React, { useState } from "react";
+import React, { useState, useEffect } from "react";
 import {
   View,
   StyleSheet,
@@ -10,8 +10,16 @@ import {
   TouchableOpacity,
   Image,
 } from "react-native";
-import { SIZES, FONTS } from "../../constants/theme";
+import {
+  SIZES,
+  FONTS,
+  TEXT_STYLES,
+  SPACING,
+  BORDER_RADIUS,
+  SHADOWS,
+} from "../../constants/theme";
 import { Ionicons } from "@expo/vector-icons";
+import { LinearGradient } from "expo-linear-gradient";
 import GradientBackground from "../../components/common/GradientBackground";
 import HomeHeader from "../../components/home/HomeHeader";
 import SearchBar from "../../components/home/SearchBar";
@@ -19,146 +27,139 @@ import QuickActions from "../../components/home/QuickActions";
 import RecentActivity from "../../components/home/RecentActivity";
 import BubbleFeature from "../../components/home/BubbleFeature";
 import NewsSection from "../../components/home/NewsSection";
+import StreakCard from "../../components/home/StreakCard";
 import Button from "../../components/common/Button";
 import useTheme from "../../hooks/useTheme";
 import { useTranslation } from "react-i18next";
 import FeaturedModules from "../../components/home/FeaturedModules";
+import { useAuth } from "../../contexts/AuthContext";
+import userStorage from "../../utils/userStorage";
+import { getUserAvatar } from "../../utils/avatarUtils";
+import { useChat } from "../../hooks/useChat";
+import { useActivity } from "../../hooks/useActivity";
+import { useNews } from "../../hooks/useNews";
+import Skeleton from "../../components/common/Skeleton";
 
 const HomeScreen = ({ navigation }) => {
   const [searchQuery, setSearchQuery] = useState("");
+  const [userData, setUserData] = useState(null);
+  const [userAvatar, setUserAvatar] = useState(null);
+  const [isLoading, setIsLoading] = useState(true);
   const { colors, isDark } = useTheme();
-  // useToken ile ilgili import ve kodlar kaldırıldı.
+  const { user: authUser } = useAuth();
+  const { chats } = useChat();
+  const { activities, loading: activitiesLoading } = useActivity();
+  const { featuredNews, loading: newsLoading } = useNews();
   const { t } = useTranslation();
+
+  // User data'yı yükle
+  useEffect(() => {
+    const loadUserData = async () => {
+      setIsLoading(true);
+
+      try {
+        const data = await userStorage.getUserData();
+        if (authUser?.id) {
+          const profileData = await userStorage.getProfileFromDatabase(
+            authUser.id
+          );
+          setUserData({ ...data, ...profileData });
+        } else {
+          setUserData(data);
+        }
+      } catch (error) {
+        if (__DEV__) console.error("❌ HOME: Load user data error:", error);
+        setUserData(null);
+      } finally {
+        // News loading'i de bekliyoruz
+        if (!newsLoading) {
+          setIsLoading(false);
+        }
+      }
+    };
+
+    if (authUser?.id) {
+      loadUserData();
+    }
+  }, [authUser?.id, newsLoading]);
+
+  // Kullanıcı verilerini birleştir
+  const user = {
+    ...authUser,
+    ...userData,
+    avatar_url: userData?.avatar_url || null, // Database'den gelen avatar
+  };
 
   const styles = StyleSheet.create({
     container: {
       flex: 1,
-      paddingTop: 25,
+      paddingTop: 0,
     },
     content: {
       flex: 1,
     },
     personalAssistantContainer: {
-      paddingHorizontal: SIZES.padding,
-      marginVertical: 20,
+      paddingHorizontal: SPACING.md,
+      marginVertical: SPACING.sm,
     },
     robotCard: {
+      borderRadius: BORDER_RADIUS.lg,
+      overflow: "hidden",
+      ...SHADOWS.medium,
+    },
+    robotGradient: {
+      padding: SPACING.md,
+    },
+    robotContent: {
       flexDirection: "row",
       alignItems: "center",
-      borderRadius: SIZES.radius * 2,
-      padding: 20,
+    },
+    robotImageContainer: {
+      width: 60,
+      height: 60,
+      borderRadius: BORDER_RADIUS.md,
       backgroundColor: isDark
         ? "rgba(255, 255, 255, 0.1)"
         : "rgba(255, 255, 255, 0.8)",
-      borderWidth: 1,
-      borderColor: isDark ? colors.border : "rgba(0, 0, 0, 0.05)",
-      shadowColor: "#000",
-      shadowOffset: { width: 0, height: 4 },
-      shadowOpacity: isDark ? 0.3 : 0.1,
-      shadowRadius: 8,
-      elevation: 5,
+      justifyContent: "center",
+      alignItems: "center",
+      marginRight: SPACING.md,
+      overflow: "hidden",
     },
     robotImage: {
-      width: 80,
-      height: 80,
-      marginRight: 15,
+      width: 58,
+      height: 58,
+      resizeMode: "contain",
     },
     robotTextContainer: {
       flex: 1,
     },
+    robotTitleRow: {
+      flexDirection: "row",
+      alignItems: "center",
+      marginBottom: SPACING.xs / 2,
+    },
     robotTitle: {
-      ...FONTS.h3,
+      ...TEXT_STYLES.titleMedium,
       color: colors.textPrimary,
-      marginBottom: 5,
-      fontWeight: "bold",
+      fontWeight: "600",
+    },
+    sparkleIcon: {
+      marginLeft: SPACING.xs,
     },
     robotDescription: {
-      ...FONTS.body4,
+      ...TEXT_STYLES.bodySmall,
       color: colors.textSecondary,
+      fontSize: 13,
+      lineHeight: 18,
     },
-    sectionTitle: {
-      ...FONTS.h3,
-      color: colors.textPrimary,
-      marginTop: 10,
-      marginBottom: 20,
-      textAlign: "center",
-      fontWeight: "bold",
-    },
-    bubblesContainer: {
-      flexDirection: "row",
-      justifyContent: "center",
-      flexWrap: "wrap",
-      paddingHorizontal: 20,
-      marginBottom: 20,
-    },
-    startChatButton: {
-      marginHorizontal: SIZES.padding,
-      marginBottom: 20,
+    chevronIcon: {
+      marginLeft: SPACING.xs,
+      opacity: 0.5,
     },
   });
 
-  // Örnek son aktiviteler veri seti
-  const recentActivities = [
-    {
-      id: "1",
-      title: "Matematik Sorusu",
-      description: "x²+5x+6=0 denklemini çöz",
-      time: "1s önce",
-      type: "math",
-    },
-    {
-      id: "2",
-      title: "İngilizce Çeviri",
-      description: "Türkçe metni İngilizceye çevir",
-      time: "3s önce",
-      type: "translate",
-    },
-    {
-      id: "3",
-      title: "Toplantı Notu",
-      description: "Proje planlaması hakkında not",
-      time: "5s önce",
-      type: "note",
-    },
-  ];
-
-  // Örnek haberler ve kampanyalar veri seti
-  const newsData = [
-    {
-      id: "1",
-      title: "Yeni AI Modeli",
-      description:
-        "Daha hızlı ve akıllı yanıtlar için güncellenmiş AI modeli kullanıma sunuldu",
-      icon: "sparkles",
-      imageUrl:
-        "https://images.unsplash.com/photo-1677442136019-21780ecad995?w=400&h=200&fit=crop",
-    },
-    {
-      id: "2",
-      title: "Premium Kampanya",
-      description:
-        "Sınırlı süre için %50 indirim! Premium özellikleri keşfedin",
-      icon: "star",
-      imageUrl:
-        "https://images.unsplash.com/photo-1556742049-0cfed4f6a45d?w=400&h=200&fit=crop",
-    },
-    {
-      id: "3",
-      title: "Çoklu Dil Desteği",
-      description: "Artık 10 farklı dilde çeviri yapabilirsiniz",
-      icon: "language",
-      imageUrl:
-        "https://images.unsplash.com/photo-1546410531-bb4caa6b424d?w=400&h=200&fit=crop",
-    },
-    {
-      id: "4",
-      title: "Matematik Çözücü",
-      description: "Karmaşık matematik problemlerini fotoğrafla çözün",
-      icon: "calculator",
-      imageUrl:
-        "https://images.unsplash.com/photo-1635070041078-e363dbe005cb?w=400&h=200&fit=crop",
-    },
-  ];
+  // Haberler Supabase'den geliyor (useNews hook'undan)
 
   // Modül veya hızlı erişim butonu tıklandığında
   const handleHomeModulePress = (module) => {
@@ -169,7 +170,6 @@ const HomeScreen = ({ navigation }) => {
 
   // Son aktivite öğesi tıklandığında
   const handleActivityPress = (activity) => {
-    console.log(`Aktivite tıklandı: ${activity.id}`);
     navigation.navigate("Activity");
   };
 
@@ -178,6 +178,152 @@ const HomeScreen = ({ navigation }) => {
     navigation.navigate("News", { screen: "NewsDetail", params: { news } });
   };
 
+  // Loading Skeleton
+  if (isLoading) {
+    return (
+      <GradientBackground mode="default">
+        <SafeAreaView style={styles.container}>
+          <HomeHeader
+            // onProfilePress={() => navigation.navigate("Profile")}
+            // onSettingsPress={() => navigation.navigate("Settings")}
+            // navigation={navigation}
+            showProfileImage={true}
+            user={user}
+          />
+
+          <ScrollView
+            style={styles.content}
+            showsVerticalScrollIndicator={false}
+          >
+            {/* Loading Skeleton */}
+            <View style={{ padding: SPACING.md }}>
+              {/* News Slider Skeleton */}
+              <View style={{ marginBottom: SPACING.lg }}>
+                <Skeleton
+                  width={120}
+                  height={24}
+                  style={{ marginBottom: SPACING.sm }}
+                />
+                <View style={{ flexDirection: "row" }}>
+                  <Skeleton
+                    width={280}
+                    height={180}
+                    borderRadius={20}
+                    style={{ marginRight: SPACING.sm }}
+                  />
+                  <Skeleton width={280} height={180} borderRadius={20} />
+                </View>
+              </View>
+
+              {/* AI Assistant Card Skeleton */}
+              <View
+                style={{
+                  padding: SPACING.md,
+                  backgroundColor: colors.card,
+                  borderRadius: BORDER_RADIUS.lg,
+                  marginBottom: SPACING.lg,
+                }}
+              >
+                <View
+                  style={{
+                    flexDirection: "row",
+                    alignItems: "center",
+                    marginBottom: SPACING.sm,
+                  }}
+                >
+                  <Skeleton
+                    circle
+                    width={50}
+                    height={50}
+                    style={{ marginRight: SPACING.sm }}
+                  />
+                  <View style={{ flex: 1 }}>
+                    <Skeleton
+                      width="60%"
+                      height={20}
+                      style={{ marginBottom: 6 }}
+                    />
+                    <Skeleton width="80%" height={16} />
+                  </View>
+                </View>
+              </View>
+
+              {/* Quick Actions Skeleton */}
+              <View style={{ marginBottom: SPACING.lg }}>
+                <Skeleton
+                  width={140}
+                  height={24}
+                  style={{ marginBottom: SPACING.sm }}
+                />
+                <View
+                  style={{
+                    flexDirection: "row",
+                    justifyContent: "space-between",
+                    marginBottom: SPACING.sm,
+                  }}
+                >
+                  {[1, 2, 3].map((_, i) => (
+                    <Skeleton
+                      key={i}
+                      width={(styles.container.width || 360) / 3.5}
+                      height={100}
+                      borderRadius={16}
+                    />
+                  ))}
+                </View>
+              </View>
+
+              {/* Activities Skeleton */}
+              <View style={{ marginBottom: SPACING.lg }}>
+                <View
+                  style={{
+                    flexDirection: "row",
+                    justifyContent: "space-between",
+                    alignItems: "center",
+                    marginBottom: SPACING.sm,
+                  }}
+                >
+                  <Skeleton width={140} height={24} />
+                  <Skeleton width={80} height={20} />
+                </View>
+                {[1, 2, 3].map((_, i) => (
+                  <View
+                    key={i}
+                    style={{
+                      padding: SPACING.md,
+                      backgroundColor: colors.card,
+                      borderRadius: BORDER_RADIUS.lg,
+                      marginBottom: SPACING.sm,
+                    }}
+                  >
+                    <View
+                      style={{ flexDirection: "row", alignItems: "center" }}
+                    >
+                      <Skeleton
+                        circle
+                        width={40}
+                        height={40}
+                        style={{ marginRight: SPACING.sm }}
+                      />
+                      <View style={{ flex: 1 }}>
+                        <Skeleton
+                          width="70%"
+                          height={18}
+                          style={{ marginBottom: 6 }}
+                        />
+                        <Skeleton width="50%" height={14} />
+                      </View>
+                      <Skeleton width={60} height={24} borderRadius={12} />
+                    </View>
+                  </View>
+                ))}
+              </View>
+            </View>
+          </ScrollView>
+        </SafeAreaView>
+      </GradientBackground>
+    );
+  }
 
   return (
     <GradientBackground mode="default">
@@ -187,12 +333,26 @@ const HomeScreen = ({ navigation }) => {
           onSettingsPress={() => navigation.navigate("Settings")}
           navigation={navigation}
           showProfileImage={true}
-          title="Merhaba, Kullanıcı"
+          user={user}
         />
 
         <ScrollView style={styles.content} showsVerticalScrollIndicator={false}>
-          {/* Son Yenilikler ve Kampanyalar */}
-          <NewsSection data={newsData} onCardPress={handleNewsPress} />
+          {/* Son Yenilikler ve Kampanyalar - Supabase'den */}
+          {featuredNews.length > 0 && (
+            <NewsSection data={featuredNews} onCardPress={handleNewsPress} />
+          )}
+
+          {/* 7 Günlük Seri Kartı */}
+          {authUser?.id && (
+            <StreakCard
+              onPress={() => {
+                // Profile tab'ına git, sonra Tokens ekranına yönlendir
+                navigation.navigate("Profile", {
+                  screen: "Tokens",
+                });
+              }}
+            />
+          )}
 
           {/* Kişisel AI Asistan Kartı */}
           <View style={styles.personalAssistantContainer}>
@@ -201,27 +361,57 @@ const HomeScreen = ({ navigation }) => {
               onPress={() => navigation.navigate("Chat")}
               activeOpacity={0.9}
             >
-              <Image
-                source={require("../../assets/images/robot.png")}
-                style={styles.robotImage}
-              />
-              <View style={styles.robotTextContainer}>
-                <Text style={styles.robotTitle}>
-                  {t("screens.home.assistant.title")}
-                </Text>
-                <Text style={styles.robotDescription}>
-                  {t("screens.home.assistant.description")}
-                </Text>
-              </View>
+              <LinearGradient
+                colors={
+                  isDark
+                    ? ["rgba(139, 92, 246, 0.3)", "rgba(59, 130, 246, 0.3)"]
+                    : ["rgba(139, 92, 246, 0.15)", "rgba(59, 130, 246, 0.15)"]
+                }
+                start={{ x: 0, y: 0 }}
+                end={{ x: 1, y: 1 }}
+                style={styles.robotGradient}
+              >
+                <View style={styles.robotContent}>
+                  <View style={styles.robotImageContainer}>
+                    <Image
+                      source={require("../../assets/images/logo.png")}
+                      style={styles.robotImage}
+                    />
+                  </View>
+                  <View style={styles.robotTextContainer}>
+                    <View style={styles.robotTitleRow}>
+                      <Text style={styles.robotTitle}>
+                        {t("home.assistant.title")}
+                      </Text>
+                      <Ionicons
+                        name="sparkles"
+                        size={16}
+                        color={colors.primary}
+                        style={styles.sparkleIcon}
+                      />
+                    </View>
+                    <Text style={styles.robotDescription} numberOfLines={2}>
+                      {t("home.assistant.description")}
+                    </Text>
+                  </View>
+                  <Ionicons
+                    name="chevron-forward"
+                    size={20}
+                    color={colors.textSecondary}
+                    style={styles.chevronIcon}
+                  />
+                </View>
+              </LinearGradient>
             </TouchableOpacity>
           </View>
           <QuickActions onActionPress={handleHomeModulePress} />
 
           {/* Son Aktiviteler Bölümü */}
           <RecentActivity
-            data={recentActivities}
+            data={activities.slice(0, 3)}
             onItemPress={handleActivityPress}
             onSeeAllPress={() => navigation.navigate("Activity")}
+            onNavigate={(route, params) => navigation.navigate(route, params)}
           />
 
           <View style={{ height: 30 }} />

@@ -7,7 +7,6 @@ import {
   View,
 } from "react-native";
 import { SIZES, FONTS } from "../../constants/theme";
-import { LinearGradient } from "expo-linear-gradient";
 import useTheme from "../../hooks/useTheme";
 
 const Button = ({
@@ -26,8 +25,65 @@ const Button = ({
   iconPosition = "left", // 'left', 'right'
   fluid = false,
   rightContent = null,
+  module = null, // 'math', 'quiz', 'chat', 'calculator'
 }) => {
   const { colors } = useTheme();
+
+  // Modül renklerini belirle
+  const getModuleColors = () => {
+    switch (module) {
+      case 'math':
+        return {
+          primary: colors.mathPrimary,
+          primaryDark: colors.mathPrimaryDark,
+          primaryLight: colors.mathPrimaryLight,
+        };
+      case 'quiz':
+        return {
+          primary: colors.quizPrimary,
+          primaryDark: colors.quizPrimaryDark,
+          primaryLight: colors.quizPrimaryLight,
+        };
+      case 'chat':
+        return {
+          primary: colors.chatPrimary,
+          primaryDark: colors.chatPrimaryDark,
+          primaryLight: colors.chatPrimaryLight,
+        };
+      case 'calculator':
+        return {
+          primary: colors.calculatorPrimary,
+          primaryDark: colors.calculatorPrimaryDark,
+          primaryLight: colors.calculatorPrimaryLight,
+        };
+      case 'textEditor':
+        return {
+          primary: colors.textEditorPrimary,
+          primaryDark: colors.textEditorPrimaryDark,
+          primaryLight: colors.textEditorPrimaryLight,
+        };
+      case 'imageAnalyzer':
+        return {
+          primary: colors.imageAnalyzerPrimary,
+          primaryDark: colors.imageAnalyzerPrimaryDark,
+          primaryLight: colors.imageAnalyzerPrimaryLight,
+        };
+      case 'noteGenerator':
+        return {
+          primary: colors.noteGeneratorPrimary,
+          primaryDark: colors.noteGeneratorPrimaryDark,
+          primaryLight: colors.noteGeneratorPrimaryLight,
+        };
+      default:
+        return {
+          primary: colors.primary,
+          primaryDark: colors.primaryDark,
+          primaryLight: colors.primaryLight,
+        };
+    }
+  };
+
+  const moduleColors = getModuleColors();
 
   // Boyut ayarları
   let paddingV, paddingH, borderRadius, fontSize;
@@ -66,7 +122,7 @@ const Button = ({
       alignSelf: fluid ? "stretch" : "auto",
       ...(glow
         ? {
-            shadowColor: colors.primary,
+            shadowColor: moduleColors.primary,
             shadowOffset: { width: 0, height: 0 },
             shadowOpacity: 0.8,
             shadowRadius: 5,
@@ -79,7 +135,7 @@ const Button = ({
       overflow: "hidden",
     },
     button: {
-      backgroundColor: colors.primary,
+      backgroundColor: moduleColors.primary,
       paddingVertical: paddingV,
       paddingHorizontal: paddingH,
       alignItems: "center",
@@ -95,18 +151,18 @@ const Button = ({
       justifyContent: "center",
       borderRadius: borderRadius,
       borderWidth: 2,
-      borderColor: colors.primary,
+      borderColor: moduleColors.primary,
       flexDirection: "row",
     },
     neonButton: {
-      backgroundColor: colors.primaryLight + "20", // %20 opacity
+      backgroundColor: moduleColors.primaryLight + "20", // %20 opacity
       paddingVertical: paddingV,
       paddingHorizontal: paddingH,
       alignItems: "center",
       justifyContent: "center",
       borderRadius: borderRadius,
       borderWidth: 1.5,
-      borderColor: colors.primary,
+      borderColor: moduleColors.primary,
       flexDirection: "row",
     },
     buttonContent: {
@@ -127,20 +183,16 @@ const Button = ({
       fontWeight: "bold",
     },
     disabled: {
-      backgroundColor: colors.gray,
-      opacity: 0.5,
+      backgroundColor: colors.border || colors.gray,
+      opacity: 0.75,
     },
     disabledOutline: {
-      borderColor: colors.gray,
-      opacity: 0.5,
+      borderColor: colors.border || colors.gray,
+      opacity: 0.75,
     },
     iconContainer: {
       marginRight: iconPosition === "left" ? 10 : 0,
       marginLeft: iconPosition === "right" ? 10 : 0,
-    },
-    gradientContainer: {
-      borderRadius: borderRadius,
-      overflow: "hidden",
     },
     rightContentContainer: {
       marginLeft: 10,
@@ -161,14 +213,18 @@ const Button = ({
           activeOpacity={0.8}
         >
           {loading ? (
-            <ActivityIndicator size="small" color={colors.primary} />
+            <ActivityIndicator size="small" color={moduleColors.primary} />
           ) : (
             <View style={buttonStyles.buttonContent}>
               {icon && iconPosition === "left" && (
                 <View style={buttonStyles.iconContainer}>{icon}</View>
               )}
 
-              <Text style={[buttonStyles.text, textStyle]}>{title}</Text>
+              <Text style={[
+                buttonStyles.text, 
+                disabled && { opacity: 0.9, color: colors.textSecondary || colors.textOnPrimary },
+                textStyle
+              ]}>{title}</Text>
 
               {icon && iconPosition === "right" && (
                 <View style={buttonStyles.iconContainer}>{icon}</View>
@@ -186,51 +242,8 @@ const Button = ({
     );
   }
 
-  // Gradient buton
-  if (gradient) {
-    const gradientColors = [colors.primary, colors.primaryDark, colors.primaryLight];
-
-    return (
-      <View style={[buttonStyles.container, containerStyle]}>
-        <TouchableOpacity
-          onPress={onPress}
-          disabled={disabled || loading}
-          activeOpacity={0.8}
-          style={buttonStyles.gradientContainer}
-        >
-          <LinearGradient
-            colors={gradientColors}
-            start={{ x: 0, y: 0 }}
-            end={{ x: 1, y: 0 }}
-            locations={[0, 0.5, 1]}
-            style={[buttonStyles.button, disabled && buttonStyles.disabled]}
-          >
-            {loading ? (
-              <ActivityIndicator size="small" color="#fff" />
-            ) : (
-              <View style={buttonStyles.buttonContent}>
-                {icon && iconPosition === "left" && (
-                  <View style={buttonStyles.iconContainer}>{icon}</View>
-                )}
-
-                <Text style={[buttonStyles.text, textStyle]}>{title}</Text>
-
-                {icon && iconPosition === "right" && (
-                  <View style={buttonStyles.iconContainer}>{icon}</View>
-                )}
-
-                {rightContent && (
-                  <View style={buttonStyles.rightContentContainer}>
-                    {rightContent}
-                  </View>
-                )}
-              </View>
-            )}
-          </LinearGradient>
-        </TouchableOpacity>
-      </View>
-    );
-  }
+  // Gradient prop artık kullanılmıyor - normal solid button'a yönlendir
+  // if (gradient) artık solid button kullanacağız
 
   // Outline buton
   if (outlined) {
@@ -246,14 +259,18 @@ const Button = ({
           activeOpacity={0.8}
         >
           {loading ? (
-            <ActivityIndicator size="small" color={colors.primary} />
+            <ActivityIndicator size="small" color={moduleColors.primary} />
           ) : (
             <View style={buttonStyles.buttonContent}>
               {icon && iconPosition === "left" && (
                 <View style={buttonStyles.iconContainer}>{icon}</View>
               )}
 
-              <Text style={[buttonStyles.outlinedText, textStyle]}>
+              <Text style={[
+                buttonStyles.outlinedText, 
+                disabled && { opacity: 0.9, color: colors.textSecondary || colors.textOnGradient },
+                textStyle
+              ]}>
                 {title}
               </Text>
 
@@ -290,7 +307,11 @@ const Button = ({
               <View style={buttonStyles.iconContainer}>{icon}</View>
             )}
 
-            <Text style={[buttonStyles.text, textStyle]}>{title}</Text>
+            <Text style={[
+              buttonStyles.text, 
+              disabled && { opacity: 0.9, color: colors.textSecondary || colors.textOnPrimary },
+              textStyle
+            ]}>{title}</Text>
 
             {icon && iconPosition === "right" && (
               <View style={buttonStyles.iconContainer}>{icon}</View>

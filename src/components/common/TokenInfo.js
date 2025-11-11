@@ -8,7 +8,7 @@ import TokenCostBadge from "./TokenCostBadge";
 const TokenInfo = ({
   moduleName,
   tokenCost = 0,
-  remainingTokens = 0,
+  tokens = 0, // Direkt tokens göster
   isPremium = false,
   showCost = true,
   containerStyle,
@@ -80,17 +80,17 @@ const TokenInfo = ({
     if (isPremium) {
       return "Premium kullanıcı";
     }
-    if (remainingTokens >= tokenCost) {
-      return `${remainingTokens} token kaldı`;
+    if (tokens >= tokenCost) {
+      return `${tokens} token`;
     }
-    return `${remainingTokens} token kaldı (yetersiz)`;
+    return `${tokens} token (yetersiz)`;
   };
 
   const getTokenStatusColor = () => {
     if (isPremium) {
       return colors.textSecondary;
     }
-    if (remainingTokens >= tokenCost) {
+    if (tokens >= tokenCost) {
       return colors.textSecondary;
     }
     return colors.error || '#FF6B6B';

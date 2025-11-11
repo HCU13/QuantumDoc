@@ -3,6 +3,7 @@ import { View, Text, FlatList, TouchableOpacity, StyleSheet, Alert, TextInput, M
 import { Ionicons } from '@expo/vector-icons';
 import { useNavigation } from '@react-navigation/native';
 import { COLORS } from '../../constants/colors';
+import { useTranslation } from 'react-i18next';
 
 const initialChats = [
   {
@@ -20,6 +21,7 @@ const initialChats = [
 ];
 
 const ChatHistoryScreen = () => {
+  const { t } = useTranslation();
   const [chats, setChats] = useState(initialChats);
   const [modalVisible, setModalVisible] = useState(false);
   const [newTitle, setNewTitle] = useState('');
@@ -30,13 +32,13 @@ const ChatHistoryScreen = () => {
   };
 
   const handleCreateChat = () => {
-    const title = newTitle.trim() || `Sohbet #${chats.length + 1}`;
+    const title = newTitle.trim() || t('chat.messages.defaultTitle', { number: chats.length + 1 });
     const newId = chats.length ? Math.max(...chats.map(c => c.id)) + 1 : 1;
     setChats([
       {
         id: newId,
         title,
-        lastMessage: 'Henüz mesaj yok.',
+        lastMessage: t('chat.messages.noMessage'),
         updatedAt: new Date().toISOString(),
       },
       ...chats,
@@ -46,9 +48,9 @@ const ChatHistoryScreen = () => {
   };
 
   const handleDeleteChat = (id) => {
-    Alert.alert('Sohbeti Sil', 'Bu sohbeti silmek istediğine emin misin?', [
-      { text: 'İptal', style: 'cancel' },
-      { text: 'Sil', style: 'destructive', onPress: () => setChats(chats.filter(c => c.id !== id)) },
+    Alert.alert(t('chat.messages.deleteTitle'), t('chat.messages.deleteMessage'), [
+      { text: t('chat.cancel'), style: 'cancel' },
+      { text: t('chat.delete'), style: 'destructive', onPress: () => setChats(chats.filter(c => c.id !== id)) },
     ]);
   };
 
@@ -68,7 +70,7 @@ const ChatHistoryScreen = () => {
   return (
     <View style={styles.container}>
       <View style={styles.headerRow}>
-        <Text style={styles.header}>Sohbetler</Text>
+        <Text style={styles.header}>{t('chat.title')}</Text>
         <TouchableOpacity style={styles.addButton} onPress={handleNewChat}>
           <Ionicons name="add" size={24} color="#fff" />
         </TouchableOpacity>
@@ -77,7 +79,7 @@ const ChatHistoryScreen = () => {
         data={chats}
         keyExtractor={item => item.id.toString()}
         renderItem={renderItem}
-        ListEmptyComponent={<Text style={styles.emptyText}>Hiç sohbet yok.</Text>}
+        ListEmptyComponent={<Text style={styles.emptyText}>{t('chat.messages.emptyChats')}</Text>}
         contentContainerStyle={{ paddingBottom: 24 }}
       />
       <Modal
@@ -88,10 +90,10 @@ const ChatHistoryScreen = () => {
       >
         <View style={styles.modalOverlay}>
           <View style={styles.modalContent}>
-            <Text style={styles.modalTitle}>Yeni Sohbet Oluştur</Text>
+            <Text style={styles.modalTitle}>{t('chat.newChat')}</Text>
             <TextInput
               style={styles.input}
-              placeholder="Sohbet başlığı"
+              placeholder={t('chat.messages.chatTitlePlaceholder')}
               value={newTitle}
               onChangeText={setNewTitle}
               placeholderTextColor={COLORS.textTertiary}
@@ -99,10 +101,10 @@ const ChatHistoryScreen = () => {
             />
             <View style={styles.modalButtons}>
               <TouchableOpacity style={styles.modalButton} onPress={() => setModalVisible(false)}>
-                <Text style={{ color: COLORS.textSecondary }}>İptal</Text>
+                <Text style={{ color: COLORS.textSecondary }}>{t('chat.cancel')}</Text>
               </TouchableOpacity>
               <TouchableOpacity style={[styles.modalButton, { backgroundColor: COLORS.primary }]} onPress={handleCreateChat}>
-                <Text style={{ color: '#fff' }}>Oluştur</Text>
+                <Text style={{ color: '#fff' }}>{t('chat.create')}</Text>
               </TouchableOpacity>
             </View>
           </View>

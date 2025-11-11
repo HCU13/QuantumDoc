@@ -26,19 +26,28 @@ export const COLORS = {
     border: "#E0E0E0",
     input: "#F5F5F7", // Input alanı arka plan rengi
     
-    // Modül renkleri
-    mathPrimary: "#4F8EF7", // Matematik modülü için mavi (gradientColors[0])
-    mathPrimaryDark: "#235390", // Matematik koyu mavi (gradientColors[1])
-    mathPrimaryLight: "#7BA3F7", // Matematik açık mavi
-    quizPrimary: "#F472B6", // Quiz modülü için pembe (gradientColors[0])
-    quizPrimaryDark: "#C026D3", // Quiz koyu mor (gradientColors[1])
-    quizPrimaryLight: "#F8A5D1", // Quiz açık pembe
-    chatPrimary: "#4F8EF7", // Chat modülü için mavi (gradientColors[0])
-    chatPrimaryDark: "#235390", // Chat koyu mavi (gradientColors[1])
-    chatPrimaryLight: "#7BA3F7", // Chat açık mavi
-    calculatorPrimary: "#10B981", // Hesap makinesi ana yeşil
-    calculatorSecondary: "#059669", // Hesap makinesi koyu yeşil
-    calculatorTertiary: "#34D399", // Hesap makinesi açık yeşil
+    // Modül renkleri - Her modülün kendine özgü rengi
+    mathPrimary: "#10B981", // Problem çözücü için yeşil (başarı, çözüm)
+    mathPrimaryDark: "#059669", // Problem çözücü koyu yeşil
+    mathPrimaryLight: "#34D399", // Problem çözücü açık yeşil
+    chatPrimary: "#8B5CF6", // Chat için mor (iletişim, sosyallik)
+    chatPrimaryDark: "#7C3AED", // Chat koyu mor
+    chatPrimaryLight: "#A78BFA", // Chat açık mor
+    newsPrimary: "#EF4444", // News için kırmızı (dikkat çekici, acil)
+    newsPrimaryDark: "#DC2626", // News koyu kırmızı
+    newsPrimaryLight: "#F87171", // News açık kırmızı
+    calculatorPrimary: "#3B82F6", // Hesap makinesi için mavi (hesaplama, sayısal)
+    calculatorPrimaryDark: "#2563EB", // Hesap makinesi koyu mavi
+    calculatorPrimaryLight: "#60A5FA", // Hesap makinesi açık mavi
+    textEditorPrimary: "#F59E0B", // Metin düzenleme için turuncu (verimlilik, yazma)
+    textEditorPrimaryDark: "#D97706", // Metin düzenleme koyu turuncu
+    textEditorPrimaryLight: "#FBBF24", // Metin düzenleme açık turuncu
+    imageAnalyzerPrimary: "#EC4899", // Resim analizi için pembe (görsel, yaratıcılık)
+    imageAnalyzerPrimaryDark: "#DB2777", // Resim analizi koyu pembe
+    imageAnalyzerPrimaryLight: "#F472B6", // Resim analizi açık pembe
+    noteGeneratorPrimary: "#14B8A6", // Not üretici için teal (organizasyon, üretkenlik)
+    noteGeneratorPrimaryDark: "#0D9488", // Not üretici koyu teal
+    noteGeneratorPrimaryLight: "#5EEAD4", // Not üretici açık teal
   },
 
   // Koyu tema renkleri - ekran görüntülerine göre ayarlandı
@@ -67,15 +76,27 @@ export const COLORS = {
     border: "#3D3D5A", // Hafif mor-gri sınır
     input: "#312A4A", // Input alanı arka plan rengi
     
-    // Modül renkleri (koyu tema için daha parlak)
-    mathPrimary: "#4F8EF7", // Matematik modülü için mavi (gradientColors[0])
-    mathPrimaryDark: "#235390", // Matematik koyu mavi (gradientColors[1])
-    mathPrimaryLight: "#7BA3F7", // Matematik açık mavi
-    quizPrimary: "#F472B6", // Quiz modülü için pembe (gradientColors[0])
-    quizPrimaryDark: "#C026D3", // Quiz koyu mor (gradientColors[1])
-    quizPrimaryLight: "#F8A5D1", // Quiz açık pembe
-    chatPrimary: "#4F8EF7", // Chat modülü için mavi (gradientColors[0])
-    chatPrimaryDark: "#235390", // Chat koyu mavi (gradientColors[1])
-    chatPrimaryLight: "#7BA3F7", // Chat açık mavi
+    // Modül renkleri (koyu tema için aynı renkler)
+    mathPrimary: "#10B981", // Problem çözücü için yeşil (başarı, çözüm)
+    mathPrimaryDark: "#059669", // Problem çözücü koyu yeşil
+    mathPrimaryLight: "#34D399", // Problem çözücü açık yeşil
+    chatPrimary: "#8B5CF6", // Chat için mor (iletişim, sosyallik)
+    chatPrimaryDark: "#7C3AED", // Chat koyu mor
+    chatPrimaryLight: "#A78BFA", // Chat açık mor
+    newsPrimary: "#EF4444", // News için kırmızı (dikkat çekici, acil)
+    newsPrimaryDark: "#DC2626", // News koyu kırmızı
+    newsPrimaryLight: "#F87171", // News açık kırmızı
+    calculatorPrimary: "#3B82F6", // Hesap makinesi için mavi (hesaplama, sayısal)
+    calculatorPrimaryDark: "#2563EB", // Hesap makinesi koyu mavi
+    calculatorPrimaryLight: "#60A5FA", // Hesap makinesi açık mavi
+    textEditorPrimary: "#F59E0B", // Metin düzenleme için turuncu (verimlilik, yazma)
+    textEditorPrimaryDark: "#D97706", // Metin düzenleme koyu turuncu
+    textEditorPrimaryLight: "#FBBF24", // Metin düzenleme açık turuncu
+    imageAnalyzerPrimary: "#EC4899", // Resim analizi için pembe (görsel, yaratıcılık)
+    imageAnalyzerPrimaryDark: "#DB2777", // Resim analizi koyu pembe
+    imageAnalyzerPrimaryLight: "#F472B6", // Resim analizi açık pembe
+    noteGeneratorPrimary: "#14B8A6", // Not üretici için teal (organizasyon, üretkenlik)
+    noteGeneratorPrimaryDark: "#0D9488", // Not üretici koyu teal
+    noteGeneratorPrimaryLight: "#5EEAD4", // Not üretici açık teal
   },
 };

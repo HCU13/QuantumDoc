@@ -1,15 +1,15 @@
 // src/screens/auth/Welcome.js
-import React, { useState, useRef } from "react";
+import React from "react";
 import {
   View,
   Text,
   StyleSheet,
-  FlatList,
   SafeAreaView,
   Dimensions,
   Platform,
   Image,
 } from "react-native";
+import LottieView from "lottie-react-native";
 import GradientBackground from "../../components/common/GradientBackground";
 import { SIZES, FONTS } from "../../constants/theme";
 import useTheme from "../../hooks/useTheme";
@@ -18,55 +18,18 @@ import Button from "../../components/common/Button";
 
 const { width } = Dimensions.get("window");
 
-const robotImage = require("../../assets/images/robot.png");
+const logoImage = require("../../../assets/images/logo.png");
+const onboardAnimation = require("../../../assets/animations/onboard.json");
 
 const Welcome = ({ navigation }) => {
   const { colors } = useTheme();
   const { t } = useTranslation();
-  const [currentIndex, setCurrentIndex] = useState(0);
-  const flatListRef = useRef(null);
-
-  // Slide başlıkları (her biri çok satırlı olabilir)
-  const slides = [
-    {
-      key: "1",
-      title: t("welcome.slide1.title"),
-      subtitle: t("welcome.slide1.subtitle"),
-      image: robotImage,
-    },
-    {
-      key: "2",
-      title: t("welcome.slide2.title"),
-      subtitle: t("welcome.slide2.subtitle"),
-      image: robotImage,
-    },
-    {
-      key: "3",
-      title: t("welcome.slide3.title"),
-      subtitle: t("welcome.slide3.subtitle"),
-      image: robotImage,
-    },
-  ];
-
-  const onViewableItemsChanged = useRef(({ viewableItems }) => {
-    if (viewableItems.length > 0) {
-      setCurrentIndex(viewableItems[0].index);
-    }
-  }).current;
-
-  const viewabilityConfig = {
-    itemVisiblePercentThreshold: 50,
-  };
 
   const handleRegister = () => {
-    // Mock navigation - gerçek API çağrısı yerine
-    console.log("Register sayfasına yönlendiriliyor");
     navigation.navigate('Register');
   };
 
   const handleLogin = () => {
-    // Mock navigation - gerçek API çağrısı yerine
-    console.log("Login sayfasına yönlendiriliyor");
     navigation.navigate('Login');
   };
 
@@ -75,48 +38,26 @@ const Welcome = ({ navigation }) => {
       <SafeAreaView style={styles.container}>
         {/* Üstte app adı/logo */}
         <View style={styles.logoContainer}>
-          <Text style={styles.logoText}>QuantumDoc</Text>
-        </View>
-
-        {/* Ortada büyük başlık (slide) */}
-        <View style={styles.slideContainer}>
-          <FlatList
-            ref={flatListRef}
-            data={slides}
-            horizontal
-            pagingEnabled
-            showsHorizontalScrollIndicator={false}
-            keyExtractor={(item) => item.key}
-            onViewableItemsChanged={onViewableItemsChanged}
-            viewabilityConfig={viewabilityConfig}
-            scrollEnabled={true}
-            snapToAlignment="center"
-            decelerationRate="fast"
-            contentContainerStyle={{ alignItems: 'center', justifyContent: 'center' }}
-            renderItem={({ item }) => (
-              <View style={styles.slide}>
-                <Image source={item.image} style={styles.robotImage} resizeMode="contain" />
-                <Text style={styles.slideTitle}>{item.title}</Text>
-                {item.subtitle ? (
-                  <Text style={styles.slideSubtitle}>{item.subtitle}</Text>
-                ) : null}
-              </View>
-            )}
+          <Image 
+            source={logoImage} 
+            style={styles.logoIcon} 
+            resizeMode="contain"
           />
+          <Text style={styles.logoText}>Quorax</Text>
         </View>
 
-        {/* Dot/step indicator */}
-        <View style={styles.dotsContainer}>
-          {slides.map((_, i) => (
-            <View
-              key={i}
-              style={
-                i === currentIndex
-                  ? styles.activeDot
-                  : styles.dot
-              }
+        {/* Ortada büyük başlık ve Lottie animasyonu */}
+        <View style={styles.contentContainer}>
+          <View style={styles.content}>
+            <LottieView
+              source={onboardAnimation}
+              autoPlay
+              loop
+              style={styles.lottieAnimation}
             />
-          ))}
+            <Text style={styles.greetingText}>{t("welcome.greeting")}</Text>
+            <Text style={styles.descriptionText}>{t("welcome.description")}</Text>
+          </View>
         </View>
 
         {/* Butonlar */}
@@ -157,10 +98,16 @@ const styles = StyleSheet.create({
   },
   logoContainer: {
     width: '100%',
-    alignItems: 'flex-start',
+    flexDirection: 'row',
+    alignItems: 'center',
     paddingHorizontal: 28,
     marginTop: 18,
     marginBottom: 10,
+  },
+  logoIcon: {
+    width: 32,
+    height: 32,
+    marginRight: 8,
   },
   logoText: {
     fontSize: 22,
@@ -169,7 +116,7 @@ const styles = StyleSheet.create({
     color: '#222',
     fontFamily: Platform.OS === 'ios' ? 'HelveticaNeue-Medium' : 'sans-serif-medium',
   },
-  slideContainer: {
+  contentContainer: {
     flex: 1,
     width: '100%',
     justifyContent: 'center',
@@ -177,7 +124,7 @@ const styles = StyleSheet.create({
     marginTop: 10,
     marginBottom: 10,
   },
-  slide: {
+  content: {
     width: width,
     alignItems: 'center',
     justifyContent: 'center',
@@ -185,8 +132,13 @@ const styles = StyleSheet.create({
     paddingVertical: 0,
   },
   robotImage: {
-    width: width * 0.32,
-    height: width * 0.32,
+    width: width * 0.28,
+    height: width * 0.28,
+    marginBottom: 18,
+  },
+  lottieAnimation: {
+    width: width * 0.6,
+    height: width * 0.6,
     marginBottom: 18,
   },
   slideTitle: {
@@ -210,6 +162,28 @@ const styles = StyleSheet.create({
     maxWidth: '90%',
     ...FONTS.body3,
   },
+  greetingText: {
+    fontSize: 32,
+    fontWeight: 'bold',
+    color: '#222',
+    lineHeight: 40,
+    marginBottom: 12,
+    letterSpacing: -0.5,
+    textAlign: 'center',
+    maxWidth: '90%',
+    ...FONTS.h1,
+  },
+  descriptionText: {
+    fontSize: 16,
+    color: '#666',
+    fontWeight: '400',
+    lineHeight: 24,
+    marginBottom: 0,
+    textAlign: 'center',
+    maxWidth: '85%',
+    paddingHorizontal: 20,
+    ...FONTS.body3,
+  },
   buttonGroup: {
     width: '100%',
     paddingHorizontal: 24,
@@ -230,29 +204,6 @@ const styles = StyleSheet.create({
     color: '#888',
     textAlign: 'center',
     lineHeight: 16,
-  },
-  dotsContainer: {
-    flexDirection: 'row',
-    justifyContent: 'center',
-    alignItems: 'center',
-    marginBottom: 18,
-    marginTop: 2,
-  },
-  dot: {
-    width: 8,
-    height: 8,
-    borderRadius: 4,
-    backgroundColor: '#d1cbe9', // soluk ana renk
-    marginHorizontal: 5,
-    opacity: 0.5,
-  },
-  activeDot: {
-    width: 18,
-    height: 8,
-    borderRadius: 4,
-    backgroundColor: '#8A4FFF', // ana renk
-    marginHorizontal: 5,
-    opacity: 1,
   },
 });
 

@@ -6,31 +6,68 @@ const toastConfig = {
   success: (props) => (
     <BaseToast
       {...props}
-      style={{ borderLeftColor: "#22c55e", backgroundColor: "#eafbe7" }}
-      contentContainerStyle={{ paddingHorizontal: 15 }}
-      text1Style={{ fontSize: 16, fontWeight: "bold", color: "#166534" }}
-      text2Style={{ fontSize: 14, color: "#166534" }}
+      style={{ 
+        borderLeftColor: "#22c55e", 
+        backgroundColor: "#eafbe7",
+        height: 50,
+        borderRadius: 12,
+        marginHorizontal: 16,
+      }}
+      contentContainerStyle={{ paddingHorizontal: 12, paddingVertical: 8 }}
+      text1Style={{ 
+        fontSize: 13, 
+        fontWeight: "600", 
+        color: "#166534",
+        marginBottom: 2,
+      }}
+      text2Style={{ 
+        fontSize: 11, 
+        color: "#166534",
+        lineHeight: 14,
+      }}
+      text1NumberOfLines={1}
+      text2NumberOfLines={1}
     />
   ),
   error: (props) => (
     <ErrorToast
       {...props}
-      style={{ borderLeftColor: "#ef4444", backgroundColor: "#fee2e2" }}
-      contentContainerStyle={{ paddingHorizontal: 15 }}
-      text1Style={{ fontSize: 16, fontWeight: "bold", color: "#991b1b" }}
-      text2Style={{ fontSize: 14, color: "#991b1b" }}
+      style={{ 
+        borderLeftColor: "#ef4444", 
+        backgroundColor: "#fee2e2",
+        height: 50,
+        borderRadius: 12,
+        marginHorizontal: 16,
+      }}
+      contentContainerStyle={{ paddingHorizontal: 12, paddingVertical: 8 }}
+      text1Style={{ 
+        fontSize: 13, 
+        fontWeight: "600", 
+        color: "#991b1b",
+        marginBottom: 2,
+      }}
+      text2Style={{ 
+        fontSize: 11, 
+        color: "#991b1b",
+        lineHeight: 14,
+      }}
+      text1NumberOfLines={1}
+      text2NumberOfLines={1}
     />
   ),
   warning: ({ text1, text2, ...rest }) => (
     <View
       style={{
-        borderLeftWidth: 6,
+        borderLeftWidth: 4,
         borderLeftColor: "#facc15",
         backgroundColor: "#fef9c3",
-        borderRadius: 8,
-        padding: 12,
+        borderRadius: 12,
+        paddingVertical: 10,
+        paddingHorizontal: 12,
         marginHorizontal: 16,
         marginTop: 10,
+        height: 50,
+        justifyContent: "center",
         shadowColor: "#000",
         shadowOpacity: 0.08,
         shadowRadius: 4,
@@ -38,8 +75,8 @@ const toastConfig = {
       }}
       {...rest}
     >
-      <Text style={{ fontSize: 16, fontWeight: "bold", color: "#854d0e" }}>{text1}</Text>
-      {text2 ? <Text style={{ fontSize: 14, color: "#854d0e" }}>{text2}</Text> : null}
+      <Text style={{ fontSize: 13, fontWeight: "600", color: "#854d0e", marginBottom: 2 }} numberOfLines={1}>{text1}</Text>
+      {text2 ? <Text style={{ fontSize: 11, color: "#854d0e", lineHeight: 14 }} numberOfLines={1}>{text2}</Text> : null}
     </View>
   ),
 };

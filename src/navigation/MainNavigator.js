@@ -53,16 +53,16 @@ const MainNavigator = () => {
           let label = "";
           switch (route.name) {
             case "Home":
-              label = t("screens.tabs.home");
+              label = t("tabs.home");
               break;
             case "Explore":
-              label = t("screens.tabs.explore");
+              label = t("tabs.explore");
               break;
             case "Activity":
-              label = t("screens.tabs.activity");
+              label = t("tabs.activity");
               break;
             case "Profile":
-              label = t("screens.tabs.profile");
+              label = t("tabs.profile");
               break;
             default:
               label = route.name;

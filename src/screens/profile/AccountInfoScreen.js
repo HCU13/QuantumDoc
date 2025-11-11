@@ -1,472 +1,574 @@
 import React, { useState } from "react";
 import { View, Text, StyleSheet, ScrollView, SafeAreaView, TouchableOpacity, Modal } from "react-native";
+import { Ionicons } from "@expo/vector-icons";
+import { TEXT_STYLES, SPACING, BORDER_RADIUS, SHADOWS } from "../../constants/theme";
+import useTheme from "../../hooks/useTheme";
+import GradientBackground from "../../components/common/GradientBackground";
 import Header from "../../components/common/Header";
-import Card from "../../components/common/Card";
 import ProfileImage from "../../components/common/ProfileImage";
 import Button from "../../components/common/Button";
 import Input from "../../components/common/Input";
-import { Ionicons } from "@expo/vector-icons";
-import { SIZES, FONTS } from "../../constants/theme";
-import useTheme from "../../hooks/useTheme";
-import CustomToast, { showToast } from "../../components/common/CustomToast";
+import { showToast } from "../../utils/toast";
 import { useTranslation } from "react-i18next";
+import { useAuth } from "../../contexts/AuthContext";
+import userStorage from "../../utils/userStorage";
+import { useLoading } from "../../contexts/LoadingContext";
+import AvatarSelector from "../../components/common/AvatarSelector";
+import EditProfileModal from "../../components/profile/EditProfileModal";
+import ChangePasswordModal from "../../components/profile/ChangePasswordModal";
+import DeleteAccountModal from "../../components/profile/DeleteAccountModal";
+import { updateUserAvatar, getUserAvatar } from "../../utils/avatarUtils";
+import { supabase } from "../../services/supabase";
 
 const AccountInfoScreen = () => {
-  // Mock kullanıcı verisi
-  const [user, setUser] = useState({
-    name: "Test Kullanıcı",
-    username: "kullaniciadi",
-    email: "test@example.com",
-    phone: "+90 555 555 55 55",
-    lastLogin: "2024-07-07 13:45",
-    profileImage: null, // Varsa url
-  });
+  const { user: authUser, updateAvatar } = useAuth();
+  const { colors, isDark } = useTheme();
+  const { t } = useTranslation();
+  const { setLoading: setGlobalLoading } = useLoading();
+  const [userData, setUserData] = useState(null);
+  const [showAvatarSelector, setShowAvatarSelector] = useState(false);
+           const [currentAvatar, setCurrentAvatar] = useState(null);
+
+  // AsyncStorage'dan kullanıcı verilerini al
+  React.useEffect(() => {
+    const loadUserData = async () => {
+      try {
+        const data = await userStorage.getUserData();
+        setUserData(data);
+
+        // Avatar'ı yükle
+        const avatar = await getUserAvatar(user.id || authUser?.id);
+        setCurrentAvatar(avatar);
+
+        // Profiles tablosundan da veri al
+        if (authUser?.id) {
+          const profileData = await userStorage.getProfileFromDatabase(authUser.id);
+          if (profileData) {
+            setUserData(prev => ({ ...prev, ...profileData }));
+          }
+        }
+      } catch (error) {
+        if (__DEV__) console.error('❌ ACCOUNT INFO: Load user data error:', error);
+      }
+    };
+
+    loadUserData();
+  }, []);
+
+  // Kullanıcı verilerini birleştir
+  const user = {
+    name: userData?.user_full_name || authUser?.user_metadata?.full_name || t('profile.accountInfo.unknown'),
+    username: userData?.user_email?.split('@')[0] || authUser?.email?.split('@')[0] || "kullanici",
+    email: userData?.user_email || authUser?.email || t('profile.accountInfo.unknown'),
+    phone: userData?.user_phone || authUser?.user_metadata?.phone || t('profile.accountInfo.unknown'),
+    lastLogin: userData?.last_login_at ? new Date(userData.last_login_at).toLocaleString('tr-TR') : t('profile.accountInfo.unknown'),
+    avatar_url: userData?.avatar_url || null, // Database'den gelen avatar
+    avatar_config: userData?.avatar_config || null, // AsyncStorage'dan gelen avatar
+    language: userData?.language || "tr",
+    theme: userData?.theme || "light",
+    subscriptionPlan: userData?.subscription_plan || "free",
+    tokens: userData?.tokens || 0,
+    createdAt: userData?.user_created_at ? new Date(userData.user_created_at).toLocaleDateString('tr-TR') : null,
+    updatedAt: userData?.user_updated_at ? new Date(userData.user_updated_at).toLocaleDateString('tr-TR') : null,
+    loginCount: userData?.login_count || 0,
+    emailConfirmed: userData?.email_confirmed || false,
+    phoneConfirmed: userData?.phone_confirmed || false,
+    appVersion: userData?.app_version || "1.0.0",
+    deviceInfo: userData?.device_info || "Unknown",
+  };
+
   const [isEditModalVisible, setEditModalVisible] = useState(false);
   const [isPasswordModalVisible, setPasswordModalVisible] = useState(false);
   const [isDeleteModalVisible, setDeleteModalVisible] = useState(false);
-  const [loading, setLoading] = useState(false);
-  const [deletePassword, setDeletePassword] = useState("");
-  const [deleteError, setDeleteError] = useState("");
-  const [editData, setEditData] = useState({
-    name: user.name,
-    username: user.username,
-    email: user.email,
-    phone: user.phone,
-  });
-  const [errors, setErrors] = useState({});
-  const [passwordData, setPasswordData] = useState({
-    current: "",
-    new: "",
-    confirm: "",
-  });
-  const [passwordErrors, setPasswordErrors] = useState({});
-  const { colors } = useTheme();
-  const { t } = useTranslation();
 
-  const handleEditPhoto = () => {
-    // Profil fotoğrafı düzenleme işlemi
-    // ...
+  const handleEditAvatar = () => {
+    setShowAvatarSelector(true);
+  };
+
+  const handleAvatarSelect = async (selectedAvatar) => {
+    try {
+      setGlobalLoading(true, t('profile.accountInfo.updating.avatar'), "profile");
+
+      // Avatar güncelleme işlemini başlat
+      const result = await updateAvatar(selectedAvatar);
+
+      if (result) {
+        // Başarılı güncelleme
+        showToast("success", t('common.success'), t('profile.accountInfo.success.avatar'));
+
+        // Mevcut avatar'ı güncelle
+        setCurrentAvatar(selectedAvatar);
+
+        // Kullanıcı verilerini yeniden yükle
+        const newUserData = await userStorage.getUserData();
+        setUserData(newUserData);
+      }
+    } catch (error) {
+      if (__DEV__) console.error('❌ AVATAR: Avatar update error:', error);
+      showToast("error", t('common.error'), error.message || t('profile.accountInfo.error.avatar'));
+    } finally {
+      setGlobalLoading(false);
+    }
   };
 
   const handleEdit = () => {
-    setEditData({
-      name: user.name,
-      username: user.username,
-      email: user.email,
-      phone: user.phone,
-    });
-    setErrors({});
     setEditModalVisible(true);
   };
 
-  const handleInputChange = (field, value) => {
-    setEditData((prev) => ({ ...prev, [field]: value }));
-  };
+  const handleEditSave = async (formData) => {
+    try {
+      setGlobalLoading(true, "Bilgiler güncelleniyor...", "profile");
 
-  const validate = () => {
-    const newErrors = {};
-    if (!editData.name.trim()) newErrors.name = t('profile.nameRequired');
-    if (!editData.username.trim()) newErrors.username = t('profile.usernameRequired');
-    if (!editData.email.trim() || !/^[^@\s]+@[^@\s]+\.[^@\s]+$/.test(editData.email)) newErrors.email = t('profile.emailInvalid');
-    if (!editData.phone.trim()) newErrors.phone = t('profile.phoneRequired');
-    setErrors(newErrors);
-    return Object.keys(newErrors).length === 0;
-  };
+      // Supabase auth metadata'yı güncelle
+      const { error } = await supabase.auth.updateUser({
+        data: {
+          full_name: formData.name,
+          display_name: formData.name,
+          phone: formData.phone,
+        }
+      });
 
-  const handleSave = () => {
-    if (!validate()) return;
-    setLoading(true);
-    setTimeout(() => {
-      setUser((prev) => ({ ...prev, ...editData }));
+      if (error) {
+        throw error;
+      }
+
+      // AsyncStorage'ı güncelle
+      const userData = await userStorage.getUserData();
+      if (userData) {
+        userData.user_full_name = formData.name;
+        userData.user_phone = formData.phone;
+        await userStorage.updateUserInfo(userData);
+      }
+
+      // Profiles tablosunu güncelle
+      await supabase
+        .from('profiles')
+        .update({
+          full_name: formData.name,
+          display_name: formData.name,
+          phone: formData.phone,
+          updated_at: new Date().toISOString()
+        })
+        .eq('id', authUser?.id);
+
       setEditModalVisible(false);
-      setLoading(false);
-      showToast({ type: "success", title: t('common.success'), message: t('profile.editSuccess') });
-    }, 1200);
-  };
+      showToast("success", t('common.success'), t('profile.accountInfo.success.profile'));
 
-  const handleCancel = () => {
-    setEditModalVisible(false);
+      // Kullanıcı verilerini yeniden yükle
+      const newUserData = await userStorage.getUserData();
+      setUserData(newUserData);
+
+    } catch (error) {
+      if (__DEV__) console.error('❌ PROFILE: Update error:', error);
+      showToast("error", t('common.error'), error.message || t('profile.accountInfo.error.profile'));
+    } finally {
+      setGlobalLoading(false);
+    }
   };
 
   const handleDeleteAccount = () => {
-    setDeletePassword("");
-    setDeleteError("");
     setDeleteModalVisible(true);
   };
-  const handleDeleteConfirm = () => {
-    if (!deletePassword.trim()) {
-      setDeleteError("Şifrenizi girin");
-      return;
-    }
-    setLoading(true);
-    setTimeout(() => {
-      setLoading(false);
+
+  const handleDeleteConfirm = async (password) => {
+    try {
+      setGlobalLoading(true, "Hesap siliniyor...", "profile");
+
+      // Şifre doğrulama
+      const { error: signInError } = await supabase.auth.signInWithPassword({
+        email: authUser?.email,
+        password: password
+      });
+
+      if (signInError) {
+        throw new Error("Şifre hatalı");
+      }
+
+      // Hesabı sil
+      const { error: deleteError } = await supabase.auth.admin.deleteUser(authUser?.id);
+
+      if (deleteError) {
+        throw deleteError;
+      }
+
       setDeleteModalVisible(false);
-      showToast({ type: "success", title: "Hesap Silindi", message: "Hesabınız başarıyla silindi." });
-      // Burada logout veya yönlendirme işlemi yapılabilir
-    }, 1200);
-  };
-  const handleDeleteCancel = () => {
-    setDeleteModalVisible(false);
+      showToast("success", t('common.success'), t('profile.accountInfo.success.accountDeleted'));
+
+      // Logout yap
+      setTimeout(() => {
+        // AuthContext'teki logout fonksiyonunu çağır
+        // Bu kısım AuthContext'ten gelen logout fonksiyonu ile yapılacak
+      }, 2000);
+
+    } catch (error) {
+      if (__DEV__) console.error('❌ DELETE ACCOUNT: Error:', error);
+      showToast("error", t('common.error'), error.message || t('common.error'));
+    } finally {
+      setGlobalLoading(false);
+    }
   };
 
   const handlePasswordChange = () => {
-    setPasswordData({ current: "", new: "", confirm: "" });
-    setPasswordErrors({});
     setPasswordModalVisible(true);
   };
 
-  const handlePasswordInputChange = (field, value) => {
-    setPasswordData((prev) => ({ ...prev, [field]: value }));
-  };
+  const handlePasswordSave = async (formData) => {
+    try {
+      setGlobalLoading(true, "Şifre güncelleniyor...", "profile");
 
-  const validatePassword = () => {
-    const newErrors = {};
-    if (!passwordData.current.trim()) newErrors.current = "Mevcut şifre zorunlu";
-    if (!passwordData.new.trim() || passwordData.new.length < 6) newErrors.new = "Yeni şifre en az 6 karakter olmalı";
-    if (passwordData.new !== passwordData.confirm) newErrors.confirm = "Şifreler eşleşmiyor";
-    setPasswordErrors(newErrors);
-    return Object.keys(newErrors).length === 0;
-  };
+      // Şifre değiştirme
+      const { error } = await supabase.auth.updateUser({
+        password: formData.new
+      });
 
-  const handlePasswordSave = () => {
-    if (!validatePassword()) return;
-    setLoading(true);
-    setTimeout(() => {
+      if (error) {
+        throw error;
+      }
+
       setPasswordModalVisible(false);
-      setLoading(false);
-      showToast({ type: "success", title: "Başarılı", message: "Şifre güncellendi." });
-    }, 1200);
+      showToast("success", t('common.success'), t('profile.accountInfo.success.password'));
+
+    } catch (error) {
+      if (__DEV__) console.error('❌ PASSWORD: Update error:', error);
+      showToast("error", t('common.error'), error.message || t('profile.accountInfo.error.password'));
+    } finally {
+      setGlobalLoading(false);
+    }
   };
 
-  const handlePasswordCancel = () => {
-    setPasswordModalVisible(false);
-  };
+  const styles = StyleSheet.create({
+    container: {
+      flex: 1,
+    },
+    content: {
+      paddingHorizontal: SPACING.md,
+
+    },
+    profileSection: {
+      alignItems: "center",
+      marginVertical: SPACING.lg,
+      paddingVertical: SPACING.md,
+    },
+    profileImageWrapper: {
+      position: "relative",
+      marginBottom: SPACING.md,
+      ...SHADOWS.medium,
+    },
+    editIconWrapper: {
+      position: "absolute",
+      bottom: 0,
+      right: 0,
+      backgroundColor: colors.primary,
+      borderRadius: BORDER_RADIUS.round,
+      width: 32,
+      height: 32,
+      justifyContent: 'center',
+      alignItems: 'center',
+      borderWidth: 3,
+      borderColor: colors.background,
+      zIndex: 2,
+      ...SHADOWS.small,
+    },
+    nameText: {
+      ...TEXT_STYLES.titleLarge,
+      color: colors.textPrimary,
+      marginBottom: SPACING.xs,
+      textAlign: 'center',
+    },
+    emailText: {
+      ...TEXT_STYLES.bodyMedium,
+      color: colors.textSecondary,
+      textAlign: 'center',
+    },
+    card: {
+      backgroundColor: colors.card,
+      borderRadius: BORDER_RADIUS.lg,
+      padding: SPACING.md,
+      marginBottom: SPACING.md,
+      borderWidth: 1,
+      borderColor: colors.border,
+      ...SHADOWS.small,
+    },
+    menuItem: {
+      flexDirection: "row",
+      alignItems: "center",
+      paddingVertical: SPACING.sm,
+      paddingHorizontal: SPACING.xs,
+      borderBottomWidth: 1,
+      borderBottomColor: colors.border + '50',
+    },
+    lastMenuItem: {
+      borderBottomWidth: 0,
+    },
+    iconContainer: {
+      width: 36,
+      height: 36,
+      borderRadius: BORDER_RADIUS.md,
+      backgroundColor: colors.primary + '15',
+      justifyContent: 'center',
+      alignItems: 'center',
+      marginRight: SPACING.sm,
+    },
+    menuItemContent: {
+      flex: 1,
+    },
+    menuItemText: {
+      ...TEXT_STYLES.bodyMedium,
+      color: colors.textPrimary,
+      marginBottom: 2,
+    },
+    menuItemSubtitle: {
+      ...TEXT_STYLES.bodySmall,
+      color: colors.textSecondary,
+    },
+    chevronIcon: {
+      color: colors.textSecondary,
+    },
+    actionsContainer: {
+      marginTop: SPACING.md,
+    },
+    actionButton: {
+      marginBottom: SPACING.sm,
+    },
+    dangerZone: {
+      marginTop: SPACING.xl,
+      padding: SPACING.md,
+      backgroundColor: isDark ? 'rgba(239, 68, 68, 0.1)' : 'rgba(239, 68, 68, 0.05)',
+      borderRadius: BORDER_RADIUS.md,
+      borderWidth: 1,
+      borderColor: 'rgba(239, 68, 68, 0.2)',
+    },
+    dangerTitle: {
+      ...TEXT_STYLES.titleSmall,
+      color: '#EF4444',
+      marginBottom: SPACING.sm,
+      textAlign: 'center',
+    },
+    modalOverlay: {
+      flex: 1,
+      backgroundColor: 'rgba(0,0,0,0.5)',
+      justifyContent: 'center',
+      alignItems: 'center',
+    },
+    modalContent: {
+      width: '90%',
+      backgroundColor: colors.card,
+      borderRadius: BORDER_RADIUS.lg,
+      padding: SPACING.lg,
+      ...SHADOWS.large,
+    },
+    modalHeader: {
+      flexDirection: 'row',
+      alignItems: 'center',
+      justifyContent: 'space-between',
+      marginBottom: SPACING.md,
+    },
+    modalTitle: {
+      ...TEXT_STYLES.titleMedium,
+      color: colors.textPrimary,
+    },
+    closeButton: {
+      padding: SPACING.xs,
+    },
+    modalButtonRow: {
+      flexDirection: 'row',
+      marginTop: SPACING.md,
+      gap: SPACING.sm,
+    },
+    statusBadge: {
+      flexDirection: "row",
+      alignItems: "center",
+      paddingHorizontal: SPACING.xs,
+      paddingVertical: 2,
+      borderRadius: BORDER_RADIUS.sm,
+      gap: 4,
+      marginTop: SPACING.xs,
+      alignSelf: "flex-start",
+    },
+    statusText: {
+      ...TEXT_STYLES.labelSmall,
+      fontWeight: "500",
+    },
+  });
+
+  const accountItems = [
+    {
+      id: "name",
+      title: t('profile.accountInfo.fields.name'),
+      subtitle: user.name,
+      icon: "person-outline",
+    },
+    {
+      id: "email",
+      title: t('profile.accountInfo.fields.email'),
+      subtitle: `${user.email} ${user.emailConfirmed ? "✓" : "⚠️"}`,
+      icon: "mail-outline",
+      statusColor: user.emailConfirmed ? colors.success : colors.warning,
+    },
+    {
+      id: "phone",
+      title: t('profile.accountInfo.fields.phone'),
+      subtitle: user.phone,
+      icon: "call-outline",
+    },
+    {
+      id: "lastLogin",
+      title: t('profile.accountInfo.fields.lastLogin'),
+      subtitle: user.lastLogin,
+      icon: "time-outline",
+    },
+    // {
+    //   id: "loginCount",
+    //   title: "Toplam Giriş",
+    //   subtitle: `${user.loginCount} kez`,
+    //   icon: "log-in-outline",
+    // },
+    {
+      id: "createdAt",
+      title: t('profile.accountInfo.fields.createdAt'),
+      subtitle: user.createdAt || t('profile.accountInfo.unknown'),
+      icon: "calendar-outline",
+    },
+
+  ];
 
   return (
-    <SafeAreaView style={{ flex: 1, backgroundColor: colors.background }}>
-      <Header title="Hesap Bilgileri" />
-      <ScrollView contentContainerStyle={{ padding: SIZES.padding }}>
-        <Card style={styles.infoCard}>
+    <GradientBackground>
+      <SafeAreaView style={styles.container}>
+        <Header title={t('profile.accountInfo.title')} showBackButton={true} />
+
+        <ScrollView style={styles.content} showsVerticalScrollIndicator={false}>
+          {/* Profil Bölümü */}
           <View style={styles.profileSection}>
             <TouchableOpacity
-              onPress={handleEditPhoto}
-              accessibilityLabel="Profil fotoğrafını düzenle"
+              onPress={handleEditAvatar}
+              accessibilityLabel={t('profile.accountInfo.editAvatar')}
               style={styles.profileImageWrapper}
               activeOpacity={0.7}
             >
-              <ProfileImage user={user} size={90} showBorder style={styles.profileImage} />
+              <ProfileImage user={user} size={80} showBorder={false} />
               <View style={styles.editIconWrapper}>
-                <Ionicons name="pencil" size={18} color={colors.white} />
+                <Ionicons name="happy" size={16} color="#fff" />
               </View>
             </TouchableOpacity>
+
+            <Text style={styles.nameText}>
+              {user.name}
+            </Text>
+            <Text style={styles.emailText}>
+              {user.email}
+            </Text>
           </View>
-          <View style={styles.infoRow}>
-            <Ionicons name="at-outline" size={18} color={colors.primary} style={styles.infoIcon} />
-            <Text style={[styles.label, { color: colors.textSecondary }]}>Kullanıcı Adı</Text>
-            <Text style={[styles.value, { color: colors.textPrimary }]}>@{user.username}</Text>
+
+          {/* Hesap Bilgileri */}
+          <View style={styles.card}>
+            {accountItems.map((item, index) => (
+              <View
+                key={item.id}
+                style={[
+                  styles.menuItem,
+                  index === accountItems.length - 1 && styles.lastMenuItem,
+                ]}
+              >
+                <View style={styles.iconContainer}>
+                  <Ionicons name={item.icon} size={18} color={colors.primary} />
+                </View>
+                <View style={styles.menuItemContent}>
+                  <Text style={styles.menuItemText}>{item.title}</Text>
+                  <Text style={styles.menuItemSubtitle}>
+                    {item.id === "email" ? (
+                      <>
+                        {user.email}{" "}
+                        <Text style={{
+                          color: user.emailConfirmed ? colors.success : colors.warning,
+                          fontWeight: 'bold',
+                          fontSize: 16
+                        }}>
+                          {user.emailConfirmed ? "✓" : "⚠️"}
+                        </Text>
+                      </>
+                    ) : (
+                      item.subtitle
+                    )}
+                  </Text>
+                </View>
+              </View>
+            ))}
           </View>
-          <View style={styles.infoRow}>
-            <Ionicons name="person-outline" size={18} color={colors.primary} style={styles.infoIcon} />
-            <Text style={[styles.label, { color: colors.textSecondary }]}>Ad Soyad</Text>
-            <Text style={[styles.value, { color: colors.textPrimary }]}>{user.name}</Text>
+
+          {/* Eylem Butonları */}
+          <View style={styles.actionsContainer}>
+            <Button
+              title={t('profile.accountInfo.editProfile')}
+              onPress={handleEdit}
+              gradient
+              icon={<Ionicons name="pencil-outline" size={18} color="#fff" />}
+              containerStyle={styles.actionButton}
+            />
+
+            <Button
+              title={t('profile.accountInfo.changePassword')}
+              onPress={handlePasswordChange}
+              outlined
+              icon={<Ionicons name="lock-closed-outline" size={18} color={colors.primary} />}
+              containerStyle={styles.actionButton}
+            />
           </View>
-          <View style={styles.infoRow}>
-            <Ionicons name="mail-outline" size={18} color={colors.primary} style={styles.infoIcon} />
-            <Text style={[styles.label, { color: colors.textSecondary }]}>E-posta</Text>
-            <Text style={[styles.value, { color: colors.textPrimary }]}>{user.email}</Text>
+
+          {/* Tehlikeli Bölge */}
+          <View style={styles.dangerZone}>
+            <Text style={styles.dangerTitle}>{t('profile.accountInfo.dangerZone')}</Text>
+            <Button
+              title={t('profile.accountInfo.deleteAccount')}
+              onPress={handleDeleteAccount}
+              icon={<Ionicons name="trash-outline" size={18} color="#fff" />}
+              containerStyle={{ backgroundColor: '#EF4444' }}
+              textStyle={{ color: '#fff' }}
+            />
           </View>
-          <View style={styles.infoRow}>
-            <Ionicons name="call-outline" size={18} color={colors.primary} style={styles.infoIcon} />
-            <Text style={[styles.label, { color: colors.textSecondary }]}>Telefon</Text>
-            <Text style={[styles.value, { color: colors.textPrimary }]}>{user.phone}</Text>
-          </View>
-          <View style={styles.infoRow}>
-            <Ionicons name="time-outline" size={18} color={colors.primary} style={styles.infoIcon} />
-            <Text style={[styles.label, { color: colors.textSecondary }]}>Son Giriş</Text>
-            <Text style={[styles.value, { color: colors.textPrimary }]}>{user.lastLogin}</Text>
-          </View>
-        </Card>
-        <Button
-          title="Düzenle"
-          onPress={handleEdit}
-          size="large"
-          fluid
-          aria-label="Hesap bilgilerini düzenle"
-          containerStyle={{ marginTop: 20 }}
-        />
-        <Button
-          title="Şifreyi Değiştir"
-          onPress={handlePasswordChange}
-          size="large"
-          fluid
-          aria-label="Şifreyi değiştir"
-          containerStyle={{ marginTop: 10 }}
-        />
-        <Button
-          title="Hesabı Sil"
-          onPress={handleDeleteAccount}
-          size="large"
-          fluid
-          aria-label="Hesabı sil"
-          containerStyle={{ marginTop: 10, marginBottom: 30, backgroundColor: '#EF4444' }}
-          textStyle={{ color: '#fff' }}
-        />
-        <Modal
+
+          <View style={{ height: SPACING.xl }} />
+        </ScrollView>
+
+
+        {/* Edit Profile Modal */}
+        <EditProfileModal
           visible={isEditModalVisible}
-          animationType="fade"
-          transparent
-          onRequestClose={handleCancel}
-        >
-          <View style={styles.modalOverlay}>
-            <View style={[styles.modalContent, { backgroundColor: colors.card }]}>
-              <View style={styles.modalHeader}>
-                <Text style={[styles.modalTitle, { color: colors.textPrimary }]}>{t('profile.editTitle')}</Text>
-                <TouchableOpacity onPress={handleCancel} accessibilityLabel={t('common.cancel')} style={styles.closeButton}>
-                  <Ionicons name="close" size={22} color={colors.textPrimary} />
-                </TouchableOpacity>
-              </View>
-              <Input
-                label={t('profile.editName')}
-                value={editData.name}
-                onChangeText={(v) => handleInputChange("name", v)}
-                error={errors.name}
-                autoCapitalize="words"
-                icon={<Ionicons name="person-outline" size={20} color="#8A4FFF" />}
-              />
-              <Input
-                label={t('profile.editUsername')}
-                value={editData.username}
-                onChangeText={(v) => handleInputChange("username", v)}
-                error={errors.username}
-                autoCapitalize="none"
-                icon={<Ionicons name="at-outline" size={20} color="#8A4FFF" />}
-              />
-              <Input
-                label={t('profile.editEmail')}
-                value={editData.email}
-                onChangeText={(v) => handleInputChange("email", v)}
-                error={errors.email}
-                keyboardType="email-address"
-                autoCapitalize="none"
-                icon={<Ionicons name="mail-outline" size={20} color="#8A4FFF" />}
-              />
-              <Input
-                label={t('profile.editPhone')}
-                value={editData.phone}
-                onChangeText={(v) => handleInputChange("phone", v)}
-                error={errors.phone}
-                keyboardType="phone-pad"
-                icon={<Ionicons name="call-outline" size={20} color="#8A4FFF" />}
-              />
-              <View style={styles.modalButtonRow}>
-                <Button
-                  title={loading ? t('common.loading') : t('profile.save')}
-                  onPress={handleSave}
-                  fluid
-                  disabled={loading}
-                  aria-label={t('profile.save')}
-                />
-              </View>
-            </View>
-          </View>
-        </Modal>
-        <Modal
+          onClose={() => setEditModalVisible(false)}
+          onSave={handleEditSave}
+          initialData={{
+            name: user.name,
+            email: user.email,
+            phone: user.phone,
+          }}
+        />
+
+        {/* Change Password Modal */}
+        <ChangePasswordModal
           visible={isPasswordModalVisible}
-          animationType="slide"
-          transparent
-          onRequestClose={handlePasswordCancel}
-        >
-          <View style={styles.modalOverlay}>
-            <View style={[styles.modalContent, { backgroundColor: colors.card }]}>
-              <View style={styles.modalHeader}>
-                <Text style={[styles.modalTitle, { color: colors.textPrimary }]}>Şifreyi Değiştir</Text>
-                <TouchableOpacity onPress={handlePasswordCancel} accessibilityLabel="Kapat" style={styles.closeButton}>
-                  <Ionicons name="close" size={22} color={colors.textPrimary} />
-                </TouchableOpacity>
-              </View>
-              <Input
-                label="Mevcut Şifre"
-                value={passwordData.current}
-                onChangeText={(v) => handlePasswordInputChange("current", v)}
-                error={passwordErrors.current}
-                secureTextEntry
-                autoCapitalize="none"
-              />
-              <Input
-                label="Yeni Şifre"
-                value={passwordData.new}
-                onChangeText={(v) => handlePasswordInputChange("new", v)}
-                error={passwordErrors.new}
-                secureTextEntry
-                autoCapitalize="none"
-              />
-              <Input
-                label="Yeni Şifre (Tekrar)"
-                value={passwordData.confirm}
-                onChangeText={(v) => handlePasswordInputChange("confirm", v)}
-                error={passwordErrors.confirm}
-                secureTextEntry
-                autoCapitalize="none"
-              />
-              <View style={styles.modalButtonRow}>
-                <Button
-                  title="İptal"
-                  onPress={handlePasswordCancel}
-                  outlined
-                  fluid
-                  containerStyle={{ marginRight: 8 }}
-                  aria-label="Şifre değişikliğini iptal et"
-                />
-                <Button
-                  title={loading ? "Kaydediliyor..." : "Kaydet"}
-                  onPress={handlePasswordSave}
-                  fluid
-                  disabled={loading}
-                  aria-label="Şifreyi kaydet"
-                />
-              </View>
-            </View>
-          </View>
-        </Modal>
-        <Modal
+          onClose={() => setPasswordModalVisible(false)}
+          onSave={handlePasswordSave}
+        />
+
+        {/* Delete Account Modal */}
+        <DeleteAccountModal
           visible={isDeleteModalVisible}
-          animationType="fade"
-          transparent
-          onRequestClose={handleDeleteCancel}
-        >
-          <View style={styles.modalOverlay}>
-            <View style={[styles.modalContent, { backgroundColor: colors.card }]}>
-              <View style={styles.modalHeader}>
-                <Text style={[styles.modalTitle, { color: colors.danger || '#EF4444' }]}>Hesabı Sil</Text>
-                <TouchableOpacity onPress={handleDeleteCancel} accessibilityLabel="Kapat" style={styles.closeButton}>
-                  <Ionicons name="close" size={22} color={colors.textPrimary} />
-                </TouchableOpacity>
-              </View>
-              <Text style={{ color: colors.textPrimary, marginBottom: 12, textAlign: 'center' }}>
-                Hesabınızı silmek üzeresiniz. Devam etmek için şifrenizi girin.
-              </Text>
-              <Input
-                label="Şifre"
-                value={deletePassword}
-                onChangeText={setDeletePassword}
-                error={deleteError}
-                secureTextEntry
-                autoCapitalize="none"
-              />
-              <View style={styles.modalButtonRow}>
-                <Button
-                  title="İptal"
-                  onPress={handleDeleteCancel}
-                  outlined
-                  fluid
-                  containerStyle={{ marginRight: 8 }}
-                  aria-label="Silme işlemini iptal et"
-                />
-                <Button
-                  title={loading ? "Siliniyor..." : "Hesabı Sil"}
-                  onPress={handleDeleteConfirm}
-                  fluid
-                  disabled={loading}
-                  containerStyle={{ backgroundColor: '#EF4444' }}
-                  textStyle={{ color: '#fff' }}
-                  aria-label="Hesabı sil"
-                />
-              </View>
-            </View>
-          </View>
-        </Modal>
-        <CustomToast />
-      </ScrollView>
-    </SafeAreaView>
+          onClose={() => setDeleteModalVisible(false)}
+          onConfirm={handleDeleteConfirm}
+        />
+
+        {/* Avatar Selector Modal */}
+        <AvatarSelector
+          visible={showAvatarSelector}
+          onClose={() => setShowAvatarSelector(false)}
+          onSelect={handleAvatarSelect}
+          currentAvatar={currentAvatar}
+          title={t('profile.accountInfo.selectAvatar')}
+        />
+
+      </SafeAreaView>
+    </GradientBackground>
   );
 };
-
-const styles = StyleSheet.create({
-  profileSection: {
-    alignItems: "center",
-    marginBottom: 16,
-  },
-  profileImageWrapper: {
-    position: "relative",
-    marginBottom: 10,
-  },
-  profileImage: {
-    // Ekstra stil gerekirse
-  },
-  editIconWrapper: {
-    position: "absolute",
-    bottom: 4,
-    right: 4,
-    backgroundColor: '#8A4FFF',
-    borderRadius: 12,
-    padding: 2,
-    borderWidth: 2,
-    borderColor: '#fff',
-    zIndex: 2,
-  },
-  nameText: {
-    ...FONTS.h2,
-    fontWeight: "bold",
-    marginBottom: 2,
-  },
-  infoCard: {
-    marginTop: 10,
-    paddingVertical: 18,
-    paddingHorizontal: 16,
-  },
-  infoRow: {
-    flexDirection: "row",
-    alignItems: "center",
-    marginBottom: 14,
-  },
-  infoIcon: {
-    marginRight: 8,
-  },
-  label: {
-    ...FONTS.body4,
-    fontWeight: "500",
-    minWidth: 100,
-  },
-  value: {
-    ...FONTS.body4,
-    fontWeight: "bold",
-    textAlign: "right",
-    flex: 1,
-  },
-  // Modal stilleri
-  modalOverlay: {
-    flex: 1,
-    backgroundColor: 'rgba(0,0,0,0.3)',
-    justifyContent: 'center',
-    alignItems: 'center',
-  },
-  modalContent: {
-    width: '90%',
-    borderRadius: 16,
-    padding: 20,
-    elevation: 8,
-  },
-  modalTitle: {
-    ...FONTS.h3,
-    fontWeight: 'bold',
-    marginBottom: 16,
-    textAlign: 'center',
-  },
-  modalButtonRow: {
-    flexDirection: 'row',
-    marginTop: 10,
-    justifyContent: 'space-between',
-  },
-  modalHeader: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    justifyContent: 'space-between',
-    marginBottom: 8,
-  },
-  closeButton: {
-    padding: 4,
-  },
-});
 
 export default AccountInfoScreen;

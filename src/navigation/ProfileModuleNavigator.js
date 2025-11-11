@@ -7,6 +7,7 @@ import TokensScreen from "../screens/profile/TokensScreen";
 import LanguageSettingsScreen from "../screens/profile/LanguageSettingsScreen";
 import PrivacyScreen from "../screens/profile/PrivacyScreen";
 import HelpSupportScreen from "../screens/profile/HelpSupportScreen";
+import PurchaseHistoryScreen from "../screens/profile/PurchaseHistoryScreen";
 
 const Stack = createStackNavigator();
 
@@ -16,6 +17,7 @@ const ProfileModuleNavigator = () => (
     <Stack.Screen name="AccountInfo" component={AccountInfoScreen} />
     <Stack.Screen name="Subscription" component={SubscriptionScreen} />
     <Stack.Screen name="Tokens" component={TokensScreen} />
+    <Stack.Screen name="PurchaseHistory" component={PurchaseHistoryScreen} />
     <Stack.Screen name="LanguageSettings" component={LanguageSettingsScreen} />
     <Stack.Screen name="Privacy" component={PrivacyScreen} />
     <Stack.Screen name="HelpSupport" component={HelpSupportScreen} />
