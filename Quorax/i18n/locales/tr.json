@@ -1,0 +1,985 @@
+{
+  "common": {
+    "loading": "Yükleniyor...",
+    "error": "Hata oluştu",
+    "warning": "Uyarı",
+    "success": "Başarılı",
+    "save": "Kaydet",
+    "cancel": "İptal",
+    "delete": "Sil",
+    "edit": "Düzenle",
+    "back": "Geri",
+    "close": "Kapat",
+    "confirm": "Onayla",
+    "ok": "Tamam",
+    "yes": "Evet",
+    "no": "Hayır",
+    "next": "İleri",
+    "skip": "Atla",
+    "getStarted": "Başlayalım",
+    "info": "Bilgi",
+    "login": "Giriş Yap"
+  },
+  "ad": {},
+  "auth": {
+    "login": {
+      "title": "Giriş Yap",
+      "welcome": "Hoş Geldiniz",
+      "subtitle": "Hesabınıza giriş yapın",
+      "email": "E-posta",
+      "emailPlaceholder": "ornek@email.com",
+      "password": "Şifre",
+      "passwordPlaceholder": "Şifrenizi girin",
+      "forgotPassword": "Şifremi Unuttum",
+      "forgotPasswordComingSoon": "Şifre sıfırlama özelliği yakında eklenecek",
+      "forgotPasswordEmailRequired": "Lütfen önce e-posta adresinizi girin.",
+      "forgotPasswordConfirm": "Şifre sıfırlama bağlantısı bu e-posta adresine gönderilecek. Gönderilsin mi?",
+      "forgotPasswordEmailSent": "Şifre sıfırlama bağlantısı e-posta adresinize gönderildi. Lütfen gelen kutunuzu kontrol edin.",
+      "forgotPasswordError": "Şifre sıfırlama e-postası gönderilirken bir hata oluştu.",
+      "forgotPasswordContactUs": "Şifre sıfırlama için lütfen bizimle iletişime geçin. Profil > Yardım & Destek üzerinden destek talebi oluşturabilirsiniz.",
+      "resetPassword": {
+        "title": "Şifremi Unuttum",
+        "subtitle": "E-posta adresinize 6 haneli kod göndereceğiz",
+        "emailLabel": "E-posta Adresi",
+        "sendCode": "Kod Gönder",
+        "sending": "Gönderiliyor...",
+        "codeSent": "Kod gönderildi! E-postanızı kontrol edin.",
+        "otpLabel": "Doğrulama Kodu",
+        "otpPlaceholder": "6 haneli kodu girin",
+        "newPasswordLabel": "Yeni Şifre",
+        "confirmPasswordLabel": "Şifre Tekrar",
+        "updateButton": "Şifremi Güncelle",
+        "updating": "Güncelleniyor...",
+        "successTitle": "Başarılı!",
+        "successMessage": "Şifreniz başarıyla güncellendi. Giriş yapabilirsiniz.",
+        "resendCode": "Kodu tekrar gönder",
+        "errors": {
+          "emailRequired": "E-posta adresi gereklidir",
+          "emailInvalid": "Geçerli bir e-posta adresi girin",
+          "otpRequired": "Doğrulama kodu gereklidir",
+          "otpInvalid": "Geçersiz kod. Lütfen tekrar deneyin.",
+          "otpExpired": "Kodun süresi dolmuş. Yeni kod isteyin.",
+          "passwordRequired": "Şifre gereklidir",
+          "passwordMinLength": "Şifre en az 6 karakter olmalıdır",
+          "passwordsNotMatch": "Şifreler eşleşmiyor",
+          "sendFailed": "Kod gönderilemedi. Lütfen tekrar deneyin.",
+          "updateFailed": "Şifre güncellenemedi. Lütfen tekrar deneyin."
+        }
+      },
+      "rememberMe": "Beni Hatırla",
+      "button": "Giriş Yap",
+      "noAccount": "Hesabınız yok mu?",
+      "signUp": "Kayıt Ol",
+      "success": "Giriş başarılı!",
+      "errors": {
+        "title": "Giriş Hatası",
+        "emailRequired": "E-posta adresi gereklidir",
+        "emailInvalid": "Geçerli bir e-posta adresi girin",
+        "passwordRequired": "Şifre gereklidir",
+        "passwordMinLength": "Şifre en az 6 karakter olmalıdır",
+        "invalidCredentials": "E-posta veya şifre hatalı",
+        "generic": "Giriş yapılırken bir hata oluştu"
+      }
+    },
+    "register": {
+      "title": "Kayıt Ol",
+      "welcome": "Hesap Oluştur",
+      "subtitle": "Yeni hesabınızı oluşturun ve başlayın",
+      "name": "Ad Soyad",
+      "namePlaceholder": "Adınızı girin",
+      "email": "E-posta",
+      "emailPlaceholder": "ornek@email.com",
+      "password": "Şifre",
+      "passwordPlaceholder": "Şifrenizi girin",
+      "confirmPassword": "Şifre Tekrar",
+      "confirmPasswordPlaceholder": "Şifrenizi tekrar girin",
+      "terms": "Kullanım şartlarını ve gizlilik politikasını kabul ediyorum",
+      "termsPrefix": "Kabul ediyorum: ",
+      "termsLink": "Kullanım Koşulları",
+      "termsAnd": " ve ",
+      "privacyLink": "Gizlilik Politikası",
+      "button": "Kayıt Ol",
+      "hasAccount": "Zaten hesabınız var mı?",
+      "signIn": "Giriş Yap",
+      "success": "Kayıt başarılı!",
+      "errors": {
+        "title": "Kayıt Hatası",
+        "nameRequired": "Ad soyad gereklidir",
+        "nameMinLength": "Ad soyad en az 2 karakter olmalıdır",
+        "emailRequired": "E-posta adresi gereklidir",
+        "emailInvalid": "Geçerli bir e-posta adresi girin",
+        "passwordRequired": "Şifre gereklidir",
+        "passwordMinLength": "Şifre en az 6 karakter olmalıdır",
+        "confirmPasswordRequired": "Şifre tekrarı gereklidir",
+        "passwordsNotMatch": "Şifreler eşleşmiyor",
+        "termsRequired": "Kullanım şartlarını kabul etmelisiniz",
+        "emailExists": "Bu e-posta adresi zaten kullanılıyor",
+        "generic": "Kayıt olurken bir hata oluştu"
+      }
+    }
+  },
+  "home": {
+    "greeting": "Merhaba",
+    "greetingGuest": "Hoş Geldiniz",
+    "myModules": "Modüllerim",
+    "recentActivity": "Son İşlemler",
+    "noActivity": "Henüz işlem geçmişiniz yok",
+    "startUsing": "Modüllerden birini kullanmaya başlayın",
+    "viewAll": "Tümünü Gör",
+    "tokens": "Token",
+    "otherTools": "Diğer Araçlar",
+    "tagline": "Matematik çöz, sınavlarına çalış.",
+    "dailyLogin": {
+      "title": "Günlük Ödül",
+      "description": "Her gün giriş yaparak {{tokens}} token kazanın!",
+      "claimed": "Ödül Alındı",
+      "claimedDescription": "Bugünkü ödülünüzü aldınız. Yarın tekrar gelin!",
+      "streak": "{{count}} günlük seri",
+      "success": "Günlük ödülünüzü aldınız!",
+      "error": "Ödül alınırken bir hata oluştu"
+    },
+    "activity": {
+      "justNow": "Az önce",
+      "minutesAgo": "dakika önce",
+      "hoursAgo": "saat önce",
+      "yesterday": "Dün",
+      "daysAgo": "gün önce",
+      "chatActivity": "Sohbet",
+      "mathProblem": "Matematik problemi",
+      "exam": "Sınav",
+      "correctShort": "doğru",
+      "activity": "Aktivite",
+      "detail": {
+        "title": "Aktivite Detayı",
+        "problem": "Problem",
+        "solution": "Çözüm",
+        "description": "Açıklama",
+        "notFound": "Aktivite bulunamadı",
+        "examScore": "Sınav Sonucu",
+        "correctShort": "doğru",
+        "report": "Rapor",
+        "correctAnswer": "Doğru",
+        "yourAnswer": "Senin cevabın"
+      },
+      "details": {
+        "title": "Aktivite Detayı",
+        "problem": "Problem",
+        "solution": "Çözüm",
+        "description": "Açıklama",
+        "notFound": "Aktivite bulunamadı",
+        "examScore": "Sınav Sonucu",
+        "correctShort": "doğru",
+        "report": "Rapor",
+        "correctAnswer": "Doğru",
+        "yourAnswer": "Senin cevabın"
+      },
+      "clear": {
+        "all": "Tümünü Sil",
+        "title": "Tüm Aktivite Geçmişini Sil",
+        "message": "Tüm aktivite geçmişiniz silinecek. Bu işlem geri alınamaz. Devam etmek istiyor musunuz?",
+        "confirm": "Sil",
+        "success": "Tüm aktivite geçmişi silindi",
+        "error": "Aktivite geçmişi silinirken bir hata oluştu"
+      },
+      "delete": {
+        "title": "Aktiviteyi Sil",
+        "message": "Bu aktiviteyi silmek istediğinizden emin misiniz?",
+        "confirm": "Sil",
+        "success": "Aktivite silindi",
+        "error": "Aktivite silinirken bir hata oluştu"
+      }
+    }
+  },
+  "modules": {
+    "locked": "Giriş yapın",
+    "chat": {
+      "title": "AI Sohbet",
+      "description": "AI asistanınızla konuşun",
+      "tokenCost": "token"
+    },
+    "math": {
+      "title": "Matematik",
+      "description": "Adım adım çözümler",
+      "tokenCost": "token"
+    },
+    "calculator": {
+      "title": "Hesap Makinesi",
+      "description": "Gelişmiş hesaplamalar",
+      "tokenCost": "Ücretsiz"
+    },
+    "examLab": {
+      "title": "Sınav Kampı",
+      "description": "Konu odaklı sınav hazırlığı",
+      "tokenCost": "token"
+    }
+  },
+  "examLab": {
+    "info": {
+      "title": "Nasıl Kullanılır?",
+      "content": "Konu adını yazın (en fazla 3 kelime) ya da popüler konulardan birini seçin. İsterseniz ders notunuzun fotoğrafını yükleyin, AI konuyu otomatik tespit eder.\n\nSınav modunda soru sayısını (5, 10 veya 15) ve zorluk seviyesini (Kolay / Orta / Zor) ayarlayın. Sınavı bitirince her sorunun doğru cevabını ve açıklamasını görebilirsiniz.\n\nEzber Kartları modunda AI, konuyu soru-cevap kartlarına dönüştürür. Karta tıklayarak cevabı görebilir, kartlar arasında geçiş yapabilirsiniz."
+    },
+    "popularTopics": "Popüler Konular",
+    "popularTopicsItems": [
+      "Türev",
+      "Limit",
+      "Denklemler",
+      "Temel Matematik",
+      "İntegral",
+      "Fonksiyonlar"
+    ],
+    "customTopic": {
+      "title": "Konu Gir",
+      "placeholder": "Konu (max 3 kelime)",
+      "wordLimit": "Kelime sınırı aşıldı",
+      "wordLimitMessage": "Konular en fazla 3 kelime olabilir."
+    },
+    "input": {
+      "topic": "Konu Gir",
+      "gallery": "Galeri",
+      "camera": "Kamera"
+    },
+    "difficulty": "Zorluk",
+    "difficultyOptions": {
+      "easy": "Kolay",
+      "medium": "Orta",
+      "hard": "Zor"
+    },
+    "questionCount": "Soru Adedi",
+    "createExam": "Sınavı Oluştur",
+    "photoTopicDetected": "Konu fotoğraftan tespit edilecek.",
+    "photoCapture": {
+      "title": "Soru Fotoğrafı Çek",
+      "buttonTitle": "Bir Soru Fotoğrafı Çek",
+      "description": "Kitabındaki bir soruyu çek, AI benzer sorularla sana özel bir sınav hazırlasın.",
+      "placeholder": "Bir soru fotoğrafı çekin"
+    },
+    "aiRecommendation": {
+      "title": "AI Önerisi",
+      "description": "Benim için rastgele bir sınav hazırla."
+    },
+    "loading": "Sınav hazırlanıyor...",
+    "exam": "Sınav",
+    "question": "Soru",
+    "correct": "Doğru! 🎉",
+    "correctSubtext": "Harika iş çıkardın!",
+    "incorrect": "Yanlış! ❌",
+    "whyWrong": "Neden Yanlış?",
+    "solveWithAI": "AI'a Çözdür",
+    "solving": "Çözülüyor...",
+    "aiSolution": "AI Çözümü",
+    "answer": "Cevap",
+    "steps": "Çözüm Adımları",
+    "exitConfirmTitle": "Sınavdan çık",
+    "exitConfirmMessage": "Sınavdan çıkmak istediğinize emin misiniz?",
+    "exitConfirmLeave": "Kaydetmeden Çık",
+    "exitSaveAndLeave": "Kaydet ve Çık",
+    "report": {
+      "title": "Sınav Raporu",
+      "excellent": "Mükemmel! 🎉",
+      "good": "İyi! 👍",
+      "needsImprovement": "Daha fazla çalışmalısın 💪",
+      "correct": "Doğru",
+      "incorrect": "Yanlış",
+      "unanswered": "Cevaplanmadı",
+      "total": "Toplam",
+      "close": "Kapat",
+      "newExam": "Yeni Sınav",
+      "askAI": "Yanlışları AI ile Çöz",
+      "weakTopics": "Konu Analizi",
+      "weakTopicsEmpty": "Tüm sorular doğru!",
+      "topicScore": "{{correct}}/{{total}} doğru",
+      "wrongAnswers": "Yanlış Cevaplar",
+      "yourAnswer": "Senin cevabın",
+      "correctAnswer": "Doğru cevap",
+      "explainWithAI": "AI ile Açıkla",
+      "hideExplanation": "Açıklamayı Gizle",
+      "explaining": "Açıklanıyor...",
+      "explainFailed": "Açıklama alınamadı, tekrar dene"
+    },
+    "resume": {
+      "title": "Kaldığın Yerden Devam Et",
+      "progress": "{{answered}}/{{total}} cevaplandı"
+    },
+    "flashcard": {
+      "title": "Ezber Kartı Üret",
+      "button": "Ezber Kartı Oluştur",
+      "loading": "Kartlar hazırlanıyor...",
+      "emptyTopic": "Konu veya fotoğraf gerekli",
+      "emptyTopicMessage": "Lütfen konu girin veya fotoğraf ekleyin.",
+      "front": "Soru",
+      "back": "Cevap",
+      "cardCount": "{{count}} kart",
+      "finish": "Tamamlandı",
+      "finishTitle": "Tebrikler! 🎉",
+      "finishMessage": "{{count}} kartı başarıyla tamamladın!",
+      "restartCards": "Tekrar Et",
+      "exitCards": "Çıkış",
+      "next": "Sonraki",
+      "previous": "Önceki",
+      "flip": "Çevir",
+      "mode": {
+        "exam": "Sınav",
+        "flashcard": "Ezber Kartları"
+      }
+    },
+    "explanation": "Açıklama:",
+    "previous": "Önceki",
+    "next": "Sonraki",
+    "finish": "Bitir",
+    "success": {
+      "title": "Başarılı",
+      "message": "Sınav hazırlandı!"
+    },
+    "errors": {
+      "insufficientTokens": "Yetersiz Token",
+      "insufficientTokensMessage": "Bu işlem için {{tokens}} token gerekiyor.",
+      "failed": "Hata",
+      "failedMessage": "Sınav oluşturulamadı.",
+      "photoFailed": "Hata",
+      "photoFailedMessage": "Fotoğraf işlenemedi.",
+      "emptyTopic": "Konu gerekli",
+      "emptyTopicMessage": "Lütfen bir konu girin.",
+      "noImage": "Fotoğraf gerekli",
+      "noImageMessage": "Lütfen bir soru fotoğrafı çekin.",
+      "galleryDenied": "Galeri izni gerekli",
+      "galleryDeniedMessage": "Galeri erişimi için izin vermeniz gerekiyor.",
+      "cameraDenied": "Kamera izni gerekli",
+      "cameraDeniedMessage": "Kamera erişimi için izin vermeniz gerekiyor.",
+      "solveFailed": "Çözüm Alınamadı",
+      "solveFailedMessage": "Soruyu çözerken bir hata oluştu."
+    }
+  },
+  "math": {
+    "info": {
+      "title": "Nasıl Kullanılır?",
+      "content": "Probleminizi yazın ya da fotoğraf çekin / galeriden seçin. AI cebir, geometri, kalkülüs ve daha pek çok konuyu çözebilir.\n\nHer çözüm; net cevap, numaralı adım adım açıklama ve sonucun doğrulamasını içerir."
+    },
+    "input": {
+      "text": "Yaz",
+      "gallery": "Galeri",
+      "camera": "Kamera"
+    },
+    "placeholder": "Matematik probleminizi yazın...",
+    "imagePlaceholder": "Galeriden seçin veya fotoğraf çekin",
+    "tapToLoadImage": "Görsel yüklemek için tıkla",
+    "tapToOpenCamera": "Kamerayı açmak için tıkla",
+    "solve": "Çöz",
+    "solution": "Çözüm",
+    "steps": "Adımlar",
+    "retry": "Tekrar Dene",
+    "clear": "Temizle",
+    "modeSolve": "Çöz",
+    "modeVerify": "Çalışmamı Doğrula",
+    "verify": {
+      "sectionLabel": "Benim Çözümüm",
+      "inputMethod": {
+        "text": "Yaz",
+        "gallery": "Galeri",
+        "camera": "Fotoğraf"
+      },
+      "placeholder": "Çözüm adımlarını buraya yaz...",
+      "tapToLoadImage": "Çözüm fotoğrafı yükle",
+      "tapToOpenCamera": "Çözüm fotoğrafı çek",
+      "checkButton": "Kontrol Et",
+      "result": {
+        "title": "Kontrol Sonucu",
+        "correct": "Doğru",
+        "wrong": "Yanlış",
+        "partial": "Kısmen Doğru",
+        "stepCheck": "Adım Kontrolü",
+        "error": "Hata",
+        "tip": "İpucu"
+      }
+    },
+    "topic": "Konu",
+    "related": {
+      "button": "Benzer Sorular Üret",
+      "loading": "Hazırlanıyor...",
+      "title": "Benzer Sorular",
+      "failed": "Benzer sorular üretilemedi, tekrar dene"
+    },
+    "stepsLocked": "{{count}} adım daha — Premium ile gör",
+    "permissions": {
+      "galleryDenied": "Galeri izni gerekli",
+      "galleryDeniedMessage": "Galeri erişimi için izin vermeniz gerekiyor.",
+      "cameraDenied": "Kamera izni gerekli",
+      "cameraDeniedMessage": "Kamera erişimi için izin vermeniz gerekiyor."
+    },
+    "errors": {
+      "emptyProblem": "Problem gerekli",
+      "emptyProblemMessage": "Lütfen bir matematik problemi girin.",
+      "noImage": "Görsel gerekli",
+      "noImageMessage": "Lütfen bir görsel seçin.",
+      "insufficientTokens": "Yetersiz token.",
+      "solveFailed": "Problem çözülürken bir hata oluştu",
+      "emptySolution": "Çözüm gerekli",
+      "emptySolutionMessage": "Kendi çözümünü yaz veya fotoğrafını ekle.",
+      "noSolutionImage": "Çözüm görseli gerekli",
+      "noSolutionImageMessage": "Lütfen çözümünüzün fotoğrafını ekleyin."
+    }
+  },
+  "profile": {
+    "title": "Profil",
+    "logout": "Çıkış Yap",
+    "deleteAccount": {
+      "button": "Hesabı Sil",
+      "title": "Hesabı Sil",
+      "message": "Hesabınızı kalıcı olarak silmek istediğinizden emin misiniz? Bu işlem geri alınamaz ve tüm verileriniz silinecektir.",
+      "confirm": "Sil",
+      "error": "Hesabınız silinirken bir hata oluştu. Lütfen tekrar deneyin veya destek ekibiyle iletişime geçin."
+    },
+
+    "login": "Giriş Yap",
+    "account": "Hesap",
+    "notLoggedIn": "Giriş Yapılmamış",
+    "loginToContinue": "Devam etmek için giriş yapın",
+    "guest": "Misafir",
+    "premium": {
+      "title": "Premium",
+      "subtitle": "Sınırsız erişim ve özel özellikler",
+      "current": "Premium Üye",
+      "expires": "Bitiş Tarihi",
+      "expiresAt": "Bitiş",
+      "upgrade": "Premium'a Yükselt",
+      "upgradeToPremium": "Sınırsız kullanım için yükseltin",
+      "manage": "Aboneliği Yönet",
+      "status": "Premium Durumu",
+      "active": "Aktif",
+      "inactive": "Pasif",
+      "freePlan": "Ücretsiz Plan",
+      "premiumPlan": "Premium Plan",
+      "dailyLimitedUsage": "Günlük sınırlı kullanım",
+      "perDay": "/gün",
+      "unlimited": "Sınırsız",
+      "features": {
+        "title": "Özellikler",
+        "aiChat": "AI Sohbet",
+        "math": "Matematik",
+        "examLab": "Sınav Kampı",
+        "prioritySupport": "Öncelikli Destek",
+        "adFree": "Reklamsız",
+        "unlimited": "Sınırsız Token",
+        "priority": "Öncelikli Destek",
+        "bonus": "%20 Bonus Token"
+      },
+      "purchase": {
+        "title": "Premium'a Yükselt",
+        "monthly": "Aylık",
+        "price": "₺{price}/ay",
+        "buy": "Satın Al",
+        "restore": "Satın Alımları Geri Yükle",
+        "success": "Premium başarıyla aktif edildi!",
+        "error": "Satın alma işlemi başarısız oldu"
+      },
+      "heroActiveTitle": "Premium Aktif",
+      "heroInactiveTitle": "Limitlerini kaldır",
+      "heroInactiveSubtitle2": "Her gün sınıra takılan kullanıcılar için.",
+      "heroActiveSubtitle": "Tüm özellikler açık",
+      "heroInactiveSubtitle": "Tüm özellikleri sınırsız kullan",
+      "socialProof": "Binlerce öğrenci zaten kullanıyor",
+      "ctaFree": "7 Gün Ücretsiz Dene",
+      "ctaFreeSubtext": "Sonra {price}/ay · İstediğin zaman iptal",
+      "perWeek": "haftaya",
+      "savePercent": "%{percent} tasarruf",
+      "heroExpiresSubtitle": "{date} tarihine kadar",
+      "activeBadge": "Aktif ✓",
+      "featuresCardTitle": "Premium Avantajları",
+      "activeCardText": "Premium aktif — tüm özellikler açık",
+      "legalText": "Abonelik otomatik olarak yenilenir. İptal etmek için App Store → Abonelikler bölümünü kullanın.",
+      "processing": "İşleniyor...",
+      "perMonth": "ay",
+      "ctaWithPrice": "{price} / ay  —  Premium'a Geç",
+      "restoring": "Geri yükleniyor...",
+      "featureUnlimitedChat": "Sınırsız AI Sohbet",
+      "featureUnlimitedChatDesc": "Chat, not ve metin araçlarını dilediğin kadar kullan",
+      "featureUnlimitedMath": "Sınırsız AI Araçları",
+      "featureUnlimitedMathDesc": "Matematik, sınav kampı ve tüm modüller açık",
+      "featureNoAds": "Reklamsız Deneyim",
+      "featureNoAdsDesc": "Hiç reklam yok, kesintisiz odaklan",
+      "featureUnlimitedExam": "Sınırsız Sınav Laboratuvarı",
+      "featurePrioritySupport": "Öncelikli Destek",
+      "loadError": "Premium paketleri yüklenemedi. Lütfen tekrar deneyin.",
+      "purchaseSuccess": "🎉 Premium Aktif!",
+      "purchaseSuccessMessage": "Sınırsız erişim şimdi aktif. Keyifli kullanımlar!",
+      "great": "Harika!",
+      "restored": "✅ Geri Yüklendi",
+      "restoredMessage": "Premium aboneliğiniz geri yüklendi.",
+      "noActiveSubscription": "Aktif bir abonelik bulunamadı.",
+      "restoreError": "Geri yükleme başarısız oldu.",
+      "purchaseError": "Satın alma başarısız oldu.",
+      "cancelAnytime": "İstediğiniz zaman iptal",
+      "noCommitment": "Taahhüt yok",
+      "cancelSubscription": "Aboneliği İptal Et",
+      "cancelTitle": "Aboneliği İptal Et",
+      "cancelMessage": "İptal için App Store → Abonelikler sayfasına yönlendirileceksiniz.",
+      "cancelConfirm": "App Store'a Git",
+      "nextRenewal": "Sonraki yenileme tarihi",
+      "ctaButton": "Premium'a Geç",
+      "trustSecure": "Güvenli Ödeme",
+      "trustCancel": "İstediğinde İptal",
+      "trustSafe": "Gizlilik Korumalı"
+    },
+    "verification": {
+      "label": "E-posta doğrulama",
+      "verified": "Doğrulandı",
+      "pending": "Beklemede",
+      "sendButton": "Doğrulama e-postası gönder",
+      "sending": "Gönderiliyor...",
+      "sent": "E-posta gönderildi",
+      "sentMessage": "Gelen kutunuzu kontrol edin. Linke tıklayarak e-postanızı doğrulayın.",
+      "error": "Gönderilemedi",
+      "errorMessage": "E-posta gönderilirken bir hata oluştu. Lütfen tekrar deneyin."
+    },
+    "settings": {
+      "title": "Ayarlar",
+      "language": "Dil",
+      "languageTr": "Türkçe",
+      "languageEn": "English",
+      "theme": "Tema",
+      "notifications": "Bildirimler",
+      "privacy": "Gizlilik",
+      "about": "Hakkında",
+      "help": "Yardım & Destek",
+      "editProfile": "Profili Düzenle",
+      "earnTokens": "Token Kazan",
+      "feedback": "Geri Bildirim",
+      "rateUs": "Bizi Değerlendir",
+      "categories": {
+        "account": "Hesap",
+        "preferences": "Tercihler",
+        "tokens": "Token",
+        "support": "Destek"
+      }
+    },
+    "selectAvatar": "Avatar Seç",
+    "edit": {
+      "title": "Profili Düzenle",
+      "save": "Kaydet",
+      "changeAvatar": "Avatar Seç",
+      "changePassword": "Şifre Değiştir",
+      "changePasswordComingSoon": "Şifre değiştirme özelliği yakında eklenecek",
+      "success": "Profil başarıyla güncellendi",
+      "loginRequired": "Profil düzenlemek için giriş yapmanız gerekiyor",
+      "emailNotEditable": "E-posta adresi değiştirilemez.",
+      "fields": {
+        "name": "Ad Soyad",
+        "email": "E-posta",
+        "phone": "Telefon"
+      },
+      "placeholders": {
+        "name": "Adınızı girin",
+        "email": "E-posta adresiniz",
+        "phone": "Telefon numaranız"
+      },
+      "errors": {
+        "nameRequired": "Ad soyad gereklidir",
+        "emailRequired": "E-posta gereklidir",
+        "emailInvalid": "Geçerli bir e-posta adresi girin",
+        "userNotFound": "Kullanıcı bulunamadı",
+        "updateFailed": "Profil güncellenirken bir hata oluştu",
+        "avatarUpdateFailed": "Profil güncellendi ancak avatar güncellenemedi"
+      },
+      "password": {
+        "title": "Şifre Değiştir",
+        "save": "Şifreyi Güncelle",
+        "warning": "Şifrenizi değiştirmek için önce mevcut şifrenizi doğrulamanız gerekiyor.",
+        "success": "Şifre başarıyla güncellendi",
+        "fields": {
+          "current": "Mevcut Şifre",
+          "new": "Yeni Şifre",
+          "confirm": "Yeni Şifre Tekrar"
+        },
+        "placeholders": {
+          "current": "Mevcut şifrenizi girin",
+          "new": "Yeni şifrenizi girin",
+          "confirm": "Yeni şifrenizi tekrar girin"
+        },
+        "errors": {
+          "currentRequired": "Mevcut şifre gereklidir",
+          "currentInvalid": "Mevcut şifre hatalı",
+          "newRequired": "Yeni şifre gereklidir",
+          "confirmRequired": "Şifre tekrarı gereklidir",
+          "passwordsDontMatch": "Şifreler eşleşmiyor",
+          "updateFailed": "Şifre güncellenirken bir hata oluştu"
+        }
+      }
+    },
+    "privacy": {
+      "title": "Gizlilik",
+      "policy": "Yürürlük: 4 Mart 2026\n\nQuorax; hesap bilgilerini (ad, e-posta), uygulama kullanım verilerini, AI modüllerine gönderdiğiniz içerikleri ve abonelik/ödeme verilerini toplar (ödemeler Apple/Google tarafından işlenir — kart bilgileriniz tarafımızca saklanmaz).\n\nVerileriniz hizmet sunumu, uygulama iyileştirme ve dolandırıcılık önleme amacıyla kullanılır. Kişisel verileriniz satılmaz.\n\nÜçüncü taraf sağlayıcılar: Anthropic (Claude AI — verilerinizi model eğitiminde kullanmaz), Supabase, RevenueCat, Google AdMob, Apple/Google.\n\nVerilerinize erişme, düzeltme, silme, taşıma ve rızayı geri çekme hakkına sahipsiniz. İletişim: privacy@quorax.app\n\nTam Gizlilik Politikası için: Profil > Gizlilik Politikası.",
+      "sections": {
+        "controls": "Gizlilik Kontrolleri",
+        "dataCollection": "Veri Toplama",
+        "rights": "Kullanıcı Hakları"
+      },
+      "controls": {
+        "dataSaving": {
+          "title": "Veri Tasarrufu",
+          "description": "Daha az veri kullanarak AI yanıtları alma"
+        },
+        "saveHistory": {
+          "title": "Geçmiş Kaydetme",
+          "description": "Sohbet ve etkinlik geçmişinizi saklama"
+        },
+        "anonymousAnalytics": {
+          "title": "Anonim Analitik",
+          "description": "Uygulamayı geliştirmek için anonim veriler"
+        },
+        "personalizedContent": {
+          "title": "Kişiselleştirilmiş İçerik",
+          "description": "İlgi alanlarınıza göre öneriler alma"
+        },
+        "thirdPartySharing": {
+          "title": "Üçüncü Taraf Paylaşımı",
+          "description": "Anonim verilerin araştırma ortaklarıyla paylaşımı"
+        },
+        "locationTracking": {
+          "title": "Konum İzleme",
+          "description": "Konuma dayalı özelliklerin etkinleştirilmesi"
+        }
+      },
+      "collected": {
+        "title": "Toplanan Veriler",
+        "description": "Uygulamamız aşağıdaki verileri toplar:",
+        "account": "Hesap bilgileri (e-posta, isim)",
+        "history": "Kullanım geçmişi ve etkinlikler",
+        "device": "Cihaz bilgileri ve teknik veriler",
+        "location": "Konum verileri (izin verildiğinde)"
+      },
+      "usage": {
+        "title": "Veri Kullanımı",
+        "description": "Toplanan veriler şu amaçlarla kullanılır:",
+        "improve": "Uygulama performansını iyileştirme",
+        "personalize": "Kişiselleştirilmiş deneyim sunma",
+        "security": "Güvenlik ve dolandırıcılık önleme",
+        "support": "Müşteri desteği sağlama"
+      },
+      "securityInfo": "Tüm verileriniz şifrelenmiş bağlantılar üzerinden aktarılır ve güvenli sunucularda saklanır.",
+      "userRights": {
+        "title": "Kullanıcı Haklarınız",
+        "description": "GDPR ve diğer veri koruma yasalarına göre haklarınız:",
+        "access": "Verilerinize erişim hakkı",
+        "rectify": "Yanlış verileri düzeltme hakkı",
+        "delete": "Verilerinizi silme hakkı",
+        "object": "Veri işlemeye itiraz etme hakkı"
+      },
+      "contact": {
+        "title": "İletişim",
+        "email": "privacy@quorax.com",
+        "alert": "E-posta uygulaması açılacak..."
+      }
+    },
+    "help": {
+      "title": "Yardım & Destek",
+      "howCanHelp": "Size Nasıl Yardımcı Olabiliriz?",
+      "helpDescription": "Sorularınız mı var? Size yardımcı olmaktan mutluluk duyarız. Aşağıdaki SSS'leri inceleyebilir veya doğrudan destek talebi oluşturabilirsiniz.",
+      "sendTicket": "Destek Talebi Oluştur",
+      "cancel": "İptal",
+      "faq": "Sık Sorulan Sorular",
+      "noFaqTitle": "Henüz SSS yok",
+      "noFaqSubtitle": "Yakında SSS'ler eklenecek",
+      "ticketsHistory": "Destek Taleplerim",
+      "noTickets": "Henüz destek talebiniz yok",
+      "noTicketsSubtitle": "Yukarıdaki butona tıklayarak destek talebi oluşturabilirsiniz",
+      "subject": "Konu",
+      "subjectPlaceholder": "Sorununuzun konusu...",
+      "message": "Mesajınız",
+      "messagePlaceholder": "Sorununuzu detaylı olarak açıklayın...",
+      "priority": "Öncelik",
+      "priorityLow": "Düşük",
+      "priorityMedium": "Orta",
+      "priorityHigh": "Yüksek",
+      "send": "Gönder",
+      "helperText": "Destek talebiniz oluşturulduktan sonra en kısa sürede size dönüş yapacağız.",
+      "success": {
+        "title": "Başarılı",
+        "message": "Destek talebiniz başarıyla oluşturuldu. En kısa sürede size dönüş yapacağız."
+      },
+      "errors": {
+        "subjectRequired": "Konu gerekli",
+        "subjectMinLength": "Konu en az 5 karakter olmalı",
+        "messageRequired": "Mesaj gerekli",
+        "messageMinLength": "Mesaj en az 20 karakter olmalı",
+        "sendError": "Destek talebi oluşturulurken bir hata oluştu"
+      },
+      "faqList": [
+        {
+          "id": "1",
+          "question": "Token'ları nasıl kazanabilirim?",
+          "answer": "Token kazanmak için günlük giriş yapabilir, reklam izleyebilir veya geri bildirim verebilirsiniz. Profil > Token Kazan sayfasından tüm seçenekleri görebilirsiniz."
+        },
+        {
+          "id": "2",
+          "question": "Premium üyelik nedir?",
+          "answer": "Premium üyelik ile sınırsız token ve reklamsız deneyim alabilirsiniz. Detaylar için Profil > Premium sayfasını ziyaret edin."
+        },
+        {
+          "id": "3",
+          "question": "Hesabımı nasıl silebilirim?",
+          "answer": "Hesabınızı silmek için Profil > Profili Düzenle sayfasına gidin ve 'Hesabı Sil' seçeneğini kullanın. Bu işlem geri alınamaz."
+        }
+      ]
+    },
+    "feedback": {
+      "title": "Geri Bildirim",
+      "rating": "Uygulamayı Değerlendir",
+      "type": "Geri Bildirim Tipi",
+      "subject": "Konu",
+      "subjectPlaceholder": "Geri bildirim konusu...",
+      "message": "Detaylar",
+      "messagePlaceholder": "Geri bildiriminizi detaylı olarak yazın...",
+      "submit": "Gönder",
+      "helperText": "Geri bildiriminiz bizim için çok değerli!",
+      "promiseTitle": "Her geri bildirimi özenle okuyoruz",
+      "promiseText": "Sorunlarınız ve önerileriniz ekibimize iletilir, en kısa sürede çözüm üretiriz. Şikayetleriniz hiçbir zaman App Store'a ulaşmadan bizimle kalır.",
+      "ratings": {
+        "excellent": "Mükemmel",
+        "good": "İyi",
+        "average": "Orta",
+        "poor": "Kötü",
+        "veryPoor": "Çok Kötü"
+      },
+      "types": {
+        "bug": "Hata/Bug",
+        "suggestion": "Öneri",
+        "improvement": "İyileştirme",
+        "other": "Diğer"
+      },
+      "success": {
+        "message": "Geri bildiriminiz için teşekkürler!"
+      },
+      "errors": {
+        "subjectRequired": "Konu gereklidir",
+        "subjectMinLength": "Konu en az 5 karakter olmalıdır",
+        "messageRequired": "Mesaj gereklidir",
+        "messageMinLength": "Mesaj en az 20 karakter olmalıdır",
+        "typeRequired": "Geri bildirim tipi seçilmelidir",
+        "sendError": "Geri bildirim gönderilirken bir hata oluştu",
+        "userNotFound": "Kullanıcı bulunamadı",
+        "loginRequired": "Geri bildirim göndermek için giriş yapmanız gerekiyor"
+      }
+    },
+    "rate": {
+      "title": "Bizi Değerlendir",
+      "header": {
+        "title": "Uygulamayı Beğendiniz mi?",
+        "subtitle": "Deneyiminizi değerlendirin ve App Store'da bizi değerlendirin"
+      },
+      "selectRating": "Değerlendirme Seçin",
+      "button": "Değerlendir",
+      "info": "Yüksek değerlendirmeler bize çok yardımcı olur!",
+      "ratings": {
+        "excellent": "Mükemmel",
+        "good": "İyi",
+        "average": "Orta",
+        "poor": "Kötü",
+        "veryPoor": "Çok Kötü"
+      },
+      "lowRating": {
+        "title": "Geri Bildirim İster misiniz?",
+        "message": "Deneyiminizi iyileştirmemize yardımcı olmak için geri bildirim verebilir misiniz?",
+        "giveFeedback": "Geri Bildirim Ver"
+      },
+      "success": {
+        "thankYou": "Teşekkür ederiz! Değerlendirmeniz bizim için çok değerli."
+      },
+      "errors": {
+        "selectRating": "Lütfen bir değerlendirme seçin",
+        "cannotOpenStore": "Mağaza açılamadı",
+        "openStoreFailed": "Mağaza açılırken bir hata oluştu"
+      }
+    },
+    "earnTokens": {
+      "title": "Token Kazan",
+      "totalTokens": "Toplam Token",
+      "streak": "gün seri",
+      "dailyMissions": "Günlük Görevler",
+      "weeklyMissions": "Haftalık Görevler",
+      "claimReward": "Ödülü Al",
+      "watchAd": "Reklam İzle",
+      "adNotAvailable": "Reklam özelliği yakında eklenecek",
+      "howItWorks": {
+        "title": "Token Nasıl Çalışır?",
+        "description": "Token'larınızı AI modüllerinde kullanabilirsiniz. Her işlem belirli miktarda token gerektirir."
+      },
+      "missions": {
+        "dailyLogin": {
+          "title": "Günlük Giriş",
+          "description": "Her gün uygulamaya giriş yap"
+        },
+        "watchVideo": {
+          "title": "Reklam İzle",
+          "description": "Günde 5 reklam izleyerek token kazan"
+        },
+        "feedback": {
+          "title": "Geri Bildirim Ver",
+          "description": "Deneyimini değerlendir"
+        }
+      },
+      "alerts": {
+        "completed": "Tamamlandı",
+        "completedMessage": "Bu görevi zaten tamamladınız!",
+        "limitReached": "Limit Doldu",
+        "limitReachedMessage": "Bugün 5 reklam izlediniz. Yarın tekrar deneyin.",
+        "error": "Hata",
+        "errorMessage": "Ödül alınırken bir hata oluştu",
+        "adTimeout": "Reklam zaman aşımı",
+        "adTimeoutMessage": "Reklam yüklenemedi. Lütfen tekrar deneyin.",
+        "adNotReady": "Reklam hazır değil. Lütfen bekleyin."
+      },
+      "success": {
+        "message": "Token kazandınız!"
+      },
+      "feedback": {
+        "giveFeedback": "Geri Bildirim Ver"
+      }
+    },
+    "terms": {
+      "title": "Kullanım Koşulları",
+      "menuLabel": "Kullanım Koşulları"
+    }
+  },
+  "settings": {
+    "title": "Ayarlar",
+    "language": "Dil",
+    "theme": "Tema",
+    "darkMode": "Karanlık Mod",
+    "lightMode": "Aydınlık Mod",
+    "systemMode": "Sistem"
+  },
+  "onboarding": {
+    "slide1": {
+      "title": "Quorax'a Hoş Geldin",
+      "description": "Yapay zeka ile öğrenmek artık çok daha kolay. Sınava hazırlan, matematik çöz, soru sor."
+    },
+    "slide2": {
+      "title": "AI Sohbet Asistanı",
+      "description": "Her konuda akıllı asistanınla sohbet et. Ödevlerini açıkla, kavramları anla, sorularını yanıtla."
+    },
+    "slide3": {
+      "title": "Matematik Çözücü",
+      "description": "Problemini yaz veya fotoğrafla. Cebir, geometri, kalkülüs — adım adım açıklamalı çözüm."
+    },
+    "slide4": {
+      "title": "Sınav Kampı",
+      "description": "İstediğin konuda test oluştur. Zorluk seviyesi, soru sayısı, hatta ders fotoğrafından bile."
+    },
+    "buttons": {
+      "skip": "Atla",
+      "next": "İleri",
+      "signIn": "Giriş Yap",
+      "createAccount": "Hesap Oluştur",
+      "continueAsGuest": "Misafir olarak devam et"
+    },
+    "aiConsentTitle": "Yapay Zeka Veri İşleme Onayı",
+    "aiConsentBody": "Quorax, özelliklerini sunmak için Anthropic'in Claude yapay zekasını kullanmaktadır. Bu hizmetleri sağlamak amacıyla aşağıdaki veriler Anthropic'e gönderilebilir:\n\n• Mesajlarınız ve sohbet geçmişiniz\n• Düzenleme veya not oluşturma için gönderdiğiniz metinler\n• Matematik problemleri (fotoğraflar dahil)\n• Analiz için yüklediğiniz görseller\n\nBu veriler Anthropic, Inc. (anthropic.com) şirketine gönderilir ve onların gizlilik politikasına göre işlenir. Verileriniz satılmaz veya onay olmadan yapay zeka eğitiminde kullanılmaz.",
+    "aiConsentCheckbox": "Yukarıda açıklandığı şekilde verilerimin Anthropic (Claude AI) tarafından işlenebileceğini anlıyor ve kabul ediyorum.",
+    "aiConsentRequired": "Devam etmek için yapay zeka veri işleme onayını kabul etmelisiniz.",
+    "aiConsentAcceptButton": "Kabul Ediyorum",
+    "aiConsent": "Devam ederek, girişlerinizin Anthropic (Claude AI) tarafından işlenebileceğini kabul etmiş olursunuz.",
+    "privacyPolicy": "Gizlilik Politikası",
+    "termsOfService": "Kullanım Koşulları",
+    "andText": "ve"
+  },
+  "chat": {
+    "newChatStarted": "Yeni sohbet başlatıldı",
+    "empty": {
+      "title": "Henüz sohbet yok",
+      "description": "Yeni bir sohbet başlatmak için aşağıdaki butona tıklayın",
+      "message": "Henüz mesaj yok. İlk mesajınızı gönderin!"
+    },
+    "newChat": "Yeni Sohbet",
+    "newChatModal": {
+      "title": "Yeni Sohbet Oluştur",
+      "titleLabel": "Sohbet Başlığı",
+      "titlePlaceholder": "Sohbet başlığını girin...",
+      "colorLabel": "Renk Seç",
+      "create": "Oluştur"
+    },
+    "input": {
+      "placeholder": "Mesajınızı yazın..."
+    },
+    "typing": "Düşünüyor...",
+    "delete": {
+      "title": "Sohbeti Sil",
+      "message": "\"{{title}}\" sohbetini silmek istediğinizden emin misiniz? Bu işlem geri alınamaz.",
+      "success": "Sohbet başarıyla silindi",
+      "error": "Sohbet silinirken bir hata oluştu",
+      "activitiesDeleteWarning": "Sohbet silindi ancak ilgili aktivite kayıtları güncellenemedi."
+    },
+    "errors": {
+      "loadFailed": "Sohbetler yüklenirken bir hata oluştu",
+      "createFailed": "Sohbet oluşturulurken bir hata oluştu",
+      "loadChatFailed": "Sohbet bilgileri yüklenirken bir hata oluştu",
+      "loadMessagesFailed": "Mesajlar yüklenirken bir hata oluştu",
+      "sendFailed": "Mesaj gönderilirken bir hata oluştu",
+      "insufficientTokens": "Yetersiz token.",
+      "aiFailed": "AI yanıtı alınamadı. Lütfen tekrar deneyin."
+    }
+  },
+  "premium": {
+    "limitReached": "Günlük Limitiniz Doldu",
+    "usageToday": "{{module}} için bugün {{used}}/{{limit}} kullanıldı",
+    "upgradeMessage": "Premium'a geçin ve sınırsız kullanımın keyfini çıkarın!",
+    "upgradeToPremium": "Premium'a Geç",
+    "freeUsageBanner": {
+      "remaining": "Bugün {{remaining}}/{{limit}} hakkın var",
+      "limitReached": "Bugün {{used}}/{{limit}} kullandın. Hakkın bitti.",
+      "upgradeCta": "Premium al, sınırsız kullan",
+      "premiumHint": "Premium ile sınırsız kullanım",
+      "infoCta": "Günlük kullanım hakkı bilgisi",
+      "limitReachedCta": "Hakkın bitti, Premium'a geç"
+    },
+    "features": {
+      "unlimited": "Sınırsız kullanım",
+      "priority": "Öncelikli destek",
+      "noAds": "Reklamsız deneyim"
+    }
+  },
+  "rating": {
+    "title": "Quorax'ı beğeniyor musun?",
+    "subtitle": "Deneyimini paylaşmak bize çok yardımcı olur. Sadece 1 dakikanı alır!",
+    "yes": "Evet, seviyorum!",
+    "no": "Hayır, sorunum var",
+    "skip": "Şimdi değil",
+    "feedbackTitle": "Neler geliştirebiliriz?",
+    "feedbackSubtitle": "Sorununu veya önerini yaz, ekibimiz en kısa sürede ilgilenecek.",
+    "feedbackPromise": "Her geri bildirimi özenle okuyoruz. Sorunların çözümü bizim için öncelik.",
+    "feedbackPlaceholder": "Deneyimini bizimle paylaş...",
+    "feedbackSend": "Gönder",
+    "thanksTitle": "Teşekkürler!",
+    "thanksSubtitle": "Geri bildirimin için sağ ol. Quorax'ı daha iyi yapmak için çalışıyoruz."
+  },
+  "aiLoading": {
+    "hint": "Bu birkaç saniye sürebilir",
+    "flashcard": {
+      "0": "Konu analiz ediliyor",
+      "1": "Sorular hazırlanıyor",
+      "2": "Cevaplar düzenleniyor",
+      "3": "Kartlar oluşturuluyor"
+    },
+    "math": {
+      "0": "Problem inceleniyor",
+      "1": "Adımlar hesaplanıyor",
+      "2": "Çözüm hazırlanıyor"
+    },
+    "exam": {
+      "0": "Konu taranıyor",
+      "1": "Sorular üretiliyor",
+      "2": "Sınav hazırlanıyor"
+    },
+    "image": {
+      "0": "Görsel analiz ediliyor",
+      "1": "İçerik tanımlanıyor",
+      "2": "Sonuç hazırlanıyor"
+    },
+    "text": {
+      "0": "Metin işleniyor",
+      "1": "Sonuç hazırlanıyor"
+    },
+    "chat": {
+      "0": "Düşünüyor",
+      "1": "Yanıt hazırlanıyor"
+    }
+  }
+}

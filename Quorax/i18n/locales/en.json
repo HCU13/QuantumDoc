@@ -1,0 +1,985 @@
+{
+  "common": {
+    "loading": "Loading...",
+    "error": "An error occurred",
+    "success": "Success",
+    "save": "Save",
+    "cancel": "Cancel",
+    "delete": "Delete",
+    "edit": "Edit",
+    "back": "Back",
+    "close": "Close",
+    "confirm": "Confirm",
+    "ok": "OK",
+    "yes": "Yes",
+    "no": "No",
+    "next": "Next",
+    "skip": "Skip",
+    "getStarted": "Get Started",
+    "info": "Info",
+    "warning": "Warning",
+    "login": "Sign In"
+  },
+  "ad": {},
+  "auth": {
+    "login": {
+      "title": "Sign In",
+      "welcome": "Welcome Back",
+      "subtitle": "Sign in to your account",
+      "email": "Email",
+      "emailPlaceholder": "example@email.com",
+      "password": "Password",
+      "passwordPlaceholder": "Enter your password",
+      "forgotPassword": "Forgot Password",
+      "forgotPasswordComingSoon": "Password reset feature coming soon",
+      "forgotPasswordEmailRequired": "Please enter your email address first.",
+      "forgotPasswordConfirm": "A password reset link will be sent to this email address. Send?",
+      "forgotPasswordEmailSent": "A password reset link has been sent to your email. Please check your inbox.",
+      "forgotPasswordError": "An error occurred while sending the password reset email.",
+      "forgotPasswordContactUs": "Please contact us to reset your password. You can create a support ticket via Profile > Help & Support.",
+      "resetPassword": {
+        "title": "Forgot Password",
+        "subtitle": "We'll send a 6-digit code to your email address",
+        "emailLabel": "Email Address",
+        "sendCode": "Send Code",
+        "sending": "Sending...",
+        "codeSent": "Code sent! Check your email.",
+        "otpLabel": "Verification Code",
+        "otpPlaceholder": "Enter 6-digit code",
+        "newPasswordLabel": "New Password",
+        "confirmPasswordLabel": "Confirm Password",
+        "updateButton": "Update Password",
+        "updating": "Updating...",
+        "successTitle": "Success!",
+        "successMessage": "Your password has been updated. You can now sign in.",
+        "resendCode": "Resend code",
+        "errors": {
+          "emailRequired": "Email address is required",
+          "emailInvalid": "Please enter a valid email address",
+          "otpRequired": "Verification code is required",
+          "otpInvalid": "Invalid code. Please try again.",
+          "otpExpired": "Code has expired. Please request a new one.",
+          "passwordRequired": "Password is required",
+          "passwordMinLength": "Password must be at least 6 characters",
+          "passwordsNotMatch": "Passwords do not match",
+          "sendFailed": "Failed to send code. Please try again.",
+          "updateFailed": "Failed to update password. Please try again."
+        }
+      },
+      "rememberMe": "Remember Me",
+      "button": "Sign In",
+      "noAccount": "Don't have an account?",
+      "signUp": "Sign Up",
+      "success": "Login successful!",
+      "errors": {
+        "title": "Login Error",
+        "emailRequired": "Email address is required",
+        "emailInvalid": "Please enter a valid email address",
+        "passwordRequired": "Password is required",
+        "passwordMinLength": "Password must be at least 6 characters",
+        "invalidCredentials": "Invalid email or password",
+        "generic": "An error occurred while signing in"
+      }
+    },
+    "register": {
+      "title": "Sign Up",
+      "welcome": "Create Account",
+      "subtitle": "Create your new account and get started",
+      "name": "Full Name",
+      "namePlaceholder": "Enter your name",
+      "email": "Email",
+      "emailPlaceholder": "example@email.com",
+      "password": "Password",
+      "passwordPlaceholder": "Enter your password",
+      "confirmPassword": "Confirm Password",
+      "confirmPasswordPlaceholder": "Re-enter your password",
+      "terms": "I agree to the Terms of Use and Privacy Policy",
+      "termsPrefix": "I accept the ",
+      "termsLink": "Terms of Service",
+      "termsAnd": " and ",
+      "privacyLink": "Privacy Policy",
+      "button": "Sign Up",
+      "hasAccount": "Already have an account?",
+      "signIn": "Sign In",
+      "success": "Registration successful!",
+      "errors": {
+        "title": "Registration Error",
+        "nameRequired": "Full name is required",
+        "nameMinLength": "Full name must be at least 2 characters",
+        "emailRequired": "Email address is required",
+        "emailInvalid": "Please enter a valid email address",
+        "passwordRequired": "Password is required",
+        "passwordMinLength": "Password must be at least 6 characters",
+        "confirmPasswordRequired": "Password confirmation is required",
+        "passwordsNotMatch": "Passwords do not match",
+        "termsRequired": "You must accept the terms and conditions",
+        "emailExists": "This email address is already in use",
+        "generic": "An error occurred while signing up"
+      }
+    }
+  },
+  "home": {
+    "greeting": "Hello",
+    "greetingGuest": "Welcome",
+    "myModules": "My Modules",
+    "recentActivity": "Recent Activity",
+    "noActivity": "No activity yet",
+    "startUsing": "Start using one of the modules",
+    "viewAll": "View All",
+    "tokens": "Tokens",
+    "otherTools": "Other Tools",
+    "tagline": "Solve math. Practice exams.",
+    "dailyLogin": {
+      "title": "Daily Reward",
+      "description": "Earn {{tokens}} tokens by logging in every day!",
+      "claimed": "Reward Claimed",
+      "claimedDescription": "You've claimed today's reward. Come back tomorrow!",
+      "streak": "{{count}} day streak",
+      "success": "You've claimed your daily reward!",
+      "error": "An error occurred while claiming the reward"
+    },
+    "activity": {
+      "justNow": "Just now",
+      "minutesAgo": "minutes ago",
+      "hoursAgo": "hours ago",
+      "yesterday": "Yesterday",
+      "daysAgo": "days ago",
+      "chatActivity": "Chat",
+      "mathProblem": "Math problem",
+      "exam": "Exam",
+      "correctShort": "correct",
+      "activity": "Activity",
+      "detail": {
+        "title": "Activity Detail",
+        "problem": "Problem",
+        "solution": "Solution",
+        "description": "Description",
+        "notFound": "Activity not found",
+        "examScore": "Exam Score",
+        "correctShort": "correct",
+        "report": "Report",
+        "correctAnswer": "Correct",
+        "yourAnswer": "Your answer"
+      },
+      "details": {
+        "title": "Activity Detail",
+        "problem": "Problem",
+        "solution": "Solution",
+        "description": "Description",
+        "notFound": "Activity not found",
+        "examScore": "Exam Score",
+        "correctShort": "correct",
+        "report": "Report",
+        "correctAnswer": "Correct",
+        "yourAnswer": "Your answer"
+      },
+      "clear": {
+        "all": "Clear All",
+        "title": "Clear All Activity History",
+        "message": "All your activity history will be deleted. This action cannot be undone. Are you sure you want to continue?",
+        "confirm": "Delete",
+        "success": "All activity history cleared successfully",
+        "error": "An error occurred while clearing activity history"
+      },
+      "delete": {
+        "title": "Delete Activity",
+        "message": "Are you sure you want to delete this activity?",
+        "confirm": "Delete",
+        "success": "Activity deleted successfully",
+        "error": "An error occurred while deleting the activity"
+      }
+    }
+  },
+  "modules": {
+    "locked": "Sign in",
+    "chat": {
+      "title": "AI Chat",
+      "description": "Talk with your AI",
+      "tokenCost": "token"
+    },
+    "math": {
+      "title": "Math",
+      "description": "Step-by-step solutions",
+      "tokenCost": "token"
+    },
+    "calculator": {
+      "title": "Calculator",
+      "description": "Advanced calculations",
+      "tokenCost": "Free"
+    },
+    "examLab": {
+      "title": "Exam Lab",
+      "description": "Topic-focused exam preparation",
+      "tokenCost": "token"
+    }
+  },
+  "examLab": {
+    "info": {
+      "title": "How to Use?",
+      "content": "Type a topic (max 3 words) or pick from popular topics. You can also upload a photo of your notes — AI will detect the topic automatically.\n\nIn Exam mode, set the question count (5, 10, or 15) and difficulty (Easy / Medium / Hard). After finishing, you'll see the correct answer and explanation for each question.\n\nIn Flashcards mode, AI turns the topic into question-answer cards. Tap a card to reveal the answer and swipe through them."
+    },
+    "popularTopics": "Popular Topics",
+    "popularTopicsItems": [
+      "Derivatives",
+      "Limits",
+      "Equations",
+      "Basic Math",
+      "Integrals",
+      "Functions"
+    ],
+    "customTopic": {
+      "title": "Enter Topic",
+      "placeholder": "Topic (max 3 words)",
+      "wordLimit": "Word limit reached",
+      "wordLimitMessage": "Topics can be at most 3 words."
+    },
+    "input": {
+      "topic": "Enter Topic",
+      "gallery": "Gallery",
+      "camera": "Camera"
+    },
+    "difficulty": "Difficulty",
+    "difficultyOptions": {
+      "easy": "Easy",
+      "medium": "Medium",
+      "hard": "Hard"
+    },
+    "questionCount": "Question Count",
+    "createExam": "Create Exam",
+    "photoTopicDetected": "Topic will be detected from the photo.",
+    "photoCapture": {
+      "title": "Take Question Photo",
+      "buttonTitle": "Take a Question Photo",
+      "description": "Take a photo of a question from your book, AI will prepare a custom exam with similar questions for you.",
+      "placeholder": "Take a question photo"
+    },
+    "aiRecommendation": {
+      "title": "AI Recommendation",
+      "description": "Prepare a random exam for me."
+    },
+    "loading": "Preparing exam...",
+    "exam": "Exam",
+    "question": "Question",
+    "correct": "Correct! 🎉",
+    "correctSubtext": "You did a great job!",
+    "incorrect": "Incorrect! ❌",
+    "whyWrong": "Why Wrong?",
+    "solveWithAI": "Solve with AI",
+    "solving": "Solving...",
+    "aiSolution": "AI Solution",
+    "answer": "Answer",
+    "steps": "Solution Steps",
+    "exitConfirmTitle": "Leave exam",
+    "exitConfirmMessage": "Are you sure you want to leave the exam?",
+    "exitConfirmLeave": "Leave Without Saving",
+    "exitSaveAndLeave": "Save & Leave",
+    "report": {
+      "title": "Exam Report",
+      "excellent": "Excellent! 🎉",
+      "good": "Good! 👍",
+      "needsImprovement": "Needs More Practice 💪",
+      "correct": "Correct",
+      "incorrect": "Incorrect",
+      "unanswered": "Unanswered",
+      "total": "Total",
+      "close": "Close",
+      "newExam": "New Exam",
+      "askAI": "Solve Wrong Answers with AI",
+      "weakTopics": "Topic Analysis",
+      "weakTopicsEmpty": "All answers correct!",
+      "topicScore": "{{correct}}/{{total}} correct",
+      "wrongAnswers": "Wrong Answers",
+      "yourAnswer": "Your answer",
+      "correctAnswer": "Correct answer",
+      "explainWithAI": "Explain with AI",
+      "hideExplanation": "Hide Explanation",
+      "explaining": "Explaining...",
+      "explainFailed": "Could not get explanation, try again"
+    },
+    "resume": {
+      "title": "Continue Where You Left Off",
+      "progress": "{{answered}}/{{total}} answered"
+    },
+    "flashcard": {
+      "title": "Generate Flashcards",
+      "button": "Create Flashcards",
+      "loading": "Preparing cards...",
+      "emptyTopic": "Topic or photo required",
+      "emptyTopicMessage": "Please enter a topic or add a photo.",
+      "front": "Question",
+      "back": "Answer",
+      "cardCount": "{{count}} cards",
+      "finish": "Done",
+      "finishTitle": "Congratulations! 🎉",
+      "finishMessage": "You completed all {{count}} cards!",
+      "restartCards": "Repeat",
+      "exitCards": "Exit",
+      "next": "Next",
+      "previous": "Previous",
+      "flip": "Flip",
+      "mode": {
+        "exam": "Exam",
+        "flashcard": "Flashcards"
+      }
+    },
+    "explanation": "Explanation:",
+    "previous": "Previous",
+    "next": "Next",
+    "finish": "Finish",
+    "success": {
+      "title": "Success",
+      "message": "Exam prepared!"
+    },
+    "errors": {
+      "insufficientTokens": "Insufficient Tokens",
+      "insufficientTokensMessage": "This operation requires {{tokens}} tokens.",
+      "failed": "Error",
+      "failedMessage": "Failed to create exam.",
+      "photoFailed": "Error",
+      "photoFailedMessage": "Failed to process photo.",
+      "emptyTopic": "Topic required",
+      "emptyTopicMessage": "Please enter a topic.",
+      "noImage": "Photo required",
+      "noImageMessage": "Please take a question photo.",
+      "galleryDenied": "Gallery permission required",
+      "galleryDeniedMessage": "You need to grant gallery access permission.",
+      "cameraDenied": "Camera permission required",
+      "cameraDeniedMessage": "You need to grant camera access permission.",
+      "solveFailed": "Solution Failed",
+      "solveFailedMessage": "An error occurred while solving the question."
+    }
+  },
+  "profile": {
+    "title": "Profile",
+
+    "settings": {
+      "title": "Settings",
+      "language": "Language",
+      "languageTr": "Türkçe",
+      "languageEn": "English",
+      "theme": "Theme",
+      "notifications": "Notifications",
+      "privacy": "Privacy",
+      "about": "About",
+      "help": "Help & Support",
+      "editProfile": "Edit Profile",
+      "earnTokens": "Earn Tokens",
+      "feedback": "Feedback",
+      "rateUs": "Rate Us",
+      "categories": {
+        "account": "Account",
+        "preferences": "Preferences",
+        "tokens": "Tokens",
+        "support": "Support"
+      }
+    },
+    "logout": "Logout",
+    "deleteAccount": {
+      "button": "Delete Account",
+      "title": "Delete Account",
+      "message": "Are you sure you want to permanently delete your account? This action cannot be undone and all your data will be lost.",
+      "confirm": "Delete",
+      "error": "An error occurred while deleting your account. Please try again or contact support."
+    },
+    "login": "Sign In",
+    "account": "Account",
+    "notLoggedIn": "Not Logged In",
+    "loginToContinue": "Sign in to continue",
+    "guest": "Guest",
+    "premium": {
+      "title": "Premium",
+      "subtitle": "Unlimited access and exclusive features",
+      "current": "Premium Member",
+      "expires": "Expires",
+      "expiresAt": "Expires",
+      "upgrade": "Upgrade to Premium",
+      "upgradeToPremium": "Upgrade for unlimited usage",
+      "manage": "Manage Subscription",
+      "status": "Premium Status",
+      "active": "Active",
+      "inactive": "Inactive",
+      "freePlan": "Free Plan",
+      "premiumPlan": "Premium Plan",
+      "dailyLimitedUsage": "Daily limited usage",
+      "perDay": "/day",
+      "unlimited": "Unlimited",
+      "features": {
+        "title": "Features",
+        "aiChat": "AI Chat",
+        "math": "Math",
+        "examLab": "Exam Lab",
+        "prioritySupport": "Priority Support",
+        "adFree": "Ad-Free",
+        "unlimited": "Unlimited Tokens",
+        "priority": "Priority Support",
+        "bonus": "20% Bonus Tokens"
+      },
+      "purchase": {
+        "title": "Upgrade to Premium",
+        "monthly": "Monthly",
+        "price": "${price}/month",
+        "buy": "Purchase",
+        "restore": "Restore Purchases",
+        "success": "Premium successfully activated!",
+        "error": "Purchase failed"
+      },
+      "heroActiveTitle": "Premium Active",
+      "heroInactiveTitle": "Remove Your Limits",
+      "heroInactiveSubtitle2": "For users who hit the wall every day.",
+      "heroActiveSubtitle": "All features unlocked",
+      "heroInactiveSubtitle": "Use all features without limits",
+      "socialProof": "Thousands of students already inside",
+      "ctaFree": "Try Free for 7 Days",
+      "ctaFreeSubtext": "Then {price}/mo · Cancel anytime",
+      "perWeek": "week",
+      "savePercent": "Save {percent}%",
+      "heroExpiresSubtitle": "Active until {date}",
+      "activeBadge": "Active ✓",
+      "featuresCardTitle": "Premium Benefits",
+      "activeCardText": "Premium active — all features unlocked",
+      "legalText": "Subscription renews automatically. To cancel, go to App Store → Subscriptions.",
+      "processing": "Processing...",
+      "perMonth": "mo",
+      "ctaWithPrice": "{price} / mo  —  Go Premium",
+      "restoring": "Restoring...",
+      "featureUnlimitedChat": "Unlimited AI Chat",
+      "featureUnlimitedChatDesc": "Chat, notes and text tools without any daily limit",
+      "featureUnlimitedMath": "Unlimited AI Tools",
+      "featureUnlimitedMathDesc": "Math solver, exam lab and all modules unlocked",
+      "featureNoAds": "Ad-Free Experience",
+      "featureNoAdsDesc": "No interruptions, pure focus",
+      "featureUnlimitedExam": "Unlimited Exam Lab",
+      "featurePrioritySupport": "Priority Support",
+      "loadError": "Failed to load premium packages. Please try again.",
+      "purchaseSuccess": "🎉 Premium Active!",
+      "purchaseSuccessMessage": "Unlimited access is now active. Enjoy!",
+      "great": "Great!",
+      "restored": "✅ Restored",
+      "restoredMessage": "Your premium subscription has been restored.",
+      "noActiveSubscription": "No active subscription found.",
+      "restoreError": "Restore failed.",
+      "purchaseError": "Purchase failed.",
+      "cancelAnytime": "Cancel anytime",
+      "noCommitment": "No commitment",
+      "cancelSubscription": "Cancel Subscription",
+      "cancelTitle": "Cancel Subscription",
+      "cancelMessage": "You'll be redirected to App Store → Subscriptions to cancel.",
+      "cancelConfirm": "Go to App Store",
+      "nextRenewal": "Next renewal date",
+      "ctaButton": "Go Premium",
+      "trustSecure": "Secure Payment",
+      "trustCancel": "Cancel Anytime",
+      "trustSafe": "Privacy Protected"
+    },
+    "verification": {
+      "label": "Email verification",
+      "verified": "Verified",
+      "pending": "Pending",
+      "sendButton": "Send verification email",
+      "sending": "Sending...",
+      "sent": "Email sent",
+      "sentMessage": "Check your inbox. Click the link to verify your email.",
+      "error": "Failed to send",
+      "errorMessage": "An error occurred while sending the email. Please try again."
+    },
+    "selectAvatar": "Select Avatar",
+    "edit": {
+      "title": "Edit Profile",
+      "save": "Save",
+      "changeAvatar": "Select Avatar",
+      "changePassword": "Change Password",
+      "changePasswordComingSoon": "Change password feature coming soon",
+      "success": "Profile updated successfully",
+      "loginRequired": "You need to log in to edit your profile",
+      "emailNotEditable": "Email address cannot be changed.",
+      "fields": {
+        "name": "Full Name",
+        "email": "Email",
+        "phone": "Phone"
+      },
+      "placeholders": {
+        "name": "Enter your name",
+        "email": "Your email address",
+        "phone": "Your phone number"
+      },
+      "errors": {
+        "nameRequired": "Name is required",
+        "emailRequired": "Email is required",
+        "emailInvalid": "Please enter a valid email address",
+        "userNotFound": "User not found",
+        "updateFailed": "An error occurred while updating profile",
+        "avatarUpdateFailed": "Profile updated but avatar could not be updated"
+      },
+      "password": {
+        "title": "Change Password",
+        "save": "Update Password",
+        "warning": "To change your password, you need to verify your current password first.",
+        "success": "Password updated successfully",
+        "fields": {
+          "current": "Current Password",
+          "new": "New Password",
+          "confirm": "Confirm New Password"
+        },
+        "placeholders": {
+          "current": "Enter your current password",
+          "new": "Enter your new password",
+          "confirm": "Confirm your new password"
+        },
+        "errors": {
+          "currentRequired": "Current password is required",
+          "currentInvalid": "Current password is incorrect",
+          "newRequired": "New password is required",
+          "confirmRequired": "Password confirmation is required",
+          "passwordsDontMatch": "Passwords do not match",
+          "updateFailed": "An error occurred while updating password"
+        }
+      }
+    },
+    "privacy": {
+      "title": "Privacy",
+      "policy": "Effective: March 4, 2026\n\nQuorax collects account information (name, email), app usage data, content you submit to AI modules, and subscription/payment data (processed by Apple/Google — we never store your card details).\n\nYour data is used to deliver services, improve the app, and prevent fraud. We do not sell your personal data.\n\nThird-party providers: Anthropic (Claude AI — does not use your data to train models), Supabase, RevenueCat, Google AdMob, Apple/Google.\n\nYou have the right to access, correct, delete, and port your data, and to withdraw consent at any time. Contact: privacy@quorax.app\n\nFor the full Privacy Policy, see Profile > Privacy Policy.",
+      "sections": {
+        "controls": "Privacy Controls",
+        "dataCollection": "Data Collection",
+        "rights": "User Rights"
+      },
+      "controls": {
+        "dataSaving": {
+          "title": "Data Saving",
+          "description": "Receive AI responses using less data"
+        },
+        "saveHistory": {
+          "title": "Save History",
+          "description": "Store your chat and activity history"
+        },
+        "anonymousAnalytics": {
+          "title": "Anonymous Analytics",
+          "description": "Anonymous data to improve the app"
+        },
+        "personalizedContent": {
+          "title": "Personalized Content",
+          "description": "Receive recommendations based on your interests"
+        },
+        "thirdPartySharing": {
+          "title": "Third Party Sharing",
+          "description": "Sharing anonymous data with research partners"
+        },
+        "locationTracking": {
+          "title": "Location Tracking",
+          "description": "Enable location-based features"
+        }
+      },
+      "collected": {
+        "title": "Collected Data",
+        "description": "Our app collects the following data:",
+        "account": "Account information (email, name)",
+        "history": "Usage history and activities",
+        "device": "Device information and technical data",
+        "location": "Location data (when permitted)"
+      },
+      "usage": {
+        "title": "Data Usage",
+        "description": "Collected data is used for:",
+        "improve": "Improving app performance",
+        "personalize": "Providing personalized experience",
+        "security": "Security and fraud prevention",
+        "support": "Providing customer support"
+      },
+      "securityInfo": "All your data is transferred over encrypted connections and stored on secure servers.",
+      "userRights": {
+        "title": "Your User Rights",
+        "description": "According to GDPR and other data protection laws, your rights:",
+        "access": "Right to access your data",
+        "rectify": "Right to rectify incorrect data",
+        "delete": "Right to delete your data",
+        "object": "Right to object to data processing"
+      },
+      "contact": {
+        "title": "Contact",
+        "email": "privacy@quorax.com",
+        "alert": "Email app will open..."
+      }
+    },
+    "help": {
+      "title": "Help & Support",
+      "howCanHelp": "How Can We Help You?",
+      "helpDescription": "Have questions? We're happy to help. You can review the FAQs below or create a support ticket directly.",
+      "sendTicket": "Create Support Ticket",
+      "cancel": "Cancel",
+      "faq": "Frequently Asked Questions",
+      "noFaqTitle": "No FAQs yet",
+      "noFaqSubtitle": "FAQs will be added soon",
+      "ticketsHistory": "My Support Tickets",
+      "noTickets": "No support tickets yet",
+      "noTicketsSubtitle": "Click the button above to create a support ticket",
+      "subject": "Subject",
+      "subjectPlaceholder": "Subject of your issue...",
+      "message": "Your Message",
+      "messagePlaceholder": "Describe your issue in detail...",
+      "priority": "Priority",
+      "priorityLow": "Low",
+      "priorityMedium": "Medium",
+      "priorityHigh": "High",
+      "send": "Send",
+      "helperText": "Once your support ticket is created, we will get back to you as soon as possible.",
+      "success": {
+        "title": "Success!",
+        "message": "Your support ticket has been created successfully. We will get back to you shortly."
+      },
+      "errors": {
+        "subjectRequired": "Subject field is required",
+        "subjectMinLength": "Subject must be at least 5 characters",
+        "messageRequired": "Message field is required",
+        "messageMinLength": "Message must be at least 20 characters",
+        "sendError": "An error occurred while creating support ticket"
+      },
+      "faqList": [
+        {
+          "id": "1",
+          "question": "How can I earn tokens?",
+          "answer": "You can earn tokens by logging in daily, watching ads, or giving feedback. Visit Profile > Earn Tokens to see all options."
+        },
+        {
+          "id": "2",
+          "question": "What is Premium membership?",
+          "answer": "With Premium membership, you get unlimited tokens and an ad-free experience. Visit Profile > Premium for details."
+        },
+        {
+          "id": "3",
+          "question": "How can I delete my account?",
+          "answer": "To delete your account, go to Profile > Edit Profile and use the 'Delete Account' option. This action cannot be undone."
+        }
+      ]
+    },
+    "feedback": {
+      "title": "Feedback",
+      "rating": "Rate the App",
+      "type": "Feedback Type",
+      "subject": "Subject",
+      "subjectPlaceholder": "Feedback subject...",
+      "message": "Details",
+      "messagePlaceholder": "Write your feedback in detail...",
+      "submit": "Submit",
+      "helperText": "Your feedback is very valuable to us!",
+      "promiseTitle": "We carefully read every piece of feedback",
+      "promiseText": "Your issues and suggestions go straight to our team. We work to resolve them as fast as possible — your concerns never reach the App Store without us hearing them first.",
+      "ratings": {
+        "excellent": "Excellent",
+        "good": "Good",
+        "average": "Average",
+        "poor": "Poor",
+        "veryPoor": "Very Poor"
+      },
+      "types": {
+        "bug": "Bug/Error",
+        "suggestion": "Suggestion",
+        "improvement": "Improvement",
+        "other": "Other"
+      },
+      "success": {
+        "message": "Thank you for your feedback!"
+      },
+      "errors": {
+        "subjectRequired": "Subject is required",
+        "subjectMinLength": "Subject must be at least 5 characters",
+        "messageRequired": "Message is required",
+        "messageMinLength": "Message must be at least 20 characters",
+        "typeRequired": "Feedback type must be selected",
+        "sendError": "An error occurred while sending feedback",
+        "userNotFound": "User not found",
+        "loginRequired": "You need to log in to send feedback"
+      }
+    },
+    "rate": {
+      "title": "Rate Us",
+      "header": {
+        "title": "Enjoying the App?",
+        "subtitle": "Rate your experience and review us on the App Store"
+      },
+      "selectRating": "Select Rating",
+      "button": "Rate",
+      "info": "High ratings help us a lot!",
+      "ratings": {
+        "excellent": "Excellent",
+        "good": "Good",
+        "average": "Average",
+        "poor": "Poor",
+        "veryPoor": "Very Poor"
+      },
+      "lowRating": {
+        "title": "Would You Like to Give Feedback?",
+        "message": "Could you give us feedback to help us improve your experience?",
+        "giveFeedback": "Give Feedback"
+      },
+      "success": {
+        "thankYou": "Thank you! Your rating is very valuable to us."
+      },
+      "errors": {
+        "selectRating": "Please select a rating",
+        "cannotOpenStore": "Cannot open store",
+        "openStoreFailed": "An error occurred while opening store"
+      }
+    },
+    "earnTokens": {
+      "title": "Earn Tokens",
+      "totalTokens": "Total Tokens",
+      "streak": "day streak",
+      "dailyMissions": "Daily Missions",
+      "weeklyMissions": "Weekly Missions",
+      "claimReward": "Claim Reward",
+      "watchAd": "Watch Ad",
+      "adNotAvailable": "Ad feature coming soon",
+      "howItWorks": {
+        "title": "How Tokens Work?",
+        "description": "You can use your tokens in AI modules. Each operation requires a certain amount of tokens."
+      },
+      "missions": {
+        "dailyLogin": {
+          "title": "Daily Login",
+          "description": "Log in to the app every day"
+        },
+        "watchVideo": {
+          "title": "Watch Ad",
+          "description": "Earn tokens by watching 5 ads per day"
+        },
+        "feedback": {
+          "title": "Give Feedback",
+          "description": "Rate your experience"
+        }
+      },
+      "alerts": {
+        "completed": "Completed",
+        "completedMessage": "You have already completed this task!",
+        "limitReached": "Limit Reached",
+        "limitReachedMessage": "You have watched 5 ads today. Try again tomorrow.",
+        "error": "Error",
+        "errorMessage": "An error occurred while claiming reward",
+        "adTimeout": "Ad timeout",
+        "adTimeoutMessage": "Ad failed to load. Please try again.",
+        "adNotReady": "Ad is not ready. Please wait."
+      },
+      "success": {
+        "message": "You earned tokens!"
+      },
+      "feedback": {
+        "giveFeedback": "Give Feedback"
+      }
+    },
+    "terms": {
+      "title": "Terms of Service",
+      "menuLabel": "Terms of Service"
+    }
+  },
+  "math": {
+    "info": {
+      "title": "How to Use?",
+      "content": "Type your problem or take a photo / select from gallery. AI can handle algebra, geometry, calculus and much more.\n\nEvery solution includes a clear answer, numbered step-by-step explanations, and result verification."
+    },
+    "input": {
+      "text": "Type",
+      "gallery": "Gallery",
+      "camera": "Camera"
+    },
+    "placeholder": "Enter your math problem...",
+    "imagePlaceholder": "Select from gallery or take a photo",
+    "tapToLoadImage": "Tap to load image",
+    "tapToOpenCamera": "Tap to open camera",
+    "solve": "Solve",
+    "solution": "Solution",
+    "steps": "Steps",
+    "retry": "Retry",
+    "clear": "Clear",
+    "modeSolve": "Solve",
+    "modeVerify": "Verify My Work",
+    "verify": {
+      "sectionLabel": "My Solution",
+      "inputMethod": {
+        "text": "Type",
+        "gallery": "Gallery",
+        "camera": "Photo"
+      },
+      "placeholder": "Write your solution steps here...",
+      "tapToLoadImage": "Load solution photo",
+      "tapToOpenCamera": "Take solution photo",
+      "checkButton": "Check",
+      "result": {
+        "title": "Check Result",
+        "correct": "Correct",
+        "wrong": "Wrong",
+        "partial": "Partially Correct",
+        "stepCheck": "Step Check",
+        "error": "Error",
+        "tip": "Tip"
+      }
+    },
+    "topic": "Topic",
+    "related": {
+      "button": "Generate Similar Questions",
+      "loading": "Preparing...",
+      "title": "Similar Questions",
+      "failed": "Could not generate similar questions, try again"
+    },
+    "stepsLocked": "{{count}} more steps — See with Premium",
+    "permissions": {
+      "galleryDenied": "Gallery permission required",
+      "galleryDeniedMessage": "You need to grant gallery access permission.",
+      "cameraDenied": "Camera permission required",
+      "cameraDeniedMessage": "You need to grant camera access permission."
+    },
+    "errors": {
+      "emptyProblem": "Problem required",
+      "emptyProblemMessage": "Please enter a math problem.",
+      "noImage": "Image required",
+      "noImageMessage": "Please select an image.",
+      "insufficientTokens": "Insufficient tokens.",
+      "solveFailed": "An error occurred while solving the problem",
+      "emptySolution": "Solution required",
+      "emptySolutionMessage": "Write your solution or add a photo.",
+      "noSolutionImage": "Solution image required",
+      "noSolutionImageMessage": "Please add a photo of your solution."
+    }
+  },
+  "settings": {
+    "title": "Settings",
+    "language": "Language",
+    "theme": "Theme",
+    "darkMode": "Dark Mode",
+    "lightMode": "Light Mode",
+    "systemMode": "System"
+  },
+  "onboarding": {
+    "slide1": {
+      "title": "Welcome to Quorax",
+      "description": "Learning with AI just got easier. Prepare for exams, solve math, ask anything."
+    },
+    "slide2": {
+      "title": "AI Chat Assistant",
+      "description": "Chat with your smart assistant about anything. Explain homework, understand concepts, get instant answers."
+    },
+    "slide3": {
+      "title": "Math Solver",
+      "description": "Type or photograph your problem. Algebra, geometry, calculus — step-by-step explained solutions."
+    },
+    "slide4": {
+      "title": "Exam Lab",
+      "description": "Generate tests on any topic. Pick difficulty, question count, or even upload your notes."
+    },
+    "buttons": {
+      "skip": "Skip",
+      "next": "Next",
+      "signIn": "Sign In",
+      "createAccount": "Create Account",
+      "continueAsGuest": "Continue as Guest"
+    },
+    "aiConsentTitle": "AI Data Processing Consent",
+    "aiConsentBody": "Quorax uses Anthropic's Claude AI to power its features. To provide these services, the following data may be sent to Anthropic:\n\n• Your messages and chat history\n• Text you submit for editing or note generation\n• Math problems (including photos)\n• Images you upload for analysis\n\nThis data is sent to Anthropic, Inc. (anthropic.com) and is processed according to their privacy policy. It is not sold or used to train AI models without consent.",
+    "aiConsentCheckbox": "I understand and agree that my data may be processed by Anthropic (Claude AI) as described above.",
+    "aiConsentRequired": "You must accept the AI data processing consent to continue.",
+    "aiConsentAcceptButton": "I Accept",
+    "aiConsent": "By continuing, you agree that your inputs may be processed by Anthropic (Claude AI). Learn more in our",
+    "privacyPolicy": "Privacy Policy",
+    "termsOfService": "Terms of Service",
+    "andText": "and"
+  },
+  "chat": {
+    "newChatStarted": "New chat started",
+    "empty": {
+      "title": "No chats yet",
+      "description": "Click the button below to start a new chat",
+      "message": "No messages yet. Send your first message!"
+    },
+    "newChat": "New Chat",
+    "newChatModal": {
+      "title": "Create New Chat",
+      "titleLabel": "Chat Title",
+      "titlePlaceholder": "Enter chat title...",
+      "colorLabel": "Select Color",
+      "create": "Create"
+    },
+    "input": {
+      "placeholder": "Type your message..."
+    },
+    "typing": "Typing...",
+    "delete": {
+      "title": "Delete Chat",
+      "message": "Are you sure you want to delete \"{{title}}\" chat? This action cannot be undone.",
+      "success": "Chat deleted successfully",
+      "error": "An error occurred while deleting chat",
+      "activitiesDeleteWarning": "Chat was deleted but related activity records could not be updated."
+    },
+    "errors": {
+      "loadFailed": "An error occurred while loading chats",
+      "createFailed": "An error occurred while creating chat",
+      "loadChatFailed": "An error occurred while loading chat data",
+      "loadMessagesFailed": "An error occurred while loading messages",
+      "sendFailed": "An error occurred while sending message",
+      "insufficientTokens": "Insufficient tokens.",
+      "aiFailed": "Failed to get AI response. Please try again."
+    }
+  },
+  "premium": {
+    "limitReached": "Daily Limit Reached",
+    "usageToday": "{{used}}/{{limit}} used today for {{module}}",
+    "upgradeMessage": "Upgrade to Premium and enjoy unlimited usage!",
+    "upgradeToPremium": "Upgrade to Premium",
+    "freeUsageBanner": {
+      "remaining": "You have {{remaining}}/{{limit}} use(s) today",
+      "limitReached": "You used {{used}}/{{limit}} today. No uses left.",
+      "upgradeCta": "Get Premium for unlimited use",
+      "premiumHint": "Unlimited with Premium",
+      "infoCta": "Daily usage info",
+      "limitReachedCta": "No uses left, upgrade to Premium"
+    },
+    "features": {
+      "unlimited": "Unlimited usage",
+      "priority": "Priority support",
+      "noAds": "Ad-free experience"
+    }
+  },
+  "rating": {
+    "title": "Enjoying Quorax?",
+    "subtitle": "Sharing your experience helps us a lot. It only takes a minute!",
+    "yes": "Yes, I love it!",
+    "no": "No, I have issues",
+    "skip": "Not now",
+    "feedbackTitle": "How can we improve?",
+    "feedbackSubtitle": "Tell us about your issue or suggestion — our team will get back to you soon.",
+    "feedbackPromise": "We carefully read every piece of feedback. Fixing your issues is our priority.",
+    "feedbackPlaceholder": "Share your experience with us...",
+    "feedbackSend": "Send",
+    "thanksTitle": "Thank you!",
+    "thanksSubtitle": "Thanks for your feedback. We're working hard to make Quorax better."
+  },
+  "aiLoading": {
+    "hint": "This may take a few seconds",
+    "flashcard": {
+      "0": "Analyzing the topic",
+      "1": "Preparing questions",
+      "2": "Arranging answers",
+      "3": "Building your cards"
+    },
+    "math": {
+      "0": "Reading the problem",
+      "1": "Calculating steps",
+      "2": "Preparing solution"
+    },
+    "exam": {
+      "0": "Scanning the topic",
+      "1": "Generating questions",
+      "2": "Preparing your exam"
+    },
+    "image": {
+      "0": "Analyzing the image",
+      "1": "Identifying content",
+      "2": "Preparing result"
+    },
+    "text": {
+      "0": "Processing text",
+      "1": "Preparing result"
+    },
+    "chat": {
+      "0": "Thinking",
+      "1": "Preparing response"
+    }
+  }
+}

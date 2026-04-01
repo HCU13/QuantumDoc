@@ -1,0 +1,28 @@
+{
+  "cli": {
+    "version": ">= 13.2.0"
+  },
+  "build": {
+    "development": {
+      "developmentClient": true,
+      "distribution": "internal",
+      "env": {
+        "EXPO_PUBLIC_USE_TEST_ADS": "true"
+      }
+    },
+    "preview": {
+      "distribution": "internal",
+      "env": {
+        "EXPO_PUBLIC_USE_TEST_ADS": "true"
+      }
+    },
+    "production": {
+      "env": {
+        "EXPO_PUBLIC_USE_TEST_ADS": "false"
+      }
+    }
+  },
+  "submit": {
+    "production": {}
+  }
+}
