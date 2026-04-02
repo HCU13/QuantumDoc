@@ -127,9 +127,14 @@ export default function SubscriptionScreen() {
     try {
       setRestoring(true);
       const info = await restorePurchases();
-      const ent  = info?.entitlements?.active?.premium;
+      // Entitlement adı 'premium', 'Premium' veya herhangi biri olabilir — hepsini tara
+      const activeEntitlements = info?.entitlements?.active ?? {};
+      const ent = activeEntitlements['premium']
+        ?? activeEntitlements['Premium']
+        ?? Object.values(activeEntitlements)[0]
+        ?? null;
       if (ent) {
-        await upsertPremium(ent.expirationDate ?? undefined);
+        await upsertPremium((ent as any).expirationDate ?? undefined);
         await refreshSubscription();
         Alert.alert(t("profile.premium.restored"), t("profile.premium.restoredMessage"));
       } else {

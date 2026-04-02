@@ -1,5 +1,5 @@
 import React from 'react';
-import { TouchableOpacity, Text, StyleSheet } from 'react-native';
+import { TouchableOpacity, Text, View, StyleSheet } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
 
 import { useTheme } from '@/contexts/ThemeContext';
@@ -10,9 +10,10 @@ interface ChipProps {
   icon?: keyof typeof Ionicons.glyphMap;
   selected?: boolean;
   onPress: () => void;
-  flex?: boolean; // Scroll içinde kullanılıyorsa false olmalı
-  modulePrimary?: string; // Modül primary rengi
-  moduleLight?: string; // Modül light rengi
+  flex?: boolean;
+  modulePrimary?: string;
+  moduleLight?: string;
+  proTag?: boolean; // PRO badge göster
 }
 
 export const Chip: React.FC<ChipProps> = ({
@@ -23,6 +24,7 @@ export const Chip: React.FC<ChipProps> = ({
   flex = true,
   modulePrimary,
   moduleLight,
+  proTag = false,
 }) => {
   const { colors } = useTheme();
 
@@ -52,13 +54,16 @@ export const Chip: React.FC<ChipProps> = ({
       <Text
         style={[
           styles.chipText,
-          {
-            color: selected ? primaryColor : colors.textSecondary,
-          },
+          { color: selected ? primaryColor : colors.textSecondary },
         ]}
       >
         {label}
       </Text>
+      {proTag && (
+        <View style={styles.proTag}>
+          <Text style={styles.proTagText}>PRO</Text>
+        </View>
+      )}
     </TouchableOpacity>
   );
 };
@@ -84,6 +89,19 @@ const styles = StyleSheet.create({
     ...TEXT_STYLES.labelSmall,
     fontWeight: '600',
     fontSize: 12,
+  },
+  proTag: {
+    backgroundColor: '#8B5CF6',
+    borderRadius: 4,
+    paddingHorizontal: 4,
+    paddingVertical: 1,
+    marginLeft: 2,
+  },
+  proTagText: {
+    color: '#fff',
+    fontSize: 9,
+    fontWeight: '800',
+    letterSpacing: 0.5,
   },
 });
 

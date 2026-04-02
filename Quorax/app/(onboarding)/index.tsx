@@ -1,4 +1,4 @@
-import React, { useState, useRef } from 'react';
+import React, { useState, useRef, useEffect } from 'react';
 import {
   View,
   Text,
@@ -8,7 +8,7 @@ import {
   FlatList,
   ViewToken,
 } from 'react-native';
-import { useRouter } from 'expo-router';
+import { useRouter, useLocalSearchParams } from 'expo-router';
 import { StatusBar } from 'expo-status-bar';
 import { LinearGradient } from 'expo-linear-gradient';
 import Animated, {
@@ -128,9 +128,19 @@ export default function OnboardingScreen() {
   const { colors, isDark } = useTheme();
   const { t } = useTranslation();
   const router = useRouter();
+  const { startAtLast } = useLocalSearchParams<{ startAtLast?: string }>();
   const flatListRef = useRef<FlatList>(null);
   const scrollX = useSharedValue(0);
-  const [currentIndex, setCurrentIndex] = useState(0);
+  const lastIndex = ONBOARDING_SLIDES.length - 1;
+  const [currentIndex, setCurrentIndex] = useState(startAtLast === 'true' ? lastIndex : 0);
+
+  useEffect(() => {
+    if (startAtLast === 'true') {
+      setTimeout(() => {
+        flatListRef.current?.scrollToIndex({ index: lastIndex, animated: false });
+      }, 50);
+    }
+  }, []);
 
   const onViewableItemsChanged = useRef(
     ({ viewableItems }: { viewableItems: ViewToken[] }) => {
@@ -154,14 +164,7 @@ export default function OnboardingScreen() {
     try {
       await AsyncStorage.setItem('@onboarding_completed', 'true');
     } catch {}
-    router.replace('/(main)');
-  };
-
-  const handleAuthAndFinish = async (route: '/(main)/login' | '/(main)/signup') => {
-    try {
-      await AsyncStorage.setItem('@onboarding_completed', 'true');
-    } catch {}
-    router.replace(route);
+    router.replace('/(main)/welcome');
   };
 
   const isLastSlide = currentIndex === ONBOARDING_SLIDES.length - 1;
@@ -230,33 +233,16 @@ export default function OnboardingScreen() {
 
         {isLastSlide ? (
           <View style={styles.lastSlideButtons}>
-            <TouchableOpacity activeOpacity={0.85} onPress={() => handleAuthAndFinish('/(main)/login')}>
+            <TouchableOpacity activeOpacity={0.85} onPress={handleFinish}>
               <LinearGradient
-                colors={['#8A4FFF', '#6932E0']}
+                colors={currentSlide.gradient as [string, string]}
                 start={{ x: 0, y: 0 }}
                 end={{ x: 1, y: 0 }}
                 style={styles.primaryButton}
               >
-                <Ionicons name="log-in-outline" size={20} color="#fff" />
-                <Text style={styles.primaryButtonText}>{t('onboarding.buttons.signIn')}</Text>
+                <Text style={styles.primaryButtonText}>{t('onboarding.buttons.start')}</Text>
+                <Ionicons name="arrow-forward" size={20} color="#fff" />
               </LinearGradient>
-            </TouchableOpacity>
-
-            <TouchableOpacity
-              style={[styles.outlineButton, { borderColor: colors.primary }]}
-              onPress={() => handleAuthAndFinish('/(main)/signup')}
-              activeOpacity={0.8}
-            >
-              <Ionicons name="person-add-outline" size={20} color={colors.primary} />
-              <Text style={[styles.outlineButtonText, { color: colors.primary }]}>
-                {t('onboarding.buttons.createAccount')}
-              </Text>
-            </TouchableOpacity>
-
-            <TouchableOpacity style={styles.guestButton} onPress={handleFinish} activeOpacity={0.7}>
-              <Text style={[styles.guestButtonText, { color: colors.textTertiary }]}>
-                {t('onboarding.buttons.continueAsGuest')}
-              </Text>
             </TouchableOpacity>
           </View>
         ) : (

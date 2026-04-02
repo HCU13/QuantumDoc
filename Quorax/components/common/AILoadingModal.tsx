@@ -54,7 +54,7 @@ const MESSAGES: Record<string, string[]> = {
 
 const EMOJIS: Record<string, string> = {
   flashcard: "🃏",
-  math: "🧮",
+  math: "🔢",
   exam: "📝",
   image: "🔍",
   text: "✍️",

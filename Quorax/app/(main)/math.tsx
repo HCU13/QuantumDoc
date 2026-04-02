@@ -1,5 +1,5 @@
 import { Ionicons } from "@expo/vector-icons";
-import { useRouter } from "expo-router";
+import { useLocalSearchParams, useRouter } from "expo-router";
 import { StatusBar } from "expo-status-bar";
 import React, { useCallback, useEffect, useRef, useState } from "react";
 import { useTranslation } from "react-i18next";
@@ -30,7 +30,10 @@ import { useAd } from "@/contexts/AdContext";
 import { useAuth } from "@/contexts/AuthContext";
 import { useSubscription } from "@/contexts/SubscriptionContext";
 import { useTheme } from "@/contexts/ThemeContext";
+import FunctionGraph, { containsFunctionExpression } from "@/components/math/FunctionGraph";
+import MathText from "@/components/math/MathText";
 import { useImagePicker } from "@/hooks/useImagePicker";
+import { manipulateAsync, SaveFormat } from "expo-image-manipulator";
 import { supabase, SUPABASE_URL } from "@/services/supabase";
 import { showError, showWarning } from "@/utils/toast";
 
@@ -46,9 +49,9 @@ interface VerifyResult {
 
 export default function MathScreen() {
   const { colors, isDark } = useTheme();
-  const { t } = useTranslation();
-  const { i18n } = useTranslation();
+  const { t, i18n } = useTranslation();
   const router = useRouter();
+  const { prefillProblem, autoSolve } = useLocalSearchParams<{ prefillProblem?: string; autoSolve?: string }>();
   const { pickFromGallery, takePhoto, loading: imageLoading } = useImagePicker();
   const { user, isLoggedIn } = useAuth();
   const { checkUsageLimit, isPremium } = useSubscription();
@@ -76,7 +79,11 @@ export default function MathScreen() {
   const [solving, setSolving] = useState(false);
   const [lastError, setLastError] = useState<string | null>(null);
   const [showPremiumModal, setShowPremiumModal] = useState(false);
+  const [premiumModalIsProGate, setPremiumModalIsProGate] = useState(false);
   const [usageInfo, setUsageInfo] = useState<any>(null);
+
+  const openProGate = () => { setPremiumModalIsProGate(true); setShowPremiumModal(true); };
+  const openLimitModal = () => { setPremiumModalIsProGate(false); setShowPremiumModal(true); };
 
   // — Çözüm sonuçları —
   const [solution, setSolution] = useState<{
@@ -88,6 +95,11 @@ export default function MathScreen() {
   const [relatedQuestions, setRelatedQuestions] = useState<string[]>([]);
   const [loadingRelated, setLoadingRelated] = useState(false);
   const [verifyResult, setVerifyResult] = useState<VerifyResult | null>(null);
+  const [solutionKey, setSolutionKey] = useState(0);
+  const [solutionId, setSolutionId] = useState<string | null>(null);
+  const [comprehension, setComprehension] = useState<'understood' | 'not_understood' | null>(null);
+  const [topicExplanation, setTopicExplanation] = useState<string | null>(null);
+  const [loadingExplanation, setLoadingExplanation] = useState(false);
 
   useEffect(() => {
     if (isLoggedIn && !isPremium && user?.id) {
@@ -96,6 +108,23 @@ export default function MathScreen() {
       setUsageInfo(null);
     }
   }, [isLoggedIn, isPremium, user?.id]);
+
+  // — Konu analizinden gelen prefill + otomatik çöz —
+  // Race condition fix: problem state'ini beklemek yerine handleSolveWithText kullan
+  const autoSolveTriggered = useRef(false);
+  useEffect(() => {
+    if (!prefillProblem || autoSolveTriggered.current || !isLoggedIn || !user?.id) return;
+    setProblem(prefillProblem);
+    setInputMethod("text");
+    if (autoSolve === 'true') {
+      autoSolveTriggered.current = true;
+      const t = setTimeout(() => {
+        // prefillProblem'i direkt kullan — problem state'inin settle olmasını bekleme
+        showAdBeforeAction(() => handleSolve(prefillProblem), "math");
+      }, 150);
+      return () => clearTimeout(t);
+    }
+  }, [prefillProblem, autoSolve, isLoggedIn, user?.id]); // eslint-disable-line
 
   // — Mod geçişi —
   const switchMode = useCallback((mode: AppMode) => {
@@ -115,14 +144,13 @@ export default function MathScreen() {
 
   const convertImageToBase64 = useCallback(async (uri: string): Promise<string> => {
     if (uri.startsWith("data:image")) return uri;
-    const res = await fetch(uri);
-    const blob = await res.blob();
-    return new Promise((resolve, reject) => {
-      const reader = new FileReader();
-      reader.onloadend = () => resolve(reader.result as string);
-      reader.onerror = reject;
-      reader.readAsDataURL(blob);
-    });
+    // Resize to max 1024px wide + base64 encode in one step
+    const result = await manipulateAsync(
+      uri,
+      [{ resize: { width: 1024 } }],
+      { compress: 0.7, format: SaveFormat.JPEG, base64: true }
+    );
+    return `data:image/jpeg;base64,${result.base64}`;
   }, []);
 
   const parseSolution = useCallback((raw: string) => {
@@ -130,63 +158,55 @@ export default function MathScreen() {
     const lines = raw.split("\n").map((l) => l.trim()).filter(Boolean);
     if (!lines.length) return { answer: raw, steps: [], explanation: "" };
 
-    let answer = lines[0].replace(/^(Cevap|Answer|Sonuç|Result):\s*/i, "").trim();
+    const isStepLine = (l: string) => /^\d+[.)]\s+.+/.test(l);
+
+    // Cevap tespiti:
+    // İlk satır adım gibi görünüyorsa veya çok uzunsa (>80 karakter = muhtemelen açıklama),
+    // ilk adımdan önce gelen kısa satırı cevap al.
+    let answerRaw = lines[0];
+    if (isStepLine(answerRaw) || answerRaw.length > 80) {
+      const firstStepIdx = lines.findIndex(isStepLine);
+      if (firstStepIdx > 0) {
+        // İlk adımdan önceki satırlar içinden en kısa olanı al (açıklama değil, sonuç)
+        const candidates = lines.slice(0, firstStepIdx);
+        answerRaw = candidates.reduce((a, b) => (a.length <= b.length ? a : b));
+      }
+    }
+
+    const answer = answerRaw
+      .replace(/^(Cevap|Answer|Sonuç|Result|Yanıt)[:\s]+/i, "")
+      .replace(/✓\s*$/, "")
+      .trim();
+
+    // İlk satırı atla (cevap satırı), adımları ve açıklamayı topla
+    // indexOf yerine findIndex: aynı içerik birden fazla kez geçse bile doğru satırı bulur
+    const startIdx = lines.findIndex((l) => l === answerRaw) + 1;
     const steps: string[] = [];
     let explanation = "";
     let inExp = false;
-    let finalAns = "";
-    let lastAns = "";
 
-    for (let i = 1; i < lines.length; i++) {
+    for (let i = startIdx; i < lines.length; i++) {
       const line = lines[i];
-      if (!line) { if (steps.length && !inExp) inExp = true; continue; }
-      const sm = line.match(/^(\d+)[\.\->\s]+(.+)$/);
+      // KONU satırını her koşulda atla
+      if (/^KONU:\s*/i.test(line)) continue;
+      const sm = line.match(/^(\d+)[.)]\s+(.+)$/);
       if (sm && !inExp) {
         const st = sm[2].trim();
-        const pats = [
-          /(?:dolayısıyla|therefore|sonuç|result|cevap|answer|böylece|thus)[^=:]*[=:]\s*([^\s,\.]+)/i,
-          /(?:sonuç|result|cevap|answer)\s*(?:x|y|z)?\s*[=:]\s*([^\s,\.]+)/i,
-          /(?:^|\s)(x|y|z|sonuç|result)\s*=\s*([^\s,\.]+)/i,
-          /=\s*([^\s,\.]+)/i,
-        ];
-        for (const p of pats) {
-          if (st.match(p)) {
-            const fm = st.match(/(?:x|y|z|sonuç|result)\s*=\s*[^\s,\.]+(?:'dir|'dır|'tir|'tır|dır|dir|tır|tir)?/i);
-            if (fm) {
-              let ext = fm[0].replace(/[''](dir|dır|tir|tır)$/i, "").trim();
-              lastAns = ext;
-              if (st.match(/(?:dolayısıyla|therefore|sonuç|result|böylece|thus)/i)) finalAns = ext;
-            } else {
-              const val = st.match(/=\s*([^\s,\.]+)/)?.[1];
-              if (val) {
-                const vm = st.match(/(x|y|z|sonuç|result)/i);
-                lastAns = vm ? `${vm[1]} = ${val}` : val;
-                if (st.match(/(?:dolayısıyla|therefore|sonuç|result|böylece|thus)/i)) finalAns = lastAns;
-              }
-            }
-            break;
-          }
-        }
         if (st) steps.push(st);
       } else {
         if (steps.length) inExp = true;
         if (inExp) explanation = explanation ? `${explanation}\n\n${line}` : line;
-        else if (!line.match(/^[A-ZÇĞİÖŞÜ][a-zçğıöşü\s]+:/)) steps.push(line);
-        else { explanation = line; inExp = true; }
+        else steps.push(line);
       }
     }
 
-    if (finalAns) answer = finalAns;
-    else if (lastAns) answer = lastAns;
-
     if (explanation) {
-      explanation = explanation.replace(/^(Açıklama|Explanation|Genel|General):\s*/i, "").trim();
-      [
-        /bu şekilde[^.]*adım adım çözerek[^.]*sonuca ulaştık[^.]*/i,
-        /bu şekilde[^.]*verilen matematik problemini[^.]*çözerek[^.]*/i,
-        /eğer herhangi bir adımda sorun varsa[^.]*lütfen sormaktan çekinme[^.]*/i,
-      ].forEach((p) => { explanation = explanation.replace(p, "").trim(); });
-      if (explanation.length < 20 || explanation.match(/^(bu şekilde|dolayısıyla|therefore)/i)) explanation = "";
+      explanation = explanation
+        .replace(/^(Açıklama|Explanation|Genel|General):\s*/i, "")
+        .replace(/bu şekilde[^.]*adım adım çözerek[^.]*sonuca ulaştık[^.]*/gi, "")
+        .replace(/eğer herhangi bir adımda sorun varsa[^.]*lütfen sormaktan çekinme[^.]*/gi, "")
+        .trim();
+      if (explanation.length < 20 || /^(bu şekilde|dolayısıyla|therefore)/i.test(explanation)) explanation = "";
     }
 
     return { answer, steps, explanation };
@@ -231,10 +251,11 @@ export default function MathScreen() {
   const clearAll = () => {
     setSolution(null); setLastError(null);
     setTopic(null); setRelatedQuestions([]); setVerifyResult(null);
+    setTopicExplanation(null); setSolutionId(null); setComprehension(null);
   };
 
-  // — Çöz —
-  const handleSolve = async () => {
+  // — Çöz (overrideProblemText: race condition fix için) —
+  const handleSolve = async (overrideProblemText?: string) => {
     if (!isLoggedIn || !user?.id) {
       Alert.alert(t("modules.locked"), t("profile.loginToContinue"), [
         { text: t("common.cancel"), style: "cancel" },
@@ -242,21 +263,21 @@ export default function MathScreen() {
       ]);
       return;
     }
-    if (inputMethod === "text" && !problem.trim()) { showWarning(t("math.errors.emptyProblem"), t("math.errors.emptyProblemMessage")); return; }
+    if (inputMethod === "text" && !(overrideProblemText ?? problem).trim()) { showWarning(t("math.errors.emptyProblem"), t("math.errors.emptyProblemMessage")); return; }
     if (inputMethod === "image" && !selectedImage) { showWarning(t("math.errors.noImage"), t("math.errors.noImageMessage")); return; }
 
     try {
       setSolving(true); clearAll();
       if (!isPremium) {
         const usage = await checkUsageLimit("math");
-        if (usage && !usage.allowed) { setUsageInfo(usage); setShowPremiumModal(true); return; }
+        if (usage && !usage.allowed) { setUsageInfo(usage); openLimitModal(); setSolving(false); return; }
       }
       const { data: { session } } = await supabase.auth.getSession();
       if (!session) throw new Error("Session not found");
 
       const body: any = { userId: user.id, userLanguage: i18n.language || "tr", mode: "solve" };
       if (inputMethod === "image" && selectedImage) body.problemImageUrl = await convertImageToBase64(selectedImage);
-      else body.problemText = problem.trim();
+      else body.problemText = (overrideProblemText ?? problem).trim();
 
       const res = await fetch(`${SUPABASE_URL}/functions/v1/solve-math-problem`, {
         method: "POST",
@@ -264,9 +285,14 @@ export default function MathScreen() {
         body: JSON.stringify(body),
       });
       const data = await res.json();
+      if (data.error === "USAGE_LIMIT_EXCEEDED") { setUsageInfo(data.usageInfo); openLimitModal(); return; }
       if (!res.ok || data.error) throw new Error(data.error || t("math.errors.solveFailed"));
 
-      setSolution(parseSolution(data.solution));
+      const parsed = parseSolution(data.solution);
+      setSolution(parsed);
+      setSolutionKey(k => k + 1);
+      setSolutionId(data.solutionId || null);
+      setComprehension(null);
       setTopic(data.topic || null);
       await refreshActivities();
       if (!isPremium) checkUsageLimit("math").then((d) => { if (d) setUsageInfo(d); }).catch(() => {});
@@ -295,7 +321,7 @@ export default function MathScreen() {
       setSolving(true); clearAll();
       if (!isPremium) {
         const usage = await checkUsageLimit("math");
-        if (usage && !usage.allowed) { setUsageInfo(usage); setShowPremiumModal(true); return; }
+        if (usage && !usage.allowed) { setUsageInfo(usage); openLimitModal(); setSolving(false); return; }
       }
       const { data: { session } } = await supabase.auth.getSession();
       if (!session) throw new Error("Session not found");
@@ -312,6 +338,7 @@ export default function MathScreen() {
         body: JSON.stringify(body),
       });
       const data = await res.json();
+      if (data.error === "USAGE_LIMIT_EXCEEDED") { setUsageInfo(data.usageInfo); openLimitModal(); return; }
       if (!res.ok || data.error) throw new Error(data.error || t("math.errors.solveFailed"));
 
       setVerifyResult(parseVerifyResult(data.verification || ""));
@@ -359,15 +386,52 @@ export default function MathScreen() {
     }
   };
 
+  // — Kavrama feedback'i DB'ye kaydet —
+  const handleComprehension = async (value: 'understood' | 'not_understood') => {
+    setComprehension(value);
+    if (!solutionId || !user?.id) return;
+    const { error } = await supabase
+      .from('math_solutions')
+      .update({ comprehension_feedback: value })
+      .eq('id', solutionId)
+      .eq('user_id', user.id);
+    if (error) console.warn('comprehension update failed:', error.message);
+  };
+
+  // — Konuyu Açıkla (explain mode — Haiku, ucuz) —
+  const handleExplainAuto = async () => {
+    if (!solution || !user?.id || loadingExplanation) return;
+    const { data: { session } } = await supabase.auth.getSession();
+    if (!session) return;
+    const problemDesc = problem.trim() || `${topic || "Bu"} konusunda: cevabı ${solution.answer} olan problem`;
+    setLoadingExplanation(true);
+    try {
+      const res = await fetch(`${SUPABASE_URL}/functions/v1/solve-math-problem`, {
+        method: "POST",
+        headers: { "Content-Type": "application/json", "Authorization": `Bearer ${session.access_token}` },
+        body: JSON.stringify({ problemText: problemDesc, userId: user.id, userLanguage: i18n.language || "tr", mode: "explain" }),
+      });
+      const data = await res.json();
+      if (data.explanation) setTopicExplanation(data.explanation);
+    } catch {}
+    finally { setLoadingExplanation(false); }
+  };
+
+  const handleExplain = async () => {
+    if (topicExplanation) { setTopicExplanation(null); return; }
+    handleExplainAuto();
+  };
+
   const canSolve = appMode === "verify"
     ? (inputMethod === "text" ? !!problem.trim() : !!selectedImage) &&
       (solutionMethod === "text" ? !!userSolutionText.trim() : !!solutionImage)
     : (inputMethod === "text" ? !!problem.trim() : !!selectedImage);
 
   const verifyColor = verifyResult
-    ? verifyResult.result.match(/yanlış|wrong/i) ? "#ef4444"
+    ? verifyResult.result.match(/yanlış|wrong|incorrect|hatalı/i) ? "#ef4444"
     : verifyResult.result.match(/kısmen|partial/i) ? "#f59e0b"
-    : "#22c55e"
+    : verifyResult.result.match(/doğru|correct/i) ? "#22c55e"
+    : "#f59e0b"
     : "#22c55e";
 
   // ─── Yardımcı bileşenler ─────────────────────────────────────────────────
@@ -378,6 +442,42 @@ export default function MathScreen() {
       <Text style={[styles.sectionLabel, { color: colors.textTertiary }]}>{label}</Text>
     </View>
   );
+
+  // Animasyonlu adım satırı — her adım sırayla fade+slide ile gelir
+  const AnimatedStep = React.memo(({
+    step, index, total, modulePrimary, moduleLight, textColor,
+  }: {
+    step: string; index: number; total: number;
+    modulePrimary: string; moduleLight: string; textColor: string;
+  }) => {
+    const fadeAnim  = useRef(new Animated.Value(0)).current;
+    const slideAnim = useRef(new Animated.Value(18)).current;
+
+    useEffect(() => {
+      const delay = index * 90; // her adım 90ms arayla gelir
+      Animated.parallel([
+        Animated.timing(fadeAnim,  { toValue: 1, duration: 320, delay, useNativeDriver: true }),
+        Animated.spring(slideAnim, { toValue: 0, tension: 70, friction: 9, delay, useNativeDriver: true }),
+      ]).start();
+    }, []);
+
+    return (
+      <Animated.View
+        style={[
+          styles.stepRow,
+          { backgroundColor: colors.backgroundSecondary, opacity: fadeAnim, transform: [{ translateY: slideAnim }] },
+        ]}
+      >
+        <View style={[styles.stepNum, { backgroundColor: moduleLight }]}>
+          <Text style={[styles.stepNumText, { color: modulePrimary }]}>{index + 1}</Text>
+        </View>
+        <MathText
+          text={step}
+          style={[styles.stepText, { color: textColor }]}
+        />
+      </Animated.View>
+    );
+  });
 
   const ImageInputArea = ({
     imageSource: src,
@@ -425,6 +525,7 @@ export default function MathScreen() {
         title={t("modules.math.title")}
         modulePrimary={colors.moduleMathPrimary}
         moduleLight={colors.moduleMathLight}
+        onBackPress={() => router.canDismiss() ? router.dismiss() : router.replace("/(main)")}
         rightAction={isLoggedIn && !isPremium && usageInfo ? (
           <MinimalUsageBadge used={usageInfo.used} limit={usageInfo.limit} modulePrimary={colors.moduleMathPrimary} />
         ) : undefined}
@@ -434,25 +535,46 @@ export default function MathScreen() {
 
         <InfoCard title={t("math.info.title")} content={t("math.info.content")} modulePrimary={colors.moduleMathPrimary} />
 
+        {/* ── Konu Analizi butonu ── */}
+        {isLoggedIn && (
+          <TouchableOpacity
+            style={[styles.topicsNavBtn, { backgroundColor: colors.moduleMathLight, borderColor: colors.moduleMathPrimary + "30" }]}
+            onPress={() => isPremium ? router.push("/(main)/math-topics") : openProGate()}
+            activeOpacity={0.7}
+          >
+            <Ionicons name="analytics-outline" size={16} color={colors.moduleMathPrimary} />
+            <Text style={[styles.topicsNavText, { color: colors.moduleMathPrimary }]}>{t("math.topicAnalysis")}</Text>
+            {!isPremium && <View style={styles.proTagStandalone}><Text style={styles.proTagStandaloneText}>PRO</Text></View>}
+            <Ionicons name={isPremium ? "chevron-forward-outline" : "lock-closed-outline"} size={14} color={colors.moduleMathPrimary} />
+          </TouchableOpacity>
+        )}
+
         {/* ── Mod Seçici ── */}
         <View style={[styles.segment, { backgroundColor: colors.backgroundSecondary, borderColor: colors.borderSubtle }]}>
           {(["solve", "verify"] as AppMode[]).map((m) => {
             const active = appMode === m;
+            const isVerify = m === "verify";
+            const verifyLocked = isVerify && !isPremium;
             return (
               <TouchableOpacity
                 key={m}
                 style={[styles.segmentBtn, active && { backgroundColor: colors.moduleMathPrimary }]}
-                onPress={() => switchMode(m)}
+                onPress={() => verifyLocked ? openProGate() : switchMode(m)}
                 activeOpacity={0.8}
               >
                 <Ionicons
-                  name={m === "solve" ? "calculator-outline" : "checkmark-done-outline"}
+                  name={verifyLocked ? "lock-closed-outline" : m === "solve" ? "calculator-outline" : "checkmark-done-outline"}
                   size={14}
                   color={active ? "#fff" : colors.textSecondary}
                 />
                 <Text style={[styles.segmentText, { color: active ? "#fff" : colors.textSecondary }]}>
                   {t(m === "solve" ? "math.modeSolve" : "math.modeVerify")}
                 </Text>
+                {verifyLocked && (
+                  <View style={styles.proTagSegment}>
+                    <Text style={styles.proTagStandaloneText}>PRO</Text>
+                  </View>
+                )}
               </TouchableOpacity>
             );
           })}
@@ -480,6 +602,16 @@ export default function MathScreen() {
               onPress={() => { setInputMethod("image"); setImageSource("camera"); setSelectedImage(null); }}
             />
           </View>
+
+          {/* El yazısı desteklenir hint — kamera veya galeri seçilince göster */}
+          {inputMethod === "image" && (
+            <View style={[styles.handwritingHint, { backgroundColor: colors.moduleMathLight }]}>
+              <Ionicons name="pencil-outline" size={12} color={colors.moduleMathPrimary} />
+              <Text style={[styles.handwritingHintText, { color: colors.moduleMathPrimary }]}>
+                El yazısı ve baskı yazı desteklenir
+              </Text>
+            </View>
+          )}
 
           {/* Giriş alanı */}
           <View style={[styles.inputBox, { borderColor: colors.borderSubtle, backgroundColor: colors.backgroundSecondary }]}>
@@ -676,47 +808,165 @@ export default function MathScreen() {
 
             {/* Cevap */}
             <View style={[styles.answerBox, { backgroundColor: colors.moduleMathLight }]}>
-              <Text style={[styles.answerText, { color: colors.moduleMathPrimary }]}>{solution.answer}</Text>
+              <MathText
+                text={solution.answer}
+                style={[styles.answerText, { color: colors.moduleMathPrimary }]}
+              />
             </View>
+
+            {/* f(x) grafiği — sadece fonksiyon ifadesi varsa göster */}
+            {(() => {
+              const expr = containsFunctionExpression(problem || solution.answer || '');
+              if (!expr) return null;
+              return (
+                <View style={[styles.graphBox, { backgroundColor: colors.backgroundSecondary }]}>
+                  <View style={styles.row}>
+                    <Ionicons name="stats-chart-outline" size={13} color={colors.moduleMathPrimary} />
+                    <Text style={[styles.subSectionTitle, { color: colors.textPrimary }]}>Grafik</Text>
+                  </View>
+                  <FunctionGraph
+                    expression={expr}
+                    width={320}
+                    height={180}
+                    modulePrimary={colors.moduleMathPrimary}
+                    textColor={colors.textTertiary}
+                  />
+                </View>
+              );
+            })()}
 
             {/* Adımlar */}
             {solution.steps.length > 0 && (
               <View style={styles.gap8}>
                 <Text style={[styles.subSectionTitle, { color: colors.textPrimary }]}>{t("math.steps")}</Text>
 
-                {(isPremium ? solution.steps : solution.steps.slice(0, 2)).map((step, i) => (
-                  <View key={i} style={[styles.stepRow, { backgroundColor: colors.backgroundSecondary }]}>
-                    <View style={[styles.stepNum, { backgroundColor: colors.moduleMathLight }]}>
-                      <Text style={[styles.stepNumText, { color: colors.moduleMathPrimary }]}>{i + 1}</Text>
-                    </View>
-                    <Text style={[styles.stepText, { color: colors.textSecondary }]}>{step}</Text>
-                  </View>
+                {solution.steps.map((step, i) => (
+                  <AnimatedStep
+                    key={`${solutionKey}-${i}`}
+                    step={step}
+                    index={i}
+                    total={solution.steps.length}
+                    modulePrimary={colors.moduleMathPrimary}
+                    moduleLight={colors.moduleMathLight}
+                    textColor={colors.textSecondary}
+                  />
                 ))}
 
-                {!isPremium && solution.steps.length > 2 && (
-                  <TouchableOpacity
-                    style={[styles.lockRow, { backgroundColor: colors.moduleMathLight, borderColor: colors.moduleMathPrimary }]}
-                    onPress={() => setShowPremiumModal(true)}
-                    activeOpacity={0.8}
-                  >
-                    <Ionicons name="lock-closed" size={15} color={colors.moduleMathPrimary} />
-                    <Text style={[styles.lockText, { color: colors.moduleMathPrimary }]}>
-                      {t("math.stepsLocked", { count: solution.steps.length - 2 })}
-                    </Text>
-                    <Ionicons name="chevron-forward" size={15} color={colors.moduleMathPrimary} />
-                  </TouchableOpacity>
-                )}
               </View>
             )}
 
-            {/* Açıklama (sadece premium) */}
-            {isPremium && solution.explanation?.trim() && (
-              <View style={[styles.explanationBox, { backgroundColor: colors.backgroundSecondary }]}>
-                <Text style={[styles.explanationText, { color: colors.textSecondary }]}>{solution.explanation.trim()}</Text>
+            {/* Açıklama */}
+            {solution.explanation?.trim() && (
+              isPremium ? (
+                <View style={[styles.explanationBox, { backgroundColor: colors.backgroundSecondary }]}>
+                  <Text style={[styles.explanationText, { color: colors.textSecondary }]}>{solution.explanation.trim()}</Text>
+                </View>
+              ) : (
+                <TouchableOpacity
+                  style={[styles.explanationBox, styles.explanationLocked, { backgroundColor: colors.backgroundSecondary, borderColor: '#8B5CF6' }]}
+                  onPress={() => openProGate()}
+                  activeOpacity={0.8}
+                >
+                  <View style={styles.explanationLockedRow}>
+                    <Ionicons name="lock-closed" size={14} color="#8B5CF6" />
+                    <Text style={[styles.explanationText, { color: colors.textTertiary, flex: 1 }]} numberOfLines={2}>
+                      {solution.explanation.trim()}
+                    </Text>
+                  </View>
+                  <View style={styles.proTagStandalone}>
+                    <Text style={styles.proTagStandaloneText}>PRO</Text>
+                  </View>
+                </TouchableOpacity>
+              )
+            )}
+
+            {/* ── Kavrama feedback ── */}
+            {comprehension === null ? (
+              <View style={styles.comprehensionRow}>
+                <View style={styles.comprehensionLabelRow}>
+                  <Text style={[styles.comprehensionLabel, { color: colors.textTertiary }]}>
+                    {t("math.comprehension.question")}
+                  </Text>
+                  {!isPremium && <View style={styles.proTagStandalone}><Text style={styles.proTagStandaloneText}>PRO</Text></View>}
+                </View>
+                <View style={styles.comprehensionBtns}>
+                  <TouchableOpacity
+                    style={[styles.comprehensionBtn, { backgroundColor: "#D1FAE5", borderColor: "#10B98130", opacity: isPremium ? 1 : 0.5 }]}
+                    onPress={() => isPremium ? handleComprehension('understood') : openProGate()}
+                    activeOpacity={0.7}
+                  >
+                    <Ionicons name={isPremium ? "checkmark-circle-outline" : "lock-closed-outline"} size={15} color="#059669" />
+                    <Text style={[styles.comprehensionBtnText, { color: "#059669" }]}>{t("math.comprehension.understood")}</Text>
+                  </TouchableOpacity>
+                  <TouchableOpacity
+                    style={[styles.comprehensionBtn, { backgroundColor: "#FEF3C7", borderColor: "#F59E0B30", opacity: isPremium ? 1 : 0.5 }]}
+                    onPress={() => isPremium ? handleComprehension('not_understood') : openProGate()}
+                    activeOpacity={0.7}
+                  >
+                    <Ionicons name={isPremium ? "help-circle-outline" : "lock-closed-outline"} size={15} color="#D97706" />
+                    <Text style={[styles.comprehensionBtnText, { color: "#D97706" }]}>{t("math.comprehension.notUnderstood")}</Text>
+                  </TouchableOpacity>
+                </View>
+              </View>
+            ) : (
+              <View style={[styles.comprehensionResult, {
+                backgroundColor: comprehension === 'understood' ? "#D1FAE5" : "#FEF3C7",
+              }]}>
+                <Ionicons
+                  name={comprehension === 'understood' ? "checkmark-circle" : "bulb-outline"}
+                  size={14}
+                  color={comprehension === 'understood' ? "#059669" : "#D97706"}
+                />
+                <Text style={[styles.comprehensionResultText, {
+                  color: comprehension === 'understood' ? "#059669" : "#D97706",
+                }]}>
+                  {comprehension === 'understood'
+                    ? t("math.comprehension.strongArea")
+                    : t("math.comprehension.weakArea")}
+                </Text>
+              </View>
+            )}
+
+            {/* Konuyu Açıkla butonu — sadece anlamadıysa göster */}
+            {comprehension === 'not_understood' && <TouchableOpacity
+              style={[styles.explainBtn, {
+                backgroundColor: topicExplanation ? colors.moduleMathLight : colors.backgroundSecondary,
+                borderColor: colors.moduleMathPrimary + "30",
+              }]}
+              onPress={isPremium ? handleExplain : () => openProGate()}
+              disabled={loadingExplanation}
+              activeOpacity={0.7}
+            >
+              {loadingExplanation ? (
+                <ActivityIndicator size="small" color={colors.moduleMathPrimary} />
+              ) : (
+                <Ionicons
+                  name={!isPremium ? "lock-closed-outline" : topicExplanation ? "chevron-up-outline" : "bulb-outline"}
+                  size={16}
+                  color={colors.moduleMathPrimary}
+                />
+              )}
+              <Text style={[styles.explainBtnText, { color: colors.moduleMathPrimary }]}>
+                {loadingExplanation ? t("math.explaining") : topicExplanation ? t("math.hideExplanation") : t("math.explainTopic")}
+              </Text>
+              {!isPremium && <View style={styles.proTagStandalone}><Text style={styles.proTagStandaloneText}>PRO</Text></View>}
+            </TouchableOpacity>}
+
+            {/* Açıklama metni */}
+            {topicExplanation && (
+              <View style={[styles.explainBox, { backgroundColor: colors.moduleMathLight }]}>
+                <View style={styles.explainHeader}>
+                  <Ionicons name="bulb" size={14} color={colors.moduleMathPrimary} />
+                  <Text style={[styles.explainTitle, { color: colors.moduleMathPrimary }]}>
+                    {topic ? `${topic} — Açıklama` : "Konu Açıklaması"}
+                  </Text>
+                </View>
+                <Text style={[styles.explainText, { color: colors.textPrimary }]}>{topicExplanation}</Text>
               </View>
             )}
           </View>
         )}
+
 
         {/* ── Benzer Sorular ── */}
         {solution && (
@@ -746,7 +996,7 @@ export default function MathScreen() {
                     onPress={() => {
                       setProblem(q); setInputMethod("text"); clearAll();
                       setAppMode("solve");
-                      scrollViewRef.current?.scrollTo({ y: 0, animated: true });
+                      setTimeout(() => scrollViewRef.current?.scrollTo({ y: 0, animated: true }), 50);
                       // Buton pulse: kullanıcıya "artık çöz'e bas" sinyali ver
                       setTimeout(() => {
                         Animated.sequence([
@@ -762,7 +1012,7 @@ export default function MathScreen() {
                     <View style={[styles.relatedNum, { backgroundColor: colors.moduleMathLight }]}>
                       <Text style={[styles.relatedNumText, { color: colors.moduleMathPrimary }]}>{i + 1}</Text>
                     </View>
-                    <Text style={[styles.relatedText, { color: colors.textSecondary }]} numberOfLines={2}>{q}</Text>
+                    <Text style={[styles.relatedText, { color: colors.textSecondary }]}>{q}</Text>
                     <Ionicons name="arrow-forward-outline" size={14} color={colors.textTertiary} />
                   </TouchableOpacity>
                 ))}
@@ -775,7 +1025,7 @@ export default function MathScreen() {
       </ScrollView>
 
       <AILoadingModal visible={solving} type="math" />
-      <PremiumModal visible={showPremiumModal} onClose={() => setShowPremiumModal(false)} moduleType="math" usageInfo={usageInfo} />
+      <PremiumModal visible={showPremiumModal} onClose={() => { setShowPremiumModal(false); setPremiumModalIsProGate(false); }} moduleType="math" usageInfo={premiumModalIsProGate ? undefined : usageInfo} />
     </View>
   );
 }
@@ -783,6 +1033,14 @@ export default function MathScreen() {
 const styles = StyleSheet.create({
   container: { flex: 1 },
   scroll: { padding: SPACING.lg, gap: SPACING.md },
+
+  // Konu analizi nav butonu
+  topicsNavBtn: {
+    flexDirection: "row", alignItems: "center", gap: 8,
+    paddingHorizontal: SPACING.md, paddingVertical: 10,
+    borderRadius: BORDER_RADIUS.lg, borderWidth: 1,
+  },
+  topicsNavText: { fontSize: 13, fontWeight: "600", flex: 1 },
 
   // Mod seçici (segmented control)
   segment: {
@@ -822,6 +1080,12 @@ const styles = StyleSheet.create({
 
   // Giriş yöntemi
   methodRow: { flexDirection: "row", gap: SPACING.xs },
+  handwritingHint: {
+    flexDirection: "row", alignItems: "center", gap: 5,
+    alignSelf: "flex-start", paddingHorizontal: 10, paddingVertical: 4,
+    borderRadius: 20,
+  },
+  handwritingHintText: { fontSize: 11, fontWeight: "600" },
 
   // Giriş kutusu
   inputBox: { borderRadius: BORDER_RADIUS.lg, borderWidth: 1, overflow: "hidden", minHeight: 130 },
@@ -871,6 +1135,7 @@ const styles = StyleSheet.create({
   topicPill: { flexDirection: "row", alignItems: "center", gap: 4, alignSelf: "flex-start", paddingHorizontal: 10, paddingVertical: 4, borderRadius: 20 },
   topicText: { fontSize: 11, fontWeight: "600" },
   answerBox: { padding: SPACING.md, borderRadius: BORDER_RADIUS.lg, alignItems: "center" },
+  graphBox: { padding: SPACING.sm, borderRadius: BORDER_RADIUS.lg, gap: 8, alignItems: "center" },
   answerText: { fontSize: 22, fontWeight: "700", textAlign: "center" },
   stepRow: { flexDirection: "row", alignItems: "flex-start", gap: SPACING.sm, padding: SPACING.sm, borderRadius: BORDER_RADIUS.md },
   stepNum: { width: 24, height: 24, borderRadius: 12, justifyContent: "center", alignItems: "center", flexShrink: 0 },
@@ -884,6 +1149,40 @@ const styles = StyleSheet.create({
   lockText: { fontSize: 13, fontWeight: "600", flex: 1 },
   explanationBox: { padding: SPACING.sm + 2, borderRadius: BORDER_RADIUS.md },
   explanationText: { fontSize: 13, lineHeight: 20 },
+  explanationLocked: { borderWidth: 1, opacity: 0.75 },
+  explanationLockedRow: { flexDirection: 'row', alignItems: 'flex-start', gap: 6, marginBottom: 6 },
+  proTagStandalone: { backgroundColor: '#8B5CF6', borderRadius: 4, paddingHorizontal: 5, paddingVertical: 2 },
+  proTagStandaloneText: { color: '#fff', fontSize: 9, fontWeight: '800', letterSpacing: 0.5 },
+  proTagSegment: { backgroundColor: '#8B5CF6', borderRadius: 3, paddingHorizontal: 4, paddingVertical: 1, marginLeft: 4 },
+  comprehensionLabelRow: { flexDirection: 'row', alignItems: 'center', gap: 6, marginBottom: 6 },
+
+  // Kavrama feedback
+  comprehensionRow: { gap: 8 },
+  comprehensionLabel: { fontSize: 12, fontWeight: "500", textAlign: "center" },
+  comprehensionBtns: { flexDirection: "row", gap: 8 },
+  comprehensionBtn: {
+    flex: 1, flexDirection: "row", alignItems: "center", justifyContent: "center",
+    gap: 6, paddingVertical: 9, borderRadius: BORDER_RADIUS.lg, borderWidth: 1,
+  },
+  comprehensionBtnText: { fontSize: 13, fontWeight: "600" },
+  comprehensionResult: {
+    flexDirection: "row", alignItems: "center", justifyContent: "center",
+    gap: 7, paddingVertical: 8, borderRadius: BORDER_RADIUS.lg,
+  },
+  comprehensionResultText: { fontSize: 13, fontWeight: "600" },
+
+  // Konuyu açıkla
+  explainBtn: {
+    flexDirection: "row", alignItems: "center", justifyContent: "center",
+    gap: 7, paddingVertical: 10, borderRadius: BORDER_RADIUS.lg, borderWidth: 1,
+  },
+  explainBtnText: { fontSize: 13, fontWeight: "600" },
+  explainBox: { padding: SPACING.md, borderRadius: BORDER_RADIUS.lg, gap: 8 },
+  explainHeader: { flexDirection: "row", alignItems: "center", gap: 6 },
+  explainTitle: { fontSize: 12, fontWeight: "700" },
+  explainText: { fontSize: 14, lineHeight: 22 },
+
+  // Konu istatistikleri
 
   // Benzer sorular
   relatedWrap: { gap: SPACING.sm },

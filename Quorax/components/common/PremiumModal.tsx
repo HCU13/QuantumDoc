@@ -1,4 +1,3 @@
-import { Ionicons } from "@expo/vector-icons";
 import { LinearGradient } from "expo-linear-gradient";
 import { useRouter } from "expo-router";
 import React from "react";
@@ -11,7 +10,7 @@ import {
   View,
 } from "react-native";
 
-import { BORDER_RADIUS, SHADOWS, SPACING, TEXT_STYLES } from "@/constants/theme";
+import { BORDER_RADIUS, SPACING } from "@/constants/theme";
 import { useSubscription } from "@/contexts/SubscriptionContext";
 import { useTheme } from "@/contexts/ThemeContext";
 
@@ -48,124 +47,109 @@ export const PremiumModal: React.FC<PremiumModalProps> = ({
     router.push("/(main)/profile/subscription");
   };
 
+  const isLimitMode = !!usageInfo;
   const used = usageInfo?.used ?? 0;
   const limit = usageInfo?.limit ?? 0;
   const progress = limit > 0 ? Math.min(used / limit, 1) : 1;
 
+  const features = isLimitMode ? [
+    { emoji: "⚡", text: t("premium.features.unlimited") },
+    { emoji: "🚀", text: t("premium.features.priority") },
+    { emoji: "✨", text: t("premium.features.noAds") },
+  ] : [
+    { emoji: "📊", text: t("premium.features.topicAnalysis") },
+    { emoji: "✅", text: t("premium.features.verify") },
+    { emoji: "💡", text: t("premium.features.explanations") },
+    { emoji: "⚡", text: t("premium.features.unlimited") },
+  ];
+
   return (
-    <Modal
-      visible={visible}
-      transparent
-      animationType="slide"
-      onRequestClose={onClose}
-    >
-      <TouchableOpacity
-        style={styles.overlay}
-        activeOpacity={1}
-        onPress={onClose}
-      />
-      <View style={[styles.sheet, { backgroundColor: colors.card }, SHADOWS.small]}>
-        {/* Handle bar */}
+    <Modal visible={visible} transparent animationType="slide" onRequestClose={onClose}>
+      <TouchableOpacity style={styles.overlay} activeOpacity={1} onPress={onClose} />
+
+      <View style={[styles.sheet, { backgroundColor: colors.card }]}>
+        {/* Handle */}
         <View style={[styles.handle, { backgroundColor: colors.borderSubtle }]} />
 
-        {/* Header */}
-        <View style={styles.header}>
-          <LinearGradient
-            colors={["#F59E0B", "#EF4444"]}
-            start={{ x: 0, y: 0 }}
-            end={{ x: 1, y: 1 }}
-            style={styles.iconBg}
-          >
-            <Ionicons name="flash" size={24} color="#fff" />
-          </LinearGradient>
-          <View style={{ flex: 1 }}>
-            <Text style={[styles.title, { color: colors.textPrimary }]}>
-              {t("premium.limitReached")}
-            </Text>
-            <Text style={[styles.subtitle, { color: colors.textSecondary }]}>
-              {moduleNames[moduleType]}
-            </Text>
+        {/* Kapat */}
+        <TouchableOpacity style={styles.closeBtn} onPress={onClose} hitSlop={{ top: 12, bottom: 12, left: 12, right: 12 }}>
+          <Text style={[styles.closeX, { color: colors.textTertiary }]}>✕</Text>
+        </TouchableOpacity>
+
+        {/* PRO badge + başlık */}
+        <View style={styles.titleRow}>
+          <View style={styles.proBadge}>
+            <LinearGradient
+              colors={isLimitMode ? ["#FF4E50", "#FC913A"] : ["#7C3AED", "#4C1D95"]}
+              start={{ x: 0, y: 0 }} end={{ x: 1, y: 0 }}
+              style={styles.proBadgeGradient}
+            >
+              <Text style={styles.proBadgeText}>{isLimitMode ? "🔥" : "✦  PRO"}</Text>
+            </LinearGradient>
           </View>
-          <TouchableOpacity onPress={onClose} hitSlop={{ top: 10, bottom: 10, left: 10, right: 10 }}>
-            <Ionicons name="close" size={22} color={colors.textSecondary} />
-          </TouchableOpacity>
+          <Text style={[styles.title, { color: colors.textPrimary }]}>
+            {isLimitMode ? t("premium.limitReached") : t("premium.proFeature")}
+          </Text>
+          <Text style={[styles.subtitle, { color: colors.textSecondary }]}>
+            {isLimitMode
+              ? t("premium.usageToday", { module: moduleNames[moduleType], used, limit })
+              : t("premium.proFeatureSubtitle")}
+          </Text>
         </View>
 
-        {/* Usage bar */}
-        {usageInfo && (
-          <View style={[styles.usageBox, { backgroundColor: colors.backgroundSecondary, borderColor: colors.borderSubtle }]}>
-            <View style={styles.usageRow}>
-              <Text style={[styles.usageLabel, { color: colors.textSecondary }]}>
-                {t("premium.usageToday", {
-                  module: moduleNames[moduleType],
-                  used,
-                  limit,
-                })}
+        {/* Usage progress */}
+        {isLimitMode && (
+          <View style={[styles.progressBox, { backgroundColor: colors.backgroundSecondary }]}>
+            <View style={styles.progressRow}>
+              <Text style={[styles.progressLabel, { color: colors.textSecondary }]}>
+                {moduleNames[moduleType]}
               </Text>
-              <Text style={[styles.usageCount, { color: colors.textPrimary }]}>
-                {used}/{limit}
-              </Text>
+              <Text style={[styles.progressCount, { color: colors.textPrimary }]}>{used}/{limit}</Text>
             </View>
             <View style={[styles.progressTrack, { backgroundColor: colors.borderSubtle }]}>
-              <View
-                style={[
-                  styles.progressFill,
-                  { width: `${progress * 100}%`, backgroundColor: "#EF4444" },
-                ]}
+              <LinearGradient
+                colors={["#FF4E50", "#FC913A"]}
+                start={{ x: 0, y: 0 }} end={{ x: 1, y: 0 }}
+                style={[styles.progressFill, { width: `${progress * 100}%` }]}
               />
             </View>
           </View>
         )}
 
         {/* Features */}
-        <View style={styles.features}>
-          {[
-            { icon: "infinite-outline", text: t("premium.features.unlimited") },
-            { icon: "flash-outline", text: t("premium.features.priority") },
-            { icon: "shield-checkmark-outline", text: t("premium.features.noAds") },
-          ].map((f) => (
-            <View key={f.icon} style={styles.featureRow}>
-              <View style={[styles.featureIcon, { backgroundColor: `${colors.primary}15` }]}>
-                <Ionicons name={f.icon as any} size={16} color={colors.primary} />
-              </View>
+        <View style={[styles.featureBox, { backgroundColor: colors.backgroundSecondary, borderColor: colors.borderSubtle }]}>
+          {features.map((f, i) => (
+            <View
+              key={i}
+              style={[
+                styles.featureRow,
+                i < features.length - 1 && { borderBottomWidth: StyleSheet.hairlineWidth, borderBottomColor: colors.borderSubtle },
+              ]}
+            >
+              <Text style={styles.featureEmoji}>{f.emoji}</Text>
               <Text style={[styles.featureText, { color: colors.textPrimary }]}>{f.text}</Text>
             </View>
           ))}
         </View>
 
-        {/* Cancel anytime banner */}
-        <View style={[styles.cancelAnytimeBanner, { backgroundColor: colors.backgroundSecondary }]}>
-          <Ionicons name="shield-checkmark-outline" size={14} color="#10B981" />
-          <Text style={[styles.cancelAnytimeText, { color: colors.textSecondary }]}>
-            {t("profile.premium.cancelAnytime")} · {t("profile.premium.noCommitment")}
-          </Text>
-        </View>
-
-        {/* CTA Butonu */}
-        <TouchableOpacity
-          style={[styles.upgradeBtn, { backgroundColor: colors.primary }]}
-          onPress={handleUpgrade}
-          activeOpacity={0.85}
-        >
+        {/* CTA */}
+        <TouchableOpacity onPress={handleUpgrade} activeOpacity={0.88} style={styles.ctaWrap}>
           <LinearGradient
-            colors={["#4F1DB8", "#7C3AED", "#A855F7"]}
+            colors={["#6D28D9", "#8B5CF6"]}
             start={{ x: 0, y: 0 }} end={{ x: 1, y: 0 }}
-            style={styles.upgradeBtnGradient}
+            style={styles.ctaBtn}
           >
-            <Ionicons name="diamond" size={18} color="#FFD700" />
-            <View>
-              <Text style={styles.upgradeBtnText}>{t("premium.upgradeToPremium")}</Text>
-              {premiumPriceString ? (
-                <Text style={styles.upgradeBtnSub}>{premiumPriceString} / {t("profile.premium.perMonth")}</Text>
-              ) : null}
-            </View>
+            <Text style={styles.ctaText}>{t("premium.upgradeToPremium")}</Text>
+            {premiumPriceString && (
+              <View style={styles.ctaBadge}>
+                <Text style={styles.ctaBadgeText}>{premiumPriceString}/ay</Text>
+              </View>
+            )}
           </LinearGradient>
         </TouchableOpacity>
 
-        <TouchableOpacity onPress={onClose} style={styles.cancelBtn} activeOpacity={0.7}>
-          <Text style={[styles.cancelText, { color: colors.textSecondary }]}>
-            {t("common.cancel")}
-          </Text>
+        <TouchableOpacity onPress={onClose} activeOpacity={0.6} style={styles.cancelBtn}>
+          <Text style={[styles.cancelText, { color: colors.textTertiary }]}>{t("common.cancel")}</Text>
         </TouchableOpacity>
       </View>
     </Modal>
@@ -175,14 +159,14 @@ export const PremiumModal: React.FC<PremiumModalProps> = ({
 const styles = StyleSheet.create({
   overlay: {
     flex: 1,
-    backgroundColor: "rgba(0,0,0,0.4)",
+    backgroundColor: "rgba(0,0,0,0.45)",
   },
   sheet: {
-    borderTopLeftRadius: BORDER_RADIUS.xl,
-    borderTopRightRadius: BORDER_RADIUS.xl,
+    borderTopLeftRadius: 24,
+    borderTopRightRadius: 24,
     paddingHorizontal: SPACING.lg,
-    paddingBottom: 36,
-    paddingTop: SPACING.sm,
+    paddingTop: 12,
+    paddingBottom: 40,
   },
   handle: {
     width: 36,
@@ -191,45 +175,59 @@ const styles = StyleSheet.create({
     alignSelf: "center",
     marginBottom: SPACING.lg,
   },
-  header: {
-    flexDirection: "row",
-    alignItems: "center",
-    gap: SPACING.md,
-    marginBottom: SPACING.lg,
+  closeBtn: {
+    position: "absolute",
+    top: 16,
+    right: SPACING.lg,
   },
-  iconBg: {
-    width: 44,
-    height: 44,
-    borderRadius: BORDER_RADIUS.md,
-    justifyContent: "center",
-    alignItems: "center",
+  closeX: {
+    fontSize: 16,
+  },
+  titleRow: {
+    marginBottom: SPACING.lg,
+    gap: 6,
+  },
+  proBadge: {
+    alignSelf: "flex-start",
+    borderRadius: 8,
+    overflow: "hidden",
+    marginBottom: 8,
+  },
+  proBadgeGradient: {
+    paddingHorizontal: 10,
+    paddingVertical: 4,
+  },
+  proBadgeText: {
+    color: "#fff",
+    fontSize: 12,
+    fontWeight: "800",
+    letterSpacing: 0.5,
   },
   title: {
-    ...TEXT_STYLES.titleSmall,
-    fontWeight: "700",
+    fontSize: 22,
+    fontWeight: "800",
+    letterSpacing: -0.3,
   },
   subtitle: {
-    ...TEXT_STYLES.bodySmall,
-    marginTop: 2,
+    fontSize: 14,
+    lineHeight: 20,
   },
-  usageBox: {
-    borderWidth: 1,
+  progressBox: {
     borderRadius: BORDER_RADIUS.md,
     padding: SPACING.md,
-    marginBottom: SPACING.lg,
     gap: SPACING.sm,
+    marginBottom: SPACING.md,
   },
-  usageRow: {
+  progressRow: {
     flexDirection: "row",
     justifyContent: "space-between",
     alignItems: "center",
   },
-  usageLabel: {
-    ...TEXT_STYLES.bodySmall,
-    flex: 1,
+  progressLabel: {
+    fontSize: 13,
   },
-  usageCount: {
-    ...TEXT_STYLES.labelMedium,
+  progressCount: {
+    fontSize: 13,
     fontWeight: "700",
   },
   progressTrack: {
@@ -241,67 +239,63 @@ const styles = StyleSheet.create({
     height: "100%",
     borderRadius: 3,
   },
-  features: {
-    gap: SPACING.sm,
+  featureBox: {
+    borderRadius: BORDER_RADIUS.lg,
+    borderWidth: StyleSheet.hairlineWidth,
     marginBottom: SPACING.lg,
+    overflow: "hidden",
   },
   featureRow: {
     flexDirection: "row",
     alignItems: "center",
-    gap: SPACING.md,
+    gap: 12,
+    paddingVertical: 13,
+    paddingHorizontal: SPACING.md,
   },
-  featureIcon: {
-    width: 30,
-    height: 30,
-    borderRadius: BORDER_RADIUS.sm,
-    justifyContent: "center",
-    alignItems: "center",
+  featureEmoji: {
+    fontSize: 19,
+    width: 26,
+    textAlign: "center",
   },
   featureText: {
-    ...TEXT_STYLES.bodyMedium,
+    fontSize: 14,
+    fontWeight: "500",
+    flex: 1,
   },
-  upgradeBtn: {
+  ctaWrap: {
     borderRadius: BORDER_RADIUS.lg,
     overflow: "hidden",
     marginBottom: SPACING.sm,
   },
-  upgradeBtnGradient: {
+  ctaBtn: {
     flexDirection: "row",
     alignItems: "center",
     justifyContent: "center",
+    paddingVertical: 16,
     gap: SPACING.sm,
-    paddingVertical: 15,
-    paddingHorizontal: SPACING.lg,
   },
-  upgradeBtnText: {
+  ctaText: {
     color: "#fff",
-    fontSize: 15,
+    fontSize: 16,
     fontWeight: "700",
   },
-  upgradeBtnSub: {
-    color: "rgba(255,255,255,0.7)",
-    fontSize: 11,
-    fontWeight: "500",
-    marginTop: 1,
+  ctaBadge: {
+    backgroundColor: "rgba(255,255,255,0.2)",
+    borderRadius: 20,
+    paddingHorizontal: 8,
+    paddingVertical: 3,
   },
-  cancelAnytimeBanner: {
-    flexDirection: "row",
-    alignItems: "center",
-    gap: 6,
-    padding: SPACING.sm,
-    borderRadius: BORDER_RADIUS.md,
-    marginBottom: SPACING.md,
-    justifyContent: "center",
-  },
-  cancelAnytimeText: {
+  ctaBadgeText: {
+    color: "#fff",
     fontSize: 12,
-    fontWeight: "500",
+    fontWeight: "600",
   },
   cancelBtn: {
     alignItems: "center",
-    paddingVertical: SPACING.sm,
+    paddingVertical: SPACING.md,
   },
   cancelText: {
-    ...TEXT_STYLES.bodyMedium,
+    fontSize: 14,
+    fontWeight: "500",
   },
 });

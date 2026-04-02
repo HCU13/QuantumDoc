@@ -2,25 +2,25 @@
   "expo": {
     "name": "Quorax",
     "slug": "Quorax",
-    "version": "1.2.0",
+    "version": "1.3.0",
     "orientation": "portrait",
     "icon": "./assets/images/logo.png",
     "scheme": "quorax",
     "userInterfaceStyle": "automatic",
     "newArchEnabled": true,
     "ios": {
-      "supportsTablet": true,
+      "supportsTablet": false,
       "bundleIdentifier": "com.quorax.app",
       "buildNumber": "7",
-      "associatedDomains": [
-        "applinks:quorax.app"
-      ],
+      "associatedDomains": ["applinks:quorax.app"],
       "appleTeamId": "HBP69DD3KV",
       "infoPlist": {
         "GADApplicationIdentifier": "ca-app-pub-2610484857413432~2727020129",
         "NSCameraUsageDescription": "Quorax needs access to your camera to solve math problems and analyze images. For example, you can take a photo of a math problem to send to AI or perform visual content analysis.",
         "NSPhotoLibraryUsageDescription": "Quorax needs access to your photos to select images from your gallery for solving math problems and analyzing images. For example, you can select a previously taken photo of a math problem to send to AI or perform visual content analysis.",
-        "NSUserNotificationsUsageDescription": "Quorax sends notifications to keep you updated on your study progress and important updates."
+        "NSUserNotificationsUsageDescription": "Quorax sends notifications to keep you updated on your study progress and important updates.",
+        "CFBundleLocalizations": ["tr", "en"],
+        "CFBundleDevelopmentRegion": "tr"
       }
     },
     "android": {
@@ -55,10 +55,7 @@
               "scheme": "quorax"
             }
           ],
-          "category": [
-            "BROWSABLE",
-            "DEFAULT"
-          ]
+          "category": ["BROWSABLE", "DEFAULT"]
         }
       ]
     },

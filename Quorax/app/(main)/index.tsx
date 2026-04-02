@@ -53,19 +53,23 @@ export default function HomeScreen() {
   }, [isLoggedIn, isPremium]);
 
   const handleModulePress = (moduleId: string) => {
-    // Calculator is always available
     if (moduleId === "calculator") {
       router.push(`/(main)/${moduleId}` as any);
       return;
     }
-    
-    // Other modules require login
+
     if (!isLoggedIn) {
-      // Navigate to login screen
-      router.push("/(main)/login" as any);
+      Alert.alert(
+        t("modules.lockedAlert.title"),
+        t("modules.lockedAlert.message"),
+        [
+          { text: t("modules.lockedAlert.cancel"), style: "cancel" },
+          { text: t("modules.lockedAlert.signIn"), onPress: () => router.push("/(main)/login" as any) },
+        ]
+      );
       return;
     }
-    
+
     router.push(`/(main)/${moduleId}` as any);
   };
 

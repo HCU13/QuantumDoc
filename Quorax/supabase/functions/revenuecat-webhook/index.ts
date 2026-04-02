@@ -138,7 +138,7 @@ async function handlePremiumSubscription(supabase: any, event: any, status: 'act
         product_name: 'Premium Monthly Subscription',
         product_type: 'subscription',
         transaction_id: event.transaction_id,
-        amount: event.price || 6.99,
+        amount: event.price || 7.99,
         currency: event.currency || 'USD',
         payment_method: event.store === 'app_store' ? 'Apple Pay' : 'Google Pay',
         payment_provider: event.store,

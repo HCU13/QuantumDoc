@@ -111,8 +111,8 @@ export default function ActivityScreen() {
           ...(examData || []).map((exam) => ({
             id: `exam-${exam.id}`,
             type: "exam" as const,
-            title: exam.topic || t("home.activity.exam") || "Sınav",
-            subtitle: `${exam.correct_count}/${exam.total_questions} ${t("home.activity.correctShort") || "doğru"}`,
+            title: exam.topic || t("home.activity.exam"),
+            subtitle: `${exam.correct_count}/${exam.total_questions} ${t("home.activity.correctShort")}`,
             timestamp: formatTime(exam.created_at),
             created_at: exam.created_at,
           })),
@@ -185,64 +185,30 @@ export default function ActivityScreen() {
     if (!user?.id) return;
 
     Alert.alert(
-      t("activity.clear.title") === "activity.clear.title"
-        ? "Tüm Aktivite Geçmişini Sil"
-        : t("activity.clear.title"),
-      t("activity.clear.message") === "activity.clear.message"
-        ? "Tüm aktivite geçmişiniz silinecek. Bu işlem geri alınamaz. Devam etmek istiyor musunuz?"
-        : t("activity.clear.message"),
+      t("home.activity.clear.title"),
+      t("home.activity.clear.message"),
       [
         {
-          text:
-            t("common.cancel") === "common.cancel"
-              ? "İptal"
-              : t("common.cancel"),
+          text: t("common.cancel"),
           style: "cancel",
         },
         {
-          text:
-            t("activity.clear.confirm") === "activity.clear.confirm"
-              ? "Sil"
-              : t("activity.clear.confirm"),
+          text: t("home.activity.clear.confirm"),
           style: "destructive",
           onPress: async () => {
             const success = await clearAllActivities();
             if (success) {
-              // Local state'i temizle
               setActivities([]);
               setHasMore(false);
               setPage(0);
-
-              // Ana sayfadaki aktiviteleri de yenile
               await refreshActivities();
-
               Alert.alert(
-                t("common.success") === "common.success"
-                  ? "Başarılı"
-                  : t("common.success"),
-                t("activity.clear.success") === "activity.clear.success"
-                  ? "Tüm aktivite geçmişi silindi"
-                  : t("activity.clear.success"),
-                [
-                  {
-                    text:
-                      t("common.ok") === "common.ok" ? "Tamam" : t("common.ok"),
-                    onPress: () => {
-                      // Sayfayı yenile
-                      fetchActivities(0, true);
-                    },
-                  },
-                ],
+                t("common.success"),
+                t("home.activity.clear.success"),
+                [{ text: t("common.ok"), onPress: () => fetchActivities(0, true) }],
               );
             } else {
-              Alert.alert(
-                t("common.error") === "common.error"
-                  ? "Hata"
-                  : t("common.error"),
-                t("activity.clear.error") === "activity.clear.error"
-                  ? "Aktivite geçmişi silinirken bir hata oluştu"
-                  : t("activity.clear.error"),
-              );
+              Alert.alert(t("common.error"), t("home.activity.clear.error"));
             }
           },
         },

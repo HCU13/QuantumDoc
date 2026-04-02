@@ -141,7 +141,7 @@ export default function ActivityDetailScreen() {
       t("home.activity.delete.message"),
       [
         {
-          text: t("common.cancel") === "common.cancel" ? "İptal" : t("common.cancel"),
+          text: t("common.cancel"),
           style: "cancel",
         },
         {
@@ -155,12 +155,12 @@ export default function ActivityDetailScreen() {
               // Geri git
               router.back();
               Alert.alert(
-                t("common.success") === "common.success" ? "Başarılı" : t("common.success"),
+                t("common.success"),
                 t("home.activity.delete.success")
               );
             } else {
               Alert.alert(
-                t("common.error") === "common.error" ? "Hata" : t("common.error"),
+                t("common.error"),
                 t("home.activity.delete.error")
               );
             }

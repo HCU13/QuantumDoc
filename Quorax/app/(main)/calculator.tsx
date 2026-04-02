@@ -8,6 +8,7 @@ import {
   Dimensions,
 } from "react-native";
 import { StatusBar } from "expo-status-bar";
+import { useRouter } from "expo-router";
 import { useTranslation } from "react-i18next";
 import { Ionicons } from "@expo/vector-icons";
 
@@ -29,6 +30,7 @@ type Mode = "basic" | "scientific";
 export default function CalculatorScreen() {
   const { colors, isDark } = useTheme();
   const { t } = useTranslation();
+  const router = useRouter();
   const [tokens] = useState(150);
 
   const [display, setDisplay] = useState("0");
@@ -341,6 +343,7 @@ export default function CalculatorScreen() {
         title={t("modules.calculator.title")}
         modulePrimary={colors.moduleCalcPrimary}
         moduleLight={colors.moduleCalcLight}
+        onBackPress={() => router.canDismiss() ? router.dismiss() : router.replace("/(main)")}
       />
 
       <View style={styles.content}>

@@ -2,11 +2,9 @@ import React, { useState, useEffect } from 'react';
 import { View, Text, StyleSheet, TouchableOpacity } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
 import { useTranslation } from 'react-i18next';
-import { useRouter } from 'expo-router';
 import { LinearGradient } from 'expo-linear-gradient';
 
 import { useTheme } from '@/contexts/ThemeContext';
-import { supabase } from '@/services/supabase';
 import { SPACING, BORDER_RADIUS, TEXT_STYLES, SHADOWS } from '@/constants/theme';
 import type { Module } from '@/constants/modules';
 
@@ -26,8 +24,7 @@ interface ModuleCardProps {
 export const ModuleCard: React.FC<ModuleCardProps> = ({ module, isLoggedIn = false, onPress, usageInfo }) => {
   const { colors, isDark } = useTheme();
   const { t } = useTranslation();
-  const router = useRouter();
-  
+
   // Token sistemi kaldırıldı - artık subscription bazlı
   const tokenCost = 0; // Artık token gösterme
   
@@ -35,11 +32,6 @@ export const ModuleCard: React.FC<ModuleCardProps> = ({ module, isLoggedIn = fal
   const isLocked = !isLoggedIn && module.id !== "calculator";
 
   const handlePress = () => {
-    if (isLocked) {
-      // Kilitli modüllere tıklandığında login sayfasına yönlendir
-      router.push("/(main)/login");
-      return;
-    }
     onPress();
   };
 

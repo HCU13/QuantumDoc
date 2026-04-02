@@ -76,7 +76,7 @@ export const useImagePicker = () => {
         mediaTypes: 'images' as any,
         allowsEditing: true,
         aspect: [16, 9],
-        quality: 0.7,
+        quality: 0.4,
       });
 
       if (!result.canceled && result.assets[0]) {
@@ -112,7 +112,7 @@ export const useImagePicker = () => {
         mediaTypes: 'images' as any,
         allowsEditing: true,
         aspect: [16, 9],
-        quality: 0.7,
+        quality: 0.4,
       });
 
       if (!result.canceled && result.assets[0]) {

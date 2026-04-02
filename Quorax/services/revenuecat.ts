@@ -196,7 +196,10 @@ export const purchasePremiumSubscription = async (
     
     // Subscription bilgilerini al
     const entitlements = customerInfo.entitlements.active;
-    const premiumEntitlement = entitlements['premium'] || entitlements['Premium'];
+    const premiumEntitlement = entitlements['premium']
+      ?? entitlements['Premium']
+      ?? Object.values(entitlements)[0]
+      ?? null;
     
     const purchaseInfo = {
       productIdentifier: productIdentifier || packageToPurchase.product.identifier,

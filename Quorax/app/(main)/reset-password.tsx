@@ -27,7 +27,7 @@ import { SUPABASE_URL } from "@/services/supabase";
 type Step = "email" | "otp" | "newPassword";
 
 export default function ResetPasswordScreen() {
-  const { colors } = useTheme();
+  const { colors, isDark } = useTheme();
   const { t } = useTranslation();
   const router = useRouter();
 
@@ -69,7 +69,7 @@ export default function ResetPasswordScreen() {
       setStep("otp");
     } catch (err: any) {
       const msg = err.name === "AbortError"
-        ? t("common.timeout", { defaultValue: "İstek zaman aşımına uğradı. Lütfen tekrar deneyin." })
+        ? t("common.timeout")
         : err.message || t("auth.login.resetPassword.errors.sendFailed");
       Alert.alert(t("common.error"), msg);
     } finally {
@@ -86,7 +86,7 @@ export default function ResetPasswordScreen() {
       return;
     }
     if (otpAttempts >= MAX_OTP_ATTEMPTS) {
-      Alert.alert(t("common.error"), t("auth.login.resetPassword.errors.tooManyAttempts", { defaultValue: "Çok fazla hatalı deneme. Lütfen yeni kod isteyin." }));
+      Alert.alert(t("common.error"), t("auth.login.resetPassword.errors.tooManyAttempts"));
       setStep("email");
       setOtp(["", "", "", "", "", ""]);
       setOtpAttempts(0);
@@ -109,7 +109,7 @@ export default function ResetPasswordScreen() {
           const newAttempts = otpAttempts + 1;
           setOtpAttempts(newAttempts);
           const remaining = MAX_OTP_ATTEMPTS - newAttempts;
-          setErrors({ otp: `${t("auth.login.resetPassword.errors.otpInvalid")} (${remaining} deneme kaldı)` });
+          setErrors({ otp: `${t("auth.login.resetPassword.errors.otpInvalid")} (${t("auth.login.resetPassword.errors.attemptsRemaining", { count: remaining })})` });
         } else if (data.error === "expired_otp") {
           setErrors({ otp: t("auth.login.resetPassword.errors.otpExpired") });
         } else {
@@ -121,7 +121,7 @@ export default function ResetPasswordScreen() {
       setStep("newPassword");
     } catch (err: any) {
       const msg = err.name === "AbortError"
-        ? t("common.timeout", { defaultValue: "İstek zaman aşımına uğradı. Lütfen tekrar deneyin." })
+        ? t("common.timeout")
         : err.message || t("auth.login.resetPassword.errors.updateFailed");
       Alert.alert(t("common.error"), msg);
     } finally {
@@ -164,7 +164,7 @@ export default function ResetPasswordScreen() {
       );
     } catch (err: any) {
       const msg = err.name === "AbortError"
-        ? t("common.timeout", { defaultValue: "İstek zaman aşımına uğradı. Lütfen tekrar deneyin." })
+        ? t("common.timeout")
         : err.message || t("auth.login.resetPassword.errors.updateFailed");
       Alert.alert(t("common.error"), msg);
     } finally {
@@ -207,7 +207,7 @@ export default function ResetPasswordScreen() {
 
   return (
     <View style={[styles.container, { backgroundColor: colors.background }]}>
-      <StatusBar style="light" />
+      <StatusBar style={isDark ? "light" : "dark"} />
 
       <LinearGradient
         colors={["#8A4FFF", "#6932E0"]}

@@ -18,7 +18,8 @@
     "skip": "Atla",
     "getStarted": "Başlayalım",
     "info": "Bilgi",
-    "login": "Giriş Yap"
+    "login": "Giriş Yap",
+    "timeout": "İstek zaman aşımına uğradı. Lütfen tekrar deneyin."
   },
   "ad": {},
   "auth": {
@@ -63,7 +64,9 @@
           "passwordMinLength": "Şifre en az 6 karakter olmalıdır",
           "passwordsNotMatch": "Şifreler eşleşmiyor",
           "sendFailed": "Kod gönderilemedi. Lütfen tekrar deneyin.",
-          "updateFailed": "Şifre güncellenemedi. Lütfen tekrar deneyin."
+          "updateFailed": "Şifre güncellenemedi. Lütfen tekrar deneyin.",
+          "tooManyAttempts": "Çok fazla hatalı deneme. Lütfen yeni kod isteyin.",
+          "attemptsRemaining": "{{count}} deneme kaldı"
         }
       },
       "rememberMe": "Beni Hatırla",
@@ -191,7 +194,13 @@
     }
   },
   "modules": {
-    "locked": "Giriş yapın",
+    "locked": "Giriş gerekli",
+    "lockedAlert": {
+      "title": "Giriş Gerekli",
+      "message": "Bu modülü kullanmak için giriş yapman gerekiyor.",
+      "signIn": "Giriş Yap",
+      "cancel": "Vazgeç"
+    },
     "chat": {
       "title": "AI Sohbet",
       "description": "AI asistanınızla konuşun",
@@ -398,7 +407,11 @@
       "title": "Benzer Sorular",
       "failed": "Benzer sorular üretilemedi, tekrar dene"
     },
+    "topicAnalysis": "Konu Analizini Gör",
     "stepsLocked": "{{count}} adım daha — Premium ile gör",
+    "explainTopic": "Bu Konuyu Bana Açıkla",
+    "hideExplanation": "Açıklamayı Kapat",
+    "explaining": "Açıklanıyor...",
     "permissions": {
       "galleryDenied": "Galeri izni gerekli",
       "galleryDeniedMessage": "Galeri erişimi için izin vermeniz gerekiyor.",
@@ -416,6 +429,28 @@
       "emptySolutionMessage": "Kendi çözümünü yaz veya fotoğrafını ekle.",
       "noSolutionImage": "Çözüm görseli gerekli",
       "noSolutionImageMessage": "Lütfen çözümünüzün fotoğrafını ekleyin."
+    },
+    "comprehension": {
+      "question": "Konuyu anladın mı?",
+      "understood": "Kavradım",
+      "notUnderstood": "Hâlâ anlamadım",
+      "strongArea": "Kavradın — Bu konuyu iyi biliyorsun",
+      "weakArea": "Geliştirilmesi Gereken — Açıklama aşağıda"
+    },
+    "topics": {
+      "title": "Konu Analizi",
+      "totalSolved": "Toplam Çözüm",
+      "topicCount": "Konu Alanı",
+      "masteredCount": "Kavradıklarım",
+      "sectionTitle": "ÇALIŞTIĞIN KONULAR",
+      "strongBadge": "Kavradım",
+      "weakBadge": "Eksik",
+      "generateBtn": "Bu Konuda Soru Üret",
+      "generating": "Sorular üretiliyor...",
+      "hideQuestions": "Soruları Gizle",
+      "emptyTitle": "Henüz veri yok",
+      "emptyText": "Matematik modülünde soru çözdükçe konu analizin burada görünecek.",
+      "goToMath": "Matematik Modülüne Git"
     }
   },
   "profile": {
@@ -428,7 +463,6 @@
       "confirm": "Sil",
       "error": "Hesabınız silinirken bir hata oluştu. Lütfen tekrar deneyin veya destek ekibiyle iletişime geçin."
     },
-
     "login": "Giriş Yap",
     "account": "Hesap",
     "notLoggedIn": "Giriş Yapılmamış",
@@ -867,6 +901,7 @@
     "buttons": {
       "skip": "Atla",
       "next": "İleri",
+      "start": "Başla",
       "signIn": "Giriş Yap",
       "createAccount": "Hesap Oluştur",
       "continueAsGuest": "Misafir olarak devam et"
@@ -881,8 +916,15 @@
     "termsOfService": "Kullanım Koşulları",
     "andText": "ve"
   },
+  "welcome": {
+    "tagline": "Yapay zeka destekli çalışma asistanın",
+    "signIn": "Giriş Yap",
+    "createAccount": "Hesap Oluştur",
+    "continueAsGuest": "Misafir olarak devam et"
+  },
   "chat": {
     "newChatStarted": "Yeni sohbet başlatıldı",
+    "userFallback": "Kullanıcı",
     "empty": {
       "title": "Henüz sohbet yok",
       "description": "Yeni bir sohbet başlatmak için aşağıdaki butona tıklayın",
@@ -919,6 +961,8 @@
   },
   "premium": {
     "limitReached": "Günlük Limitiniz Doldu",
+    "proFeature": "PRO Özelliği",
+    "proFeatureSubtitle": "Bu özelliği kullanmak için Premium'a geç",
     "usageToday": "{{module}} için bugün {{used}}/{{limit}} kullanıldı",
     "upgradeMessage": "Premium'a geçin ve sınırsız kullanımın keyfini çıkarın!",
     "upgradeToPremium": "Premium'a Geç",
@@ -933,7 +977,10 @@
     "features": {
       "unlimited": "Sınırsız kullanım",
       "priority": "Öncelikli destek",
-      "noAds": "Reklamsız deneyim"
+      "noAds": "Reklamsız deneyim",
+      "topicAnalysis": "Konu analizi ve güçlü/zayıf alan takibi",
+      "verify": "Çalışmalarını doğrula",
+      "explanations": "Konu açıklamaları ve detaylı çözümler"
     }
   },
   "rating": {

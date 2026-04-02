@@ -18,7 +18,8 @@
     "getStarted": "Get Started",
     "info": "Info",
     "warning": "Warning",
-    "login": "Sign In"
+    "login": "Sign In",
+    "timeout": "Request timed out. Please try again."
   },
   "ad": {},
   "auth": {
@@ -63,7 +64,9 @@
           "passwordMinLength": "Password must be at least 6 characters",
           "passwordsNotMatch": "Passwords do not match",
           "sendFailed": "Failed to send code. Please try again.",
-          "updateFailed": "Failed to update password. Please try again."
+          "updateFailed": "Failed to update password. Please try again.",
+          "tooManyAttempts": "Too many failed attempts. Please request a new code.",
+          "attemptsRemaining": "{{count}} attempts remaining"
         }
       },
       "rememberMe": "Remember Me",
@@ -191,7 +194,13 @@
     }
   },
   "modules": {
-    "locked": "Sign in",
+    "locked": "Sign in required",
+    "lockedAlert": {
+      "title": "Sign In Required",
+      "message": "You need to sign in to use this module.",
+      "signIn": "Sign In",
+      "cancel": "Cancel"
+    },
     "chat": {
       "title": "AI Chat",
       "description": "Talk with your AI",
@@ -351,7 +360,6 @@
   },
   "profile": {
     "title": "Profile",
-
     "settings": {
       "title": "Settings",
       "language": "Language",
@@ -819,7 +827,11 @@
       "title": "Similar Questions",
       "failed": "Could not generate similar questions, try again"
     },
+    "topicAnalysis": "View Topic Analysis",
     "stepsLocked": "{{count}} more steps — See with Premium",
+    "explainTopic": "Explain This Topic",
+    "hideExplanation": "Hide Explanation",
+    "explaining": "Explaining...",
     "permissions": {
       "galleryDenied": "Gallery permission required",
       "galleryDeniedMessage": "You need to grant gallery access permission.",
@@ -837,6 +849,28 @@
       "emptySolutionMessage": "Write your solution or add a photo.",
       "noSolutionImage": "Solution image required",
       "noSolutionImageMessage": "Please add a photo of your solution."
+    },
+    "comprehension": {
+      "question": "Did you understand the solution?",
+      "understood": "Got it",
+      "notUnderstood": "Still unclear",
+      "strongArea": "Mastered — You know this topic well",
+      "weakArea": "Needs Practice — See explanation below"
+    },
+    "topics": {
+      "title": "Topic Analysis",
+      "totalSolved": "Total Solved",
+      "topicCount": "Topic Areas",
+      "masteredCount": "Mastered",
+      "sectionTitle": "TOPICS YOU STUDIED",
+      "strongBadge": "Mastered",
+      "weakBadge": "Needs Work",
+      "generateBtn": "Generate Questions",
+      "generating": "Generating questions...",
+      "hideQuestions": "Hide Questions",
+      "emptyTitle": "No data yet",
+      "emptyText": "Solve problems in the Math module to see your topic analysis here.",
+      "goToMath": "Go to Math Module"
     }
   },
   "settings": {
@@ -867,6 +901,7 @@
     "buttons": {
       "skip": "Skip",
       "next": "Next",
+      "start": "Get Started",
       "signIn": "Sign In",
       "createAccount": "Create Account",
       "continueAsGuest": "Continue as Guest"
@@ -881,8 +916,15 @@
     "termsOfService": "Terms of Service",
     "andText": "and"
   },
+  "welcome": {
+    "tagline": "Your AI-powered study companion",
+    "signIn": "Sign In",
+    "createAccount": "Create Account",
+    "continueAsGuest": "Continue as Guest"
+  },
   "chat": {
     "newChatStarted": "New chat started",
+    "userFallback": "User",
     "empty": {
       "title": "No chats yet",
       "description": "Click the button below to start a new chat",
@@ -919,6 +961,8 @@
   },
   "premium": {
     "limitReached": "Daily Limit Reached",
+    "proFeature": "PRO Feature",
+    "proFeatureSubtitle": "Upgrade to Premium to unlock this feature",
     "usageToday": "{{used}}/{{limit}} used today for {{module}}",
     "upgradeMessage": "Upgrade to Premium and enjoy unlimited usage!",
     "upgradeToPremium": "Upgrade to Premium",
@@ -933,7 +977,10 @@
     "features": {
       "unlimited": "Unlimited usage",
       "priority": "Priority support",
-      "noAds": "Ad-free experience"
+      "noAds": "Ad-free experience",
+      "topicAnalysis": "Topic analysis & strength/weakness tracking",
+      "verify": "Verify your work",
+      "explanations": "Topic explanations & detailed solutions"
     }
   },
   "rating": {

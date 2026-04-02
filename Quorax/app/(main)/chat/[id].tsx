@@ -149,7 +149,7 @@ export default function ChatDetailScreen() {
                 ? profile?.display_name ||
                   profile?.full_name ||
                   authUser?.email?.split("@")[0] ||
-                  "Kullanıcı"
+                  t("chat.userFallback")
                 : "AI Assistant",
             avatar: msg.sender_type === "user" ? undefined : "ai",
           },
@@ -270,7 +270,7 @@ export default function ChatDetailScreen() {
           profile?.display_name ||
           profile?.full_name ||
           authUser?.email?.split("@")[0] ||
-          "Kullanıcı";
+          t("chat.userFallback");
 
         // Optimistically add user message to UI
         const optimisticUserMessage: IMessage = {

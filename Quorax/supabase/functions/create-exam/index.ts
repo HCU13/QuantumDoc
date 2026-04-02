@@ -5,14 +5,19 @@ import "https://deno.land/x/xhr@0.3.0/mod.ts";
 import { createClient } from "https://esm.sh/@supabase/supabase-js@2";
 import { jsonrepair } from "https://esm.sh/jsonrepair@3.10.0";
 
-// System prompt: boş şık yok, soru çeşitliliği zorunlu, zorluk dikkate alınacak
-const EXAM_SYSTEM_PROMPT = `Sınav sorusu üret. Yanıtında SADECE tek bir JSON nesnesi yaz; öncesinde veya sonrasında hiçbir açıklama, cümle veya markdown ekleme. Doğrudan { ile başla ve } ile bitir.
-Kurallar:
-- Her soru için tam 4 şık (A,B,C,D). Her şıkkın "text" alanı mutlaka dolu ve anlamlı olacak; asla boş bırakma.
-- correctAnswer mutlaka SADECE tek bir harf olacak: A, B, C veya D. Başka hiçbir şey yazma (nokta, parantez, açıklama yok).
-- ÇOK ÖNEMLİ – Soru çeşitliliği: Her soru FARKLI bir alt konu, kavram veya soru tipinde olsun. Aynı veya neredeyse aynı soru metnini ASLA tekrarlama. Her biri farklı açıdan olsun: örn. biri tanım, biri hesaplama, biri uygulama, biri senaryo, biri karşılaştırma, biri "hangisi değildir", biri "doğru ifade" vb. İstenen soru sayısı kadar BİRBİRİNDEN FARKLI soru üret.
-- Zorluk seviyesi kullanıcı mesajında verilir (KOLAY / ORTA / ZOR). Buna sıkı uy: KOLAY gerçekten kolay, ZOR gerçekten zor olsun (çeldiriciler doğruya yakın, soru karmaşık).
-Format: {"questions":[{"question":"...","options":[{"label":"A","text":"..."},{"label":"B","text":"..."},{"label":"C","text":"..."},{"label":"D","text":"..."}],"correctAnswer":"A","explanation":"..."}]}. İstenen soru sayısına tam uy.`;
+// System prompt
+const EXAM_SYSTEM_PROMPT = `Sınav sorusu üret. SADECE tek bir JSON nesnesi yaz. Öncesinde veya sonrasında hiçbir metin, açıklama, markdown yok. Direkt { ile başla.
+
+KRİTİK KURALLAR:
+1. Her soru için TAM 4 şık: A, B, C, D. Her şıkın "text" alanı mutlaka dolu ve anlamlı olsun.
+2. "correctAnswer" alanına YALNIZCA tek bir büyük harf yaz: A veya B veya C veya D. Başka hiçbir şey yok — parantez, nokta, açıklama, "option", "The answer is" gibi ifadeler YASAK.
+3. correctAnswer her zaman şıklardan biriyle birebir eşleşmeli. Yanlış correctAnswer kesinlikle yasak.
+4. Her soru farklı bir alt konu ve soru tipinde olsun (tanım, hesaplama, uygulama, senaryo, karşılaştırma, hangisi-değildir vb.). Aynı soruyu tekrarlama.
+5. Zorluk: KOLAY=temel bilgi; ORTA=uygulama+yorum; ZOR=analiz+ince ayrım, çeldiriciler çok yakın.
+6. explanation alanı: doğru cevabın neden doğru olduğunu 1-2 cümle ile açıkla.
+
+FORMAT (bu yapıyı birebir kullan):
+{"questions":[{"question":"...","options":[{"label":"A","text":"..."},{"label":"B","text":"..."},{"label":"C","text":"..."},{"label":"D","text":"..."}],"correctAnswer":"A","explanation":"..."}]}`;
 
 const PREFILL = '{"questions":[';
 
@@ -149,6 +154,23 @@ Deno.serve(async (req) => {
       // usage check hatası - devam et
     }
 
+    // Premium kontrolü: free kullanıcı sadece easy + 5 soru kullanabilir
+    const isPremiumUser = usageCheck?.plan === "premium" || usageCheck?.plan === "pro";
+    if (!isPremiumUser) {
+      if (difficulty !== "easy") {
+        return new Response(
+          JSON.stringify({ error: "PREMIUM_REQUIRED", message: userLanguage === "tr" ? "Orta ve Zor seviye Premium üyelik gerektirir." : "Medium and Hard difficulty requires Premium." }),
+          { headers: { ...corsHeaders, "Content-Type": "application/json" }, status: 403 }
+        );
+      }
+      if (questionCount > 5) {
+        return new Response(
+          JSON.stringify({ error: "PREMIUM_REQUIRED", message: userLanguage === "tr" ? "5'ten fazla soru Premium üyelik gerektirir." : "More than 5 questions requires Premium." }),
+          { headers: { ...corsHeaders, "Content-Type": "application/json" }, status: 403 }
+        );
+      }
+    }
+
     if (usageCheck && !usageCheck.allowed) {
       return new Response(
         JSON.stringify({
@@ -247,11 +269,14 @@ Deno.serve(async (req) => {
       ];
     }
 
-    // Claude API - yanıt kesilmesin: soru başına yeterli token
-    // ZOR sorular daha uzun açıklama içerir, +60 token/soru ek pay
-    const tokensPerQuestion = difficulty === "hard" ? 400 : 320;
-    // claude-haiku-4-5-20251001 — Türkçe JSON çıktısı için soru başına 320-400 token gerekli
-    const maxTokens = Math.min(800 + questionCount * tokensPerQuestion, 8192);
+    // Token hesabı: Türkçe JSON çıktısı için soru başına güvenli pay.
+    // Haiku max_tokens üst sınırı 8192. Formül: 400 overhead + count * perQ ≤ 8192
+    // easy: 20 soru → 400 + 20*280 = 5800 ✓
+    // medium: 20 soru → 400 + 20*340 = 7200 ✓
+    // hard: 20 soru → 400 + 20*380 = 8000 ✓
+    const safeCount = Math.min(questionCount, 20);
+    const tokensPerQuestion = difficulty === "hard" ? 380 : difficulty === "easy" ? 280 : 340;
+    const maxTokens = Math.min(400 + safeCount * tokensPerQuestion, 8192);
 
     const apiBody = {
       model: "claude-haiku-4-5-20251001",
@@ -294,20 +319,25 @@ Deno.serve(async (req) => {
         text: optionMap[label],
       }));
 
-      // correctAnswer: regex ile A/B/C/D harfini çıkar; "option B", "b)", "The answer is C" gibi
-      // formatları doğru işle
+      // correctAnswer: A/B/C/D harfini güvenli çıkar.
+      // "B", "b", "(B)", "B.", "option B", "The answer is C", "B)" gibi tüm varyantları işle.
       const rawAnswer = String(q.correctAnswer || "").trim();
-      let correctAnswer = "A";
-      const labelMatch = rawAnswer.match(/\b([ABCD])\b/i);
-      if (labelMatch) {
-        correctAnswer = labelMatch[1].toUpperCase();
-      } else {
-        const firstChar = rawAnswer.toUpperCase().slice(0, 1);
-        if (LABELS.includes(firstChar)) {
-          correctAnswer = firstChar;
-        } else {
-          // Tanımsız cevap - A'ya varsayılan
-        }
+      let correctAnswer = "";
+      // Önce tek başına harf kontrol et
+      const singleChar = rawAnswer.toUpperCase().replace(/[^ABCD]/g, "").slice(0, 1);
+      if (singleChar && LABELS.includes(singleChar)) {
+        correctAnswer = singleChar;
+      }
+      // Sonra metin içinde A/B/C/D ara (word boundary olmadan — parantez, nokta vs geçsin)
+      if (!correctAnswer) {
+        const anyMatch = rawAnswer.toUpperCase().match(/[ABCD]/);
+        if (anyMatch) correctAnswer = anyMatch[0];
+      }
+      // Hiç bulunamazsa: options içinde doğru text'i ara (AI bazen text yazar)
+      if (!correctAnswer) {
+        const rawLower = rawAnswer.toLowerCase();
+        const matched = normalizedOptions.find((o) => o.text.toLowerCase() === rawLower);
+        correctAnswer = matched ? matched.label : "A";
       }
 
       return {
@@ -362,7 +392,7 @@ Deno.serve(async (req) => {
           topic: topic || "Fotoğraftan tespit edildi",
           questionCount: questionsToReturn.length,
           difficulty: difficulty,
-          model: "claude-3-haiku-20240307",
+          model: "claude-haiku-4-5-20251001",
           inputTokens,
           outputTokens,
         },

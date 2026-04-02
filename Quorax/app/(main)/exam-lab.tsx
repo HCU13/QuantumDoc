@@ -184,8 +184,12 @@ export default function ExamLabScreen() {
   const [selectedImage, setSelectedImage] = useState<string | null>(null);
   const [imageSource, setImageSource] = useState<"gallery" | "camera" | null>(null);
   const [showPremiumModal, setShowPremiumModal] = useState(false);
+  const [premiumModalIsProGate, setPremiumModalIsProGate] = useState(false);
   const [usageInfo, setUsageInfo] = useState<any>(null);
-  const [difficulty, setDifficulty] = useState<"easy" | "medium" | "hard">("medium");
+
+  const openProGate = () => { setPremiumModalIsProGate(true); setShowPremiumModal(true); };
+  const openLimitModal = () => { setPremiumModalIsProGate(false); setShowPremiumModal(true); };
+  const [difficulty, setDifficulty] = useState<"easy" | "medium" | "hard">(isPremium ? "medium" : "easy");
   const [questionCount, setQuestionCount] = useState<number>(5);
   const [showReportModal, setShowReportModal] = useState(false);
   const [savedExam, setSavedExam] = useState<{
@@ -326,13 +330,13 @@ export default function ExamLabScreen() {
         setLoading(false);
         setLoadingTopic(null);
         setUsageInfo(usage);
-        setShowPremiumModal(true);
+        openLimitModal();
         return;
       }
     }
 
-    // Topic'i max 3 kelime ile sınırla
-    const limitedTopic = topic.split(' ').slice(0, 3).join(' ');
+    // Topic'i max 6 kelime ile sınırla
+    const limitedTopic = topic.split(' ').slice(0, 6).join(' ');
     setSelectedTopic(limitedTopic);
     setLoadingTopic(limitedTopic);
     setLoading(true);
@@ -387,6 +391,12 @@ export default function ExamLabScreen() {
 
       const data = await response.json();
 
+      if (data.error === "USAGE_LIMIT_EXCEEDED" || data.error === "PREMIUM_REQUIRED") {
+        setUsageInfo(data.usageInfo);
+        openLimitModal();
+        return;
+      }
+
       if (data.error) {
         throw new Error(data.error || data.message || t("examLab.errors.failedMessage"));
       }
@@ -395,14 +405,26 @@ export default function ExamLabScreen() {
         throw new Error(t("examLab.errors.failedMessage"));
       }
 
-      // Format questions
-      const formattedQuestions: Question[] = data.questions.map((q: any, index: number) => ({
-        id: index + 1,
-        question: q.question || "",
-        options: q.options || [],
-        correctAnswer: q.correctAnswer || "A",
-        explanation: q.explanation || "",
-      }));
+      const VALID_LABELS = ["A", "B", "C", "D"];
+      // Format questions — correctAnswer'ı frontend'de de güvenli normalize et
+      const formattedQuestions: Question[] = data.questions.map((q: any, index: number) => {
+        const options: { label: string; text: string }[] = Array.isArray(q.options) ? q.options : [];
+        const raw = String(q.correctAnswer || "").trim().toUpperCase();
+        // Tek harf doğrudan geçerli mi?
+        let correctAnswer = VALID_LABELS.includes(raw) ? raw : "";
+        // Değilse içinden A/B/C/D çıkar
+        if (!correctAnswer) {
+          const m = raw.match(/[ABCD]/);
+          correctAnswer = m ? m[0] : "A";
+        }
+        return {
+          id: index + 1,
+          question: q.question || "",
+          options,
+          correctAnswer,
+          explanation: q.explanation || "",
+        };
+      });
 
       setQuestions(formattedQuestions);
       setScreen("exam");
@@ -531,7 +553,7 @@ export default function ExamLabScreen() {
       const usage = await checkUsageLimit("exam_lab");
       if (usage && !usage.allowed) {
         setUsageInfo(usage);
-        setShowPremiumModal(true);
+        openLimitModal();
         return;
       }
     }
@@ -1095,12 +1117,12 @@ export default function ExamLabScreen() {
               placeholderTextColor={colors.textTertiary}
               value={customTopic}
               onChangeText={(text) => {
-                // Maksimum 3 kelime
+                // Maksimum 6 kelime
                 const words = text.trim().split(/\s+/);
-                if (words.length <= 3) {
+                if (words.length <= 6) {
                   setCustomTopic(text);
                 } else {
-                  setCustomTopic(words.slice(0, 3).join(" "));
+                  setCustomTopic(words.slice(0, 6).join(" "));
                   showWarning(t("examLab.customTopic.wordLimit"), t("examLab.customTopic.wordLimitMessage"));
                 }
               }}
@@ -1197,21 +1219,29 @@ export default function ExamLabScreen() {
               />
               <Chip
                 label={t("examLab.difficultyOptions.medium")}
-                icon="remove-outline"
+                icon={!isPremium ? "lock-closed-outline" : "remove-outline"}
                 selected={difficulty === "medium"}
                 flex={true}
                 modulePrimary={colors.moduleExamLabPrimary}
                 moduleLight={colors.moduleExamLabLight}
-                onPress={() => setDifficulty("medium")}
+                proTag={!isPremium}
+                onPress={() => {
+                  if (!isPremium) { openProGate(); return; }
+                  setDifficulty("medium");
+                }}
               />
               <Chip
                 label={t("examLab.difficultyOptions.hard")}
-                icon="trending-up-outline"
+                icon={!isPremium ? "lock-closed-outline" : "trending-up-outline"}
                 selected={difficulty === "hard"}
                 flex={true}
                 modulePrimary={colors.moduleExamLabPrimary}
                 moduleLight={colors.moduleExamLabLight}
-                onPress={() => setDifficulty("hard")}
+                proTag={!isPremium}
+                onPress={() => {
+                  if (!isPremium) { openProGate(); return; }
+                  setDifficulty("hard");
+                }}
               />
             </View>
           </View>
@@ -1222,39 +1252,39 @@ export default function ExamLabScreen() {
               {t("examLab.questionCount")} ({questionCount})
             </Text>
             <View style={styles.quickCountButtons}>
-              {[5, 10, 15, 20].map((count) => (
-                <TouchableOpacity
-                  key={count}
-                  style={[
-                    styles.quickCountButton,
-                    {
-                      backgroundColor:
-                        questionCount === count
-                          ? colors.moduleExamLabPrimary
-                          : colors.backgroundSecondary,
-                      borderColor:
-                        questionCount === count
-                          ? colors.moduleExamLabPrimary
-                          : colors.borderSubtle,
-                    },
-                  ]}
-                  onPress={() => setQuestionCount(count)}
-                >
-                  <Text
+              {[5, 10, 15, 20].map((count) => {
+                const locked = !isPremium && count > 5;
+                const selected = questionCount === count;
+                return (
+                  <TouchableOpacity
+                    key={count}
                     style={[
-                      styles.quickCountButtonText,
+                      styles.quickCountButton,
                       {
-                        color:
-                          questionCount === count
-                            ? colors.textOnPrimary
-                            : colors.textPrimary,
+                        backgroundColor: selected ? colors.moduleExamLabPrimary : colors.backgroundSecondary,
+                        borderColor: selected ? colors.moduleExamLabPrimary : colors.borderSubtle,
+                        opacity: locked ? 0.55 : 1,
                       },
                     ]}
+                    onPress={() => {
+                      if (locked) { openProGate(); return; }
+                      setQuestionCount(count);
+                    }}
                   >
-                    {count}
-                  </Text>
-                </TouchableOpacity>
-              ))}
+                    {locked && (
+                      <Ionicons name="lock-closed" size={10} color={colors.textTertiary} style={{ marginRight: 2 }} />
+                    )}
+                    <Text style={[styles.quickCountButtonText, { color: selected ? colors.textOnPrimary : colors.textPrimary }]}>
+                      {count}
+                    </Text>
+                    {locked && (
+                      <View style={styles.proTagInline}>
+                        <Text style={styles.proTagInlineText}>PRO</Text>
+                      </View>
+                    )}
+                  </TouchableOpacity>
+                );
+              })}
             </View>
           </View>
         </View>
@@ -1744,7 +1774,7 @@ export default function ExamLabScreen() {
         title={t("modules.examLab.title")}
         modulePrimary={colors.moduleExamLabPrimary}
         moduleLight={colors.moduleExamLabLight}
-        onBackPress={screen === "exam" ? handleExitExam : screen === "flashcard" ? () => { setScreen("selection"); setFlashcards([]); setCurrentCardIndex(0); } : undefined}
+        onBackPress={screen === "exam" ? handleExitExam : screen === "flashcard" ? () => { setScreen("selection"); setFlashcards([]); setCurrentCardIndex(0); } : () => router.canDismiss() ? router.dismiss() : router.replace("/(main)")}
         rightAction={
           isLoggedIn && !isPremium && usageInfo ? (
             <MinimalUsageBadge
@@ -1766,9 +1796,9 @@ export default function ExamLabScreen() {
       {/* Premium Modal */}
       <PremiumModal
         visible={showPremiumModal}
-        onClose={() => setShowPremiumModal(false)}
+        onClose={() => { setShowPremiumModal(false); setPremiumModalIsProGate(false); }}
         moduleType="exam_lab"
-        usageInfo={usageInfo}
+        usageInfo={premiumModalIsProGate ? undefined : usageInfo}
       />
     </View>
   );
@@ -1945,6 +1975,19 @@ const styles = StyleSheet.create({
     ...TEXT_STYLES.labelMedium,
     fontWeight: "700",
     fontSize: 15,
+  },
+  proTagInline: {
+    backgroundColor: '#8B5CF6',
+    borderRadius: 3,
+    paddingHorizontal: 3,
+    paddingVertical: 1,
+    marginLeft: 3,
+  },
+  proTagInlineText: {
+    color: '#fff',
+    fontSize: 8,
+    fontWeight: '800',
+    letterSpacing: 0.3,
   },
   examHeader: {
     padding: SPACING.md,

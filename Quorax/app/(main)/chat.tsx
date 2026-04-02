@@ -172,7 +172,7 @@ export default function ChatScreen() {
       await supabase.from(TABLES.USER_ACTIVITIES).insert({
         user_id: user.id,
         activity_type: "chat",
-        title: "Yeni Sohbet Oluşturuldu",
+        title: t("chat.newChatStarted"),
         description: newChatTitle.trim(),
         metadata: {
           chatId: data.id,
@@ -268,6 +268,7 @@ export default function ChatScreen() {
         title={t("modules.chat.title")}
         modulePrimary={colors.moduleChatPrimary}
         moduleLight={colors.moduleChatLight}
+        onBackPress={() => router.canDismiss() ? router.dismiss() : router.replace("/(main)")}
         rightAction={
           isLoggedIn && !isPremium && usageInfo ? (
             <MinimalUsageBadge

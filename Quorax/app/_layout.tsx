@@ -6,7 +6,7 @@ import * as Linking from 'expo-linking';
 import { StatusBar } from 'expo-status-bar';
 import { Component, useEffect, useRef, useState } from 'react';
 import { I18nextProvider } from 'react-i18next';
-import { ActivityIndicator, SafeAreaView, StyleSheet, Text, TouchableOpacity, View } from 'react-native';
+import { Animated, Image, SafeAreaView, StyleSheet, Text, TouchableOpacity, View } from 'react-native';
 import 'react-native-reanimated';
 import 'react-native-url-polyfill/auto';
 
@@ -15,7 +15,7 @@ import { Toast } from '@/components/common/Toast';
 import { ActivityProvider } from '@/contexts/ActivityContext';
 import { AdProvider, useAd } from '@/contexts/AdContext';
 import { AuthProvider, useAuth } from '@/contexts/AuthContext';
-import { SubscriptionProvider } from '@/contexts/SubscriptionContext';
+import { SubscriptionProvider, useSubscription } from '@/contexts/SubscriptionContext';
 import { ThemeProvider, useTheme } from '@/contexts/ThemeContext';
 import { TokenProvider } from '@/contexts/TokenContext';
 import i18n from '@/i18n/config';
@@ -164,14 +164,154 @@ function AdIntervalTrigger() {
   return null;
 }
 
+// Logolu Splash Ekranı — tüm veriler hazır olana kadar gösterilir, sonra fade out yapar
+function SplashScreen({ onReady, allReady }: { onReady: () => void; allReady: boolean }) {
+  // Ana wrapper fade (çıkış için)
+  const containerFade = useRef(new Animated.Value(1)).current;
+
+  // Logo: aşağıdan gelir + scale
+  const logoTranslate = useRef(new Animated.Value(60)).current;
+  const logoScale     = useRef(new Animated.Value(0.7)).current;
+  const logoOpacity   = useRef(new Animated.Value(0)).current;
+
+  // Işık halkası pulse
+  const ringScale   = useRef(new Animated.Value(0.6)).current;
+  const ringOpacity = useRef(new Animated.Value(0)).current;
+
+  // "QUORAX" yazısı + alt tagline
+  const textTranslate = useRef(new Animated.Value(24)).current;
+  const textOpacity   = useRef(new Animated.Value(0)).current;
+
+  // Loading dots
+  const dot1 = useRef(new Animated.Value(0.3)).current;
+  const dot2 = useRef(new Animated.Value(0.3)).current;
+  const dot3 = useRef(new Animated.Value(0.3)).current;
+
+  const exitStarted = useRef(false);
+
+  useEffect(() => {
+    // 1) Logo giriş (0ms)
+    Animated.parallel([
+      Animated.spring(logoScale,     { toValue: 1,    tension: 55, friction: 7, useNativeDriver: true }),
+      Animated.spring(logoTranslate, { toValue: 0,    tension: 55, friction: 7, useNativeDriver: true }),
+      Animated.timing(logoOpacity,   { toValue: 1,    duration: 400, useNativeDriver: true }),
+    ]).start();
+
+    // 2) Işık halkası (200ms delay)
+    setTimeout(() => {
+      Animated.parallel([
+        Animated.timing(ringOpacity, { toValue: 0.18, duration: 500, useNativeDriver: true }),
+        Animated.spring(ringScale,   { toValue: 1,    tension: 40, friction: 6, useNativeDriver: true }),
+      ]).start(() => {
+        // Sürekli nefes alma efekti
+        Animated.loop(
+          Animated.sequence([
+            Animated.timing(ringScale,   { toValue: 1.08, duration: 1400, useNativeDriver: true }),
+            Animated.timing(ringScale,   { toValue: 1.0,  duration: 1400, useNativeDriver: true }),
+          ])
+        ).start();
+      });
+    }, 200);
+
+    // 3) Yazı giriş (380ms delay)
+    setTimeout(() => {
+      Animated.parallel([
+        Animated.spring(textTranslate, { toValue: 0, tension: 60, friction: 8, useNativeDriver: true }),
+        Animated.timing(textOpacity,   { toValue: 1, duration: 450, useNativeDriver: true }),
+      ]).start();
+    }, 380);
+
+    // 4) Loading dots sıralı pulse
+    const pulseDot = (dot: Animated.Value, delay: number) =>
+      Animated.loop(
+        Animated.sequence([
+          Animated.delay(delay),
+          Animated.timing(dot, { toValue: 1,   duration: 400, useNativeDriver: true }),
+          Animated.timing(dot, { toValue: 0.3, duration: 400, useNativeDriver: true }),
+        ])
+      ).start();
+
+    setTimeout(() => {
+      pulseDot(dot1, 0);
+      pulseDot(dot2, 200);
+      pulseDot(dot3, 400);
+    }, 700);
+  }, []);
+
+  // allReady gelince çıkış animasyonu (min 1.4s gösterilsin — psikolojik güven)
+  useEffect(() => {
+    if (!allReady || exitStarted.current) return;
+    exitStarted.current = true;
+
+    setTimeout(() => {
+      Animated.timing(containerFade, {
+        toValue: 0,
+        duration: 500,
+        useNativeDriver: true,
+      }).start(() => onReady());
+    }, 400); // veriler geldikten 400ms sonra çık — ani geçiş olmasın
+  }, [allReady]);
+
+  return (
+    <Animated.View style={[styles.splash, { opacity: containerFade }]}>
+      {/* Arka plan gradient efekti (radial simülasyonu) */}
+      <View style={styles.splashGlow} />
+
+      {/* Logo + halka */}
+      <View style={{ alignItems: 'center' }}>
+        {/* Işık halkası */}
+        <Animated.View style={[
+          styles.splashRing,
+          { transform: [{ scale: ringScale }], opacity: ringOpacity }
+        ]} />
+
+        {/* Logo */}
+        <Animated.View style={{
+          transform: [{ translateY: logoTranslate }, { scale: logoScale }],
+          opacity: logoOpacity,
+        }}>
+          <Image
+            source={require('../assets/images/logo.png')}
+            style={styles.splashLogo}
+            resizeMode="contain"
+          />
+        </Animated.View>
+      </View>
+
+      {/* Uygulama adı + tagline */}
+      <Animated.View style={[
+        styles.splashTextBlock,
+        { transform: [{ translateY: textTranslate }], opacity: textOpacity }
+      ]}>
+        <Text style={styles.splashTitle}>QUORAX</Text>
+        <Text style={styles.splashTagline}>Your AI Study Companion</Text>
+      </Animated.View>
+
+      {/* Loading dots */}
+      <Animated.View style={[styles.splashDots, { opacity: textOpacity }]}>
+        <Animated.View style={[styles.splashDot, { opacity: dot1 }]} />
+        <Animated.View style={[styles.splashDot, { opacity: dot2 }]} />
+        <Animated.View style={[styles.splashDot, { opacity: dot3 }]} />
+      </Animated.View>
+    </Animated.View>
+  );
+}
+
 function RootLayoutContent() {
   const { isDark } = useTheme();
   const { isLoggedIn, isLoading: authLoading } = useAuth();
+  const { isLoading: subLoading } = useSubscription();
   const router = useRouter();
   const segments = useSegments();
-  const [isReady, setIsReady] = useState(false);
+  const [onboardingChecked, setOnboardingChecked] = useState(false);
+  const [splashDone, setSplashDone] = useState(false);
+  const [isGuestMode, setIsGuestMode] = useState(false);
+  const [guestChecked, setGuestChecked] = useState(false);
   const { shouldShow: showRatingPrompt, markPrompted } = useRatingPrompt();
   usePushToken();
+
+  // Tüm veriler hazır mı?
+  const allReady = onboardingChecked && guestChecked && !authLoading && !subLoading;
 
   useEffect(() => {
     const checkOnboarding = async () => {
@@ -183,24 +323,41 @@ function RootLayoutContent() {
       } catch (error) {
         console.error('Onboarding kontrolü hatası:', error);
       } finally {
-        setIsReady(true);
+        setOnboardingChecked(true);
       }
     };
-
     checkOnboarding();
+  }, []);
+
+  // Guest mode durumunu kontrol et (bir kez başlangıçta)
+  useEffect(() => {
+    const checkGuestMode = async () => {
+      try {
+        const guest = await AsyncStorage.getItem('@guest_mode');
+        setIsGuestMode(!!guest);
+      } catch {}
+      setGuestChecked(true);
+    };
+    checkGuestMode();
   }, []);
 
   // Auth durumu değişince tek yerden yönlendir
   useEffect(() => {
-    if (!isReady || authLoading) return;
-    const inAuthFlow = segments.includes('login') || segments.includes('signup');
+    if (!allReady) return;
+    const inAuthFlow = segments.includes('login') || segments.includes('signup') || segments.includes('welcome');
     const inResetPassword = segments.includes('reset-password');
-    if (isLoggedIn && inAuthFlow) {
-      router.replace('/(main)');
+    if (isLoggedIn) {
+      AsyncStorage.removeItem('@guest_mode').catch(() => {});
+      if (segments.includes('login') || segments.includes('signup') || segments.includes('welcome')) {
+        router.replace('/(main)');
+      }
     } else if (!isLoggedIn && !inAuthFlow && !inResetPassword && segments.includes('(main)')) {
-      router.replace('/(main)/login');
+      // Direkt AsyncStorage'dan oku — state güncellenmemiş olabilir
+      AsyncStorage.getItem('@guest_mode').then((guest) => {
+        if (!guest) router.replace('/(main)/welcome');
+      }).catch(() => {});
     }
-  }, [isLoggedIn, isReady, authLoading, segments]);
+  }, [isLoggedIn, allReady, segments]);
 
   // Şifre sıfırlama deep link'i yakala (quorax://reset-password)
   useEffect(() => {
@@ -223,10 +380,7 @@ function RootLayoutContent() {
       }
     };
 
-    // Uygulama açıkken gelen deep link
     const subscription = Linking.addEventListener('url', handleDeepLink);
-
-    // Uygulama kapalıyken tıklanan deep link
     Linking.getInitialURL().then((url) => {
       if (url && isValidResetLink(url)) {
         router.replace('/(main)/reset-password');
@@ -236,16 +390,8 @@ function RootLayoutContent() {
     return () => subscription.remove();
   }, []);
 
-  if (!isReady) {
-    return (
-      <View style={[styles.loadingContainer, { backgroundColor: isDark ? '#121212' : '#f5f5f5' }]}>
-        <ActivityIndicator size="large" color={isDark ? '#a78bfa' : '#8B5CF6'} />
-        <Text style={[styles.loadingText, { color: isDark ? '#e5e5e5' : '#525252' }]}>
-          Yükleniyor...
-        </Text>
-      </View>
-    );
-  }
+  // Splash, tüm veriler hazır olana kadar gösterilir
+  const showSplash = !splashDone || !allReady;
 
   return (
     <NavigationThemeProvider value={isDark ? DarkTheme : DefaultTheme}>
@@ -259,6 +405,10 @@ function RootLayoutContent() {
       <StatusBar style={isDark ? 'light' : 'dark'} />
       <Toast />
       <RatingPromptModal visible={showRatingPrompt} onDismiss={markPrompted} />
+      {/* Splash: veriler hazır olunca fade out yapar ve kaldırılır */}
+      {showSplash && (
+        <SplashScreen allReady={allReady} onReady={() => setSplashDone(true)} />
+      )}
     </NavigationThemeProvider>
   );
 }
@@ -272,6 +422,67 @@ const styles = StyleSheet.create({
   },
   loadingText: {
     fontSize: 14,
+  },
+  splash: {
+    ...StyleSheet.absoluteFillObject,
+    backgroundColor: '#FFFFFF',
+    justifyContent: 'center',
+    alignItems: 'center',
+    zIndex: 9999,
+    gap: 28,
+  },
+  splashGlow: {
+    position: 'absolute',
+    width: 340,
+    height: 340,
+    borderRadius: 170,
+    backgroundColor: '#5B21B6',
+    opacity: 0.12,
+    top: '50%',
+    left: '50%',
+    marginTop: -170,
+    marginLeft: -170,
+  },
+  splashRing: {
+    position: 'absolute',
+    width: 180,
+    height: 180,
+    borderRadius: 90,
+    borderWidth: 1.5,
+    borderColor: '#8B5CF6',
+    backgroundColor: 'transparent',
+  },
+  splashLogo: {
+    width: 110,
+    height: 110,
+  },
+  splashTextBlock: {
+    alignItems: 'center',
+    gap: 6,
+  },
+  splashTitle: {
+    color: '#1a0533',
+    fontSize: 26,
+    fontWeight: '700',
+    letterSpacing: 8,
+  },
+  splashTagline: {
+    color: '#7C3AED',
+    fontSize: 13,
+    fontWeight: '500',
+    letterSpacing: 1.5,
+  },
+  splashDots: {
+    flexDirection: 'row',
+    gap: 8,
+    position: 'absolute',
+    bottom: 80,
+  },
+  splashDot: {
+    width: 7,
+    height: 7,
+    borderRadius: 3.5,
+    backgroundColor: '#8B5CF6',
   },
 });
 
