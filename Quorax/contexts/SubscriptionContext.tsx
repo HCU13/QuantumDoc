@@ -12,6 +12,20 @@ interface UsageInfo {
   subscription_type: 'free' | 'premium';
 }
 
+export interface Purchase {
+  id: string;
+  product_id: string;
+  product_name: string;
+  amount: number;
+  currency: string;
+  store: string;
+  purchased_at: string;
+  expires_at: string | null;
+  is_renewal: boolean;
+  period_type: string | null;
+  status: string;
+}
+
 const PRICE_CACHE_KEY = '@quorax_premium_price_v2';
 
 interface SubscriptionContextType {
@@ -21,6 +35,8 @@ interface SubscriptionContextType {
   isPremium: boolean;
   isLoading: boolean;
   premiumPriceString: string;
+  purchases: Purchase[];
+  purchasesLoading: boolean;
   refreshSubscription: () => Promise<void>;
   checkUsageLimit: (moduleId: 'chat' | 'math' | 'exam_lab' | 'calculator') => Promise<UsageInfo | null>;
   logUsage: (
@@ -45,6 +61,8 @@ export const SubscriptionProvider: React.FC<SubscriptionProviderProps> = ({ chil
   const [expiresAt, setExpiresAt] = useState<string | null>(null);
   const [isLoading, setIsLoading] = useState(true);
   const [premiumPriceString, setPremiumPriceString] = useState('—');
+  const [purchases, setPurchases] = useState<Purchase[]>([]);
+  const [purchasesLoading, setPurchasesLoading] = useState(false);
 
   // Abonelik tek kaynak: user_subscriptions tablosundan yükle (profile kullanılmıyor)
   const loadSubscriptionFromDb = useCallback(async () => {
@@ -96,6 +114,31 @@ export const SubscriptionProvider: React.FC<SubscriptionProviderProps> = ({ chil
     loadSubscriptionFromDb();
   }, [loadSubscriptionFromDb]);
 
+  // Satın alım geçmişini arka planda çek — sayfa açılınca zaten hazır olsun
+  const loadPurchases = useCallback(async () => {
+    if (!user?.id || !isLoggedIn) {
+      setPurchases([]);
+      return;
+    }
+    setPurchasesLoading(true);
+    try {
+      const { data } = await supabase
+        .from('purchases')
+        .select('id, product_id, product_name, amount, currency, store, purchased_at, expires_at, is_renewal, period_type, status')
+        .eq('user_id', user.id)
+        .order('purchased_at', { ascending: false });
+      setPurchases(data || []);
+    } catch {
+      // sessizce devam
+    } finally {
+      setPurchasesLoading(false);
+    }
+  }, [user?.id, isLoggedIn]);
+
+  useEffect(() => {
+    loadPurchases();
+  }, [loadPurchases]);
+
   // Fiyatı uygulama açılışında çek, cache'e kaydet
   useEffect(() => {
     const loadPrice = async () => {
@@ -119,13 +162,14 @@ export const SubscriptionProvider: React.FC<SubscriptionProviderProps> = ({ chil
     loadPrice();
   }, [user?.id]);
 
-  const isPremium = subscriptionType === 'premium' && subscriptionStatus === 'active';
+  const isPremium = subscriptionType === 'premium' && subscriptionStatus === 'active' && (expiresAt === null || new Date(expiresAt) > new Date());
 
   // Refresh subscription from database (tek kaynak: user_subscriptions)
   const refreshSubscription = useCallback(async () => {
     await loadSubscriptionFromDb();
     await refreshUser();
-  }, [loadSubscriptionFromDb, refreshUser]);
+    await loadPurchases();
+  }, [loadSubscriptionFromDb, refreshUser, loadPurchases]);
 
   // Check usage limit for a module
   const checkUsageLimit = useCallback(async (
@@ -196,6 +240,8 @@ export const SubscriptionProvider: React.FC<SubscriptionProviderProps> = ({ chil
         isPremium,
         isLoading,
         premiumPriceString,
+        purchases,
+        purchasesLoading,
         refreshSubscription,
         checkUsageLimit,
         logUsage,

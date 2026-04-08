@@ -10,6 +10,7 @@ export default function ProfileLayout() {
       <Stack.Screen name="terms" />
       <Stack.Screen name="help" />
       <Stack.Screen name="feedback" />
+      <Stack.Screen name="purchase-history" />
     </Stack>
   );
 }

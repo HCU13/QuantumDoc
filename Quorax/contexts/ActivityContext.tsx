@@ -82,17 +82,6 @@ export const ActivityProvider: React.FC<{ children: ReactNode }> = ({
         .order("created_at", { ascending: false })
         .limit(10);
 
-      // 3. Diğer (calculator vb.) — "Sınav Oluşturuldu" (exam-lab) gösterme, sadece exam_results'taki sınavlar görünsün
-      const { data: otherActivitiesRaw } = await supabase
-        .from(TABLES.USER_ACTIVITIES)
-        .select("*")
-        .eq("user_id", user.id)
-        .neq("activity_type", "chat")
-        .neq("activity_type", "exam-lab")
-        .order("created_at", { ascending: false })
-        .limit(10);
-      const otherActivities = otherActivitiesRaw || [];
-
       const allActivities: (Activity & { created_at: string })[] = [
         ...(mathData || []).map((math) => ({
           id: `math-${math.id}`,
@@ -113,16 +102,6 @@ export const ActivityProvider: React.FC<{ children: ReactNode }> = ({
           subtitle: `${exam.correct_count}/${exam.total_questions} ${t("home.activity.correctShort") || "doğru"}`,
           timestamp: formatTime(exam.created_at),
           created_at: exam.created_at,
-        })),
-        ...(otherActivities || []).map((activity) => ({
-          id: activity.id,
-          type: (activity.activity_type === "calculator"
-            ? "calculator"
-            : "math") as Activity["type"],
-          title: activity.title || t("home.activity.activity") || "Aktivite",
-          timestamp: formatTime(activity.created_at),
-          tokenCost: 0,
-          created_at: activity.created_at,
         })),
       ];
 
@@ -152,7 +131,6 @@ export const ActivityProvider: React.FC<{ children: ReactNode }> = ({
 
     try {
       await Promise.all([
-        supabase.from(TABLES.USER_ACTIVITIES).delete().eq("user_id", user.id),
         supabase.from("math_solutions").delete().eq("user_id", user.id),
         supabase.from(TABLES.EXAM_RESULTS).delete().eq("user_id", user.id),
       ]);
@@ -184,13 +162,6 @@ export const ActivityProvider: React.FC<{ children: ReactNode }> = ({
             .from(TABLES.EXAM_RESULTS)
             .delete()
             .eq("id", examId)
-            .eq("user_id", user.id);
-          if (error) throw error;
-        } else {
-          const { error } = await supabase
-            .from(TABLES.USER_ACTIVITIES)
-            .delete()
-            .eq("id", activityId)
             .eq("user_id", user.id);
           if (error) throw error;
         }

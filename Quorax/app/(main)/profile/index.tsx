@@ -3,7 +3,6 @@ import AsyncStorage from "@react-native-async-storage/async-storage";
 import * as Localization from "expo-localization";
 import { useRouter } from "expo-router";
 import { StatusBar } from "expo-status-bar";
-import * as StoreReview from "expo-store-review";
 import React, { useEffect, useState } from "react";
 import { useTranslation } from "react-i18next";
 import {
@@ -35,11 +34,11 @@ import { supabase } from "@/services/supabase";
 // Removed: Token packages - now using subscription system
 
 export default function ProfileScreen() {
-  const { colors, isDark, setTheme, themeMode } = useTheme();
+  const { colors, isDark, setTheme } = useTheme();
   const { t, i18n } = useTranslation();
   const router = useRouter();
   const { user, profile, isLoggedIn, logout } = useAuth();
-  const { isPremium, subscriptionType, expiresAt } = useSubscription();
+  const { isPremium, expiresAt } = useSubscription();
 
   // User data from context
   const userName =
@@ -90,7 +89,7 @@ export default function ProfileScreen() {
   // Tema değiştirme - kullanıcı değiştirirse kaydedilecek
   const handleThemeChange = async (value: boolean) => {
     const newTheme = value ? "dark" : "light";
-    await setTheme(newTheme);
+    setTheme(newTheme);
   };
 
   // E-posta doğrulama ileride eklenecek
@@ -140,42 +139,19 @@ export default function ProfileScreen() {
   const handleRateApp = async () => {
     try {
       if (Platform.OS === "ios") {
-        // iOS için native in-app review kullan
-        const isAvailable = await StoreReview.isAvailableAsync();
-
-        if (isAvailable) {
-          // Native review dialog'u göster
-          await StoreReview.requestReview();
-        } else {
-          // Native review mevcut değilse App Store'a yönlendir
-          const appStoreUrl = "https://apps.apple.com/app/id6755162337";
-          const canOpen = await Linking.canOpenURL(appStoreUrl);
-          if (canOpen) {
-            await Linking.openURL(appStoreUrl);
-          } else {
-            Alert.alert(t("common.info"), t("profile.rate.notAvailable"));
-          }
-        }
+        // Direkt App Store değerlendirme sayfasına aç (action=write-review ile doğrudan yorum ekranı)
+        const appStoreUrl = "https://apps.apple.com/app/quorax-ai-matematik/id6755162337?action=write-review";
+        await Linking.openURL(appStoreUrl);
       } else {
-        // Android için de önce native review'i dene
-        const isAvailable = await StoreReview.isAvailableAsync();
-
-        if (isAvailable) {
-          await StoreReview.requestReview();
+        const playStoreUrl = "market://details?id=com.quorax.app";
+        const canOpen = await Linking.canOpenURL(playStoreUrl);
+        if (canOpen) {
+          await Linking.openURL(playStoreUrl);
         } else {
-          // Fallback olarak Play Store'a yönlendir
-          const playStoreUrl =
-            "https://play.google.com/store/apps/details?id=com.quorax.app";
-          const canOpen = await Linking.canOpenURL(playStoreUrl);
-          if (canOpen) {
-            await Linking.openURL(playStoreUrl);
-          } else {
-            Alert.alert(t("common.info"), t("profile.rate.notAvailable"));
-          }
+          await Linking.openURL("https://play.google.com/store/apps/details?id=com.quorax.app");
         }
       }
-    } catch (error: any) {
-      // Hata durumunda sessizce başarısız ol, kullanıcıyı rahatsız etme
+    } catch {
       Alert.alert(t("common.info"), t("profile.rate.notAvailable"));
     }
   };
@@ -328,6 +304,23 @@ export default function ProfileScreen() {
           <Text style={[styles.categoryTitle, { color: colors.textTertiary }]}>
             {t("profile.settings.categories.account")}
           </Text>
+          {isLoggedIn && (
+            <>
+              <TouchableOpacity
+                style={styles.settingsItem}
+                activeOpacity={0.7}
+                onPress={() => router.push("/(main)/profile/purchase-history" as any)}
+              >
+                <Ionicons name="receipt-outline" size={22} color={colors.textSecondary} />
+                <Text style={[styles.settingsText, { color: colors.textPrimary }]}>
+                  {i18n.language === "tr" ? "Satın Alım Geçmişi" : "Purchase History"}
+                </Text>
+                <Ionicons name="chevron-forward" size={18} color={colors.textTertiary} />
+              </TouchableOpacity>
+              <View style={[styles.divider, { backgroundColor: colors.borderSubtle }]} />
+            </>
+          )}
+
           <TouchableOpacity
             style={[styles.settingsItem, !isLoggedIn && { opacity: 0.5 }]}
             activeOpacity={0.7}

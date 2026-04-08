@@ -131,33 +131,38 @@ async function handlePremiumSubscription(supabase: any, event: any, status: 'act
 
       // Abonelik artık sadece user_subscriptions'ta; profiles'dan subscription kolonları kaldırıldı
 
-      // Purchase kaydını oluştur
-      const purchaseRecord = {
-        user_id: userId,
-        product_id: productId,
-        product_name: 'Premium Monthly Subscription',
-        product_type: 'subscription',
-        transaction_id: event.transaction_id,
-        amount: event.price || 7.99,
-        currency: event.currency || 'USD',
-        payment_method: event.store === 'app_store' ? 'Apple Pay' : 'Google Pay',
-        payment_provider: event.store,
-        store: event.store,
-        purchased_at: new Date(event.purchased_at_ms).toISOString(),
-        completed_at: new Date().toISOString(),
-        status: 'completed',
-        is_sandbox: false,
-        metadata: {
-          event_type: event.type,
-          subscription_type: 'premium',
-          subscription_period: 'monthly',
+      // Sandbox satın alımları kaydetme (test verisini kirletmesin)
+      const isSandbox = event.store === 'promotional' || event.environment === 'SANDBOX'
+      if (!isSandbox) {
+        const purchaseRecord = {
+          user_id: userId,
+          product_id: productId,
+          product_name: 'Premium Monthly Subscription',
+          product_type: 'subscription',
+          transaction_id: event.transaction_id,
+          amount: event.price || 0,
+          currency: event.currency || 'USD',
+          payment_method: event.store === 'app_store' ? 'Apple Pay' : 'Google Pay',
+          payment_provider: event.store,
+          store: event.store,
+          purchased_at: new Date(event.purchased_at_ms).toISOString(),
+          completed_at: new Date().toISOString(),
+          status: 'completed',
+          is_sandbox: false,
+          is_renewal: event.type === 'RENEWAL',
+          period_type: event.period_type || 'monthly',
           expires_at: expiresAt ? expiresAt.toISOString() : null,
+          metadata: {
+            event_type: event.type,
+            subscription_type: 'premium',
+            entitlement_ids: event.entitlement_ids,
+          }
         }
-      }
 
-      await supabase
-        .from('purchases')
-        .upsert(purchaseRecord, { onConflict: 'transaction_id' })
+        await supabase
+          .from('purchases')
+          .upsert(purchaseRecord, { onConflict: 'transaction_id' })
+      }
 
     } else if (status === 'cancelled') {
       // Premium aboneliği iptal edildi

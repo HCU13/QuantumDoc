@@ -50,7 +50,7 @@ export default function ChatScreen() {
   const { colors, isDark } = useTheme();
   const { t } = useTranslation();
   const router = useRouter();
-  const { user, profile, isLoggedIn } = useAuth();
+  const { user, isLoggedIn } = useAuth();
   const { checkUsageLimit, isPremium, logUsage } = useSubscription();
   const [chats, setChats] = useState<Chat[]>([]);
   const [loading, setLoading] = useState(true);
@@ -109,7 +109,7 @@ export default function ChatScreen() {
         .from(TABLES.CHATS)
         .select("*")
         .eq("user_id", user.id)
-        .order("last_message_at", { ascending: false, nullsLast: true })
+        .order("last_message_at", { ascending: false, nullsFirst: false })
         .order("created_at", { ascending: false });
 
       if (error) throw error;
@@ -141,7 +141,7 @@ export default function ChatScreen() {
       // ✅ Check usage limit before creating chat
       if (!isPremium) {
         const usage = await checkUsageLimit('chat');
-        if (usage && !usage.allowed) {
+        if (usage?.allowed === false) {
           setUsageInfo(usage);
           setShowPremiumModal(true);
           setCreating(false);
@@ -166,18 +166,6 @@ export default function ChatScreen() {
       await logUsage('chat', 'create_chat', 0, 0, {
         chat_id: data.id,
         chat_title: newChatTitle.trim(),
-      });
-
-      // Log activity
-      await supabase.from(TABLES.USER_ACTIVITIES).insert({
-        user_id: user.id,
-        activity_type: "chat",
-        title: t("chat.newChatStarted"),
-        description: newChatTitle.trim(),
-        metadata: {
-          chatId: data.id,
-          chatTitle: newChatTitle.trim(),
-        },
       });
 
     setNewChatTitle("");

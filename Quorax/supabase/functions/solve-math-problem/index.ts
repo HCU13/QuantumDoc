@@ -437,7 +437,6 @@ Deno.serve(async (req) => {
         problem_text: problemText || "Resimden algılanan problem",
         problem_image_url: problemImageUrl || null,
         solution_text: solution,
-        tokens_used: 0,
         ai_model: "claude-sonnet-4-6",
         topic: topic ? normalizeSubTopic(topic) : null,
         topic_category: topic ? normalizeTopicCategory(topic) : null,
