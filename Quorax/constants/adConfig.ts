@@ -17,15 +17,17 @@ export const isExpoGo = Constants.executionEnvironment === 'storeClient';
 
 /**
  * Test reklamı gösterecek miyiz?
- * - __DEV__ (development/preview build) veya
- * - EXPO_PUBLIC_USE_TEST_ADS=true (örn. TestFlight'ta canlı build'de bile test reklam için)
- * - Expo Go içinde (mock reklam olsa bile test ID'leri kullan)
+ * - EXPO_PUBLIC_USE_TEST_ADS=true → test reklamları (development/preview)
+ * - EXPO_PUBLIC_USE_TEST_ADS=false → production reklamları (store build)
+ * - Değer yoksa __DEV__'e bak
+ * - Expo Go'da her zaman test
  */
+const useTestAdsEnv = process.env.EXPO_PUBLIC_USE_TEST_ADS;
+
 export const isTestAdEnv =
   isExpoGo ||
-  (typeof __DEV__ !== 'undefined' && __DEV__ === true) ||
-  Constants.expoConfig?.extra?.useTestAds === true ||
-  Constants.expoConfig?.extra?.eas?.useTestAds === true;
+  (useTestAdsEnv === 'true') ||
+  (useTestAdsEnv === undefined && typeof __DEV__ !== 'undefined' && __DEV__ === true);
 
 // Google resmi test rewarded ad unit ID'leri (platforma göre)
 export const TEST_REWARDED_AD_UNIT_ID_ANDROID = 'ca-app-pub-3940256099942544/5224354917';

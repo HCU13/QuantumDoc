@@ -91,7 +91,6 @@ export const ActivityProvider: React.FC<{ children: ReactNode }> = ({
             t("home.activity.mathProblem") ||
             "Matematik problemi",
           timestamp: formatTime(math.created_at),
-          tokenCost: 0,
           problemImageUrl: math.problem_image_url || undefined,
           created_at: math.created_at,
         })),

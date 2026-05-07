@@ -25,9 +25,6 @@ export const ModuleCard: React.FC<ModuleCardProps> = ({ module, isLoggedIn = fal
   const { colors, isDark } = useTheme();
   const { t } = useTranslation();
 
-  // Token sistemi kaldırıldı - artık subscription bazlı
-  const tokenCost = 0; // Artık token gösterme
-  
   // Calculator is always available
   const isLocked = !isLoggedIn && module.id !== "calculator";
 
@@ -67,9 +64,9 @@ export const ModuleCard: React.FC<ModuleCardProps> = ({ module, isLoggedIn = fal
         iconBg: '#93C5FD',
         iconBgDark: '#1E40AF'
       },
-      'exam-lab': { 
-        primary: '#F59E0B', 
-        light: '#FFF4E6', 
+      'exam-lab': {
+        primary: '#F59E0B',
+        light: '#FFF4E6',
         dark: '#3A2817',
         iconBg: '#FCD34D',
         iconBgDark: '#B45309'
@@ -125,11 +122,11 @@ export const ModuleCard: React.FC<ModuleCardProps> = ({ module, isLoggedIn = fal
               </View>
 
               {isLocked ? (
-                <View style={[styles.primaryToken, { backgroundColor: colors.warning || "#F59E0B" }]}>
+                <View style={[styles.primaryBadge, { backgroundColor: colors.warning || "#F59E0B" }]}>
                   <Ionicons name="lock-closed" size={12} color="#FFFFFF" />
                 </View>
               ) : isLoggedIn && usageInfo ? (
-                <View style={[styles.primaryToken, {
+                <View style={[styles.primaryBadge, {
                   backgroundColor: usageInfo.remaining === 0 ? "rgba(239,68,68,0.15)" : "rgba(0,0,0,0.12)",
                   borderWidth: 1,
                   borderColor: usageInfo.remaining === 0 ? "rgba(239,68,68,0.3)" : "rgba(0,0,0,0.08)",
@@ -139,7 +136,7 @@ export const ModuleCard: React.FC<ModuleCardProps> = ({ module, isLoggedIn = fal
                     size={11}
                     color={usageInfo.remaining === 0 ? "#EF4444" : colors.textSecondary}
                   />
-                  <Text style={[styles.primaryTokenText, {
+                  <Text style={[styles.primaryBadgeText, {
                     color: usageInfo.remaining === 0 ? "#EF4444" : colors.textSecondary,
                   }]}>
                     {usageInfo.used}/{usageInfo.limit}
@@ -162,6 +159,25 @@ export const ModuleCard: React.FC<ModuleCardProps> = ({ module, isLoggedIn = fal
                 {isLocked ? t("modules.locked") : t(module.descriptionKey)}
               </Text>
             </View>
+
+            {isLoggedIn && usageInfo && (
+              <View style={styles.usageBarWrap}>
+                <View style={[styles.usageBarTrack, { backgroundColor: "rgba(0,0,0,0.12)" }]}>
+                  <View style={[
+                    styles.usageBarFill,
+                    {
+                      backgroundColor: usageInfo.remaining === 0 ? "#EF4444" : moduleColor.primary,
+                      width: `${Math.min((usageInfo.used / usageInfo.limit) * 100, 100)}%`,
+                    }
+                  ]} />
+                </View>
+                <Text style={[styles.usageBarLabel, { color: colors.textSecondary }]}>
+                  {usageInfo.remaining === 0
+                    ? t("modules.dailyLimitReached")
+                    : t("modules.dailyUsage", { used: usageInfo.used, limit: usageInfo.limit })}
+                </Text>
+              </View>
+            )}
 
             <View style={styles.primaryAction}>
               {isLocked
@@ -211,11 +227,11 @@ export const ModuleCard: React.FC<ModuleCardProps> = ({ module, isLoggedIn = fal
           </View>
 
           {isLocked ? (
-            <View style={[styles.token, { backgroundColor: colors.warning || '#F59E0B' }]}>
+            <View style={[styles.badge, { backgroundColor: colors.warning || '#F59E0B' }]}>
               <Ionicons name="lock-closed" size={12} color="#FFFFFF" />
             </View>
           ) : isLoggedIn && usageInfo ? (
-            <View style={[styles.token, {
+            <View style={[styles.badge, {
               backgroundColor: usageInfo.remaining === 0 ? "rgba(239,68,68,0.12)" : colors.surfaceMuted,
               borderWidth: 1,
               borderColor: usageInfo.remaining === 0 ? "rgba(239,68,68,0.25)" : "transparent",
@@ -225,7 +241,7 @@ export const ModuleCard: React.FC<ModuleCardProps> = ({ module, isLoggedIn = fal
                 size={11}
                 color={usageInfo.remaining === 0 ? "#EF4444" : colors.textSecondary}
               />
-              <Text style={[styles.tokenText, {
+              <Text style={[styles.badgeText, {
                 color: usageInfo.remaining === 0 ? "#EF4444" : colors.textSecondary,
               }]}>
                 {usageInfo.used}/{usageInfo.limit}
@@ -274,7 +290,7 @@ const styles = StyleSheet.create({
     justifyContent: 'center',
     alignItems: 'center',
   },
-  primaryToken: {
+  primaryBadge: {
     flexDirection: 'row',
     alignItems: 'center',
     gap: 4,
@@ -282,7 +298,7 @@ const styles = StyleSheet.create({
     paddingVertical: 4,
     borderRadius: BORDER_RADIUS.sm,
   },
-  primaryTokenText: {
+  primaryBadgeText: {
     ...TEXT_STYLES.labelSmall,
     fontSize: 12,
     fontWeight: '700',
@@ -304,6 +320,24 @@ const styles = StyleSheet.create({
   primaryAction: {
     alignSelf: 'flex-end',
     marginTop: SPACING.xs,
+  },
+  usageBarWrap: {
+    marginBottom: SPACING.xs,
+    gap: 4,
+  },
+  usageBarTrack: {
+    height: 4,
+    borderRadius: 2,
+    overflow: 'hidden',
+  },
+  usageBarFill: {
+    height: 4,
+    borderRadius: 2,
+  },
+  usageBarLabel: {
+    fontSize: 11,
+    fontWeight: '500',
+    opacity: 0.8,
   },
   wrapperSecondary: {
     width: 156,
@@ -328,7 +362,7 @@ const styles = StyleSheet.create({
     justifyContent: 'center',
     alignItems: 'center',
   },
-  token: {
+  badge: {
     flexDirection: 'row',
     alignItems: 'center',
     gap: 4,
@@ -336,7 +370,7 @@ const styles = StyleSheet.create({
     paddingVertical: 4,
     borderRadius: BORDER_RADIUS.sm,
   },
-  tokenText: {
+  badgeText: {
     ...TEXT_STYLES.labelSmall,
     fontSize: 12,
     fontWeight: '600',

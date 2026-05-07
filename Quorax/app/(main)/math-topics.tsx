@@ -18,6 +18,7 @@ import { BORDER_RADIUS, SPACING, TEXT_STYLES } from "@/constants/theme";
 import { useAuth } from "@/contexts/AuthContext";
 import { useTheme } from "@/contexts/ThemeContext";
 import { supabase, SUPABASE_URL } from "@/services/supabase";
+import { normalizeCategoryKey as normalizeCatKey } from "@/utils/topicLabel";
 import { showError } from "@/utils/toast";
 import { useTranslation } from "react-i18next";
 
@@ -31,18 +32,40 @@ interface CategoryStat {
   notUnderstoodCount: number;
 }
 
-// Kategori ikonları
+// Category icons — keyed by canonical English category keys (matches edge function's TOPIC_CATEGORIES output).
 const CATEGORY_ICONS: Record<string, string> = {
-  "Kalkülüs": "trending-up-outline",
-  "Cebir": "calculator-outline",
-  "Geometri": "shapes-outline",
-  "Trigonometri": "radio-outline",
-  "İstatistik & Olasılık": "stats-chart-outline",
-  "Lineer Cebir": "grid-outline",
-  "Sayı Teorisi": "infinite-outline",
-  "Temel Matematik": "school-outline",
-  "Diğer": "ellipsis-horizontal-outline",
+  calculus: "trending-up-outline",
+  algebra: "calculator-outline",
+  geometry: "shapes-outline",
+  trigonometry: "radio-outline",
+  statistics: "stats-chart-outline",
+  linear_algebra: "grid-outline",
+  number_theory: "infinite-outline",
+  basic_math: "school-outline",
+  other: "ellipsis-horizontal-outline",
 };
+
+// Use the shared normalizer from utils/topicLabel — unified legacy handling across screens.
+const normalizeCategoryKey = (raw: string): string => normalizeCatKey(raw) ?? raw;
+
+// Sub-topic strings from old DB rows were over-capitalized ("İşLem öNceliği (Bodmas)").
+// Apply a soft fix at display time: lowercase then capitalize word-initials, but skip acronyms.
+function prettifySubTopic(raw: string): string {
+  if (!raw) return raw;
+  // If already clean (no weird mid-word caps), return as-is.
+  if (!/[a-zçğıöşü][A-ZÇĞİÖŞÜ]/.test(raw)) return raw;
+  return raw
+    .split(/(\s+|[-–])/)
+    .map((part) => {
+      if (/^\s+$/.test(part) || part === "-" || part === "–") return part;
+      // Acronyms in parens like (BODMAS) stay uppercase.
+      if (/^\(?[A-ZÇĞİÖŞÜ]{2,}\)?$/.test(part)) return part;
+      // Lowercase then capitalize first letter (Turkish-aware).
+      const lower = part.toLocaleLowerCase("tr-TR");
+      return lower.charAt(0).toLocaleUpperCase("tr-TR") + lower.slice(1);
+    })
+    .join("");
+}
 
 // Renk paleti — her kategori farklı renk
 const CATEGORY_COLORS = [
@@ -54,7 +77,7 @@ export default function MathTopicsScreen() {
   const { colors, isDark } = useTheme();
   const { user } = useAuth();
   const router = useRouter();
-  const { t } = useTranslation();
+  const { t, i18n } = useTranslation();
 
   const [categories, setCategories] = useState<CategoryStat[]>([]);
   const [totalSolved, setTotalSolved] = useState(0);
@@ -83,7 +106,7 @@ export default function MathTopicsScreen() {
       setCategories(data.categories ?? []);
       setTotalSolved(data.totalSolved ?? 0);
     } catch (e: any) {
-      showError("Hata", e.message);
+      showError(t("common.error"), e.message);
     } finally {
       setLoading(false);
     }
@@ -106,7 +129,7 @@ export default function MathTopicsScreen() {
       const { data: { session } } = await supabase.auth.getSession();
       if (!session) return;
 
-      const topicHint = topTopics.map(t => t.name).join(", ") || category;
+      const topicHint = topTopics.map(tt => tt.name).join(", ") || category;
 
       const res = await fetch(`${SUPABASE_URL}/functions/v1/solve-math-problem`, {
         method: "POST",
@@ -115,8 +138,9 @@ export default function MathTopicsScreen() {
           "Authorization": `Bearer ${session.access_token}`,
         },
         body: JSON.stringify({
-          problemText: `${category} konusunda (özellikle: ${topicHint}) pratik yapılabilecek sorular üret`,
+          problemText: `Generate practice questions on topic: ${category}. Subtopics: ${topicHint}`,
           userId: user!.id,
+          userLanguage: i18n.language || "en",
           mode: "related",
         }),
       });
@@ -125,7 +149,7 @@ export default function MathTopicsScreen() {
         setGeneratedQuestions(prev => ({ ...prev, [category]: data.relatedQuestions }));
       }
     } catch (e: any) {
-      showError("Hata", e.message);
+      showError(t("common.error"), e.message);
     } finally {
       setGeneratingFor(null);
     }
@@ -177,7 +201,7 @@ export default function MathTopicsScreen() {
         {loading ? (
           <View style={styles.loadingBox}>
             <ActivityIndicator color={colors.moduleMathPrimary} />
-            <Text style={[styles.loadingText, { color: colors.textSecondary }]}>{t("loading")}</Text>
+            <Text style={[styles.loadingText, { color: colors.textSecondary }]}>{t("common.loading")}</Text>
           </View>
         ) : categories.length === 0 ? (
           <View style={[styles.emptyBox, { backgroundColor: colors.card, borderColor: colors.borderSubtle }]}>
@@ -201,7 +225,10 @@ export default function MathTopicsScreen() {
 
             {categories.map((cat, idx) => {
               const color = CATEGORY_COLORS[idx % CATEGORY_COLORS.length];
-              const icon = CATEGORY_ICONS[cat.category] ?? "book-outline";
+              const catKey = normalizeCategoryKey(cat.category);
+              const icon = CATEGORY_ICONS[catKey] ?? "book-outline";
+              // Translate canonical key → user's language; fall back to raw if key doesn't exist.
+              const catDisplay = t(`math.topics.categories.${catKey}`, { defaultValue: cat.category });
               const barPct = Math.max(12, (cat.count / maxCount) * 100);
               const isExpanded = expandedCategory === cat.category;
               const isGenerating = generatingFor === cat.category;
@@ -227,7 +254,7 @@ export default function MathTopicsScreen() {
                     </View>
                     <View style={{ flex: 1 }}>
                       <View style={styles.catTitleRow}>
-                        <Text style={[styles.catName, { color: colors.textPrimary }]}>{cat.category}</Text>
+                        <Text style={[styles.catName, { color: colors.textPrimary }]}>{catDisplay}</Text>
                         {masteryStatus === 'strong' && (
                           <View style={[styles.weakBadge, { backgroundColor: "#D1FAE5" }]}>
                             <Ionicons name="checkmark-circle-outline" size={10} color="#059669" />
@@ -252,10 +279,10 @@ export default function MathTopicsScreen() {
                   {/* Alt konular */}
                   {cat.topTopics.length > 0 && (
                     <View style={styles.subTopicsRow}>
-                      {cat.topTopics.map((t) => (
-                        <View key={t.name} style={[styles.subTopicChip, { backgroundColor: color + "12" }]}>
-                          <Text style={[styles.subTopicText, { color }]} numberOfLines={1}>{t.name}</Text>
-                          <Text style={[styles.subTopicCount, { color: color + "99" }]}>{t.count}</Text>
+                      {cat.topTopics.map((tt) => (
+                        <View key={tt.name} style={[styles.subTopicChip, { backgroundColor: color + "12" }]}>
+                          <Text style={[styles.subTopicText, { color }]} numberOfLines={1}>{prettifySubTopic(tt.name)}</Text>
+                          <Text style={[styles.subTopicCount, { color: color + "99" }]}>{tt.count}</Text>
                         </View>
                       ))}
                     </View>

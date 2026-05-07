@@ -58,7 +58,7 @@ export const configureRevenueCat = async (userId: string | null = null): Promise
     await Purchases.configure({ apiKey });
 
     // Log seviyesini ayarla (sadece geliştirme ortamında)
-    if (__DEV__) Purchases.setLogLevel(Purchases.LOG_LEVEL.DEBUG);
+    if (__DEV__) Purchases.setLogLevel(Purchases.LOG_LEVEL.WARN);
 
     // Kullanıcı ID'si varsa login yap
     if (userId) {
@@ -215,6 +215,20 @@ export const purchasePremiumSubscription = async (
       throw new Error('CANCELLED');
     }
     throw new Error(error.message || 'Premium satın alma başarısız oldu');
+  }
+};
+
+/**
+ * Mevcut customerInfo'yu döner (network/cache — RevenueCat kendi yönetir)
+ */
+export const getCurrentCustomerInfo = async (): Promise<CustomerInfo | null> => {
+  try {
+    if (isExpoGo || Platform.OS !== 'ios') return null;
+    if (!isConfigured) return null;
+    return await Purchases.getCustomerInfo();
+  } catch (error: any) {
+    if (__DEV__) console.warn('getCustomerInfo error:', error);
+    return null;
   }
 };
 

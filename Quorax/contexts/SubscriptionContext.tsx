@@ -1,6 +1,6 @@
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import { supabase } from '@/services/supabase';
-import { configureRevenueCat, getPremiumPackages } from '@/services/revenuecat';
+import { configureRevenueCat, getCurrentCustomerInfo, getPremiumPackages } from '@/services/revenuecat';
 import React, { createContext, ReactNode, useCallback, useContext, useEffect, useState } from 'react';
 import { useAuth } from './AuthContext';
 
@@ -64,6 +64,76 @@ export const SubscriptionProvider: React.FC<SubscriptionProviderProps> = ({ chil
   const [purchases, setPurchases] = useState<Purchase[]>([]);
   const [purchasesLoading, setPurchasesLoading] = useState(false);
 
+  // RevenueCat ground-truth ile Supabase'i senkronla.
+  // Webhook kaçmış olabilir; app açılışında entitlement kontrolü yapıp DB'yi düzeltiyoruz.
+  const reconcileWithRevenueCat = useCallback(async (
+    dbRow: { subscription_type: string | null; subscription_status: string | null; expires_at: string | null } | null
+  ): Promise<boolean> => {
+    try {
+      await configureRevenueCat(user?.id ?? null);
+      const customerInfo = await getCurrentCustomerInfo();
+      if (!customerInfo) return false;
+
+      const entitlements = customerInfo.entitlements.active;
+      const premiumEntitlement =
+        entitlements['premium'] ?? entitlements['Premium'] ?? Object.values(entitlements)[0] ?? null;
+
+      const rcIsActive = !!premiumEntitlement;
+      const rcExpiresAt = premiumEntitlement?.expirationDate ?? null;
+      const dbIsActivePremium =
+        dbRow?.subscription_type === 'premium' && dbRow?.subscription_status === 'active';
+
+      // DB'de aktif premium ama RC'de yok → expire et
+      if (dbIsActivePremium && !rcIsActive) {
+        await supabase
+          .from('user_subscriptions')
+          .update({
+            subscription_type: 'free',
+            subscription_status: 'expired',
+            updated_at: new Date().toISOString(),
+          })
+          .eq('user_id', user!.id);
+        return true;
+      }
+
+      // RC'de aktif ama DB'de değil → aktifleştir
+      if (!dbIsActivePremium && rcIsActive) {
+        await supabase
+          .from('user_subscriptions')
+          .upsert(
+            {
+              user_id: user!.id,
+              subscription_type: 'premium',
+              subscription_status: 'active',
+              started_at: premiumEntitlement.originalPurchaseDate ?? new Date().toISOString(),
+              expires_at: rcExpiresAt,
+              product_id: premiumEntitlement.productIdentifier ?? null,
+              updated_at: new Date().toISOString(),
+            },
+            { onConflict: 'user_id' }
+          );
+        return true;
+      }
+
+      // Expires_at uyuşmazlığı (ör. yenileme olmuş) → güncelle
+      if (dbIsActivePremium && rcIsActive && rcExpiresAt && dbRow?.expires_at !== rcExpiresAt) {
+        await supabase
+          .from('user_subscriptions')
+          .update({
+            expires_at: rcExpiresAt,
+            updated_at: new Date().toISOString(),
+          })
+          .eq('user_id', user!.id);
+        return true;
+      }
+
+      return false;
+    } catch (error) {
+      if (__DEV__) console.warn('RevenueCat reconcile error:', error);
+      return false;
+    }
+  }, [user?.id]);
+
   // Abonelik tek kaynak: user_subscriptions tablosundan yükle (profile kullanılmıyor)
   const loadSubscriptionFromDb = useCallback(async () => {
     if (!user?.id || !isLoggedIn) {
@@ -100,6 +170,21 @@ export const SubscriptionProvider: React.FC<SubscriptionProviderProps> = ({ chil
         setSubscriptionStatus('active');
         setExpiresAt(null);
       }
+
+      // RevenueCat ile senkronla — uyuşmazlık varsa DB'yi düzelt, state'i tazele
+      const changed = await reconcileWithRevenueCat(subscription ?? null);
+      if (changed) {
+        const { data: updated } = await supabase
+          .from('user_subscriptions')
+          .select('subscription_type, subscription_status, expires_at')
+          .eq('user_id', user.id)
+          .maybeSingle();
+        if (updated) {
+          setSubscriptionType(updated.subscription_type ?? 'free');
+          setSubscriptionStatus(updated.subscription_status ?? 'active');
+          setExpiresAt(updated.expires_at ?? null);
+        }
+      }
     } catch (error) {
       console.error('Error loading subscription:', error);
       setSubscriptionType('free');
@@ -108,7 +193,7 @@ export const SubscriptionProvider: React.FC<SubscriptionProviderProps> = ({ chil
     } finally {
       setIsLoading(false);
     }
-  }, [user?.id, isLoggedIn]);
+  }, [user?.id, isLoggedIn, reconcileWithRevenueCat]);
 
   useEffect(() => {
     loadSubscriptionFromDb();
@@ -148,11 +233,14 @@ export const SubscriptionProvider: React.FC<SubscriptionProviderProps> = ({ chil
         if (cached) setPremiumPriceString(cached);
       } catch {}
 
-      // Sonra RevenueCat'ten taze fiyatı çek (user olmasa da anonim configure ile çalışır)
+      // Fetch fresh price from RevenueCat. We specifically prefer the MONTHLY package here so
+      // the "premiumPriceString" always carries a /month price (matches the /ay label elsewhere).
+      // The full paywall screen shows both monthly and yearly explicitly.
       try {
         await configureRevenueCat(user?.id ?? null);
         const pkgs = await getPremiumPackages();
-        const price = pkgs[0]?.product?.priceString;
+        const monthlyPkg = pkgs.find((p) => p.packageType === "MONTHLY");
+        const price = monthlyPkg?.product?.priceString ?? pkgs[0]?.product?.priceString;
         if (price) {
           setPremiumPriceString(price);
           await AsyncStorage.setItem(PRICE_CACHE_KEY, price);

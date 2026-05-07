@@ -1,0 +1,306 @@
+{
+  "common": {
+    "loading": "लोड हो रहा है...",
+    "error": "त्रुटि हुई",
+    "warning": "चेतावनी",
+    "success": "सफल",
+    "save": "सहेजें",
+    "cancel": "रद्द करें",
+    "delete": "हटाएं",
+    "edit": "संपादित करें",
+    "back": "वापस",
+    "close": "बंद करें",
+    "confirm": "पुष्टि करें",
+    "ok": "ठीक है",
+    "yes": "हां",
+    "no": "नहीं",
+    "next": "अगला",
+    "skip": "छोड़ें",
+    "getStarted": "शुरू करें",
+    "info": "जानकारी",
+    "login": "लॉग इन करें",
+    "timeout": "अनुरोध का समय समाप्त हो गया। कृपया पुनः प्रयास करें।",
+    "goBack": "वापस जाएं"
+  },
+  "welcome": {
+    "title": "Quorax में आपका स्वागत है! 🎉",
+    "subtitle": "फोटो से गणित हल करें, परीक्षा की तैयारी करें और AI सहायक के साथ सीखें।",
+    "earlyAccess": "हम अभी लॉन्च हुए हैं — कोई बग मिले तो बताएं, हम जल्दी ठीक करेंगे।",
+    "bugFoundPrefix": "कोई समस्या मिली?",
+    "bugFoundLink": "सहायता पर जाएं →",
+    "cta": "चलिए शुरू करते हैं"
+  },
+  "examProgress": {
+    "question": "प्रश्न",
+    "answer": "उत्तर",
+    "goBack": "वापस जाएं",
+    "toStudy": "{{count}} पढ़ना बाकी",
+    "learned": "{{count}} सीखा",
+    "masteryStats": "{{mastered}}/{{total}} महारत · {{pct}}% सफलता",
+    "questionN": "प्रश्न {{n}}"
+  },
+  "modules": {
+    "locked": "लॉगिन आवश्यक",
+    "dailyUsage": "आज {{used}}/{{limit}} उपयोग हुआ",
+    "dailyLimitReached": "दैनिक सीमा पूरी · Premium लें",
+    "loginRequired": {
+      "title": "लॉगिन आवश्यक",
+      "message": "इस मॉड्यूल का उपयोग करने के लिए लॉगिन करें।",
+      "signIn": "लॉग इन करें",
+      "cancel": "रद्द करें"
+    },
+    "chat": {
+      "title": "AI सहायक",
+      "description": "अपने AI सहायक से बात करें"
+    },
+    "math": {
+      "title": "गणित हल करें",
+      "description": "चरण-दर-चरण समाधान"
+    },
+    "calculator": {
+      "title": "कैलकुलेटर",
+      "description": "उन्नत गणनाएं"
+    },
+    "examLab": {
+      "title": "परीक्षा लैब",
+      "description": "विषय-आधारित परीक्षा तैयारी"
+    }
+  },
+  "home": {
+    "tagline": "गणित हल करें। परीक्षा की तैयारी करें।",
+    "recentActivity": "हालिया गतिविधि",
+    "noActivity": "अभी कोई गतिविधि नहीं",
+    "startUsing": "कोई भी मॉड्यूल उपयोग करना शुरू करें",
+    "viewAll": "सभी देखें",
+    "otherTools": "अन्य टूल्स"
+  },
+  "auth": {
+    "login": {
+      "title": "लॉग इन करें",
+      "subtitle": "वापस स्वागत है",
+      "email": "ईमेल",
+      "password": "पासवर्ड",
+      "loginButton": "लॉग इन करें",
+      "noAccount": "खाता नहीं है?",
+      "signUp": "साइन अप करें",
+      "forgotPassword": "पासवर्ड भूल गए?",
+      "orContinueWith": "या इसके साथ जारी रखें",
+      "continueAsGuest": "अतिथि के रूप में जारी रखें"
+    },
+    "signup": {
+      "title": "खाता बनाएं",
+      "subtitle": "आज Quorax से जुड़ें",
+      "name": "पूरा नाम",
+      "email": "ईमेल",
+      "password": "पासवर्ड",
+      "signupButton": "साइन अप करें",
+      "hasAccount": "पहले से खाता है?",
+      "signIn": "लॉग इन करें",
+      "terms": "साइन अप करके आप सेवा की शर्तें और गोपनीयता नीति से सहमत हैं।"
+    }
+  },
+  "premiumModal": {
+    "limitPill": "दैनिक सीमा",
+    "proPill": "प्रो फ़ीचर",
+    "limitTitle": "आज की मुफ़्त सीमा समाप्त हो गई",
+    "proTitle": "Premium इसे अनलॉक करता है",
+    "limitSubtitle": "आपने आज {{module}} में {{used}}/{{limit}} हल उपयोग किए। असीमित एक्सेस के लिए अपग्रेड करें।",
+    "proSubtitle": "यह फ़ीचर Premium में शामिल है। अगली स्क्रीन पर अपने प्लान विकल्प देखें।",
+    "benefitUnlimited": "असीमित गणित हल",
+    "benefitVerify": "अपने काम की जाँच करें",
+    "benefitExplanations": "चरण-दर-चरण व्याख्या",
+    "benefitNoAds": "कोई विज्ञापन नहीं, कभी नहीं",
+    "trialHint": "मुफ़्त आज़माएँ, कभी भी रद्द करें",
+    "cta": "प्लान देखें",
+    "later": "शायद बाद में"
+  },
+  "profile": {
+    "rtlRestartTitle": "पुनरारंभ आवश्यक",
+    "rtlRestartMessage": "नई पाठ दिशा लागू करने के लिए कृपया ऐप को पुनरारंभ करें।",
+    "premium": {
+      "ctaContinue": "जारी रखें",
+      "ctaStartTrial": "{{days}}-दिन का मुफ़्त ट्रायल शुरू करें",
+      "ctaTrialThen": "फिर {{price}}/{{period}} · कभी भी रद्द करें",
+      "planMonthly": "मासिक",
+      "planYearly": "वार्षिक",
+      "perYear": "वर्ष",
+      "equivMonthly": "{{price}}/माह",
+      "bestValue": "सर्वोत्तम मूल्य",
+      "savePercent": "{{pct}}% बचाएँ",
+      "trialBadge": "{{days}} दिन मुफ़्त",
+      "heroTrialTitle": "{{days}} दिनों के लिए मुफ़्त आज़माएँ",
+      "heroTrialSubtitle": "पूरा एक्सेस। आज कोई भुगतान नहीं।",
+      "trialReminder": "ट्रायल समाप्त होने से 2 दिन पहले हम आपको याद दिलाएँगे।",
+      "noPaymentToday": "आज कोई भुगतान नहीं",
+      "uniqueBadge": "केवल QUORAX में",
+      "verifyHeroTitle": "अपने काम की जाँच करें",
+      "verifyHeroDesc": "अपना हल पेस्ट करें — हम ठीक वह चरण ढूँढेंगे जहाँ आप गलत हुए और बताएँगे कि कैसे ठीक करें।",
+      "terms": "शर्तें",
+      "privacy": "गोपनीयता",
+      "legalAutoRenew": "रद्द होने तक स्वतः नवीनीकरण होता है। iOS Settings > Apple ID > Subscriptions में कभी भी रद्द करें। पुष्टि पर आपके Apple ID से भुगतान लिया जाएगा।",
+      "featureUnlimited": "असीमित गणित हल",
+      "featureVerify": "अपने काम की जाँच",
+      "featureExplanations": "चरण-दर-चरण व्याख्या",
+      "featureTopics": "विषय विश्लेषण डैशबोर्ड"
+    },
+    "settings": {
+      "language": "भाषा",
+      "purchaseHistory": "खरीद इतिहास",
+      "languageTr": "Türkçe",
+      "languageEn": "English",
+      "languageAr": "العربية",
+      "languageHi": "हिन्दी",
+      "languageEs": "Español",
+      "theme": "थीम",
+      "categories": {
+        "account": "खाता",
+        "preferences": "प्राथमिकताएं",
+        "support": "सहायता"
+      }
+    },
+    "promo": {
+      "menuLabel": "प्रोमो कोड",
+      "placeholder": "कोड दर्ज करें",
+      "apply": "लागू करें",
+      "successTitle": "सक्रिय हो गया 🎉",
+      "successMessage": "{{days}} दिन का Premium एक्सेस सक्रिय हो गया!",
+      "successExtended": "आपका Premium {{days}} दिन बढ़ा दिया गया!",
+      "errors": {
+        "code_not_found": "अमान्य प्रोमो कोड।",
+        "code_expired": "यह प्रोमो कोड समाप्त हो गया है।",
+        "code_exhausted": "इस प्रोमो कोड की सीमा पूरी हो गई।",
+        "already_redeemed": "आप यह कोड पहले ही उपयोग कर चुके हैं।",
+        "redemption_failed": "एक त्रुटि हुई। कृपया पुनः प्रयास करें।",
+        "server_error": "सर्वर त्रुटि। कृपया पुनः प्रयास करें।"
+      }
+    }
+  },
+  "math": {
+    "info": {
+      "title": "उपयोग कैसे करें?",
+      "content": "अपनी समस्या टाइप करें या फोटो लें / गैलरी से चुनें। AI बीजगणित, ज्यामिति, कैलकुलस और बहुत कुछ संभाल सकता है।\n\nप्रत्येक समाधान में स्पष्ट उत्तर, क्रमांकित चरण-दर-चरण व्याख्या और परिणाम सत्यापन शामिल है।"
+    },
+    "input": {
+      "text": "टाइप करें",
+      "gallery": "गैलरी",
+      "camera": "कैमरा"
+    },
+    "placeholder": "अपनी गणित समस्या दर्ज करें...",
+    "imagePlaceholder": "गैलरी से चुनें या फोटो लें",
+    "tapToLoadImage": "छवि लोड करने के लिए टैप करें",
+    "tapToOpenCamera": "कैमरा खोलने के लिए टैप करें",
+    "solve": "हल करें",
+    "solution": "समाधान",
+    "steps": "चरण",
+    "retry": "पुनः प्रयास करें",
+    "clear": "साफ़ करें",
+    "modeSolve": "हल करें",
+    "modeVerify": "मेरा कार्य जांचें",
+    "verify": {
+      "sectionLabel": "मेरा समाधान",
+      "inputMethod": {
+        "text": "टाइप करें",
+        "gallery": "गैलरी",
+        "camera": "फोटो"
+      },
+      "placeholder": "यहां अपने समाधान के चरण लिखें...",
+      "tapToLoadImage": "समाधान की फोटो लोड करें",
+      "tapToOpenCamera": "समाधान की फोटो लें",
+      "checkButton": "जांचें",
+      "result": {
+        "title": "जांच का परिणाम",
+        "correct": "सही",
+        "wrong": "गलत",
+        "partial": "आंशिक रूप से सही",
+        "stepCheck": "चरण जांच",
+        "error": "त्रुटि",
+        "tip": "सुझाव"
+      }
+    },
+    "topic": "विषय",
+    "related": {
+      "button": "समान प्रश्न बनाएं",
+      "loading": "तैयार हो रहा है...",
+      "title": "समान प्रश्न",
+      "failed": "समान प्रश्न नहीं बनाए जा सके, पुनः प्रयास करें",
+      "solveThis": "हल करें",
+      "difficulty": {
+        "easier": "आसान",
+        "same": "समान",
+        "harder": "कठिन"
+      }
+    },
+    "topicAnalysis": "विषय विश्लेषण देखें",
+    "stepsLocked": "{{count}} और चरण — Premium के साथ देखें",
+    "explainTopic": "यह विषय समझाएं",
+    "hideExplanation": "व्याख्या छिपाएं",
+    "explaining": "समझा रहे हैं...",
+    "handwritingSupported": "हस्तलेखन और मुद्रित पाठ समर्थित",
+    "verifyTeaser": {
+      "title": "खुद हल किया? अपना काम जांचें",
+      "subtitle": "अपना समाधान पेस्ट करें — हम चरण-दर-चरण गलतियां ढूंढेंगे।"
+    },
+    "graph": "ग्राफ",
+    "topicExplanation": "विषय व्याख्या",
+    "permissions": {
+      "galleryDenied": "गैलरी अनुमति आवश्यक",
+      "galleryDeniedMessage": "आपको गैलरी तक पहुंच की अनुमति देनी होगी।",
+      "cameraDenied": "कैमरा अनुमति आवश्यक",
+      "cameraDeniedMessage": "आपको कैमरा तक पहुंच की अनुमति देनी होगी।"
+    },
+    "errors": {
+      "emptyProblem": "समस्या आवश्यक",
+      "emptyProblemMessage": "कृपया एक गणित समस्या दर्ज करें।",
+      "noImage": "छवि आवश्यक",
+      "noImageMessage": "कृपया एक छवि चुनें।",
+      "solveFailed": "समस्या हल करते समय एक त्रुटि हुई",
+      "emptySolution": "समाधान आवश्यक",
+      "emptySolutionMessage": "अपना समाधान लिखें या एक फोटो जोड़ें।",
+      "noSolutionImage": "समाधान छवि आवश्यक",
+      "noSolutionImageMessage": "कृपया अपने समाधान की एक फोटो जोड़ें।"
+    },
+    "comprehension": {
+      "question": "क्या आप समाधान समझ गए?",
+      "understood": "समझ गया",
+      "notUnderstood": "अभी भी अस्पष्ट",
+      "strongArea": "महारत हासिल — आप इस विषय को अच्छी तरह जानते हैं",
+      "weakArea": "अभ्यास चाहिए — नीचे व्याख्या देखें"
+    },
+    "topics": {
+      "title": "विषय विश्लेषण",
+      "totalSolved": "कुल हल किए गए",
+      "topicCount": "विषय क्षेत्र",
+      "masteredCount": "महारत हासिल",
+      "sectionTitle": "आपके द्वारा अध्ययन किए गए विषय",
+      "strongBadge": "महारत हासिल",
+      "weakBadge": "कार्य आवश्यक",
+      "generateBtn": "प्रश्न बनाएं",
+      "generating": "प्रश्न बनाए जा रहे हैं...",
+      "hideQuestions": "प्रश्न छिपाएं",
+      "emptyTitle": "अभी तक कोई डेटा नहीं",
+      "emptyText": "यहां अपना विषय विश्लेषण देखने के लिए गणित मॉड्यूल में समस्याएं हल करें।",
+      "goToMath": "गणित मॉड्यूल पर जाएं",
+      "categories": {
+        "algebra": "बीजगणित",
+        "geometry": "ज्यामिति",
+        "trigonometry": "त्रिकोणमिति",
+        "calculus": "कैलकुलस",
+        "statistics": "सांख्यिकी और प्रायिकता",
+        "linear_algebra": "रैखिक बीजगणित",
+        "number_theory": "संख्या सिद्धांत",
+        "basic_math": "प्रारंभिक गणित",
+        "other": "अन्य"
+      }
+    }
+  },
+  "mathHistory": {
+    "title": "मेरी समस्याएं",
+    "emptyTitle": "अभी तक कोई सहेजी गई समस्या नहीं",
+    "emptyText": "आपके द्वारा हल की गई समस्याएं यहां दिखेंगी ताकि आप कभी भी उन्हें दोबारा देख सकें।",
+    "emptyCta": "समस्या हल करें",
+    "imageProblem": "छवि वाली समस्या",
+    "filter": {
+      "all": "सभी"
+    }
+  }
+}

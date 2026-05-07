@@ -61,9 +61,15 @@ serve(async (req) => {
     const webhookData: RevenueCatEvent = await req.json()
     const event = webhookData.event
 
-    // Premium abonelik işlemlerini handle et
-    if (event.product_id === 'premium_monthly' || event.product_id === 'premium') {
-      if (event.type === 'INITIAL_PURCHASE' || event.type === 'RENEWAL') {
+    // Premium abonelik işlemlerini handle et — her premium varyantını yakala (monthly, yearly, vs.)
+    const productId = event.product_id ?? ''
+    const entitlementIds = event.entitlement_ids ?? []
+    const isPremiumEvent =
+      productId.toLowerCase().includes('premium') ||
+      entitlementIds.some((id: string) => id.toLowerCase().includes('premium'))
+
+    if (isPremiumEvent) {
+      if (event.type === 'INITIAL_PURCHASE' || event.type === 'RENEWAL' || event.type === 'UNCANCELLATION' || event.type === 'PRODUCT_CHANGE') {
         await handlePremiumSubscription(supabaseClient, event, 'active')
       } else if (event.type === 'CANCELLATION') {
         await handlePremiumSubscription(supabaseClient, event, 'cancelled')
@@ -137,7 +143,9 @@ async function handlePremiumSubscription(supabase: any, event: any, status: 'act
         const purchaseRecord = {
           user_id: userId,
           product_id: productId,
-          product_name: 'Premium Monthly Subscription',
+          product_name: event.period_type === 'yearly' || productId.toLowerCase().includes('year') || productId.toLowerCase().includes('annual')
+            ? 'Premium Yearly Subscription'
+            : 'Premium Monthly Subscription',
           product_type: 'subscription',
           transaction_id: event.transaction_id,
           amount: event.price || 0,
@@ -150,7 +158,7 @@ async function handlePremiumSubscription(supabase: any, event: any, status: 'act
           status: 'completed',
           is_sandbox: false,
           is_renewal: event.type === 'RENEWAL',
-          period_type: event.period_type || 'monthly',
+          period_type: event.period_type || (productId.toLowerCase().includes('year') || productId.toLowerCase().includes('annual') ? 'yearly' : 'monthly'),
           expires_at: expiresAt ? expiresAt.toISOString() : null,
           metadata: {
             event_type: event.type,

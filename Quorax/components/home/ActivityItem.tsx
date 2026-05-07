@@ -10,7 +10,6 @@ export interface Activity {
   type: 'chat' | 'math' | 'calculator' | 'exam';
   title: string;
   timestamp: string;
-  tokenCost?: number;
   problemImageUrl?: string;
   /** Sınav: konu | doğru/toplam (örn. "Türev | 3/5") */
   subtitle?: string;
@@ -109,23 +108,6 @@ export const ActivityItem: React.FC<ActivityItemProps> = ({ activity, onPress })
         </Text>
       </View>
 
-      {/* Token */}
-      {typeof activity.tokenCost === 'number' && activity.tokenCost > 0 ? (
-        <View
-          style={[
-            styles.tokenPill,
-            {
-              backgroundColor: colors.cardSecondary,
-              borderColor: colors.borderSubtle,
-            },
-          ]}
-        >
-          <Ionicons name="diamond-outline" size={12} color={activityColor.primary} />
-          <Text style={[styles.tokenText, { color: activityColor.primary }]}>
-            {activity.tokenCost}
-          </Text>
-        </View>
-      ) : null}
     </TouchableOpacity>
   );
 };
@@ -185,19 +167,5 @@ const styles = StyleSheet.create({
     ...TEXT_STYLES.labelSmall,
     fontSize: 12,
     opacity: 0.8,
-  },
-  tokenPill: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    gap: 6,
-    paddingHorizontal: 10,
-    paddingVertical: 6,
-    borderRadius: 999,
-    borderWidth: 1,
-  },
-  tokenText: {
-    ...TEXT_STYLES.labelSmall,
-    fontWeight: '600',
-    fontSize: 12,
   },
 });

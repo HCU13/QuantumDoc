@@ -6,6 +6,7 @@ import { StatusBar } from "expo-status-bar";
 import React, { useEffect, useState } from "react";
 import { useTranslation } from "react-i18next";
 import {
+  ActivityIndicator,
   Alert,
   Linking,
   Platform,
@@ -13,6 +14,7 @@ import {
   StyleSheet,
   Switch,
   Text,
+  TextInput,
   TouchableOpacity,
   View,
 } from "react-native";
@@ -38,7 +40,7 @@ export default function ProfileScreen() {
   const { t, i18n } = useTranslation();
   const router = useRouter();
   const { user, profile, isLoggedIn, logout } = useAuth();
-  const { isPremium, expiresAt } = useSubscription();
+  const { isPremium, expiresAt, refreshSubscription } = useSubscription();
 
   // User data from context
   const userName =
@@ -51,39 +53,56 @@ export default function ProfileScreen() {
   const [logoutLoading, setLogoutLoading] = useState(false);
   const [deleteLoading, setDeleteLoading] = useState(false);
 
-  // Language state - sistem dilini veya kaydedilmiş dili kullan
+  // Promo code state
+  const [promoCode, setPromoCode] = useState("");
+  const [promoLoading, setPromoLoading] = useState(false);
+  const [showPromoInput, setShowPromoInput] = useState(false);
+
+  // Language state
   const [currentLanguage, setCurrentLanguage] = useState<string>(
     i18n.language || "tr",
   );
+  const [showLangPicker, setShowLangPicker] = useState(false);
+
+  const LANGUAGES = [
+    { code: "tr", label: "Türkçe", flag: "🇹🇷" },
+    { code: "en", label: "English", flag: "🇬🇧" },
+    { code: "ar", label: "العربية", flag: "🇸🇦" },
+    { code: "hi", label: "हिन्दी", flag: "🇮🇳" },
+    { code: "es", label: "Español", flag: "🇪🇸" },
+  ] as const;
 
   // Dil tercihini yükle
   useEffect(() => {
     const loadLanguagePreference = async () => {
       try {
         const savedLanguage = await AsyncStorage.getItem("user_language_v2");
-        if (
-          savedLanguage &&
-          (savedLanguage === "tr" || savedLanguage === "en")
-        ) {
+        const supported = LANGUAGES.map((l) => l.code);
+        if (savedLanguage && supported.includes(savedLanguage as any)) {
           setCurrentLanguage(savedLanguage);
         } else {
-          // Sistem dilini kullan
           const systemLang = Localization.getLocales()[0]?.languageCode || "en";
-          const lang = systemLang === "tr" ? "tr" : "en";
-          setCurrentLanguage(lang);
+          setCurrentLanguage(supported.includes(systemLang as any) ? systemLang : "en");
         }
-      } catch (error) {
-        // Hata durumunda mevcut dili kullan
-        setCurrentLanguage(i18n.language || "tr");
+      } catch {
+        setCurrentLanguage(i18n.language || "en");
       }
     };
     loadLanguagePreference();
   }, []);
 
-  const handleLanguageChange = async (lang: "tr" | "en") => {
+  const handleLanguageChange = async (lang: string) => {
     setCurrentLanguage(lang);
-    // Kullanıcı değiştirdiğinde AsyncStorage'a kaydet
-    await setLanguage(lang);
+    const { rtlChanged } = await setLanguage(lang);
+    // RTL flip only takes effect after app reload — RN's layout engine needs a full mount cycle.
+    // Inform the user so the Arabic (or future RTL) experience isn't half-flipped.
+    if (rtlChanged) {
+      Alert.alert(
+        t("profile.rtlRestartTitle"),
+        t("profile.rtlRestartMessage"),
+        [{ text: t("common.ok") }]
+      );
+    }
   };
 
   // Tema değiştirme - kullanıcı değiştirirse kaydedilecek
@@ -153,6 +172,45 @@ export default function ProfileScreen() {
       }
     } catch {
       Alert.alert(t("common.info"), t("profile.rate.notAvailable"));
+    }
+  };
+
+  const handleRedeemPromo = async () => {
+    const trimmed = promoCode.trim();
+    if (!trimmed) return;
+    setPromoLoading(true);
+    try {
+      const { data: { session } } = await supabase.auth.getSession();
+      const response = await fetch(
+        `${process.env.EXPO_PUBLIC_SUPABASE_URL}/functions/v1/redeem-promo-code`,
+        {
+          method: "POST",
+          headers: {
+            "Content-Type": "application/json",
+            Authorization: `Bearer ${session?.access_token}`,
+          },
+          body: JSON.stringify({ code: trimmed }),
+        }
+      );
+      const result = await response.json();
+      if (result.success) {
+        setPromoCode("");
+        setShowPromoInput(false);
+        await refreshSubscription();
+        Alert.alert(
+          t("profile.promo.successTitle"),
+          result.extended
+            ? t("profile.promo.successExtended", { days: result.duration_days })
+            : t("profile.promo.successMessage", { days: result.duration_days })
+        );
+      } else {
+        const msgKey = `profile.promo.errors.${result.error}`;
+        Alert.alert(t("common.error"), t(msgKey, { defaultValue: t("profile.promo.errors.server_error") }));
+      }
+    } catch {
+      Alert.alert(t("common.error"), t("profile.promo.errors.server_error"));
+    } finally {
+      setPromoLoading(false);
     }
   };
 
@@ -313,10 +371,56 @@ export default function ProfileScreen() {
               >
                 <Ionicons name="receipt-outline" size={22} color={colors.textSecondary} />
                 <Text style={[styles.settingsText, { color: colors.textPrimary }]}>
-                  {i18n.language === "tr" ? "Satın Alım Geçmişi" : "Purchase History"}
+                  {t("profile.settings.purchaseHistory")}
                 </Text>
                 <Ionicons name="chevron-forward" size={18} color={colors.textTertiary} />
               </TouchableOpacity>
+              <View style={[styles.divider, { backgroundColor: colors.borderSubtle }]} />
+            </>
+          )}
+
+          {isLoggedIn && (
+            <>
+              <TouchableOpacity
+                style={styles.settingsItem}
+                activeOpacity={0.7}
+                onPress={() => setShowPromoInput((v) => !v)}
+              >
+                <Ionicons name="gift-outline" size={22} color={colors.textSecondary} />
+                <Text style={[styles.settingsText, { color: colors.textPrimary }]}>
+                  {t("profile.promo.menuLabel")}
+                </Text>
+                <Ionicons
+                  name={showPromoInput ? "chevron-up" : "chevron-down"}
+                  size={16}
+                  color={colors.textTertiary}
+                />
+              </TouchableOpacity>
+              {showPromoInput && (
+                <View style={[styles.promoInputWrap, { borderTopColor: colors.borderSubtle }]}>
+                  <TextInput
+                    style={[styles.promoInput, { color: colors.textPrimary, borderColor: colors.borderSubtle, backgroundColor: colors.background }]}
+                    value={promoCode}
+                    onChangeText={setPromoCode}
+                    placeholder={t("profile.promo.placeholder")}
+                    placeholderTextColor={colors.textTertiary}
+                    autoCapitalize="characters"
+                    autoCorrect={false}
+                    editable={!promoLoading}
+                  />
+                  <TouchableOpacity
+                    style={[styles.promoSubmitBtn, { backgroundColor: colors.primary, opacity: promoLoading ? 0.6 : 1 }]}
+                    onPress={handleRedeemPromo}
+                    disabled={promoLoading}
+                    activeOpacity={0.7}
+                  >
+                    {promoLoading
+                      ? <ActivityIndicator size="small" color="#fff" />
+                      : <Text style={styles.promoSubmitText}>{t("profile.promo.apply")}</Text>
+                    }
+                  </TouchableOpacity>
+                </View>
+              )}
               <View style={[styles.divider, { backgroundColor: colors.borderSubtle }]} />
             </>
           )}
@@ -356,40 +460,6 @@ export default function ProfileScreen() {
             )}
           </TouchableOpacity>
 
-          {isLoggedIn && (
-            <>
-              <View
-                style={[
-                  styles.divider,
-                  { backgroundColor: colors.borderSubtle },
-                ]}
-              />
-              <TouchableOpacity
-                style={styles.settingsItem}
-                activeOpacity={0.7}
-                onPress={handleDeleteAccount}
-              >
-                <Ionicons
-                  name="trash-outline"
-                  size={22}
-                  color={colors.error || "#FF3B30"}
-                />
-                <Text
-                  style={[
-                    styles.settingsText,
-                    { color: colors.error || "#FF3B30" },
-                  ]}
-                >
-                  {t("profile.deleteAccount.button")}
-                </Text>
-                <Ionicons
-                  name="chevron-forward"
-                  size={18}
-                  color={colors.textTertiary}
-                />
-              </TouchableOpacity>
-            </>
-          )}
         </View>
 
         {/* Preferences Category */}
@@ -403,36 +473,50 @@ export default function ProfileScreen() {
           <Text style={[styles.categoryTitle, { color: colors.textTertiary }]}>
             {t("profile.settings.categories.preferences")}
           </Text>
-          <View style={styles.settingsItem}>
+          <TouchableOpacity
+            style={styles.settingsItem}
+            activeOpacity={0.7}
+            onPress={() => setShowLangPicker((v) => !v)}
+          >
             <Ionicons name="language" size={22} color={colors.textSecondary} />
-            <View style={styles.languageLabelWrap}>
-              <Text
-                style={[styles.settingsText, { color: colors.textPrimary }]}
-              >
-                {t("profile.settings.language")}
-              </Text>
-              <Text
-                style={[styles.languageValue, { color: colors.textTertiary }]}
-              >
-                {currentLanguage === "tr"
-                  ? t("profile.settings.languageTr")
-                  : t("profile.settings.languageEn")}
-              </Text>
+            <Text style={[styles.settingsText, { color: colors.textPrimary }]}>
+              {t("profile.settings.language")}
+            </Text>
+            <Text style={[styles.langCurrentValue, { color: colors.textTertiary }]}>
+              {LANGUAGES.find((l) => l.code === currentLanguage)?.flag}{" "}
+              {LANGUAGES.find((l) => l.code === currentLanguage)?.label}
+            </Text>
+            <Ionicons
+              name={showLangPicker ? "chevron-up" : "chevron-down"}
+              size={16}
+              color={colors.textTertiary}
+            />
+          </TouchableOpacity>
+
+          {showLangPicker && (
+            <View style={[styles.langPickerWrap, { borderTopColor: colors.borderSubtle }]}>
+              {LANGUAGES.map((lang, idx) => {
+                const isSelected = currentLanguage === lang.code;
+                return (
+                  <TouchableOpacity
+                    key={lang.code}
+                    onPress={() => { handleLanguageChange(lang.code); setShowLangPicker(false); }}
+                    activeOpacity={0.7}
+                    style={[
+                      styles.langPickerItem,
+                      idx < LANGUAGES.length - 1 && { borderBottomWidth: 1, borderBottomColor: colors.borderSubtle },
+                    ]}
+                  >
+                    <Text style={styles.langPickerFlag}>{lang.flag}</Text>
+                    <Text style={[styles.langPickerLabel, { color: isSelected ? colors.primary : colors.textPrimary, fontWeight: isSelected ? "700" : "400" }]}>
+                      {lang.label}
+                    </Text>
+                    {isSelected && <Ionicons name="checkmark" size={16} color={colors.primary} />}
+                  </TouchableOpacity>
+                );
+              })}
             </View>
-            <View style={styles.switchContainer}>
-              <Switch
-                value={currentLanguage === "en"}
-                onValueChange={(value) => {
-                  handleLanguageChange(value ? "en" : "tr");
-                }}
-                trackColor={{
-                  false: colors.borderSubtle,
-                  true: colors.primary,
-                }}
-                thumbColor={colors.background}
-              />
-            </View>
-          </View>
+          )}
 
           <View
             style={[styles.divider, { backgroundColor: colors.borderSubtle }]}
@@ -582,6 +666,19 @@ export default function ProfileScreen() {
             </Text>
           </TouchableOpacity>
         </View>
+
+        {/* Delete Account — en altta, gizli */}
+        {isLoggedIn && (
+          <TouchableOpacity
+            style={styles.deleteAccountBtn}
+            activeOpacity={0.7}
+            onPress={handleDeleteAccount}
+          >
+            <Text style={[styles.deleteAccountText, { color: colors.textTertiary }]}>
+              {t("profile.deleteAccount.button")}
+            </Text>
+          </TouchableOpacity>
+        )}
       </ScrollView>
     </View>
   );
@@ -712,13 +809,69 @@ const styles = StyleSheet.create({
   switchContainer: {
     transform: [{ scaleX: 0.7 }, { scaleY: 0.7 }],
   },
-  languageLabelWrap: {
-    flex: 1,
+  langCurrentValue: {
+    fontSize: 13,
+    marginRight: SPACING.xs,
   },
-  languageValue: {
-    ...TEXT_STYLES.labelSmall,
-    fontSize: 12,
-    marginTop: 2,
+  langPickerWrap: {
+    borderTopWidth: 1,
+    marginHorizontal: SPACING.md,
+    marginBottom: SPACING.sm,
+  },
+  langPickerItem: {
+    flexDirection: "row",
+    alignItems: "center",
+    paddingVertical: SPACING.sm + 2,
+    gap: SPACING.sm,
+  },
+  langPickerFlag: {
+    fontSize: 18,
+    width: 26,
+    textAlign: "center",
+  },
+  langPickerLabel: {
+    flex: 1,
+    fontSize: 14,
+  },
+  promoInputWrap: {
+    borderTopWidth: 1,
+    flexDirection: "row",
+    alignItems: "center",
+    gap: SPACING.sm,
+    paddingHorizontal: SPACING.md,
+    paddingVertical: SPACING.sm,
+  },
+  promoInput: {
+    flex: 1,
+    height: 40,
+    borderWidth: 1,
+    borderRadius: BORDER_RADIUS.md,
+    paddingHorizontal: SPACING.sm,
+    fontSize: 14,
+    fontWeight: "600",
+    letterSpacing: 1,
+  },
+  promoSubmitBtn: {
+    height: 40,
+    paddingHorizontal: SPACING.md,
+    borderRadius: BORDER_RADIUS.md,
+    justifyContent: "center",
+    alignItems: "center",
+    minWidth: 70,
+  },
+  promoSubmitText: {
+    color: "#fff",
+    fontWeight: "700",
+    fontSize: 14,
+  },
+  deleteAccountBtn: {
+    alignItems: "center",
+    paddingVertical: SPACING.md,
+    marginBottom: SPACING.lg,
+  },
+  deleteAccountText: {
+    fontSize: 13,
+    textDecorationLine: "underline",
   },
   premiumStatusCard: {
     flexDirection: "row",

@@ -11,9 +11,10 @@ export default function MainLayout() {
       <Stack.Screen name="chat/[id]" />
       <Stack.Screen name="math" />
       <Stack.Screen name="math-topics" />
+      <Stack.Screen name="math-history" />
       <Stack.Screen name="calculator" />
       <Stack.Screen name="exam-lab" />
-
+      <Stack.Screen name="exam-progress" />
       {/* Auth akışı */}
       <Stack.Screen name="welcome" />
       <Stack.Screen name="login" />

@@ -19,7 +19,8 @@
     "info": "Info",
     "warning": "Warning",
     "login": "Sign In",
-    "timeout": "Request timed out. Please try again."
+    "timeout": "Request timed out. Please try again.",
+    "goBack": "Go Back"
   },
   "ad": {},
   "auth": {
@@ -129,18 +130,8 @@
     "noActivity": "No activity yet",
     "startUsing": "Start using one of the modules",
     "viewAll": "View All",
-    "tokens": "Tokens",
     "otherTools": "Other Tools",
     "tagline": "Solve math. Practice exams.",
-    "dailyLogin": {
-      "title": "Daily Reward",
-      "description": "Earn {{tokens}} tokens by logging in every day!",
-      "claimed": "Reward Claimed",
-      "claimedDescription": "You've claimed today's reward. Come back tomorrow!",
-      "streak": "{{count}} day streak",
-      "success": "You've claimed your daily reward!",
-      "error": "An error occurred while claiming the reward"
-    },
     "activity": {
       "justNow": "Just now",
       "minutesAgo": "minutes ago",
@@ -195,6 +186,8 @@
   },
   "modules": {
     "locked": "Sign in required",
+    "dailyUsage": "{{used}}/{{limit}} used today",
+    "dailyLimitReached": "Daily limit reached · Go Premium",
     "lockedAlert": {
       "title": "Sign In Required",
       "message": "You need to sign in to use this module.",
@@ -204,23 +197,19 @@
     "chat": {
       "title": "AI Chat",
       "description": "Talk with your AI",
-      "tokenCost": "token"
     },
     "math": {
       "title": "Math",
-      "description": "Step-by-step solutions",
-      "tokenCost": "token"
+      "description": "Step-by-step solutions"
     },
     "calculator": {
       "title": "Calculator",
-      "description": "Advanced calculations",
-      "tokenCost": "Free"
+      "description": "Advanced calculations"
     },
     "examLab": {
       "title": "Exam Lab",
-      "description": "Topic-focused exam preparation",
-      "tokenCost": "token"
-    }
+      "description": "Topic-focused exam preparation"
+    },
   },
   "examLab": {
     "info": {
@@ -254,7 +243,115 @@
       "hard": "Hard"
     },
     "questionCount": "Question Count",
+    "proOnlyDifficulty": "Medium and Hard difficulty levels are Pro only",
+    "proOnlyCount": "10+ questions per exam is Pro only",
+    "configTitle": "Exam Settings",
     "createExam": "Create Exam",
+    "orCustomExam": "or custom exam",
+    "examType": {
+      "label": "Exam Type",
+      "general": "General",
+      "selectTitle": "Select Exam Type",
+      "readyTitle": "Ready",
+      "readyDesc": "Topic is optional — leave blank and AI will generate relevant questions.",
+      "topicOptionalPlaceholder": "Add a topic (optional, e.g. Calculus)",
+      "selectSubjectDesc": "Select a subject or type freely — optional",
+      "selectSubject": "Which subject do you want to practice?",
+      "selectFirst": "First select an exam type or type a topic",
+      "noSubjectHint": "No section selected — AI will generate mixed questions for this exam",
+      "loginCta": {
+        "title": "Error Notebook & Topic Mastery",
+        "desc": "Sign in to track mistakes and monitor your progress"
+      }
+    },
+    "examTypes": {
+      "countries": {
+        "none": "General",
+        "tr": "Turkey",
+        "us": "United States",
+        "uk": "United Kingdom",
+        "in": "India",
+        "intl": "International"
+      },
+      "placeholders": {
+        "general": "Enter a topic (e.g. Photosynthesis, Calculus, Ottoman Empire...)",
+        "tyt": "Enter topic or select a section (e.g. Paragraph, Equations...)",
+        "ayt": "Enter topic or select a subject (e.g. Derivatives, Optics, Genetics...)",
+        "lgs": "Enter topic or select a subject (e.g. Equations, Forces...)",
+        "kpss": "Enter topic or select a section (e.g. Constitution, Paragraph...)",
+        "ales": "Sayısal or Sözel — select a section or enter a topic",
+        "sat": "Enter topic or select a module (e.g. Quadratic equations, Grammar...)",
+        "act": "Enter topic or select a section (e.g. Trigonometry, Biology...)",
+        "gre": "Verbal or Quantitative — select a section or enter a topic",
+        "ap": "Which AP course are you studying? (e.g. AP Calculus BC, AP Biology...)",
+        "alevels": "Which A-Level subject are you studying? (e.g. Mathematics, Chemistry...)",
+        "gcse": "Which GCSE subject are you studying? (e.g. Biology, Physics, History...)",
+        "jee": "Enter topic or select a subject (e.g. Calculus, Organic Chemistry...)",
+        "neet": "Enter topic or select a subject (e.g. Genetics, Thermodynamics...)",
+        "ielts": "Select a skill or enter a topic (e.g. Academic Vocabulary, Tenses...)",
+        "toefl": "Select a skill or enter a topic (e.g. Inference questions, Grammar...)",
+        "ib": "Which IB course are you studying? (e.g. IB Math AA HL, IB Chemistry SL...)"
+      },
+      "subjectPlaceholders": {
+        "tyt_turkce": "Sub-topic optional (e.g. Reading comprehension, Word types...)",
+        "tyt_mat": "Sub-topic optional (e.g. Ratios, Sets, Equations...)",
+        "tyt_geometri": "Sub-topic optional (e.g. Triangles, Circles, Area...)",
+        "tyt_tarih": "Sub-topic optional (e.g. Ottoman founding, Reforms...)",
+        "tyt_cografya": "Sub-topic optional (e.g. Climate, Population, Regions...)",
+        "tyt_felsefe": "Sub-topic optional (e.g. Philosophical movements, Logic...)",
+        "tyt_din": "Sub-topic optional (e.g. Worship, Morality, Prophets...)",
+        "tyt_fizik": "Sub-topic optional (e.g. Forces, Motion, Energy...)",
+        "tyt_kimya": "Sub-topic optional (e.g. Atomic structure, Acid-base, Mixtures...)",
+        "tyt_biyoloji": "Sub-topic optional (e.g. Cell, Heredity, Ecosystem...)",
+        "ayt_mat": "Sub-topic optional (e.g. Derivatives, Integrals, Logarithms...)",
+        "ayt_fizik": "Sub-topic optional (e.g. Electricity, Magnetism, Waves...)",
+        "ayt_kimya": "Sub-topic optional (e.g. Organic chemistry, Equilibrium...)",
+        "ayt_biyoloji": "Sub-topic optional (e.g. Genetics, Evolution, Physiology...)",
+        "ayt_edebiyat": "Sub-topic optional (e.g. Tanzimat period, Poetry styles...)",
+        "ayt_tarih": "Sub-topic optional (e.g. Ottoman decline, War of Independence...)",
+        "ayt_cografya": "Sub-topic optional (e.g. Climate systems, Population geography...)",
+        "ayt_felsefe": "Sub-topic optional (e.g. Psychology, Sociology, Logic...)",
+        "lgs_turkce": "Sub-topic optional (e.g. Main idea, Sentence structure...)",
+        "lgs_mat": "Sub-topic optional (e.g. Algebra, Factoring, Probability...)",
+        "lgs_fen": "Sub-topic optional (e.g. DNA, Light, Forces and motion...)",
+        "lgs_inkilap": "Sub-topic optional (e.g. War of Independence, Atatürk's principles...)",
+        "lgs_din": "Sub-topic optional (e.g. Worship, Morality, Prophets...)",
+        "lgs_ing": "Sub-topic optional (e.g. Tenses, Daily life vocabulary...)",
+        "kpss_turkce": "Sub-topic optional (e.g. Paragraph, Grammar, Spelling rules...)",
+        "kpss_mat": "Sub-topic optional (e.g. Speed-distance-time, Percentages...)",
+        "kpss_geometri": "Sub-topic optional (e.g. Triangles, Circles, Area-perimeter...)",
+        "kpss_tarih": "Sub-topic optional (e.g. Ottoman, War of Independence, Reforms...)",
+        "kpss_cografya": "Sub-topic optional (e.g. Turkey's climate, Economic activities...)",
+        "kpss_vatandaslik": "Sub-topic optional (e.g. Constitution, Basic rights, Legislature...)",
+        "ales_sayisal": "Sub-topic optional (e.g. Number sequences, Problem solving...)",
+        "ales_sozel": "Sub-topic optional (e.g. Synonyms, Sentence completion...)",
+        "sat_rw": "Sub-topic optional (e.g. Transitions, Vocabulary in context...)",
+        "sat_algebra": "Sub-topic optional (e.g. Systems of equations, Inequalities...)",
+        "sat_advanced": "Sub-topic optional (e.g. Quadratics, Exponential functions...)",
+        "sat_data": "Sub-topic optional (e.g. Statistics, Probability, Circle theorems...)",
+        "act_english": "Sub-topic optional (e.g. Punctuation, Transitions, Sentence structure...)",
+        "act_math": "Sub-topic optional (e.g. Trigonometry, Coordinate geometry...)",
+        "act_reading": "Sub-topic optional (e.g. Main idea, Inference, Vocabulary...)",
+        "act_science": "Sub-topic optional (e.g. Data interpretation, Conflicting viewpoints...)",
+        "gre_verbal": "Sub-topic optional (e.g. Text completion, Reading comprehension...)",
+        "gre_quant": "Sub-topic optional (e.g. Geometry, Data analysis, Algebra...)",
+        "jee_physics": "Sub-topic optional (e.g. Rotational motion, Electrostatics, Optics...)",
+        "jee_chemistry": "Sub-topic optional (e.g. Organic mechanisms, Chemical equilibrium...)",
+        "jee_math": "Sub-topic optional (e.g. Integration, Coordinate geometry, Vectors...)",
+        "neet_botany": "Sub-topic optional (e.g. Photosynthesis, Plant reproduction...)",
+        "neet_zoology": "Sub-topic optional (e.g. Human physiology, Animal kingdom...)",
+        "neet_physics": "Sub-topic optional (e.g. Laws of motion, Electrostatics, Optics...)",
+        "neet_chemistry": "Sub-topic optional (e.g. Organic reactions, Thermodynamics...)",
+        "ielts_reading": "Sub-topic optional (e.g. True/False/NG, Matching headings...)",
+        "ielts_listening": "Sub-topic optional (e.g. Multiple choice, Form completion...)",
+        "ielts_vocab": "Sub-topic optional (e.g. Academic Word List, Collocations...)",
+        "ielts_grammar": "Sub-topic optional (e.g. Conditionals, Passive voice, Tenses...)",
+        "toefl_reading": "Sub-topic optional (e.g. Inference, Rhetorical purpose...)",
+        "toefl_listening": "Sub-topic optional (e.g. Main idea, Detail questions...)",
+        "toefl_vocab": "Sub-topic optional (e.g. Academic vocabulary, Paraphrase...)",
+        "toefl_grammar": "Sub-topic optional (e.g. Sentence structure, Usage in context...)"
+      }
+    },
     "photoTopicDetected": "Topic will be detected from the photo.",
     "photoCapture": {
       "title": "Take Question Photo",
@@ -284,20 +381,29 @@
     "exitSaveAndLeave": "Save & Leave",
     "report": {
       "title": "Exam Report",
-      "excellent": "Excellent! 🎉",
-      "good": "Good! 👍",
-      "needsImprovement": "Needs More Practice 💪",
+      "perfect": "Perfect! Every question correct!",
+      "excellent": "Outstanding performance!",
+      "good": "Good job, keep it up!",
+      "needsImprovement": "A bit more practice needed.",
+      "keepPracticing": "Keep practicing, you'll get there!",
       "correct": "Correct",
       "incorrect": "Incorrect",
-      "unanswered": "Unanswered",
+      "unanswered": "Skipped",
       "total": "Total",
+      "duration": "Time",
       "close": "Close",
       "newExam": "New Exam",
+      "goToErrorNotebook": "{{count}} wrong questions saved to Error Notebook →",
+      "retry": "Retry",
+      "share": "Share Result",
+      "perfectScore": "Congratulations! You answered every question correctly!",
+      "correctAnswers": "Correct Answers",
+      "wrongAnswers": "Wrong Answers",
+      "skipped": "Skipped Questions",
       "askAI": "Solve Wrong Answers with AI",
       "weakTopics": "Topic Analysis",
       "weakTopicsEmpty": "All answers correct!",
       "topicScore": "{{correct}}/{{total}} correct",
-      "wrongAnswers": "Wrong Answers",
       "yourAnswer": "Your answer",
       "correctAnswer": "Correct answer",
       "explainWithAI": "Explain with AI",
@@ -309,39 +415,94 @@
       "title": "Continue Where You Left Off",
       "progress": "{{answered}}/{{total}} answered"
     },
-    "flashcard": {
-      "title": "Generate Flashcards",
-      "button": "Create Flashcards",
-      "loading": "Preparing cards...",
-      "emptyTopic": "Topic or photo required",
-      "emptyTopicMessage": "Please enter a topic or add a photo.",
-      "front": "Question",
-      "back": "Answer",
-      "cardCount": "{{count}} cards",
-      "finish": "Done",
-      "finishTitle": "Congratulations! 🎉",
-      "finishMessage": "You completed all {{count}} cards!",
-      "restartCards": "Repeat",
-      "exitCards": "Exit",
-      "next": "Next",
-      "previous": "Previous",
-      "flip": "Flip",
-      "mode": {
-        "exam": "Exam",
-        "flashcard": "Flashcards"
+    "errorNotebook": {
+      "title": "Error Notebook",
+      "desc": "Track your progress"
+    },
+    "quickDrill": {
+      "title": "Quick 5 Questions",
+      "subtitle": "Start instantly · Easy · No setup",
+      "desc": "5 questions · Quick"
+    },
+    "wrongQuestions": {
+      "title": "Error Notebook",
+      "subtitle": "Review and practice your wrong answers",
+      "empty": "No questions in your error notebook yet",
+      "emptyDesc": "Wrong answers from your exams will appear here",
+      "mastered": "Mastered",
+      "notMastered": "Still Hard",
+      "markMastered": "Got It ✓",
+      "masteredBadge": "Mastered",
+      "attemptCount": "{{count}}x wrong",
+      "reviewMode": "Practice Mode",
+      "allDone": "Amazing! You've mastered all of them 🎉",
+      "allDoneDesc": "You've reviewed all your wrong questions",
+      "cardOf": "{{current}} / {{total}}",
+      "showAnswer": "Show Answer",
+      "hideAnswer": "Hide",
+      "filterAll": "All",
+      "filterActive": "To Practice",
+      "filterMastered": "Mastered",
+      "deleteConfirm": "Remove this question from your error notebook?",
+      "loading": "Loading...",
+      "errorLoad": "Failed to load",
+      "practiceAll": "Practice All",
+      "practiceSubject": "{{subject}} — Practice",
+      "goToExam": "Go to Exam"
+    },
+    "mastery": {
+      "title": "Topic Mastery",
+      "subtitle": "Track your progress by topic",
+      "sectionTitle": "Topics",
+      "empty": "No exams completed yet",
+      "emptyDesc": "Your accuracy per topic will appear here after taking exams",
+      "level": {
+        "learning": "Learning",
+        "developing": "Developing",
+        "proficient": "Proficient",
+        "mastered": "Mastered"
+      },
+      "levelDesc": {
+        "learning": "Keep practicing",
+        "developing": "Getting there",
+        "proficient": "Almost there",
+        "mastered": "You've got this!"
+      },
+      "stats": "{{correct}} / {{total}} correct",
+      "lastStudied": "Last studied: {{date}}",
+      "accuracy": "{{pct}}% accuracy"
+    },
+    "realExam": {
+      "title": "Real Exam Mode",
+      "subtitle": "Practice in official exam format",
+      "selectPreset": "Select Exam",
+      "customMode": "Custom Mode",
+      "startExam": "Start Exam",
+      "timeLeft": "Time Left",
+      "timeUp": "Time's Up!",
+      "timeUpMessage": "Time is up. The exam has been submitted automatically.",
+      "confirmExit": "Are you sure you want to exit? The timer keeps running.",
+      "presets": {
+        "alesSayisal": "ALES Quantitative (50q / 100 min)",
+        "alesSozel": "ALES Verbal (50q / 100 min)",
+        "yksTyt": "YKS TYT (120q / 135 min)",
+        "yksAyt": "YKS AYT (80q / 180 min)",
+        "lgs": "LGS (90q / 130 min)",
+        "sat": "SAT (98q / 134 min)",
+        "act": "ACT (215q / 175 min)"
       }
     },
     "explanation": "Explanation:",
     "previous": "Previous",
     "next": "Next",
     "finish": "Finish",
+    "finishWithoutAnswer": "Skip this question?",
+    "finishWithoutAnswerDesc": "This question will be marked as unanswered if you finish now.",
     "success": {
       "title": "Success",
       "message": "Exam prepared!"
     },
     "errors": {
-      "insufficientTokens": "Insufficient Tokens",
-      "insufficientTokensMessage": "This operation requires {{tokens}} tokens.",
       "failed": "Error",
       "failedMessage": "Failed to create exam.",
       "photoFailed": "Error",
@@ -360,25 +521,45 @@
   },
   "profile": {
     "title": "Profile",
+    "rtlRestartTitle": "Restart Required",
+    "rtlRestartMessage": "Please restart the app to apply the new text direction.",
     "settings": {
       "title": "Settings",
       "language": "Language",
       "languageTr": "Türkçe",
       "languageEn": "English",
+      "languageAr": "العربية",
+      "languageHi": "हिन्दी",
+      "languageEs": "Español",
       "theme": "Theme",
       "notifications": "Notifications",
       "privacy": "Privacy",
       "about": "About",
       "help": "Help & Support",
       "editProfile": "Edit Profile",
-      "earnTokens": "Earn Tokens",
+      "purchaseHistory": "Purchase History",
       "feedback": "Feedback",
       "rateUs": "Rate Us",
       "categories": {
         "account": "Account",
         "preferences": "Preferences",
-        "tokens": "Tokens",
         "support": "Support"
+      }
+    },
+    "promo": {
+      "menuLabel": "Promo Code",
+      "placeholder": "ENTER CODE",
+      "apply": "Apply",
+      "successTitle": "Activated 🎉",
+      "successMessage": "{{days}}-day Premium access has been activated!",
+      "successExtended": "Your Premium has been extended by {{days}} days!",
+      "errors": {
+        "code_not_found": "Invalid promo code.",
+        "code_expired": "This promo code has expired.",
+        "code_exhausted": "This promo code has reached its usage limit.",
+        "already_redeemed": "You have already used this code.",
+        "redemption_failed": "An error occurred. Please try again.",
+        "server_error": "Server error. Please try again."
       }
     },
     "logout": "Logout",
@@ -418,9 +599,8 @@
         "examLab": "Exam Lab",
         "prioritySupport": "Priority Support",
         "adFree": "Ad-Free",
-        "unlimited": "Unlimited Tokens",
-        "priority": "Priority Support",
-        "bonus": "20% Bonus Tokens"
+        "unlimited": "Unlimited Usage",
+        "priority": "Priority Support"
       },
       "purchase": {
         "title": "Upgrade to Premium",
@@ -475,6 +655,30 @@
       "cancelConfirm": "Go to App Store",
       "nextRenewal": "Next renewal date",
       "ctaButton": "Go Premium",
+      "ctaContinue": "Continue",
+      "ctaStartTrial": "Start {{days}}-Day Free Trial",
+      "ctaTrialThen": "Then {{price}}/{{period}} · Cancel anytime",
+      "planMonthly": "Monthly",
+      "planYearly": "Yearly",
+      "perYear": "yr",
+      "equivMonthly": "{{price}}/mo",
+      "bestValue": "BEST VALUE",
+      "savePercent": "SAVE {{pct}}%",
+      "trialBadge": "{{days}} DAYS FREE",
+      "heroTrialTitle": "Try free for {{days}} days",
+      "heroTrialSubtitle": "Full access. No payment today.",
+      "trialReminder": "We'll remind you 2 days before the trial ends.",
+      "noPaymentToday": "No payment today",
+      "uniqueBadge": "UNIQUE TO QUORAX",
+      "verifyHeroTitle": "Check Your Own Work",
+      "verifyHeroDesc": "Paste your solution — we'll find the exact step where you went wrong and tell you how to fix it.",
+      "terms": "Terms",
+      "privacy": "Privacy",
+      "legalAutoRenew": "Auto-renews until canceled. Cancel anytime in iOS Settings > Apple ID > Subscriptions. Payment is charged to your Apple ID at confirmation.",
+      "featureUnlimited": "Unlimited math solutions",
+      "featureVerify": "Verify your work",
+      "featureExplanations": "Step-by-step explanations",
+      "featureTopics": "Topic analysis dashboard",
       "trustSecure": "Secure Payment",
       "trustCancel": "Cancel Anytime",
       "trustSafe": "Privacy Protected"
@@ -644,13 +848,8 @@
       "faqList": [
         {
           "id": "1",
-          "question": "How can I earn tokens?",
-          "answer": "You can earn tokens by logging in daily, watching ads, or giving feedback. Visit Profile > Earn Tokens to see all options."
-        },
-        {
-          "id": "2",
           "question": "What is Premium membership?",
-          "answer": "With Premium membership, you get unlimited tokens and an ad-free experience. Visit Profile > Premium for details."
+          "answer": "With Premium membership, you get unlimited usage and an ad-free experience. Visit Profile > Premium for details."
         },
         {
           "id": "3",
@@ -728,51 +927,6 @@
         "openStoreFailed": "An error occurred while opening store"
       }
     },
-    "earnTokens": {
-      "title": "Earn Tokens",
-      "totalTokens": "Total Tokens",
-      "streak": "day streak",
-      "dailyMissions": "Daily Missions",
-      "weeklyMissions": "Weekly Missions",
-      "claimReward": "Claim Reward",
-      "watchAd": "Watch Ad",
-      "adNotAvailable": "Ad feature coming soon",
-      "howItWorks": {
-        "title": "How Tokens Work?",
-        "description": "You can use your tokens in AI modules. Each operation requires a certain amount of tokens."
-      },
-      "missions": {
-        "dailyLogin": {
-          "title": "Daily Login",
-          "description": "Log in to the app every day"
-        },
-        "watchVideo": {
-          "title": "Watch Ad",
-          "description": "Earn tokens by watching 5 ads per day"
-        },
-        "feedback": {
-          "title": "Give Feedback",
-          "description": "Rate your experience"
-        }
-      },
-      "alerts": {
-        "completed": "Completed",
-        "completedMessage": "You have already completed this task!",
-        "limitReached": "Limit Reached",
-        "limitReachedMessage": "You have watched 5 ads today. Try again tomorrow.",
-        "error": "Error",
-        "errorMessage": "An error occurred while claiming reward",
-        "adTimeout": "Ad timeout",
-        "adTimeoutMessage": "Ad failed to load. Please try again.",
-        "adNotReady": "Ad is not ready. Please wait."
-      },
-      "success": {
-        "message": "You earned tokens!"
-      },
-      "feedback": {
-        "giveFeedback": "Give Feedback"
-      }
-    },
     "terms": {
       "title": "Terms of Service",
       "menuLabel": "Terms of Service"
@@ -825,13 +979,26 @@
       "button": "Generate Similar Questions",
       "loading": "Preparing...",
       "title": "Similar Questions",
-      "failed": "Could not generate similar questions, try again"
+      "failed": "Could not generate similar questions, try again",
+      "solveThis": "Solve",
+      "difficulty": {
+        "easier": "Easier",
+        "same": "Same",
+        "harder": "Harder"
+      }
     },
     "topicAnalysis": "View Topic Analysis",
     "stepsLocked": "{{count}} more steps — See with Premium",
     "explainTopic": "Explain This Topic",
     "hideExplanation": "Hide Explanation",
     "explaining": "Explaining...",
+    "handwritingSupported": "Handwriting and printed text supported",
+    "verifyTeaser": {
+      "title": "Solved it yourself? Check your work",
+      "subtitle": "Paste your solution — we'll spot any mistakes step by step."
+    },
+    "graph": "Graph",
+    "topicExplanation": "Topic Explanation",
     "permissions": {
       "galleryDenied": "Gallery permission required",
       "galleryDeniedMessage": "You need to grant gallery access permission.",
@@ -843,7 +1010,6 @@
       "emptyProblemMessage": "Please enter a math problem.",
       "noImage": "Image required",
       "noImageMessage": "Please select an image.",
-      "insufficientTokens": "Insufficient tokens.",
       "solveFailed": "An error occurred while solving the problem",
       "emptySolution": "Solution required",
       "emptySolutionMessage": "Write your solution or add a photo.",
@@ -870,7 +1036,28 @@
       "hideQuestions": "Hide Questions",
       "emptyTitle": "No data yet",
       "emptyText": "Solve problems in the Math module to see your topic analysis here.",
-      "goToMath": "Go to Math Module"
+      "goToMath": "Go to Math Module",
+      "categories": {
+        "algebra": "Algebra",
+        "geometry": "Geometry",
+        "trigonometry": "Trigonometry",
+        "calculus": "Calculus",
+        "statistics": "Statistics & Probability",
+        "linear_algebra": "Linear Algebra",
+        "number_theory": "Number Theory",
+        "basic_math": "Basic Math",
+        "other": "Other"
+      }
+    }
+  },
+  "mathHistory": {
+    "title": "My Problems",
+    "emptyTitle": "No saved problems yet",
+    "emptyText": "Problems you solve will appear here so you can review them anytime.",
+    "emptyCta": "Solve a problem",
+    "imageProblem": "Image problem",
+    "filter": {
+      "all": "All"
     }
   },
   "settings": {
@@ -955,9 +1142,23 @@
       "loadChatFailed": "An error occurred while loading chat data",
       "loadMessagesFailed": "An error occurred while loading messages",
       "sendFailed": "An error occurred while sending message",
-      "insufficientTokens": "Insufficient tokens.",
       "aiFailed": "Failed to get AI response. Please try again."
     }
+  },
+  "premiumModal": {
+    "limitPill": "DAILY LIMIT",
+    "proPill": "PRO FEATURE",
+    "limitTitle": "You've hit today's free limit",
+    "proTitle": "Premium unlocks this",
+    "limitSubtitle": "You've used {{used}}/{{limit}} solves in {{module}} today. Upgrade for unlimited access.",
+    "proSubtitle": "This feature is included in Premium. See your plan options on the next screen.",
+    "benefitUnlimited": "Unlimited math solutions",
+    "benefitVerify": "Verify your own work",
+    "benefitExplanations": "Step-by-step explanations",
+    "benefitNoAds": "No ads, ever",
+    "trialHint": "Try free, cancel anytime",
+    "cta": "See Plans",
+    "later": "Maybe later"
   },
   "premium": {
     "limitReached": "Daily Limit Reached",
@@ -983,6 +1184,14 @@
       "explanations": "Topic explanations & detailed solutions"
     }
   },
+  "welcome": {
+    "title": "Welcome to Quorax! 🎉",
+    "subtitle": "Solve math by photo, prep for exams, and learn with your AI assistant. The app is constantly improving.",
+    "earlyAccess": "We just launched — if you spot a bug or missing feature, let us know and we'll fix it fast.",
+    "bugFoundPrefix": "Found an issue?",
+    "bugFoundLink": "Go to Support →",
+    "cta": "Let's Get Started"
+  },
   "rating": {
     "title": "Enjoying Quorax?",
     "subtitle": "Sharing your experience helps us a lot. It only takes a minute!",
@@ -997,14 +1206,17 @@
     "thanksTitle": "Thank you!",
     "thanksSubtitle": "Thanks for your feedback. We're working hard to make Quorax better."
   },
+  "examProgress": {
+    "question": "QUESTION",
+    "answer": "ANSWER",
+    "goBack": "Go Back",
+    "toStudy": "{{count}} to study",
+    "learned": "{{count}} learned",
+    "masteryStats": "{{mastered}}/{{total}} mastered · {{pct}}% success",
+    "questionN": "Question {{n}}"
+  },
   "aiLoading": {
     "hint": "This may take a few seconds",
-    "flashcard": {
-      "0": "Analyzing the topic",
-      "1": "Preparing questions",
-      "2": "Arranging answers",
-      "3": "Building your cards"
-    },
     "math": {
       "0": "Reading the problem",
       "1": "Calculating steps",

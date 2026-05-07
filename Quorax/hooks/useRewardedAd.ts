@@ -265,79 +265,84 @@ export const useRewardedAd = () => {
       
       setIsLoading(true);
       let rewardGiven = false;
+      let settled = false; // Whichever event fires first (EARNED_REWARD or CLOSED) settles the promise.
       let unsubscribeEarned: (() => void) | null = null;
+      let unsubscribeClosed: (() => void) | null = null;
       let timeoutId: ReturnType<typeof setTimeout> | null = null;
 
       const earnedRewardEvent = RewardedAdEventType?.EARNED_REWARD;
+      // The library exposes AdEventType.CLOSED on the ad instance — used to detect
+      // when the user dismisses the ad (X button, swipe-down) without completing it.
+      // Without this, the promise would wait for the 60s timeout and native overlay can stay mounted.
+      const AdEventType = AdMobModule?.AdEventType;
+      const closedEvent = AdEventType?.CLOSED;
 
       if (!earnedRewardEvent || typeof earnedRewardEvent !== 'string') {
         reject(new Error('Invalid event types'));
         return;
       }
 
+      const finish = (action: () => void) => {
+        if (settled) return;
+        settled = true;
+        if (timeoutId) { clearTimeout(timeoutId); timeoutId = null; }
+        setIsLoading(false);
+        setIsReady(false);
+        if (unsubscribeEarned) unsubscribeEarned();
+        if (unsubscribeClosed) unsubscribeClosed();
+        globalAdInstance = null;
+        rewardedAdRef.current = null;
+        cleanupGlobalListeners();
+        action();
+        setTimeout(() => { loadAd().catch(console.warn); }, 1000);
+      };
+
       unsubscribeEarned = rewardedAdRef.current.addAdEventListener(
         earnedRewardEvent,
         (reward: any) => {
-          if (timeoutId) {
-            clearTimeout(timeoutId);
-            timeoutId = null;
-          }
-          
-          if (rewardGiven) return;
-
           rewardGiven = true;
-          setIsLoading(false);
-          setIsReady(false);
-          
-          if (unsubscribeEarned) unsubscribeEarned();
-
-          resolve({
-            reward: {
-              type: reward?.type || 'token',
-              amount: reward?.amount || 2,
-            },
-          });
-
-          globalAdInstance = null;
-          cleanupGlobalListeners();
-          setTimeout(() => {
-            loadAd().catch(console.warn);
-          }, 1000);
+          // Do not resolve here — wait for CLOSED so the native overlay is fully gone before the
+          // caller runs follow-up work (handleSolve → setSolving(true) → Modal). Resolving on
+          // EARNED_REWARD while the ad view is still on-screen causes touch events to be swallowed
+          // on iOS (known react-native-google-mobile-ads behavior).
+          if (!closedEvent) {
+            // Fallback if CLOSED isn't available — defer to the next tick so the SDK can dismiss.
+            setTimeout(() => {
+              finish(() => resolve({
+                reward: { type: reward?.type || 'token', amount: reward?.amount || 2 },
+              }));
+            }, 150);
+          }
         }
       );
+
+      if (closedEvent && typeof closedEvent === 'string') {
+        unsubscribeClosed = rewardedAdRef.current.addAdEventListener(
+          closedEvent,
+          () => {
+            // Small delay lets iOS unmount the native overlay before the caller re-renders.
+            setTimeout(() => {
+              if (rewardGiven) {
+                finish(() => resolve({ reward: { type: 'token', amount: 2 } }));
+              } else {
+                // User closed the ad without completing — still resolve so the solve flow proceeds;
+                // we don't want to block the user just because they skipped the reward.
+                finish(() => resolve({ reward: { type: 'skip', amount: 0 } }));
+              }
+            }, 150);
+          }
+        );
+      }
 
       rewardedAdRef.current
         .show()
         .then(() => {
           timeoutId = setTimeout(() => {
-            if (!rewardGiven) {
-              setIsLoading(false);
-              setIsReady(false);
-              if (unsubscribeEarned) unsubscribeEarned();
-              globalAdInstance = null;
-              cleanupGlobalListeners();
-              loadAd().catch(console.warn);
-              reject(new Error('Reklam zaman aşımına uğradı'));
-            }
+            finish(() => reject(new Error('Reklam zaman aşımına uğradı')));
           }, 60000);
         })
         .catch((error: any) => {
-          if (timeoutId) {
-            clearTimeout(timeoutId);
-            timeoutId = null;
-          }
-          
-          setIsLoading(false);
-          setIsReady(false);
-          
-          if (unsubscribeEarned) unsubscribeEarned();
-          
-          reject(error);
-          globalAdInstance = null;
-          cleanupGlobalListeners();
-          setTimeout(() => {
-            loadAd().catch(console.warn);
-          }, 1000);
+          finish(() => reject(error));
         });
     });
   };

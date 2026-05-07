@@ -104,7 +104,6 @@ export default function ActivityScreen() {
             title:
               math.problem_text?.slice(0, 50) || t("home.activity.mathProblem"),
             timestamp: formatTime(math.created_at),
-            tokenCost: 0,
             problemImageUrl: math.problem_image_url || undefined,
             created_at: math.created_at,
           })),
@@ -123,7 +122,6 @@ export default function ActivityScreen() {
               : "math") as Activity["type"],
             title: activity.title || t("home.activity.activity"),
             timestamp: formatTime(activity.created_at),
-            tokenCost: 0,
             created_at: activity.created_at,
           })),
         ];

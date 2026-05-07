@@ -6,17 +6,20 @@
     "development": {
       "developmentClient": true,
       "distribution": "internal",
+      "channel": "development",
       "env": {
         "EXPO_PUBLIC_USE_TEST_ADS": "true"
       }
     },
     "preview": {
       "distribution": "internal",
+      "channel": "preview",
       "env": {
         "EXPO_PUBLIC_USE_TEST_ADS": "true"
       }
     },
     "production": {
+      "channel": "production",
       "env": {
         "EXPO_PUBLIC_USE_TEST_ADS": "false"
       }

@@ -6,18 +6,12 @@ import { createClient } from "https://esm.sh/@supabase/supabase-js@2";
 import { jsonrepair } from "https://esm.sh/jsonrepair@3.10.0";
 
 // System prompt
-const EXAM_SYSTEM_PROMPT = `Sınav sorusu üret. SADECE tek bir JSON nesnesi yaz. Öncesinde veya sonrasında hiçbir metin, açıklama, markdown yok. Direkt { ile başla.
-
-KRİTİK KURALLAR:
-1. Her soru için TAM 4 şık: A, B, C, D. Her şıkın "text" alanı mutlaka dolu ve anlamlı olsun.
-2. "correctAnswer" alanına YALNIZCA tek bir büyük harf yaz: A veya B veya C veya D. Başka hiçbir şey yok — parantez, nokta, açıklama, "option", "The answer is" gibi ifadeler YASAK.
-3. correctAnswer her zaman şıklardan biriyle birebir eşleşmeli. Yanlış correctAnswer kesinlikle yasak.
-4. Her soru farklı bir alt konu ve soru tipinde olsun (tanım, hesaplama, uygulama, senaryo, karşılaştırma, hangisi-değildir vb.). Aynı soruyu tekrarlama.
-5. Zorluk: KOLAY=temel bilgi; ORTA=uygulama+yorum; ZOR=analiz+ince ayrım, çeldiriciler çok yakın.
-6. explanation alanı: doğru cevabın neden doğru olduğunu 1-2 cümle ile açıkla.
-
-FORMAT (bu yapıyı birebir kullan):
-{"questions":[{"question":"...","options":[{"label":"A","text":"..."},{"label":"B","text":"..."},{"label":"C","text":"..."},{"label":"D","text":"..."}],"correctAnswer":"A","explanation":"..."}]}`;
+const EXAM_SYSTEM_PROMPT = `SADECE JSON yaz. { ile başla, metin/markdown yok.
+KURALLAR:
+- 4 şık (A,B,C,D), her "text" dolu olsun
+- correctAnswer: tek büyük harf (A/B/C/D), başka hiçbir şey yok
+- explanation field YOK — token israfı, kullanıcı isterse ayrıca sorar
+FORMAT: {"questions":[{"question":"...","options":[{"label":"A","text":"..."},{"label":"B","text":"..."},{"label":"C","text":"..."},{"label":"D","text":"..."}],"correctAnswer":"A"}]}`;
 
 const PREFILL = '{"questions":[';
 
@@ -128,6 +122,10 @@ Deno.serve(async (req) => {
       userLanguage = "tr",
       difficulty = "medium",
       questionCount = 5,
+      examType = "general",
+      examPromptHint = "",
+      subjectLabel = "",
+      subjectPromptHint = "",
     } = await req.json();
 
     if (!userId) {
@@ -155,7 +153,7 @@ Deno.serve(async (req) => {
     }
 
     // Premium kontrolü: free kullanıcı sadece easy + 5 soru kullanabilir
-    const isPremiumUser = usageCheck?.plan === "premium" || usageCheck?.plan === "pro";
+    const isPremiumUser = usageCheck?.subscription_type === "premium" || usageCheck?.subscription_type === "pro" || usageCheck?.plan === "premium" || usageCheck?.plan === "pro";
     if (!isPremiumUser) {
       if (difficulty !== "easy") {
         return new Response(
@@ -215,7 +213,7 @@ Deno.serve(async (req) => {
       "tarihsel-bağlam", "avantaj-dezavantaj", "sıralama", "eşleştirme", "yorum",
       "hata-tespiti", "tahmin", "formül-uygulama", "genel-kural", "istisna"
     ];
-    const questionTypeList = ALL_QUESTION_TYPES.slice(0, questionCount).join(", ");
+    const questionTypeList = ALL_QUESTION_TYPES.slice(0, Math.min(questionCount, 6)).join(", ");
 
     // Claude API için mesaj hazırla
     let apiMessages: object[];
@@ -246,7 +244,7 @@ Deno.serve(async (req) => {
             },
             {
               type: "text",
-              text: `Bu görseldeki konuya göre tam ${questionCount} adet sınav sorusu oluştur. Her soru ZORUNLU olarak farklı tipte olacak: [${questionTypeList}]. Aynı veya çok benzer soruyu ASLA tekrarlama. Dil: ${userLanguageName}. Zorluk: ${difficultyInstruction}. Yanıtında sadece tek bir JSON nesnesi yaz (başka metin yok).`,
+              text: `Bu görseldeki konuya göre tam ${questionCount} adet sınav sorusu oluştur. Her soru ZORUNLU olarak farklı tipte olacak: [${questionTypeList}]. Aynı veya çok benzer soruyu ASLA tekrarlama. Dil: ${userLanguageName}. Zorluk: ${difficultyInstruction}.${examPromptHint ? ` Sınav stili: ${examPromptHint}` : ""} Yanıtında sadece tek bir JSON nesnesi yaz (başka metin yok).`,
             },
           ],
         },
@@ -257,10 +255,34 @@ Deno.serve(async (req) => {
       ];
     } else {
       // Konu metninden soru oluşturma
+      // examType seçilmişse (general değilse) ve topic = examType label ise,
+      // topic'i prompt'a "konu" olarak değil sınav bağlamı olarak kullan
+      const isExamTypeOnlyMode = examType !== "general" && examPromptHint;
+
+      let userPrompt: string;
+      if (isExamTypeOnlyMode) {
+        // Öncelik sırası: subjectPromptHint > serbest text konu > yok (genel)
+        const freeText = topic && topic !== examType ? topic.trim() : "";
+        const freeTextClause = freeText ? ` Alt konu: "${freeText}".` : "";
+
+        let baseInstruction: string;
+        if (subjectPromptHint) {
+          // Subject seçilmiş: subject'in detaylı promptu ana yön, serbest text varsa daraltır
+          baseInstruction = `${subjectPromptHint}${freeTextClause}`;
+        } else {
+          // Sadece sınav türü seçilmiş (genel): sınav stilini kullan
+          baseInstruction = `${examPromptHint}${freeTextClause}`;
+        }
+
+        userPrompt = `${baseInstruction}\n\nYukarıdaki konuda tam ${questionCount} adet özgün soru oluştur. Her soru ZORUNLU olarak farklı tipte olacak: [${questionTypeList}]. Aynı soruyu ASLA tekrarlama. Zorluk: ${difficultyInstruction}. Yanıtında sadece tek bir JSON nesnesi yaz (başka metin yok).`;
+      } else {
+        userPrompt = `"${topic}" konusunda tam ${questionCount} adet sınav sorusu oluştur. Her soru ZORUNLU olarak farklı tipte olacak: [${questionTypeList}]. Aynı soruyu veya çok benzer soruyu ASLA tekrarlama. Dil: ${userLanguageName}. Zorluk: ${difficultyInstruction}.${examPromptHint ? ` Sınav stili: ${examPromptHint}` : ""} Yanıtında sadece tek bir JSON nesnesi yaz (başka metin yok).`;
+      }
+
       apiMessages = [
         {
           role: "user",
-          content: `"${topic}" konusunda tam ${questionCount} adet sınav sorusu oluştur. Her soru ZORUNLU olarak farklı tipte olacak: [${questionTypeList}]. Aynı soruyu veya çok benzer soruyu ASLA tekrarlama. Dil: ${userLanguageName}. Zorluk: ${difficultyInstruction}. Yanıtında sadece tek bir JSON nesnesi yaz (başka metin yok).`,
+          content: userPrompt,
         },
         {
           role: "assistant",
@@ -269,19 +291,19 @@ Deno.serve(async (req) => {
       ];
     }
 
-    // Token hesabı: Türkçe JSON çıktısı için soru başına güvenli pay.
-    // Haiku max_tokens üst sınırı 8192. Formül: 400 overhead + count * perQ ≤ 8192
-    // easy: 20 soru → 400 + 20*280 = 5800 ✓
-    // medium: 20 soru → 400 + 20*340 = 7200 ✓
-    // hard: 20 soru → 400 + 20*380 = 8000 ✓
+    // Token hesabı: explanation YOK → soru başına ~80 token daha az
+    // Haiku max_tokens üst sınırı 8192.
+    // easy: 20 soru → 300 + 20*200 = 4300 ✓
+    // medium: 20 soru → 300 + 20*250 = 5300 ✓
+    // hard: 20 soru → 300 + 20*280 = 5900 ✓
     const safeCount = Math.min(questionCount, 20);
-    const tokensPerQuestion = difficulty === "hard" ? 380 : difficulty === "easy" ? 280 : 340;
-    const maxTokens = Math.min(400 + safeCount * tokensPerQuestion, 8192);
+    const tokensPerQuestion = difficulty === "hard" ? 280 : difficulty === "easy" ? 200 : 250;
+    const maxTokens = Math.min(300 + safeCount * tokensPerQuestion, 8192);
 
     const apiBody = {
       model: "claude-haiku-4-5-20251001",
       max_tokens: maxTokens,
-      temperature: 0.7,
+      temperature: 0.5,
       system: [{ type: "text", text: EXAM_SYSTEM_PROMPT, cache_control: { type: "ephemeral" } }],
       messages: apiMessages,
     };
@@ -380,6 +402,7 @@ Deno.serve(async (req) => {
         difficulty: difficulty,
         has_image: !!topicImageUrl,
         model: 'claude-haiku-4-5-20251001',
+        exam_type: examType,
       },
     });
 

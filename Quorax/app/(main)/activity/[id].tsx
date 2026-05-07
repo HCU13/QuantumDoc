@@ -63,7 +63,6 @@ export default function ActivityDetailScreen() {
             problem: data.problem_text,
             solution: data.solution_text,
             problemImage: data.problem_image_url,
-            tokensUsed: data.tokens_used || 0,
             createdAt: data.created_at,
             metadata: {
               problemType: data.problem_type,
@@ -109,8 +108,7 @@ export default function ActivityDetailScreen() {
             description: data.description || "",
             metadata: data.metadata || {},
             createdAt: data.created_at,
-            tokenCost: data.metadata?.tokenCost || 0,
-          });
+            });
         }
       }
     } catch (error) {
@@ -275,14 +273,6 @@ export default function ActivityDetailScreen() {
                   </Text>
                 </View>
               )}
-              {(activity.tokensUsed > 0 || activity.tokenCost > 0) && (
-                <View style={[styles.metaBadge, { backgroundColor: activityColor.light }]}>
-                  <Ionicons name="diamond-outline" size={14} color={activityColor.primary} />
-                  <Text style={[styles.metaText, { color: activityColor.primary }]}>
-                    {activity.tokensUsed || activity.tokenCost} {t("home.tokens")}
-                  </Text>
-                </View>
-              )}
             </View>
           </View>
         </View>
@@ -351,7 +341,7 @@ export default function ActivityDetailScreen() {
                     />
                     <View style={styles.reportTextWrap}>
                       <Text style={[styles.reportQuestion, { color: colors.textPrimary }]} numberOfLines={3}>
-                        {row.questionText || `Soru ${idx + 1}`}
+                        {row.questionText || t("examProgress.questionN", { n: idx + 1 })}
                       </Text>
                       {Array.isArray(row.options) && row.options.length > 0 && (
                         <View style={styles.reportOptionsWrap}>

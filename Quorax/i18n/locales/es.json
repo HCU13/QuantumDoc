@@ -1,0 +1,306 @@
+{
+  "common": {
+    "loading": "Cargando...",
+    "error": "Ocurrió un error",
+    "warning": "Advertencia",
+    "success": "Éxito",
+    "save": "Guardar",
+    "cancel": "Cancelar",
+    "delete": "Eliminar",
+    "edit": "Editar",
+    "back": "Atrás",
+    "close": "Cerrar",
+    "confirm": "Confirmar",
+    "ok": "Aceptar",
+    "yes": "Sí",
+    "no": "No",
+    "next": "Siguiente",
+    "skip": "Omitir",
+    "getStarted": "Empezar",
+    "info": "Información",
+    "login": "Iniciar sesión",
+    "timeout": "Tiempo de solicitud agotado. Por favor intenta de nuevo.",
+    "goBack": "Volver"
+  },
+  "welcome": {
+    "title": "¡Bienvenido a Quorax! 🎉",
+    "subtitle": "Resuelve matemáticas con foto, prepárate para exámenes y aprende con tu asistente IA.",
+    "earlyAccess": "Acabamos de lanzar — si encuentras un error avísanos y lo corregiremos rápido.",
+    "bugFoundPrefix": "¿Encontraste un problema?",
+    "bugFoundLink": "Ir a Soporte →",
+    "cta": "¡Empecemos!"
+  },
+  "examProgress": {
+    "question": "PREGUNTA",
+    "answer": "RESPUESTA",
+    "goBack": "Volver",
+    "toStudy": "{{count}} por estudiar",
+    "learned": "{{count}} aprendido",
+    "masteryStats": "{{mastered}}/{{total}} dominado · {{pct}}% éxito",
+    "questionN": "Pregunta {{n}}"
+  },
+  "modules": {
+    "locked": "Se requiere inicio de sesión",
+    "dailyUsage": "{{used}}/{{limit}} usado hoy",
+    "dailyLimitReached": "Límite diario alcanzado · Ir a Premium",
+    "loginRequired": {
+      "title": "Inicio de sesión requerido",
+      "message": "Debes iniciar sesión para usar este módulo.",
+      "signIn": "Iniciar sesión",
+      "cancel": "Cancelar"
+    },
+    "chat": {
+      "title": "Asistente IA",
+      "description": "Habla con tu asistente de IA"
+    },
+    "math": {
+      "title": "Resolver Matemáticas",
+      "description": "Soluciones paso a paso"
+    },
+    "calculator": {
+      "title": "Calculadora",
+      "description": "Cálculos avanzados"
+    },
+    "examLab": {
+      "title": "Laboratorio de Exámenes",
+      "description": "Preparación de exámenes por tema"
+    }
+  },
+  "home": {
+    "tagline": "Resuelve matemáticas. Prepárate para exámenes.",
+    "recentActivity": "Actividad reciente",
+    "noActivity": "Aún sin actividad",
+    "startUsing": "Comienza a usar uno de los módulos",
+    "viewAll": "Ver todo",
+    "otherTools": "Otras herramientas"
+  },
+  "auth": {
+    "login": {
+      "title": "Iniciar sesión",
+      "subtitle": "Bienvenido de vuelta",
+      "email": "Correo electrónico",
+      "password": "Contraseña",
+      "loginButton": "Iniciar sesión",
+      "noAccount": "¿No tienes cuenta?",
+      "signUp": "Registrarse",
+      "forgotPassword": "¿Olvidaste tu contraseña?",
+      "orContinueWith": "O continúa con",
+      "continueAsGuest": "Continuar como invitado"
+    },
+    "signup": {
+      "title": "Crear cuenta",
+      "subtitle": "Únete a Quorax hoy",
+      "name": "Nombre completo",
+      "email": "Correo electrónico",
+      "password": "Contraseña",
+      "signupButton": "Registrarse",
+      "hasAccount": "¿Ya tienes cuenta?",
+      "signIn": "Iniciar sesión",
+      "terms": "Al registrarte, aceptas los Términos de Servicio y la Política de Privacidad."
+    }
+  },
+  "premiumModal": {
+    "limitPill": "LÍMITE DIARIO",
+    "proPill": "FUNCIÓN PRO",
+    "limitTitle": "Alcanzaste el límite gratuito de hoy",
+    "proTitle": "Premium desbloquea esto",
+    "limitSubtitle": "Usaste {{used}}/{{limit}} soluciones en {{module}} hoy. Mejora para acceso ilimitado.",
+    "proSubtitle": "Esta función está incluida en Premium. Mira los planes en la siguiente pantalla.",
+    "benefitUnlimited": "Soluciones de matemáticas ilimitadas",
+    "benefitVerify": "Verifica tu propio trabajo",
+    "benefitExplanations": "Explicaciones paso a paso",
+    "benefitNoAds": "Sin anuncios, nunca",
+    "trialHint": "Prueba gratis, cancela cuando quieras",
+    "cta": "Ver planes",
+    "later": "Quizás luego"
+  },
+  "profile": {
+    "rtlRestartTitle": "Reinicio necesario",
+    "rtlRestartMessage": "Reinicia la aplicación para aplicar la nueva dirección del texto.",
+    "premium": {
+      "ctaContinue": "Continuar",
+      "ctaStartTrial": "Inicia {{days}} días de prueba gratis",
+      "ctaTrialThen": "Luego {{price}}/{{period}} · Cancela cuando quieras",
+      "planMonthly": "Mensual",
+      "planYearly": "Anual",
+      "perYear": "año",
+      "equivMonthly": "{{price}}/mes",
+      "bestValue": "MEJOR VALOR",
+      "savePercent": "AHORRA {{pct}}%",
+      "trialBadge": "{{days}} DÍAS GRATIS",
+      "heroTrialTitle": "Prueba gratis por {{days}} días",
+      "heroTrialSubtitle": "Acceso total. Sin pago hoy.",
+      "trialReminder": "Te avisaremos 2 días antes de que termine la prueba.",
+      "noPaymentToday": "Sin pago hoy",
+      "uniqueBadge": "EXCLUSIVO DE QUORAX",
+      "verifyHeroTitle": "Revisa tu propio trabajo",
+      "verifyHeroDesc": "Pega tu solución — encontraremos el paso exacto donde te equivocaste y te diremos cómo corregirlo.",
+      "terms": "Términos",
+      "privacy": "Privacidad",
+      "legalAutoRenew": "Se renueva automáticamente hasta que canceles. Cancela cuando quieras en Ajustes de iOS > Apple ID > Suscripciones. El pago se carga a tu Apple ID al confirmar.",
+      "featureUnlimited": "Soluciones de matemáticas ilimitadas",
+      "featureVerify": "Verifica tu trabajo",
+      "featureExplanations": "Explicaciones paso a paso",
+      "featureTopics": "Panel de análisis de temas"
+    },
+    "settings": {
+      "language": "Idioma",
+      "purchaseHistory": "Historial de compras",
+      "languageTr": "Türkçe",
+      "languageEn": "English",
+      "languageAr": "العربية",
+      "languageHi": "हिन्दी",
+      "languageEs": "Español",
+      "theme": "Tema",
+      "categories": {
+        "account": "Cuenta",
+        "preferences": "Preferencias",
+        "support": "Soporte"
+      }
+    },
+    "promo": {
+      "menuLabel": "Código promocional",
+      "placeholder": "INGRESA EL CÓDIGO",
+      "apply": "Aplicar",
+      "successTitle": "Activado 🎉",
+      "successMessage": "¡Se activaron {{days}} días de acceso Premium!",
+      "successExtended": "¡Tu Premium se extendió {{days}} días!",
+      "errors": {
+        "code_not_found": "Código promocional inválido.",
+        "code_expired": "Este código promocional ha expirado.",
+        "code_exhausted": "Este código ha alcanzado su límite de uso.",
+        "already_redeemed": "Ya has utilizado este código.",
+        "redemption_failed": "Ocurrió un error. Por favor intenta de nuevo.",
+        "server_error": "Error del servidor. Por favor intenta de nuevo."
+      }
+    }
+  },
+  "math": {
+    "info": {
+      "title": "¿Cómo usar?",
+      "content": "Escribe tu problema o toma una foto / selecciona de la galería. La IA puede resolver álgebra, geometría, cálculo y mucho más.\n\nCada solución incluye una respuesta clara, explicaciones paso a paso numeradas y verificación del resultado."
+    },
+    "input": {
+      "text": "Escribir",
+      "gallery": "Galería",
+      "camera": "Cámara"
+    },
+    "placeholder": "Ingresa tu problema matemático...",
+    "imagePlaceholder": "Selecciona de la galería o toma una foto",
+    "tapToLoadImage": "Toca para cargar imagen",
+    "tapToOpenCamera": "Toca para abrir la cámara",
+    "solve": "Resolver",
+    "solution": "Solución",
+    "steps": "Pasos",
+    "retry": "Reintentar",
+    "clear": "Borrar",
+    "modeSolve": "Resolver",
+    "modeVerify": "Verificar mi trabajo",
+    "verify": {
+      "sectionLabel": "Mi solución",
+      "inputMethod": {
+        "text": "Escribir",
+        "gallery": "Galería",
+        "camera": "Foto"
+      },
+      "placeholder": "Escribe aquí los pasos de tu solución...",
+      "tapToLoadImage": "Cargar foto de la solución",
+      "tapToOpenCamera": "Tomar foto de la solución",
+      "checkButton": "Verificar",
+      "result": {
+        "title": "Resultado de la verificación",
+        "correct": "Correcto",
+        "wrong": "Incorrecto",
+        "partial": "Parcialmente correcto",
+        "stepCheck": "Revisión de paso",
+        "error": "Error",
+        "tip": "Sugerencia"
+      }
+    },
+    "topic": "Tema",
+    "related": {
+      "button": "Generar preguntas similares",
+      "loading": "Preparando...",
+      "title": "Preguntas similares",
+      "failed": "No se pudieron generar preguntas similares, intenta de nuevo",
+      "solveThis": "Resolver",
+      "difficulty": {
+        "easier": "Fácil",
+        "same": "Igual",
+        "harder": "Difícil"
+      }
+    },
+    "topicAnalysis": "Ver análisis de tema",
+    "stepsLocked": "{{count}} pasos más — Ver con Premium",
+    "explainTopic": "Explicar este tema",
+    "hideExplanation": "Ocultar explicación",
+    "explaining": "Explicando...",
+    "handwritingSupported": "Soporta escritura a mano y texto impreso",
+    "verifyTeaser": {
+      "title": "¿Lo resolviste tú mismo? Revisa tu trabajo",
+      "subtitle": "Pega tu solución — detectaremos cualquier error paso a paso."
+    },
+    "graph": "Gráfico",
+    "topicExplanation": "Explicación del tema",
+    "permissions": {
+      "galleryDenied": "Se requiere permiso de galería",
+      "galleryDeniedMessage": "Debes otorgar permiso de acceso a la galería.",
+      "cameraDenied": "Se requiere permiso de cámara",
+      "cameraDeniedMessage": "Debes otorgar permiso de acceso a la cámara."
+    },
+    "errors": {
+      "emptyProblem": "Problema requerido",
+      "emptyProblemMessage": "Por favor ingresa un problema matemático.",
+      "noImage": "Imagen requerida",
+      "noImageMessage": "Por favor selecciona una imagen.",
+      "solveFailed": "Ocurrió un error al resolver el problema",
+      "emptySolution": "Solución requerida",
+      "emptySolutionMessage": "Escribe tu solución o agrega una foto.",
+      "noSolutionImage": "Imagen de solución requerida",
+      "noSolutionImageMessage": "Por favor agrega una foto de tu solución."
+    },
+    "comprehension": {
+      "question": "¿Entendiste la solución?",
+      "understood": "Entendido",
+      "notUnderstood": "Aún no está claro",
+      "strongArea": "Dominado — Conoces bien este tema",
+      "weakArea": "Necesita práctica — Ver explicación abajo"
+    },
+    "topics": {
+      "title": "Análisis de temas",
+      "totalSolved": "Total resuelto",
+      "topicCount": "Áreas temáticas",
+      "masteredCount": "Dominados",
+      "sectionTitle": "TEMAS QUE ESTUDIASTE",
+      "strongBadge": "Dominado",
+      "weakBadge": "Requiere práctica",
+      "generateBtn": "Generar preguntas",
+      "generating": "Generando preguntas...",
+      "hideQuestions": "Ocultar preguntas",
+      "emptyTitle": "Aún no hay datos",
+      "emptyText": "Resuelve problemas en el módulo de Matemáticas para ver tu análisis de temas aquí.",
+      "goToMath": "Ir al módulo de Matemáticas",
+      "categories": {
+        "algebra": "Álgebra",
+        "geometry": "Geometría",
+        "trigonometry": "Trigonometría",
+        "calculus": "Cálculo",
+        "statistics": "Estadística y Probabilidad",
+        "linear_algebra": "Álgebra Lineal",
+        "number_theory": "Teoría de Números",
+        "basic_math": "Matemática Básica",
+        "other": "Otros"
+      }
+    }
+  },
+  "mathHistory": {
+    "title": "Mis problemas",
+    "emptyTitle": "Aún no hay problemas guardados",
+    "emptyText": "Los problemas que resuelvas aparecerán aquí para que puedas revisarlos cuando quieras.",
+    "emptyCta": "Resolver un problema",
+    "imageProblem": "Problema con imagen",
+    "filter": {
+      "all": "Todos"
+    }
+  }
+}

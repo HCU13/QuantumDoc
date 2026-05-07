@@ -29,6 +29,8 @@ export const TABLES = {
   SUPPORT_TICKETS: 'support_tickets',
   CHATS: 'chats',
   MESSAGES: 'messages',
+  WRONG_QUESTIONS: 'wrong_questions',
+  TOPIC_MASTERY: 'topic_mastery',
 } as const;
 
 export default supabase;

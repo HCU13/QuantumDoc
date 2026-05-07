@@ -19,7 +19,8 @@
     "getStarted": "Başlayalım",
     "info": "Bilgi",
     "login": "Giriş Yap",
-    "timeout": "İstek zaman aşımına uğradı. Lütfen tekrar deneyin."
+    "timeout": "İstek zaman aşımına uğradı. Lütfen tekrar deneyin.",
+    "goBack": "Geri Dön"
   },
   "ad": {},
   "auth": {
@@ -129,18 +130,8 @@
     "noActivity": "Henüz işlem geçmişiniz yok",
     "startUsing": "Modüllerden birini kullanmaya başlayın",
     "viewAll": "Tümünü Gör",
-    "tokens": "Token",
     "otherTools": "Diğer Araçlar",
     "tagline": "Matematik çöz, sınavlarına çalış.",
-    "dailyLogin": {
-      "title": "Günlük Ödül",
-      "description": "Her gün giriş yaparak {{tokens}} token kazanın!",
-      "claimed": "Ödül Alındı",
-      "claimedDescription": "Bugünkü ödülünüzü aldınız. Yarın tekrar gelin!",
-      "streak": "{{count}} günlük seri",
-      "success": "Günlük ödülünüzü aldınız!",
-      "error": "Ödül alınırken bir hata oluştu"
-    },
     "activity": {
       "justNow": "Az önce",
       "minutesAgo": "dakika önce",
@@ -195,6 +186,8 @@
   },
   "modules": {
     "locked": "Giriş gerekli",
+    "dailyUsage": "Bugün {{used}}/{{limit}} kullanıldı",
+    "dailyLimitReached": "Günlük limit doldu · Premium'a geç",
     "lockedAlert": {
       "title": "Giriş Gerekli",
       "message": "Bu modülü kullanmak için giriş yapman gerekiyor.",
@@ -204,23 +197,19 @@
     "chat": {
       "title": "AI Sohbet",
       "description": "AI asistanınızla konuşun",
-      "tokenCost": "token"
     },
     "math": {
       "title": "Matematik",
-      "description": "Adım adım çözümler",
-      "tokenCost": "token"
+      "description": "Adım adım çözümler"
     },
     "calculator": {
       "title": "Hesap Makinesi",
-      "description": "Gelişmiş hesaplamalar",
-      "tokenCost": "Ücretsiz"
+      "description": "Gelişmiş hesaplamalar"
     },
     "examLab": {
       "title": "Sınav Kampı",
-      "description": "Konu odaklı sınav hazırlığı",
-      "tokenCost": "token"
-    }
+      "description": "Konu odaklı sınav hazırlığı"
+    },
   },
   "examLab": {
     "info": {
@@ -254,7 +243,115 @@
       "hard": "Zor"
     },
     "questionCount": "Soru Adedi",
+    "proOnlyDifficulty": "Orta ve Zor zorluk seviyeleri Pro üyelere özel",
+    "proOnlyCount": "10 ve üzeri soru sayısı Pro üyelere özel",
+    "configTitle": "Sınav Ayarları",
     "createExam": "Sınavı Oluştur",
+    "orCustomExam": "ya da özelleştirilmiş sınav",
+    "examType": {
+      "label": "Sınav Türü",
+      "general": "Genel",
+      "selectTitle": "Sınav Türü Seç",
+      "readyTitle": "Sınavı Hazır",
+      "readyDesc": "Konu eklemek opsiyonel — boş bırakırsan AI sana uygun sorular üretir.",
+      "topicOptionalPlaceholder": "Konu ekle (opsiyonel, örn: Türev)",
+      "selectSubjectDesc": "Konu seç veya serbest yaz — opsiyonel",
+      "selectSubject": "Hangi konuda çalışmak istiyorsun?",
+      "selectFirst": "Önce sınav türü seç veya konu yaz",
+      "noSubjectHint": "Bölüm seçilmedi — AI bu sınav için karışık sorular üretecek",
+      "loginCta": {
+        "title": "Hata Defteri & Konu Hakimiyeti",
+        "desc": "Giriş yap ve yanlışlarını takip et, gelişimini izle"
+      }
+    },
+    "examTypes": {
+      "countries": {
+        "none": "Genel",
+        "tr": "Türkiye",
+        "us": "Amerika",
+        "uk": "İngiltere",
+        "in": "Hindistan",
+        "intl": "Uluslararası"
+      },
+      "placeholders": {
+        "general": "Konu gir (örn. Fotosentez, Türev, Osmanlı...)",
+        "tyt": "Konu gir veya bölüm seç (örn. Paragraf, Denklem...)",
+        "ayt": "Konu gir veya ders seç (örn. Türev, Optik, Genetik...)",
+        "lgs": "Konu gir veya ders seç (örn. Denklemler, Kuvvet...)",
+        "kpss": "Konu gir veya bölüm seç (örn. Anayasa, Paragraf...)",
+        "ales": "Sayısal mı Sözel mi — bölüm seç veya konu yaz",
+        "sat": "Konu gir veya modül seç (örn. Quadratic, Grammar...)",
+        "act": "Konu gir veya bölüm seç (örn. Trigonometry, Biology...)",
+        "gre": "Verbal mi Quantitative mi — bölüm seç veya konu yaz",
+        "ap": "Hangi AP dersini çalışıyorsun? (örn. AP Calculus BC, AP Biology...)",
+        "alevels": "Hangi A-Level dersini çalışıyorsun? (örn. Mathematics, Chemistry...)",
+        "gcse": "Hangi GCSE dersini çalışıyorsun? (örn. Biology, Physics, History...)",
+        "jee": "Konu gir veya ders seç (örn. Calculus, Organic Chemistry...)",
+        "neet": "Konu gir veya ders seç (örn. Genetics, Thermodynamics...)",
+        "ielts": "Beceri seç veya konu yaz (örn. Academic Vocabulary, Tenses...)",
+        "toefl": "Beceri seç veya konu yaz (örn. Inference questions, Grammar...)",
+        "ib": "Hangi IB dersini çalışıyorsun? (örn. IB Math AA HL, IB Chemistry SL...)"
+      },
+      "subjectPlaceholders": {
+        "tyt_turkce": "Alt konu (opsiyonel, örn. Paragraf anlama, Sözcük türleri...)",
+        "tyt_mat": "Alt konu (opsiyonel, örn. Oran-orantı, Kümeler, Denklemler...)",
+        "tyt_geometri": "Alt konu (opsiyonel, örn. Üçgenler, Çember, Alan hesabı...)",
+        "tyt_tarih": "Alt konu (opsiyonel, örn. Osmanlı kuruluşu, İnkılaplar...)",
+        "tyt_cografya": "Alt konu (opsiyonel, örn. İklim, Nüfus, Türkiye bölgeleri...)",
+        "tyt_felsefe": "Alt konu (opsiyonel, örn. Felsefi akımlar, Mantık...)",
+        "tyt_din": "Alt konu (opsiyonel, örn. İbadetler, Hz. Muhammed, Ahlak...)",
+        "tyt_fizik": "Alt konu (opsiyonel, örn. Kuvvet, Hareket, Enerji...)",
+        "tyt_kimya": "Alt konu (opsiyonel, örn. Atom yapısı, Asit-baz, Karışımlar...)",
+        "tyt_biyoloji": "Alt konu (opsiyonel, örn. Hücre, Kalıtım, Ekosistem...)",
+        "ayt_mat": "Alt konu (opsiyonel, örn. Türev, İntegral, Logaritma, Diziler...)",
+        "ayt_fizik": "Alt konu (opsiyonel, örn. Elektrik, Manyetizma, Dalgalar...)",
+        "ayt_kimya": "Alt konu (opsiyonel, örn. Organik kimya, Denge, Elektrokimya...)",
+        "ayt_biyoloji": "Alt konu (opsiyonel, örn. Genetik, Evrim, Fizyoloji...)",
+        "ayt_edebiyat": "Alt konu (opsiyonel, örn. Tanzimat dönemi, Şiir türleri...)",
+        "ayt_tarih": "Alt konu (opsiyonel, örn. Osmanlı çöküşü, Kurtuluş Savaşı...)",
+        "ayt_cografya": "Alt konu (opsiyonel, örn. İklim sistemleri, Nüfus coğrafyası...)",
+        "ayt_felsefe": "Alt konu (opsiyonel, örn. Psikoloji, Sosyoloji, Mantık...)",
+        "lgs_turkce": "Alt konu (opsiyonel, örn. Ana düşünce, Cümle bilgisi...)",
+        "lgs_mat": "Alt konu (opsiyonel, örn. Cebir, Çarpanlara ayırma, Olasılık...)",
+        "lgs_fen": "Alt konu (opsiyonel, örn. DNA, Işık, Kuvvet ve hareket...)",
+        "lgs_inkilap": "Alt konu (opsiyonel, örn. Kurtuluş Savaşı, Atatürk ilkeleri...)",
+        "lgs_din": "Alt konu (opsiyonel, örn. İbadetler, Ahlak, Peygamberler...)",
+        "lgs_ing": "Alt konu (opsiyonel, örn. Tenses, Daily life vocabulary...)",
+        "kpss_turkce": "Alt konu (opsiyonel, örn. Paragraf, Dil bilgisi, Yazım kuralları...)",
+        "kpss_mat": "Alt konu (opsiyonel, örn. Hız-mesafe-zaman, Yüzde, Problem çözme...)",
+        "kpss_geometri": "Alt konu (opsiyonel, örn. Üçgen, Çember, Alan-çevre...)",
+        "kpss_tarih": "Alt konu (opsiyonel, örn. Osmanlı, Kurtuluş Savaşı, İnkılaplar...)",
+        "kpss_cografya": "Alt konu (opsiyonel, örn. Türkiye iklimi, Ekonomik faaliyetler...)",
+        "kpss_vatandaslik": "Alt konu (opsiyonel, örn. Anayasa, Temel haklar, Yasama...)",
+        "ales_sayisal": "Alt konu (opsiyonel, örn. Sayı dizileri, Problem çözme, Yüzde...)",
+        "ales_sozel": "Alt konu (opsiyonel, örn. Eş anlam, Cümle tamamlama, Paragraf...)",
+        "sat_rw": "Sub-topic (optional, e.g. Transitions, Vocabulary in context...)",
+        "sat_algebra": "Sub-topic (optional, e.g. Systems of equations, Inequalities...)",
+        "sat_advanced": "Sub-topic (optional, e.g. Quadratics, Exponential functions...)",
+        "sat_data": "Sub-topic (optional, e.g. Statistics, Probability, Circle theorems...)",
+        "act_english": "Sub-topic (optional, e.g. Punctuation, Transitions, Sentence structure...)",
+        "act_math": "Sub-topic (optional, e.g. Trigonometry, Coordinate geometry...)",
+        "act_reading": "Sub-topic (optional, e.g. Main idea, Inference, Vocabulary...)",
+        "act_science": "Sub-topic (optional, e.g. Data interpretation, Conflicting viewpoints...)",
+        "gre_verbal": "Sub-topic (optional, e.g. Text completion, Reading comprehension...)",
+        "gre_quant": "Sub-topic (optional, e.g. Geometry, Data analysis, Algebra...)",
+        "jee_physics": "Sub-topic (optional, e.g. Rotational motion, Electrostatics, Optics...)",
+        "jee_chemistry": "Sub-topic (optional, e.g. Organic mechanisms, Chemical equilibrium...)",
+        "jee_math": "Sub-topic (optional, e.g. Integration, Coordinate geometry, Vectors...)",
+        "neet_botany": "Sub-topic (optional, e.g. Photosynthesis, Plant reproduction, Genetics...)",
+        "neet_zoology": "Sub-topic (optional, e.g. Human physiology, Animal kingdom, Evolution...)",
+        "neet_physics": "Sub-topic (optional, e.g. Laws of motion, Electrostatics, Optics...)",
+        "neet_chemistry": "Sub-topic (optional, e.g. Organic reactions, Thermodynamics, Equilibrium...)",
+        "ielts_reading": "Sub-topic (optional, e.g. True/False/NG, Matching headings...)",
+        "ielts_listening": "Sub-topic (optional, e.g. Multiple choice, Form completion...)",
+        "ielts_vocab": "Sub-topic (optional, e.g. Academic Word List, Collocations...)",
+        "ielts_grammar": "Sub-topic (optional, e.g. Conditionals, Passive voice, Tenses...)",
+        "toefl_reading": "Sub-topic (optional, e.g. Inference, Rhetorical purpose, Vocabulary...)",
+        "toefl_listening": "Sub-topic (optional, e.g. Main idea, Detail questions, Attitude...)",
+        "toefl_vocab": "Sub-topic (optional, e.g. Academic vocabulary, Paraphrase...)",
+        "toefl_grammar": "Sub-topic (optional, e.g. Sentence structure, Usage in context...)"
+      }
+    },
     "photoTopicDetected": "Konu fotoğraftan tespit edilecek.",
     "photoCapture": {
       "title": "Soru Fotoğrafı Çek",
@@ -284,20 +381,29 @@
     "exitSaveAndLeave": "Kaydet ve Çık",
     "report": {
       "title": "Sınav Raporu",
-      "excellent": "Mükemmel! 🎉",
-      "good": "İyi! 👍",
-      "needsImprovement": "Daha fazla çalışmalısın 💪",
+      "perfect": "Mükemmel! Tüm sorular doğru!",
+      "excellent": "Harika bir performans!",
+      "good": "İyi gidiyorsun, devam et!",
+      "needsImprovement": "Biraz daha çalışmak gerekiyor.",
+      "keepPracticing": "Pratik yapmaya devam et, başarırsın!",
       "correct": "Doğru",
       "incorrect": "Yanlış",
-      "unanswered": "Cevaplanmadı",
+      "unanswered": "Boş",
       "total": "Toplam",
+      "duration": "Süre",
       "close": "Kapat",
       "newExam": "Yeni Sınav",
+      "goToErrorNotebook": "{{count}} yanlış soru Hata Defteri'ne kaydedildi →",
+      "retry": "Tekrar Çöz",
+      "share": "Sonucu Paylaş",
+      "perfectScore": "Tebrikler! Tüm soruları doğru yanıtladın!",
+      "correctAnswers": "Doğru Cevaplar",
+      "wrongAnswers": "Yanlış Cevaplar",
+      "skipped": "Boş Bırakılanlar",
       "askAI": "Yanlışları AI ile Çöz",
       "weakTopics": "Konu Analizi",
       "weakTopicsEmpty": "Tüm sorular doğru!",
       "topicScore": "{{correct}}/{{total}} doğru",
-      "wrongAnswers": "Yanlış Cevaplar",
       "yourAnswer": "Senin cevabın",
       "correctAnswer": "Doğru cevap",
       "explainWithAI": "AI ile Açıkla",
@@ -309,39 +415,94 @@
       "title": "Kaldığın Yerden Devam Et",
       "progress": "{{answered}}/{{total}} cevaplandı"
     },
-    "flashcard": {
-      "title": "Ezber Kartı Üret",
-      "button": "Ezber Kartı Oluştur",
-      "loading": "Kartlar hazırlanıyor...",
-      "emptyTopic": "Konu veya fotoğraf gerekli",
-      "emptyTopicMessage": "Lütfen konu girin veya fotoğraf ekleyin.",
-      "front": "Soru",
-      "back": "Cevap",
-      "cardCount": "{{count}} kart",
-      "finish": "Tamamlandı",
-      "finishTitle": "Tebrikler! 🎉",
-      "finishMessage": "{{count}} kartı başarıyla tamamladın!",
-      "restartCards": "Tekrar Et",
-      "exitCards": "Çıkış",
-      "next": "Sonraki",
-      "previous": "Önceki",
-      "flip": "Çevir",
-      "mode": {
-        "exam": "Sınav",
-        "flashcard": "Ezber Kartları"
+    "errorNotebook": {
+      "title": "Hata Defteri",
+      "desc": "Gelişimini takip et"
+    },
+    "quickDrill": {
+      "title": "Hızlı 5 Soru",
+      "subtitle": "Anında başla · Kolay · Ayar yok",
+      "desc": "5 soru · Hızlı"
+    },
+    "wrongQuestions": {
+      "title": "Hata Defteri",
+      "subtitle": "Yanlış yaptığın soruları tekrar çöz",
+      "empty": "Henüz hata defterinde soru yok",
+      "emptyDesc": "Sınav çözdükçe yanlış yaptığın sorular burada birikir",
+      "mastered": "Öğrendim",
+      "notMastered": "Hâlâ Zor",
+      "markMastered": "Öğrendim ✓",
+      "masteredBadge": "Öğrenildi",
+      "attemptCount": "{{count}}x yanlış",
+      "reviewMode": "Tekrar Çalış",
+      "allDone": "Harika! Hepsini öğrendin 🎉",
+      "allDoneDesc": "Tüm hatalı sorularını tamamladın",
+      "cardOf": "{{current}} / {{total}}",
+      "showAnswer": "Cevabı Gör",
+      "hideAnswer": "Gizle",
+      "filterAll": "Tümü",
+      "filterActive": "Çalışılacak",
+      "filterMastered": "Öğrenildi",
+      "deleteConfirm": "Bu soruyu hata defterinden sil?",
+      "loading": "Yükleniyor...",
+      "errorLoad": "Yüklenemedi",
+      "practiceAll": "Tümünü Çöz",
+      "practiceSubject": "{{subject}} — Çöz",
+      "goToExam": "Sınava Git"
+    },
+    "mastery": {
+      "title": "Konu Hakimiyeti",
+      "subtitle": "Konulardaki gelişimini takip et",
+      "sectionTitle": "Konular",
+      "empty": "Henüz hiç sınav çözmedin",
+      "emptyDesc": "Sınav çözdükçe her konudaki başarın burada görünür",
+      "level": {
+        "learning": "Öğreniyorum",
+        "developing": "Gelişiyor",
+        "proficient": "İyi Seviye",
+        "mastered": "Hakimiyet"
+      },
+      "levelDesc": {
+        "learning": "Daha fazla pratik gerekli",
+        "developing": "İyi gidiyorsun, devam et",
+        "proficient": "Neredeyse ustalaştın",
+        "mastered": "Bu konuya hakimsin!"
+      },
+      "stats": "{{correct}} / {{total}} doğru",
+      "lastStudied": "Son çalışma: {{date}}",
+      "accuracy": "%{{pct}} başarı"
+    },
+    "realExam": {
+      "title": "Gerçek Sınav Modu",
+      "subtitle": "Resmi sınav formatında pratik yap",
+      "selectPreset": "Sınav Seç",
+      "customMode": "Özel Mod",
+      "startExam": "Sınavı Başlat",
+      "timeLeft": "Kalan Süre",
+      "timeUp": "Süre Doldu!",
+      "timeUpMessage": "Süre doldu. Sınav otomatik tamamlandı.",
+      "confirmExit": "Sınavdan çıkmak istediğine emin misin? Süre sayılmaya devam ediyor.",
+      "presets": {
+        "alesSayisal": "ALES Sayısal (50 soru / 100 dk)",
+        "alesSozel": "ALES Sözel (50 soru / 100 dk)",
+        "yksTyt": "YKS TYT (120 soru / 135 dk)",
+        "yksAyt": "YKS AYT (80 soru / 180 dk)",
+        "lgs": "LGS (90 soru / 130 dk)",
+        "sat": "SAT (98 soru / 134 dk)",
+        "act": "ACT (215 soru / 175 dk)"
       }
     },
     "explanation": "Açıklama:",
     "previous": "Önceki",
     "next": "Sonraki",
     "finish": "Bitir",
+    "finishWithoutAnswer": "Soruyu atlamak istiyor musun?",
+    "finishWithoutAnswerDesc": "Bu soruyu cevaplamadan sınavı bitirirsen boş sayılacak.",
     "success": {
       "title": "Başarılı",
       "message": "Sınav hazırlandı!"
     },
     "errors": {
-      "insufficientTokens": "Yetersiz Token",
-      "insufficientTokensMessage": "Bu işlem için {{tokens}} token gerekiyor.",
       "failed": "Hata",
       "failedMessage": "Sınav oluşturulamadı.",
       "photoFailed": "Hata",
@@ -405,13 +566,26 @@
       "button": "Benzer Sorular Üret",
       "loading": "Hazırlanıyor...",
       "title": "Benzer Sorular",
-      "failed": "Benzer sorular üretilemedi, tekrar dene"
+      "failed": "Benzer sorular üretilemedi, tekrar dene",
+      "solveThis": "Çöz",
+      "difficulty": {
+        "easier": "Kolay",
+        "same": "Aynı",
+        "harder": "Zor"
+      }
     },
     "topicAnalysis": "Konu Analizini Gör",
     "stepsLocked": "{{count}} adım daha — Premium ile gör",
     "explainTopic": "Bu Konuyu Bana Açıkla",
     "hideExplanation": "Açıklamayı Kapat",
     "explaining": "Açıklanıyor...",
+    "handwritingSupported": "El yazısı ve baskı yazı desteklenir",
+    "verifyTeaser": {
+      "title": "Kendin çözdün mü? Kontrol ettir",
+      "subtitle": "Çözümünü gönder, hatalarını adım adım işaretleyelim."
+    },
+    "graph": "Grafik",
+    "topicExplanation": "Konu Açıklaması",
     "permissions": {
       "galleryDenied": "Galeri izni gerekli",
       "galleryDeniedMessage": "Galeri erişimi için izin vermeniz gerekiyor.",
@@ -423,7 +597,6 @@
       "emptyProblemMessage": "Lütfen bir matematik problemi girin.",
       "noImage": "Görsel gerekli",
       "noImageMessage": "Lütfen bir görsel seçin.",
-      "insufficientTokens": "Yetersiz token.",
       "solveFailed": "Problem çözülürken bir hata oluştu",
       "emptySolution": "Çözüm gerekli",
       "emptySolutionMessage": "Kendi çözümünü yaz veya fotoğrafını ekle.",
@@ -450,11 +623,34 @@
       "hideQuestions": "Soruları Gizle",
       "emptyTitle": "Henüz veri yok",
       "emptyText": "Matematik modülünde soru çözdükçe konu analizin burada görünecek.",
-      "goToMath": "Matematik Modülüne Git"
+      "goToMath": "Matematik Modülüne Git",
+      "categories": {
+        "algebra": "Cebir",
+        "geometry": "Geometri",
+        "trigonometry": "Trigonometri",
+        "calculus": "Analiz",
+        "statistics": "İstatistik ve Olasılık",
+        "linear_algebra": "Lineer Cebir",
+        "number_theory": "Sayılar Teorisi",
+        "basic_math": "Temel Matematik",
+        "other": "Diğer"
+      }
+    }
+  },
+  "mathHistory": {
+    "title": "Sorularım",
+    "emptyTitle": "Henüz kayıtlı soru yok",
+    "emptyText": "Çözdüğün sorular burada birikir, istediğin zaman tekrar bakabilirsin.",
+    "emptyCta": "Soru çöz",
+    "imageProblem": "Görselli soru",
+    "filter": {
+      "all": "Tümü"
     }
   },
   "profile": {
     "title": "Profil",
+    "rtlRestartTitle": "Yeniden Başlatma Gerekli",
+    "rtlRestartMessage": "Yeni yazı yönünü uygulamak için lütfen uygulamayı yeniden başlatın.",
     "logout": "Çıkış Yap",
     "deleteAccount": {
       "button": "Hesabı Sil",
@@ -492,9 +688,8 @@
         "examLab": "Sınav Kampı",
         "prioritySupport": "Öncelikli Destek",
         "adFree": "Reklamsız",
-        "unlimited": "Sınırsız Token",
-        "priority": "Öncelikli Destek",
-        "bonus": "%20 Bonus Token"
+        "unlimited": "Sınırsız Kullanım",
+        "priority": "Öncelikli Destek"
       },
       "purchase": {
         "title": "Premium'a Yükselt",
@@ -549,6 +744,30 @@
       "cancelConfirm": "App Store'a Git",
       "nextRenewal": "Sonraki yenileme tarihi",
       "ctaButton": "Premium'a Geç",
+      "ctaContinue": "Devam Et",
+      "ctaStartTrial": "{{days}} Gün Ücretsiz Dene",
+      "ctaTrialThen": "Sonra {{price}}/{{period}} · İstediğinde iptal",
+      "planMonthly": "Aylık",
+      "planYearly": "Yıllık",
+      "perYear": "yıl",
+      "equivMonthly": "Aylık {{price}}",
+      "bestValue": "EN AVANTAJLI",
+      "savePercent": "%{{pct}} TASARRUF",
+      "trialBadge": "{{days}} GÜN ÜCRETSİZ",
+      "heroTrialTitle": "{{days}} gün ücretsiz dene",
+      "heroTrialSubtitle": "Sınırsız erişim. Bugün ücret yok.",
+      "trialReminder": "Deneme bitmeden 2 gün önce hatırlatacağız.",
+      "noPaymentToday": "Bugün ücret yok",
+      "uniqueBadge": "SADECE QUORAX'TA",
+      "verifyHeroTitle": "Kendi Çözümünü Kontrol Et",
+      "verifyHeroDesc": "Çözümünü paylaş, tam olarak hangi adımda hata yaptığını ve nasıl düzelteceğini söyleyelim.",
+      "terms": "Koşullar",
+      "privacy": "Gizlilik",
+      "legalAutoRenew": "İptal edilmediği sürece otomatik yenilenir. iOS Ayarlar > Apple Kimliği > Abonelikler üzerinden istediğin zaman iptal edebilirsin. Ödeme, onay sırasında Apple Kimliğinden tahsil edilir.",
+      "featureUnlimited": "Sınırsız matematik çözümü",
+      "featureVerify": "Çözümünü doğrula",
+      "featureExplanations": "Adım adım açıklama",
+      "featureTopics": "Konu analizi panosu",
       "trustSecure": "Güvenli Ödeme",
       "trustCancel": "İstediğinde İptal",
       "trustSafe": "Gizlilik Korumalı"
@@ -569,20 +788,38 @@
       "language": "Dil",
       "languageTr": "Türkçe",
       "languageEn": "English",
+      "languageAr": "العربية",
+      "languageHi": "हिन्दी",
+      "languageEs": "Español",
       "theme": "Tema",
       "notifications": "Bildirimler",
       "privacy": "Gizlilik",
       "about": "Hakkında",
       "help": "Yardım & Destek",
       "editProfile": "Profili Düzenle",
-      "earnTokens": "Token Kazan",
+      "purchaseHistory": "Satın Alım Geçmişi",
       "feedback": "Geri Bildirim",
       "rateUs": "Bizi Değerlendir",
       "categories": {
         "account": "Hesap",
         "preferences": "Tercihler",
-        "tokens": "Token",
         "support": "Destek"
+      }
+    },
+    "promo": {
+      "menuLabel": "Promosyon Kodu",
+      "placeholder": "KODU GİR",
+      "apply": "Uygula",
+      "successTitle": "Aktivasyon Başarılı 🎉",
+      "successMessage": "{{days}} günlük Premium erişimin aktif edildi!",
+      "successExtended": "Premium süren {{days}} gün uzatıldı!",
+      "errors": {
+        "code_not_found": "Geçersiz promosyon kodu.",
+        "code_expired": "Bu promosyon kodunun süresi dolmuş.",
+        "code_exhausted": "Bu promosyon kodu kullanım limitine ulaştı.",
+        "already_redeemed": "Bu kodu daha önce kullandınız.",
+        "redemption_failed": "Bir hata oluştu. Lütfen tekrar deneyin.",
+        "server_error": "Sunucu hatası. Lütfen tekrar deneyin."
       }
     },
     "selectAvatar": "Avatar Seç",
@@ -739,13 +976,8 @@
       "faqList": [
         {
           "id": "1",
-          "question": "Token'ları nasıl kazanabilirim?",
-          "answer": "Token kazanmak için günlük giriş yapabilir, reklam izleyebilir veya geri bildirim verebilirsiniz. Profil > Token Kazan sayfasından tüm seçenekleri görebilirsiniz."
-        },
-        {
-          "id": "2",
           "question": "Premium üyelik nedir?",
-          "answer": "Premium üyelik ile sınırsız token ve reklamsız deneyim alabilirsiniz. Detaylar için Profil > Premium sayfasını ziyaret edin."
+          "answer": "Premium üyelik ile sınırsız kullanım ve reklamsız deneyim alabilirsiniz. Detaylar için Profil > Premium sayfasını ziyaret edin."
         },
         {
           "id": "3",
@@ -821,51 +1053,6 @@
         "selectRating": "Lütfen bir değerlendirme seçin",
         "cannotOpenStore": "Mağaza açılamadı",
         "openStoreFailed": "Mağaza açılırken bir hata oluştu"
-      }
-    },
-    "earnTokens": {
-      "title": "Token Kazan",
-      "totalTokens": "Toplam Token",
-      "streak": "gün seri",
-      "dailyMissions": "Günlük Görevler",
-      "weeklyMissions": "Haftalık Görevler",
-      "claimReward": "Ödülü Al",
-      "watchAd": "Reklam İzle",
-      "adNotAvailable": "Reklam özelliği yakında eklenecek",
-      "howItWorks": {
-        "title": "Token Nasıl Çalışır?",
-        "description": "Token'larınızı AI modüllerinde kullanabilirsiniz. Her işlem belirli miktarda token gerektirir."
-      },
-      "missions": {
-        "dailyLogin": {
-          "title": "Günlük Giriş",
-          "description": "Her gün uygulamaya giriş yap"
-        },
-        "watchVideo": {
-          "title": "Reklam İzle",
-          "description": "Günde 5 reklam izleyerek token kazan"
-        },
-        "feedback": {
-          "title": "Geri Bildirim Ver",
-          "description": "Deneyimini değerlendir"
-        }
-      },
-      "alerts": {
-        "completed": "Tamamlandı",
-        "completedMessage": "Bu görevi zaten tamamladınız!",
-        "limitReached": "Limit Doldu",
-        "limitReachedMessage": "Bugün 5 reklam izlediniz. Yarın tekrar deneyin.",
-        "error": "Hata",
-        "errorMessage": "Ödül alınırken bir hata oluştu",
-        "adTimeout": "Reklam zaman aşımı",
-        "adTimeoutMessage": "Reklam yüklenemedi. Lütfen tekrar deneyin.",
-        "adNotReady": "Reklam hazır değil. Lütfen bekleyin."
-      },
-      "success": {
-        "message": "Token kazandınız!"
-      },
-      "feedback": {
-        "giveFeedback": "Geri Bildirim Ver"
       }
     },
     "terms": {
@@ -955,9 +1142,23 @@
       "loadChatFailed": "Sohbet bilgileri yüklenirken bir hata oluştu",
       "loadMessagesFailed": "Mesajlar yüklenirken bir hata oluştu",
       "sendFailed": "Mesaj gönderilirken bir hata oluştu",
-      "insufficientTokens": "Yetersiz token.",
       "aiFailed": "AI yanıtı alınamadı. Lütfen tekrar deneyin."
     }
+  },
+  "premiumModal": {
+    "limitPill": "GÜNLÜK LİMİT",
+    "proPill": "PRO ÖZELLİĞİ",
+    "limitTitle": "Bugünkü ücretsiz hakkın doldu",
+    "proTitle": "Premium ile bu açılıyor",
+    "limitSubtitle": "{{module}} modülünde bugün {{used}}/{{limit}} çözüm yaptın. Sınırsız kullanım için Premium'a geç.",
+    "proSubtitle": "Bu özellik Premium'a dahil. Sonraki ekranda planları göreceksin.",
+    "benefitUnlimited": "Sınırsız matematik çözümü",
+    "benefitVerify": "Çözümünü doğrula",
+    "benefitExplanations": "Adım adım açıklama",
+    "benefitNoAds": "Reklam yok",
+    "trialHint": "Ücretsiz dene, istediğinde iptal",
+    "cta": "Planları Gör",
+    "later": "Belki sonra"
   },
   "premium": {
     "limitReached": "Günlük Limitiniz Doldu",
@@ -983,6 +1184,14 @@
       "explanations": "Konu açıklamaları ve detaylı çözümler"
     }
   },
+  "welcome": {
+    "title": "Quorax'a Hoş Geldin! 🎉",
+    "subtitle": "Fotoğrafla matematik çöz, YKS sınavlarına hazırlan, AI asistanınla öğren. Uygulama sürekli gelişiyor.",
+    "earlyAccess": "Yeni yayındayız — eksik veya hata görürsen bize ilet, öncelikli düzeltiriz.",
+    "bugFoundPrefix": "Sorun mu buldun?",
+    "bugFoundLink": "Destek sayfasına git →",
+    "cta": "Haydi Başlayalım"
+  },
   "rating": {
     "title": "Quorax'ı beğeniyor musun?",
     "subtitle": "Deneyimini paylaşmak bize çok yardımcı olur. Sadece 1 dakikanı alır!",
@@ -997,14 +1206,17 @@
     "thanksTitle": "Teşekkürler!",
     "thanksSubtitle": "Geri bildirimin için sağ ol. Quorax'ı daha iyi yapmak için çalışıyoruz."
   },
+  "examProgress": {
+    "question": "SORU",
+    "answer": "CEVAP",
+    "goBack": "Geri Dön",
+    "toStudy": "{{count}} çalışılacak",
+    "learned": "{{count}} öğrenildi",
+    "masteryStats": "{{mastered}}/{{total}} hakimiyet · %{{pct}} başarı",
+    "questionN": "Soru {{n}}"
+  },
   "aiLoading": {
     "hint": "Bu birkaç saniye sürebilir",
-    "flashcard": {
-      "0": "Konu analiz ediliyor",
-      "1": "Sorular hazırlanıyor",
-      "2": "Cevaplar düzenleniyor",
-      "3": "Kartlar oluşturuluyor"
-    },
     "math": {
       "0": "Problem inceleniyor",
       "1": "Adımlar hesaplanıyor",

@@ -1,8 +1,11 @@
+import { Ionicons } from "@expo/vector-icons";
 import { LinearGradient } from "expo-linear-gradient";
 import { useRouter } from "expo-router";
-import React from "react";
+import React, { useEffect, useRef } from "react";
 import { useTranslation } from "react-i18next";
 import {
+  Animated,
+  Easing,
   Modal,
   StyleSheet,
   Text,
@@ -10,8 +13,7 @@ import {
   View,
 } from "react-native";
 
-import { BORDER_RADIUS, SPACING } from "@/constants/theme";
-import { useSubscription } from "@/contexts/SubscriptionContext";
+import { SPACING } from "@/constants/theme";
 import { useTheme } from "@/contexts/ThemeContext";
 
 interface PremiumModalProps {
@@ -25,6 +27,12 @@ interface PremiumModalProps {
   };
 }
 
+// The modal has two moods:
+// - "limit"  — user hit their daily quota. Orange accent, urgency-flavored copy.
+// - "pro"    — user tapped a Premium-only feature. Purple accent, benefit-flavored copy.
+// In both cases the CTA just routes to the full paywall (subscription.tsx) — we never try to
+// reproduce the subscription surface here; that screen owns pricing + trial + toggle.
+
 export const PremiumModal: React.FC<PremiumModalProps> = ({
   visible,
   onClose,
@@ -34,7 +42,29 @@ export const PremiumModal: React.FC<PremiumModalProps> = ({
   const { t } = useTranslation();
   const router = useRouter();
   const { colors } = useTheme();
-  const { premiumPriceString } = useSubscription();
+
+  const sheetTranslate = useRef(new Animated.Value(400)).current;
+  const overlayOpacity = useRef(new Animated.Value(0)).current;
+
+  useEffect(() => {
+    if (visible) {
+      Animated.parallel([
+        Animated.timing(overlayOpacity, {
+          toValue: 1, duration: 220, useNativeDriver: true,
+        }),
+        Animated.timing(sheetTranslate, {
+          toValue: 0, duration: 320, easing: Easing.out(Easing.cubic), useNativeDriver: true,
+        }),
+      ]).start();
+    } else {
+      sheetTranslate.setValue(400);
+      overlayOpacity.setValue(0);
+    }
+  }, [visible]);
+
+  const isLimitMode = !!usageInfo;
+  const used = usageInfo?.used ?? 0;
+  const limit = usageInfo?.limit ?? 0;
 
   const moduleNames = {
     chat: t("modules.chat.title"),
@@ -42,260 +72,238 @@ export const PremiumModal: React.FC<PremiumModalProps> = ({
     exam_lab: t("modules.examLab.title"),
   };
 
-  const handleUpgrade = () => {
+  // Benefits shown inside the sheet — short, outcome-focused, same regardless of mode.
+  const benefits = [
+    { icon: "infinite-outline" as const, titleKey: "premiumModal.benefitUnlimited" },
+    { icon: "checkmark-done-outline" as const, titleKey: "premiumModal.benefitVerify" },
+    { icon: "bulb-outline" as const, titleKey: "premiumModal.benefitExplanations" },
+    { icon: "ban-outline" as const, titleKey: "premiumModal.benefitNoAds" },
+  ];
+
+  const handleGoPaywall = () => {
     onClose();
     router.push("/(main)/profile/subscription");
   };
 
-  const isLimitMode = !!usageInfo;
-  const used = usageInfo?.used ?? 0;
-  const limit = usageInfo?.limit ?? 0;
-  const progress = limit > 0 ? Math.min(used / limit, 1) : 1;
-
-  const features = isLimitMode ? [
-    { emoji: "⚡", text: t("premium.features.unlimited") },
-    { emoji: "🚀", text: t("premium.features.priority") },
-    { emoji: "✨", text: t("premium.features.noAds") },
-  ] : [
-    { emoji: "📊", text: t("premium.features.topicAnalysis") },
-    { emoji: "✅", text: t("premium.features.verify") },
-    { emoji: "💡", text: t("premium.features.explanations") },
-    { emoji: "⚡", text: t("premium.features.unlimited") },
-  ];
-
   return (
-    <Modal visible={visible} transparent animationType="slide" onRequestClose={onClose}>
-      <TouchableOpacity style={styles.overlay} activeOpacity={1} onPress={onClose} />
+    <Modal visible={visible} transparent animationType="none" onRequestClose={onClose}>
+      <Animated.View style={[styles.overlay, { opacity: overlayOpacity }]}>
+        <TouchableOpacity style={StyleSheet.absoluteFill} activeOpacity={1} onPress={onClose} />
+      </Animated.View>
 
-      <View style={[styles.sheet, { backgroundColor: colors.card }]}>
-        {/* Handle */}
+      <Animated.View
+        style={[
+          styles.sheet,
+          { backgroundColor: colors.card, transform: [{ translateY: sheetTranslate }] },
+        ]}
+      >
+        {/* Drag handle + close */}
         <View style={[styles.handle, { backgroundColor: colors.borderSubtle }]} />
-
-        {/* Kapat */}
-        <TouchableOpacity style={styles.closeBtn} onPress={onClose} hitSlop={{ top: 12, bottom: 12, left: 12, right: 12 }}>
-          <Text style={[styles.closeX, { color: colors.textTertiary }]}>✕</Text>
+        <TouchableOpacity
+          style={[styles.closeBtn, { backgroundColor: colors.backgroundSecondary }]}
+          onPress={onClose}
+          hitSlop={{ top: 12, bottom: 12, left: 12, right: 12 }}
+        >
+          <Ionicons name="close" size={16} color={colors.textTertiary} />
         </TouchableOpacity>
 
-        {/* PRO badge + başlık */}
-        <View style={styles.titleRow}>
-          <View style={styles.proBadge}>
-            <LinearGradient
-              colors={isLimitMode ? ["#FF4E50", "#FC913A"] : ["#7C3AED", "#4C1D95"]}
-              start={{ x: 0, y: 0 }} end={{ x: 1, y: 0 }}
-              style={styles.proBadgeGradient}
-            >
-              <Text style={styles.proBadgeText}>{isLimitMode ? "🔥" : "✦  PRO"}</Text>
-            </LinearGradient>
-          </View>
-          <Text style={[styles.title, { color: colors.textPrimary }]}>
-            {isLimitMode ? t("premium.limitReached") : t("premium.proFeature")}
-          </Text>
-          <Text style={[styles.subtitle, { color: colors.textSecondary }]}>
-            {isLimitMode
-              ? t("premium.usageToday", { module: moduleNames[moduleType], used, limit })
-              : t("premium.proFeatureSubtitle")}
-          </Text>
+        {/* Mode-colored pill at the top — immediate emotional tone */}
+        <View style={styles.pillRow}>
+          <LinearGradient
+            colors={isLimitMode ? ["#F59E0B", "#EF4444"] : ["#8B5CF6", "#6D28D9"]}
+            start={{ x: 0, y: 0 }} end={{ x: 1, y: 0 }}
+            style={styles.pill}
+          >
+            <Ionicons
+              name={isLimitMode ? "flame" : "sparkles"}
+              size={12}
+              color="#fff"
+            />
+            <Text style={styles.pillText}>
+              {isLimitMode ? t("premiumModal.limitPill") : t("premiumModal.proPill")}
+            </Text>
+          </LinearGradient>
         </View>
 
-        {/* Usage progress */}
-        {isLimitMode && (
-          <View style={[styles.progressBox, { backgroundColor: colors.backgroundSecondary }]}>
-            <View style={styles.progressRow}>
-              <Text style={[styles.progressLabel, { color: colors.textSecondary }]}>
-                {moduleNames[moduleType]}
-              </Text>
-              <Text style={[styles.progressCount, { color: colors.textPrimary }]}>{used}/{limit}</Text>
-            </View>
-            <View style={[styles.progressTrack, { backgroundColor: colors.borderSubtle }]}>
-              <LinearGradient
-                colors={["#FF4E50", "#FC913A"]}
-                start={{ x: 0, y: 0 }} end={{ x: 1, y: 0 }}
-                style={[styles.progressFill, { width: `${progress * 100}%` }]}
-              />
-            </View>
-          </View>
-        )}
+        {/* Title + subtitle */}
+        <Text style={[styles.title, { color: colors.textPrimary }]}>
+          {isLimitMode
+            ? t("premiumModal.limitTitle")
+            : t("premiumModal.proTitle")}
+        </Text>
+        <Text style={[styles.subtitle, { color: colors.textSecondary }]}>
+          {isLimitMode
+            ? t("premiumModal.limitSubtitle", { module: moduleNames[moduleType], used, limit })
+            : t("premiumModal.proSubtitle")}
+        </Text>
 
-        {/* Features */}
-        <View style={[styles.featureBox, { backgroundColor: colors.backgroundSecondary, borderColor: colors.borderSubtle }]}>
-          {features.map((f, i) => (
-            <View
-              key={i}
-              style={[
-                styles.featureRow,
-                i < features.length - 1 && { borderBottomWidth: StyleSheet.hairlineWidth, borderBottomColor: colors.borderSubtle },
-              ]}
-            >
-              <Text style={styles.featureEmoji}>{f.emoji}</Text>
-              <Text style={[styles.featureText, { color: colors.textPrimary }]}>{f.text}</Text>
+        {/* Benefit list — compact, breathable */}
+        <View style={[styles.benefitBox, { backgroundColor: colors.backgroundSecondary }]}>
+          {benefits.map((b) => (
+            <View key={b.titleKey} style={styles.benefitRow}>
+              <View style={[styles.benefitIconBox, { backgroundColor: "rgba(139,92,246,0.12)" }]}>
+                <Ionicons name={b.icon} size={15} color="#8B5CF6" />
+              </View>
+              <Text style={[styles.benefitText, { color: colors.textPrimary }]}>
+                {t(b.titleKey)}
+              </Text>
             </View>
           ))}
         </View>
 
-        {/* CTA */}
-        <TouchableOpacity onPress={handleUpgrade} activeOpacity={0.88} style={styles.ctaWrap}>
+        {/* Trial hint — keeps the modal honest with whatever the paywall will offer.
+            We don't know for sure whether trial is available here (that check lives in RC data),
+            so we use soft copy: "Try Premium" not "Start Free Trial". Paywall confirms trial. */}
+        <View style={styles.trialHint}>
+          <Ionicons name="gift-outline" size={13} color="#8B5CF6" />
+          <Text style={[styles.trialHintText, { color: colors.textSecondary }]}>
+            {t("premiumModal.trialHint")}
+          </Text>
+        </View>
+
+        {/* CTA — purely navigational. No price here; paywall owns pricing. */}
+        <TouchableOpacity onPress={handleGoPaywall} activeOpacity={0.88} style={styles.ctaWrap}>
           <LinearGradient
-            colors={["#6D28D9", "#8B5CF6"]}
+            colors={["#7C3AED", "#6D28D9"]}
             start={{ x: 0, y: 0 }} end={{ x: 1, y: 0 }}
             style={styles.ctaBtn}
           >
-            <Text style={styles.ctaText}>{t("premium.upgradeToPremium")}</Text>
-            {premiumPriceString && (
-              <View style={styles.ctaBadge}>
-                <Text style={styles.ctaBadgeText}>{premiumPriceString}/ay</Text>
-              </View>
-            )}
+            <Text style={styles.ctaText}>{t("premiumModal.cta")}</Text>
+            <Ionicons name="arrow-forward" size={16} color="#fff" />
           </LinearGradient>
         </TouchableOpacity>
 
-        <TouchableOpacity onPress={onClose} activeOpacity={0.6} style={styles.cancelBtn}>
-          <Text style={[styles.cancelText, { color: colors.textTertiary }]}>{t("common.cancel")}</Text>
+        <TouchableOpacity onPress={onClose} activeOpacity={0.6} style={styles.laterBtn}>
+          <Text style={[styles.laterText, { color: colors.textTertiary }]}>
+            {t("premiumModal.later")}
+          </Text>
         </TouchableOpacity>
-      </View>
+      </Animated.View>
     </Modal>
   );
 };
 
 const styles = StyleSheet.create({
   overlay: {
-    flex: 1,
-    backgroundColor: "rgba(0,0,0,0.45)",
+    ...StyleSheet.absoluteFillObject,
+    backgroundColor: "rgba(0,0,0,0.5)",
   },
   sheet: {
-    borderTopLeftRadius: 24,
-    borderTopRightRadius: 24,
-    paddingHorizontal: SPACING.lg,
-    paddingTop: 12,
-    paddingBottom: 40,
+    position: "absolute",
+    left: 0,
+    right: 0,
+    bottom: 0,
+    borderTopLeftRadius: 28,
+    borderTopRightRadius: 28,
+    paddingHorizontal: SPACING.lg + 2,
+    paddingTop: 10,
+    paddingBottom: 36,
+    gap: SPACING.md,
   },
   handle: {
-    width: 36,
+    width: 40,
     height: 4,
     borderRadius: 2,
     alignSelf: "center",
-    marginBottom: SPACING.lg,
+    marginBottom: 8,
   },
   closeBtn: {
     position: "absolute",
-    top: 16,
+    top: 18,
     right: SPACING.lg,
+    width: 30, height: 30,
+    borderRadius: 15,
+    justifyContent: "center",
+    alignItems: "center",
   },
-  closeX: {
-    fontSize: 16,
-  },
-  titleRow: {
-    marginBottom: SPACING.lg,
-    gap: 6,
-  },
-  proBadge: {
-    alignSelf: "flex-start",
-    borderRadius: 8,
-    overflow: "hidden",
-    marginBottom: 8,
-  },
-  proBadgeGradient: {
+
+  pillRow: { flexDirection: "row" },
+  pill: {
+    flexDirection: "row",
+    alignItems: "center",
+    gap: 5,
     paddingHorizontal: 10,
-    paddingVertical: 4,
+    paddingVertical: 5,
+    borderRadius: 999,
+    alignSelf: "flex-start",
   },
-  proBadgeText: {
+  pillText: {
     color: "#fff",
-    fontSize: 12,
+    fontSize: 11,
     fontWeight: "800",
     letterSpacing: 0.5,
   },
+
   title: {
     fontSize: 22,
     fontWeight: "800",
-    letterSpacing: -0.3,
+    letterSpacing: -0.4,
+    lineHeight: 28,
   },
   subtitle: {
     fontSize: 14,
     lineHeight: 20,
   },
-  progressBox: {
-    borderRadius: BORDER_RADIUS.md,
-    padding: SPACING.md,
-    gap: SPACING.sm,
-    marginBottom: SPACING.md,
+
+  benefitBox: {
+    borderRadius: 16,
+    paddingVertical: 6,
   },
-  progressRow: {
-    flexDirection: "row",
-    justifyContent: "space-between",
-    alignItems: "center",
-  },
-  progressLabel: {
-    fontSize: 13,
-  },
-  progressCount: {
-    fontSize: 13,
-    fontWeight: "700",
-  },
-  progressTrack: {
-    height: 6,
-    borderRadius: 3,
-    overflow: "hidden",
-  },
-  progressFill: {
-    height: "100%",
-    borderRadius: 3,
-  },
-  featureBox: {
-    borderRadius: BORDER_RADIUS.lg,
-    borderWidth: StyleSheet.hairlineWidth,
-    marginBottom: SPACING.lg,
-    overflow: "hidden",
-  },
-  featureRow: {
+  benefitRow: {
     flexDirection: "row",
     alignItems: "center",
     gap: 12,
-    paddingVertical: 13,
-    paddingHorizontal: SPACING.md,
+    paddingVertical: 10,
+    paddingHorizontal: 14,
   },
-  featureEmoji: {
-    fontSize: 19,
-    width: 26,
-    textAlign: "center",
+  benefitIconBox: {
+    width: 30, height: 30,
+    borderRadius: 10,
+    justifyContent: "center",
+    alignItems: "center",
   },
-  featureText: {
+  benefitText: {
     fontSize: 14,
-    fontWeight: "500",
+    fontWeight: "600",
     flex: 1,
   },
+
+  trialHint: {
+    flexDirection: "row",
+    alignItems: "center",
+    gap: 6,
+    alignSelf: "center",
+  },
+  trialHintText: {
+    fontSize: 12.5,
+    fontWeight: "600",
+  },
+
   ctaWrap: {
-    borderRadius: BORDER_RADIUS.lg,
+    borderRadius: 16,
     overflow: "hidden",
-    marginBottom: SPACING.sm,
   },
   ctaBtn: {
     flexDirection: "row",
     alignItems: "center",
     justifyContent: "center",
+    gap: 8,
     paddingVertical: 16,
-    gap: SPACING.sm,
   },
   ctaText: {
     color: "#fff",
     fontSize: 16,
-    fontWeight: "700",
+    fontWeight: "800",
+    letterSpacing: -0.2,
   },
-  ctaBadge: {
-    backgroundColor: "rgba(255,255,255,0.2)",
-    borderRadius: 20,
-    paddingHorizontal: 8,
-    paddingVertical: 3,
-  },
-  ctaBadgeText: {
-    color: "#fff",
-    fontSize: 12,
-    fontWeight: "600",
-  },
-  cancelBtn: {
+
+  laterBtn: {
     alignItems: "center",
-    paddingVertical: SPACING.md,
+    paddingVertical: 4,
+    marginTop: -4,
   },
-  cancelText: {
-    fontSize: 14,
+  laterText: {
+    fontSize: 13,
     fontWeight: "500",
   },
 });

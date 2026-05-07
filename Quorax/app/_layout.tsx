@@ -9,19 +9,27 @@ import { I18nextProvider } from 'react-i18next';
 import { Animated, Image, SafeAreaView, StyleSheet, Text, TouchableOpacity, View } from 'react-native';
 import 'react-native-reanimated';
 import 'react-native-url-polyfill/auto';
+import * as Sentry from '@sentry/react-native';
+
+Sentry.init({
+  dsn: process.env.EXPO_PUBLIC_SENTRY_DSN,
+  enabled: !__DEV__,
+  tracesSampleRate: 0.2,
+});
 
 import { RatingPromptModal } from '@/components/common/RatingPromptModal';
+import { WelcomeModal } from '@/components/common/WelcomeModal';
 import { Toast } from '@/components/common/Toast';
 import { ActivityProvider } from '@/contexts/ActivityContext';
-import { AdProvider, useAd } from '@/contexts/AdContext';
+import { AdProvider } from '@/contexts/AdContext';
 import { AuthProvider, useAuth } from '@/contexts/AuthContext';
+import { ExamProgressProvider } from '@/contexts/ExamProgressContext';
 import { SubscriptionProvider, useSubscription } from '@/contexts/SubscriptionContext';
 import { ThemeProvider, useTheme } from '@/contexts/ThemeContext';
-import { TokenProvider } from '@/contexts/TokenContext';
 import i18n from '@/i18n/config';
-import { useAppAd } from '@/hooks/useAppAd';
 import { usePushToken } from '@/hooks/usePushToken';
 import { useRatingPrompt } from '@/hooks/useRatingPrompt';
+import { useWelcomeModal } from '@/hooks/useWelcomeModal';
 
 export const unstable_settings = {
   anchor: '(main)',
@@ -43,6 +51,7 @@ class ErrorBoundary extends Component<
 
   componentDidCatch(error: Error, info: React.ErrorInfo) {
     console.error('[ErrorBoundary] Uncaught error:', error, info.componentStack);
+    Sentry.captureException(error, { extra: { componentStack: info.componentStack } });
   }
 
   render() {
@@ -68,19 +77,8 @@ class ErrorBoundary extends Component<
   }
 }
 
-// UYGULAMA BAŞLATICI - Reklamı başlangıçta yükle (AdContext zaten retry yapıyor)
-function AppStartupAdLoader() {
-  const { loadAd } = useAppAd();
-  const loadedRef = useRef(false);
-
-  useEffect(() => {
-    if (loadedRef.current) return;
-    loadedRef.current = true;
-    loadAd().catch((e) => console.error('[AdLoader] Initial load failed:', e));
-  }, [loadAd]);
-
-  return null;
-}
+// AdContext zaten ilk yüklemeyi yapıyor, ayrıca loader gerekmez
+function AppStartupAdLoader() { return null; }
 
 // İnternet bağlantısı kesilince üstte gösterilen banner
 function OfflineBanner() {
@@ -106,63 +104,6 @@ function OfflineBanner() {
   );
 }
 
-// Aralık reklamı için periyodik kontrol süresi (cooldown AdContext'te 3 dk)
-const INTERVAL_AD_CHECK_MS = 60 * 1000; // Her 1 dakikada cooldown kontrolü
-
-function AdIntervalTrigger() {
-  const segments = useSegments();
-  const { tryShowIntervalAd } = useAd();
-  const mountedRef = useRef(false);
-  const [onboardingCompleted, setOnboardingCompleted] = useState(false);
-
-  // Onboarding durumunu kontrol et
-  useEffect(() => {
-    const checkOnboarding = async () => {
-      try {
-        const completed = await AsyncStorage.getItem('@onboarding_completed');
-        setOnboardingCompleted(!!completed);
-      } catch (error) {
-        console.error('Onboarding check error:', error);
-      }
-    };
-    checkOnboarding();
-  }, []);
-
-  // İlk tetikleme: main'e girince bir kez (ilk 5 sn, sonraki geçişlerde 1.5 sn)
-  useEffect(() => {
-    const inMain = segments.includes('(main)');
-    const notOnboarding = !segments.includes('(onboarding)');
-
-    if (!onboardingCompleted || !inMain || !notOnboarding) return;
-
-    const isFirstEntry = !mountedRef.current;
-    if (isFirstEntry) mountedRef.current = true;
-
-    const delayMs = isFirstEntry ? 5000 : 1500;
-    const t = setTimeout(() => {
-      tryShowIntervalAd();
-    }, delayMs);
-    return () => clearTimeout(t);
-  }, [segments, tryShowIntervalAd, onboardingCompleted]);
-
-  // Periyodik tetikleme: reklam kapatıldıktan sonra cooldown bitince otomatik reklam
-  // Main ekrandayken her INTERVAL_AD_CHECK_MS'de tryShowIntervalAd çağrılır;
-  // AdContext içinde 3 dk cooldown olduğu için sadece süre dolunca reklam gösterilir
-  useEffect(() => {
-    const inMain = segments.includes('(main)');
-    const notOnboarding = !segments.includes('(onboarding)');
-
-    if (!onboardingCompleted || !inMain || !notOnboarding) return;
-
-    const intervalId = setInterval(() => {
-      tryShowIntervalAd();
-    }, INTERVAL_AD_CHECK_MS);
-
-    return () => clearInterval(intervalId);
-  }, [segments, tryShowIntervalAd, onboardingCompleted]);
-
-  return null;
-}
 
 // Logolu Splash Ekranı — tüm veriler hazır olana kadar gösterilir, sonra fade out yapar
 function SplashScreen({ onReady, allReady }: { onReady: () => void; allReady: boolean }) {
@@ -308,6 +249,7 @@ function RootLayoutContent() {
   const [isGuestMode, setIsGuestMode] = useState(false);
   const [guestChecked, setGuestChecked] = useState(false);
   const { shouldShow: showRatingPrompt, markPrompted } = useRatingPrompt();
+  const { shouldShow: showWelcome, dismiss: dismissWelcome } = useWelcomeModal();
   usePushToken();
 
   // Tüm veriler hazır mı?
@@ -397,14 +339,14 @@ function RootLayoutContent() {
     <NavigationThemeProvider value={isDark ? DarkTheme : DefaultTheme}>
       <OfflineBanner />
       <AppStartupAdLoader />
-      <AdIntervalTrigger />
       <Stack screenOptions={{ headerShown: false }}>
         <Stack.Screen name="(onboarding)" />
         <Stack.Screen name="(main)" />
       </Stack>
       <StatusBar style={isDark ? 'light' : 'dark'} />
       <Toast />
-      <RatingPromptModal visible={showRatingPrompt} onDismiss={markPrompted} />
+      <RatingPromptModal visible={showRatingPrompt} onDismiss={(choice) => markPrompted(choice)} />
+      <WelcomeModal visible={showWelcome && !showRatingPrompt} onDismiss={dismissWelcome} />
       {/* Splash: veriler hazır olunca fade out yapar ve kaldırılır */}
       {showSplash && (
         <SplashScreen allReady={allReady} onReady={() => setSplashDone(true)} />
@@ -486,20 +428,20 @@ const styles = StyleSheet.create({
   },
 });
 
-export default function RootLayout() {
+function RootLayout() {
   return (
     <ErrorBoundary>
       <I18nextProvider i18n={i18n}>
         <ThemeProvider>
           <AuthProvider>
             <SubscriptionProvider>
-              <TokenProvider>
                 <ActivityProvider>
                   <AdProvider>
-                    <RootLayoutContent />
+                    <ExamProgressProvider>
+                      <RootLayoutContent />
+                    </ExamProgressProvider>
                   </AdProvider>
                 </ActivityProvider>
-              </TokenProvider>
             </SubscriptionProvider>
           </AuthProvider>
         </ThemeProvider>
@@ -507,3 +449,5 @@ export default function RootLayout() {
     </ErrorBoundary>
   );
 }
+
+export default Sentry.wrap(RootLayout);

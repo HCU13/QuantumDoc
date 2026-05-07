@@ -1,11 +1,12 @@
 import { Ionicons } from "@expo/vector-icons";
-import * as StoreReview from "expo-store-review";
 import { LinearGradient } from "expo-linear-gradient";
 import React, { useState } from "react";
 import { useTranslation } from "react-i18next";
 import {
   ActivityIndicator,
+  Linking,
   Modal,
+  Platform,
   StyleSheet,
   Text,
   TextInput,
@@ -22,7 +23,7 @@ type Step = "ask" | "feedback" | "thanks";
 
 interface Props {
   visible: boolean;
-  onDismiss: () => void;
+  onDismiss: (choice: "yes" | "no" | "skip") => void;
 }
 
 export const RatingPromptModal: React.FC<Props> = ({ visible, onDismiss }) => {
@@ -35,12 +36,17 @@ export const RatingPromptModal: React.FC<Props> = ({ visible, onDismiss }) => {
   const [loading, setLoading] = useState(false);
 
   const handleYes = async () => {
-    const isAvailable = await StoreReview.isAvailableAsync();
-    if (isAvailable) {
-      await StoreReview.requestReview();
-    }
     setStep("thanks");
-    setTimeout(onDismiss, 1800);
+    setTimeout(() => onDismiss("yes"), 1800);
+    try {
+      if (Platform.OS === "ios") {
+        await Linking.openURL("https://apps.apple.com/app/quorax-ai-matematik/id6755162337?action=write-review");
+      } else {
+        const playStoreUrl = "market://details?id=com.quorax.app";
+        const canOpen = await Linking.canOpenURL(playStoreUrl);
+        await Linking.openURL(canOpen ? playStoreUrl : "https://play.google.com/store/apps/details?id=com.quorax.app");
+      }
+    } catch {}
   };
 
   const handleNo = () => {
@@ -58,12 +64,11 @@ export const RatingPromptModal: React.FC<Props> = ({ visible, onDismiss }) => {
         category: "feedback",
         priority: "medium",
         status: "open",
-        metadata: { source: "rating_prompt" },
       });
     } catch {}
     setLoading(false);
     setStep("thanks");
-    setTimeout(onDismiss, 1800);
+    setTimeout(() => onDismiss("no"), 1800);
   };
 
   const reset = () => {
@@ -74,7 +79,7 @@ export const RatingPromptModal: React.FC<Props> = ({ visible, onDismiss }) => {
 
   const handleClose = () => {
     reset();
-    onDismiss();
+    onDismiss("skip"); // skip = bu oturumda kapat, sonraki açılışta tekrar sorar
   };
 
   return (
@@ -107,7 +112,7 @@ export const RatingPromptModal: React.FC<Props> = ({ visible, onDismiss }) => {
             <>
               {/* Gradient üst şerit */}
               <LinearGradient
-                colors={["#8A4FFF", "#6932E0"]}
+                colors={[colors.primary, colors.primaryDark ?? "#6932E0"]}
                 start={{ x: 0, y: 0 }}
                 end={{ x: 1, y: 0 }}
                 style={styles.topBar}
@@ -142,7 +147,7 @@ export const RatingPromptModal: React.FC<Props> = ({ visible, onDismiss }) => {
                     activeOpacity={0.8}
                   >
                     <LinearGradient
-                      colors={["#8A4FFF", "#6932E0"]}
+                      colors={[colors.primary, colors.primaryDark ?? "#6932E0"]}
                       start={{ x: 0, y: 0 }}
                       end={{ x: 1, y: 0 }}
                       style={styles.btnGradient}
@@ -186,7 +191,7 @@ export const RatingPromptModal: React.FC<Props> = ({ visible, onDismiss }) => {
 
               {/* Promise banner */}
               <View style={[styles.promiseBanner, { backgroundColor: colors.primarySoft ?? colors.backgroundSecondary }]}>
-                <Ionicons name="shield-checkmark-outline" size={16} color={colors.primary ?? "#8A4FFF"} />
+                <Ionicons name="shield-checkmark-outline" size={16} color={colors.primary} />
                 <Text style={[styles.promiseText, { color: colors.textSecondary }]}>
                   {t("rating.feedbackPromise")}
                 </Text>
@@ -220,7 +225,7 @@ export const RatingPromptModal: React.FC<Props> = ({ visible, onDismiss }) => {
                 activeOpacity={0.8}
               >
                 <LinearGradient
-                  colors={["#8A4FFF", "#6932E0"]}
+                  colors={[colors.primary, colors.primaryDark ?? "#6932E0"]}
                   start={{ x: 0, y: 0 }}
                   end={{ x: 1, y: 0 }}
                   style={styles.sendBtnGradient}

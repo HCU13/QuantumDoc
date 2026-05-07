@@ -7,6 +7,7 @@ import {
   ActivityIndicator,
   Alert,
   Animated,
+  I18nManager,
   Image,
   Platform,
   ScrollView,
@@ -19,7 +20,6 @@ import {
 
 import { Button } from "@/components/common/Button";
 import { Chip } from "@/components/common/Chip";
-import { InfoCard } from "@/components/common/InfoCard";
 import { MinimalUsageBadge } from "@/components/common/MinimalUsageBadge";
 import { ModuleHeader } from "@/components/common/ModuleHeader";
 import { AILoadingModal } from "@/components/common/AILoadingModal";
@@ -32,6 +32,8 @@ import { useSubscription } from "@/contexts/SubscriptionContext";
 import { useTheme } from "@/contexts/ThemeContext";
 import FunctionGraph, { containsFunctionExpression } from "@/components/math/FunctionGraph";
 import MathText from "@/components/math/MathText";
+import MathSymbolBar from "@/components/math/MathSymbolBar";
+import { formatTopicDisplay } from "@/utils/topicLabel";
 import { useImagePicker } from "@/hooks/useImagePicker";
 import { manipulateAsync, SaveFormat } from "expo-image-manipulator";
 import { supabase, SUPABASE_URL } from "@/services/supabase";
@@ -67,6 +69,8 @@ export default function MathScreen() {
   const [inputMethod, setInputMethod] = useState<InputMethod>("text");
   const [imageSource, setImageSource] = useState<"gallery" | "camera" | null>(null);
   const [problem, setProblem] = useState("");
+  const [problemSelection, setProblemSelection] = useState<{ start: number; end: number }>({ start: 0, end: 0 });
+  const problemInputRef = useRef<TextInput>(null);
   const [selectedImage, setSelectedImage] = useState<string | null>(null);
 
   // — Çözüm girişi (Doğrula modu) —
@@ -100,14 +104,10 @@ export default function MathScreen() {
   const [comprehension, setComprehension] = useState<'understood' | 'not_understood' | null>(null);
   const [topicExplanation, setTopicExplanation] = useState<string | null>(null);
   const [loadingExplanation, setLoadingExplanation] = useState(false);
+  // Per-step "why?" explanations — keyed by step index so taps are independent
+  const [stepExplanations, setStepExplanations] = useState<Record<number, { text?: string; loading?: boolean }>>({});
+  const [expandedSteps, setExpandedSteps] = useState<Set<number>>(new Set());
 
-  useEffect(() => {
-    if (isLoggedIn && !isPremium && user?.id) {
-      checkUsageLimit("math").then((data) => { if (data) setUsageInfo(data); });
-    } else {
-      setUsageInfo(null);
-    }
-  }, [isLoggedIn, isPremium, user?.id]);
 
   // — Konu analizinden gelen prefill + otomatik çöz —
   // Race condition fix: problem state'ini beklemek yerine handleSolveWithText kullan
@@ -187,8 +187,8 @@ export default function MathScreen() {
 
     for (let i = startIdx; i < lines.length; i++) {
       const line = lines[i];
-      // KONU satırını her koşulda atla
-      if (/^KONU:\s*/i.test(line)) continue;
+      // TOPIC:/KONU: markers are stripped at the edge; skip if any slips through
+      if (/^(TOPIC|KONU):\s*/i.test(line)) continue;
       const sm = line.match(/^(\d+)[.)]\s+(.+)$/);
       if (sm && !inExp) {
         const st = sm[2].trim();
@@ -202,29 +202,33 @@ export default function MathScreen() {
 
     if (explanation) {
       explanation = explanation
-        .replace(/^(Açıklama|Explanation|Genel|General):\s*/i, "")
-        .replace(/bu şekilde[^.]*adım adım çözerek[^.]*sonuca ulaştık[^.]*/gi, "")
-        .replace(/eğer herhangi bir adımda sorun varsa[^.]*lütfen sormaktan çekinme[^.]*/gi, "")
+        .replace(/^(Açıklama|Explanation|Explicación|شرح|व्याख्या|Genel|General):\s*/i, "")
         .trim();
-      if (explanation.length < 20 || /^(bu şekilde|dolayısıyla|therefore)/i.test(explanation)) explanation = "";
+      if (explanation.length < 20) explanation = "";
     }
 
     return { answer, steps, explanation };
   }, []);
 
+  // Verify result uses language-neutral markers: RESULT:, STEPS:, ERROR:, HINT:
+  // Correctness values (Correct/Wrong/Partial) are fixed English — AI is instructed to keep them as-is.
+  // Legacy TR markers (SONUÇ:/ADIM ADIM:/HATA:/İPUCU:) kept for backward compat with cached/in-flight responses.
   const parseVerifyResult = useCallback((text: string): VerifyResult => {
-    const result = text.match(/SONUÇ:\s*(.+)/)?.[1]?.trim() || t("math.verify.result.partial");
-    const stepsSection = text.match(/ADIM ADIM:([\s\S]*?)(?:HATA:|İPUCU:|$)/)?.[1] || "";
+    const resultRaw =
+      text.match(/(?:RESULT|SONUÇ):\s*(.+)/i)?.[1]?.trim() ||
+      t("math.verify.result.partial");
+    const stepsSection =
+      text.match(/(?:STEPS|ADIM ADIM):([\s\S]*?)(?:(?:ERROR|HATA|HINT|İPUCU):|$)/i)?.[1] || "";
     const steps: Array<{ text: string; isCorrect: boolean }> = [];
     stepsSection.split("\n").forEach((line) => {
-      const m = line.match(/^\d+\.\s*(.+?):\s*(Doğru|Yanlış|Correct|Wrong)/i);
-      if (m) steps.push({ text: m[1].trim(), isCorrect: /doğru|correct/i.test(m[2]) });
+      const m = line.match(/^\d+\.\s*(.+?):\s*(Correct|Wrong|Partial|Doğru|Yanlış)/i);
+      if (m) steps.push({ text: m[1].trim(), isCorrect: /correct|doğru/i.test(m[2]) });
     });
     return {
-      result,
+      result: resultRaw,
       steps,
-      error: text.match(/HATA:\s*(.+)/)?.[1]?.trim() || "",
-      tip: text.match(/İPUCU:\s*(.+)/)?.[1]?.trim() || "",
+      error: text.match(/(?:ERROR|HATA):\s*(.+)/i)?.[1]?.trim() || "",
+      tip: text.match(/(?:HINT|İPUCU):\s*(.+)/i)?.[1]?.trim() || "",
     };
   }, [t]);
 
@@ -252,7 +256,58 @@ export default function MathScreen() {
     setSolution(null); setLastError(null);
     setTopic(null); setRelatedQuestions([]); setVerifyResult(null);
     setTopicExplanation(null); setSolutionId(null); setComprehension(null);
+    setStepExplanations({}); setExpandedSteps(new Set());
   };
+
+  // Toggle a step's inline "why?" expansion. Fetches once, caches thereafter.
+  const handleStepToggle = useCallback(async (index: number, stepText: string) => {
+    setExpandedSteps(prev => {
+      const next = new Set(prev);
+      if (next.has(index)) next.delete(index); else next.add(index);
+      return next;
+    });
+
+    // If already fetched or currently fetching, do nothing.
+    const existing = stepExplanations[index];
+    if (existing?.text || existing?.loading) return;
+    if (!user?.id || !solution) return;
+
+    setStepExplanations(prev => ({ ...prev, [index]: { loading: true } }));
+    try {
+      const { data: { session } } = await supabase.auth.getSession();
+      if (!session) throw new Error("no session");
+
+      // Build a focused context prompt so the Haiku explainer stays on the specific step.
+      const ctx = [
+        problem.trim() ? `Problem: ${problem.trim()}` : (topic ? `Topic: ${topic}` : ""),
+        `Final answer: ${solution.answer}`,
+        `Step ${index + 1}: ${stepText}`,
+        `Explain in 1-2 concise sentences why this specific step is taken (the reasoning/rule behind it), not just what it does.`,
+      ].filter(Boolean).join("\n");
+
+      const res = await fetch(`${SUPABASE_URL}/functions/v1/solve-math-problem`, {
+        method: "POST",
+        headers: { "Content-Type": "application/json", "Authorization": `Bearer ${session.access_token}` },
+        // solutionId + stepIndex enable persistent server-side caching of this step's explanation,
+        // so re-taps on the same step across sessions don't rebill Haiku tokens.
+        body: JSON.stringify({
+          problemText: ctx,
+          userId: user.id,
+          userLanguage: i18n.language || "en",
+          mode: "explain",
+          solutionId,
+          stepIndex: index,
+        }),
+      });
+      const data = await res.json();
+      setStepExplanations(prev => ({
+        ...prev,
+        [index]: { text: data.explanation || t("math.errors.solveFailed"), loading: false },
+      }));
+    } catch {
+      setStepExplanations(prev => ({ ...prev, [index]: { text: t("math.errors.solveFailed"), loading: false } }));
+    }
+  }, [user?.id, solution, problem, topic, i18n.language, t, stepExplanations]);
 
   // — Çöz (overrideProblemText: race condition fix için) —
   const handleSolve = async (overrideProblemText?: string) => {
@@ -270,12 +325,12 @@ export default function MathScreen() {
       setSolving(true); clearAll();
       if (!isPremium) {
         const usage = await checkUsageLimit("math");
-        if (usage && !usage.allowed) { setUsageInfo(usage); openLimitModal(); setSolving(false); return; }
+        if (usage?.allowed === false) { setUsageInfo(usage); openLimitModal(); setSolving(false); return; }
       }
       const { data: { session } } = await supabase.auth.getSession();
       if (!session) throw new Error("Session not found");
 
-      const body: any = { userId: user.id, userLanguage: i18n.language || "tr", mode: "solve" };
+      const body: any = { userId: user.id, userLanguage: i18n.language || "en", mode: "solve" };
       if (inputMethod === "image" && selectedImage) body.problemImageUrl = await convertImageToBase64(selectedImage);
       else body.problemText = (overrideProblemText ?? problem).trim();
 
@@ -321,12 +376,12 @@ export default function MathScreen() {
       setSolving(true); clearAll();
       if (!isPremium) {
         const usage = await checkUsageLimit("math");
-        if (usage && !usage.allowed) { setUsageInfo(usage); openLimitModal(); setSolving(false); return; }
+        if (usage?.allowed === false) { setUsageInfo(usage); openLimitModal(); setSolving(false); return; }
       }
       const { data: { session } } = await supabase.auth.getSession();
       if (!session) throw new Error("Session not found");
 
-      const body: any = { userId: user.id, userLanguage: i18n.language || "tr", mode: "verify" };
+      const body: any = { userId: user.id, userLanguage: i18n.language || "en", mode: "verify" };
       if (inputMethod === "image" && selectedImage) body.problemImageUrl = await convertImageToBase64(selectedImage);
       else body.problemText = problem.trim();
       if (solutionMethod === "image" && solutionImage) body.userSolutionImageUrl = await convertImageToBase64(solutionImage);
@@ -352,26 +407,47 @@ export default function MathScreen() {
   };
 
   // — Benzer Sorular —
-  const handleFetchRelated = async () => {
+  // Difficulty is nudged into the AI prompt — 'same' matches the current problem, 'easier' simplifies,
+  // 'harder' raises complexity (larger numbers, extra constraints, deeper reasoning).
+  type RelatedDifficulty = "easier" | "same" | "harder";
+  const [relatedDifficulty, setRelatedDifficulty] = useState<RelatedDifficulty>("same");
+
+  const handleFetchRelated = async (difficulty: RelatedDifficulty = relatedDifficulty) => {
     const { data: { session } } = await supabase.auth.getSession();
     if (!session || !user?.id) return;
 
-    // problem metni yoksa (fotoğrafla girildi) solution'dan anlamlı bir açıklama oluştur
+    // Build a language-neutral context string; AI respects userLanguage for output.
     let desc = problem.trim();
     if (!desc && solution) {
       const stepsSnippet = solution.steps.slice(0, 2).join(" | ");
       desc = topic
-        ? `${topic} konusunda: cevabı ${solution.answer} olan problem. ${stepsSnippet}`
-        : `Cevabı ${solution.answer} olan matematik problemi. ${stepsSnippet}`;
+        ? `Topic: ${topic}. Answer: ${solution.answer}. Context: ${stepsSnippet}`
+        : `Math problem with answer: ${solution.answer}. Context: ${stepsSnippet}`;
     }
-    if (!desc) desc = topic ? `${topic} konusunda örnek problem` : "Temel cebir problemi";
+    if (!desc) desc = topic ? `Example problem on topic: ${topic}` : "Basic algebra problem";
 
+    // Append the difficulty nudge as a suffix so the MATH_RELATED prompt picks it up.
+    const difficultyHint = difficulty === "easier"
+      ? "Generate questions that are EASIER than the source problem (simpler numbers, one fewer step)."
+      : difficulty === "harder"
+      ? "Generate questions that are HARDER than the source problem (larger numbers, extra step or constraint)."
+      : "Generate questions at the SAME difficulty as the source problem.";
+
+    setRelatedDifficulty(difficulty);
     setLoadingRelated(true);
     try {
       const res = await fetch(`${SUPABASE_URL}/functions/v1/solve-math-problem`, {
         method: "POST",
         headers: { "Content-Type": "application/json", "Authorization": `Bearer ${session.access_token}` },
-        body: JSON.stringify({ problemText: desc, userId: user.id, userLanguage: i18n.language || "tr", mode: "related" }),
+        body: JSON.stringify({
+          // solutionId lets the server cache default-difficulty results on the solution row.
+          // Easier/harder variants bypass cache (server detects this from the difficulty hint).
+          solutionId,
+          problemText: `${desc}\n\n${difficultyHint}`,
+          userId: user.id,
+          userLanguage: i18n.language || "en",
+          mode: "related",
+        }),
       });
       const data = await res.json();
       if (data.relatedQuestions?.length) {
@@ -403,13 +479,13 @@ export default function MathScreen() {
     if (!solution || !user?.id || loadingExplanation) return;
     const { data: { session } } = await supabase.auth.getSession();
     if (!session) return;
-    const problemDesc = problem.trim() || `${topic || "Bu"} konusunda: cevabı ${solution.answer} olan problem`;
+    const problemDesc = problem.trim() || `Topic: ${topic || "general"}. Answer: ${solution.answer}`;
     setLoadingExplanation(true);
     try {
       const res = await fetch(`${SUPABASE_URL}/functions/v1/solve-math-problem`, {
         method: "POST",
         headers: { "Content-Type": "application/json", "Authorization": `Bearer ${session.access_token}` },
-        body: JSON.stringify({ problemText: problemDesc, userId: user.id, userLanguage: i18n.language || "tr", mode: "explain" }),
+        body: JSON.stringify({ problemText: problemDesc, userId: user.id, userLanguage: i18n.language || "en", mode: "explain" }),
       });
       const data = await res.json();
       if (data.explanation) setTopicExplanation(data.explanation);
@@ -427,12 +503,22 @@ export default function MathScreen() {
       (solutionMethod === "text" ? !!userSolutionText.trim() : !!solutionImage)
     : (inputMethod === "text" ? !!problem.trim() : !!selectedImage);
 
+  // Primary match: fixed English values from AI (Correct/Wrong/Partial).
+  // Secondary: legacy TR + a few other languages in case the model translates anyway.
   const verifyColor = verifyResult
-    ? verifyResult.result.match(/yanlış|wrong|incorrect|hatalı/i) ? "#ef4444"
-    : verifyResult.result.match(/kısmen|partial/i) ? "#f59e0b"
-    : verifyResult.result.match(/doğru|correct/i) ? "#22c55e"
+    ? /wrong|incorrect|yanlış|hatalı|incorrecto|خطأ|गलत/i.test(verifyResult.result) ? "#ef4444"
+    : /partial|kısmen|parcial|جزئي|आंशिक/i.test(verifyResult.result) ? "#f59e0b"
+    : /correct|doğru|correcto|صحيح|सही/i.test(verifyResult.result) ? "#22c55e"
     : "#f59e0b"
     : "#22c55e";
+
+  // Localize the verify result label for display. AI returns fixed English tokens; map them to i18n.
+  const localizedVerifyResult = verifyResult ? (
+    /wrong|incorrect|yanlış|hatalı|incorrecto|خطأ|गलत/i.test(verifyResult.result) ? t("math.verify.result.wrong")
+    : /partial|kısmen|parcial|جزئي|आंशिक/i.test(verifyResult.result) ? t("math.verify.result.partial")
+    : /correct|doğru|correcto|صحيح|सही/i.test(verifyResult.result) ? t("math.verify.result.correct")
+    : verifyResult.result
+  ) : "";
 
   // ─── Yardımcı bileşenler ─────────────────────────────────────────────────
 
@@ -443,18 +529,21 @@ export default function MathScreen() {
     </View>
   );
 
-  // Animasyonlu adım satırı — her adım sırayla fade+slide ile gelir
+  // Animated step row — fades and slides in; tap to reveal an inline "why?" explanation.
   const AnimatedStep = React.memo(({
-    step, index, total, modulePrimary, moduleLight, textColor,
+    step, index, modulePrimary, moduleLight, textColor,
+    expanded, explanation, explanationLoading, onToggle,
   }: {
-    step: string; index: number; total: number;
+    step: string; index: number;
     modulePrimary: string; moduleLight: string; textColor: string;
+    expanded: boolean; explanation?: string; explanationLoading?: boolean;
+    onToggle: () => void;
   }) => {
     const fadeAnim  = useRef(new Animated.Value(0)).current;
     const slideAnim = useRef(new Animated.Value(18)).current;
 
     useEffect(() => {
-      const delay = index * 90; // her adım 90ms arayla gelir
+      const delay = index * 90;
       Animated.parallel([
         Animated.timing(fadeAnim,  { toValue: 1, duration: 320, delay, useNativeDriver: true }),
         Animated.spring(slideAnim, { toValue: 0, tension: 70, friction: 9, delay, useNativeDriver: true }),
@@ -463,18 +552,43 @@ export default function MathScreen() {
 
     return (
       <Animated.View
-        style={[
-          styles.stepRow,
-          { backgroundColor: colors.backgroundSecondary, opacity: fadeAnim, transform: [{ translateY: slideAnim }] },
-        ]}
+        style={{ opacity: fadeAnim, transform: [{ translateY: slideAnim }] }}
       >
-        <View style={[styles.stepNum, { backgroundColor: moduleLight }]}>
-          <Text style={[styles.stepNumText, { color: modulePrimary }]}>{index + 1}</Text>
-        </View>
-        <MathText
-          text={step}
-          style={[styles.stepText, { color: textColor }]}
-        />
+        <TouchableOpacity
+          onPress={onToggle}
+          activeOpacity={0.75}
+          style={[styles.stepRow, { backgroundColor: colors.backgroundSecondary }]}
+        >
+          <View style={[styles.stepNum, { backgroundColor: moduleLight }]}>
+            <Text style={[styles.stepNumText, { color: modulePrimary }]}>{index + 1}</Text>
+          </View>
+          <MathText
+            text={step}
+            style={[styles.stepText, { color: textColor }]}
+          />
+          <Ionicons
+            name={expanded ? "chevron-up-outline" : "help-circle-outline"}
+            size={16}
+            color={modulePrimary}
+            style={styles.stepWhyIcon}
+          />
+        </TouchableOpacity>
+        {expanded && (
+          <View style={[styles.stepWhyBox, { backgroundColor: moduleLight }]}>
+            {explanationLoading ? (
+              <View style={styles.stepWhyLoadingRow}>
+                <ActivityIndicator size="small" color={modulePrimary} />
+                <Text style={[styles.stepWhyLoadingText, { color: modulePrimary }]}>
+                  {t("math.explaining")}
+                </Text>
+              </View>
+            ) : (
+              <Text style={[styles.stepWhyText, { color: colors.textPrimary }]}>
+                {explanation}
+              </Text>
+            )}
+          </View>
+        )}
       </Animated.View>
     );
   });
@@ -533,20 +647,44 @@ export default function MathScreen() {
 
       <ScrollView ref={scrollViewRef} showsVerticalScrollIndicator={false} contentContainerStyle={styles.scroll}>
 
-        <InfoCard title={t("math.info.title")} content={t("math.info.content")} modulePrimary={colors.moduleMathPrimary} />
-
-        {/* ── Konu Analizi butonu ── */}
+        {/* ── History + Konu Analizi butonları ── */}
         {isLoggedIn && (
-          <TouchableOpacity
-            style={[styles.topicsNavBtn, { backgroundColor: colors.moduleMathLight, borderColor: colors.moduleMathPrimary + "30" }]}
-            onPress={() => isPremium ? router.push("/(main)/math-topics") : openProGate()}
-            activeOpacity={0.7}
-          >
-            <Ionicons name="analytics-outline" size={16} color={colors.moduleMathPrimary} />
-            <Text style={[styles.topicsNavText, { color: colors.moduleMathPrimary }]}>{t("math.topicAnalysis")}</Text>
-            {!isPremium && <View style={styles.proTagStandalone}><Text style={styles.proTagStandaloneText}>PRO</Text></View>}
-            <Ionicons name={isPremium ? "chevron-forward-outline" : "lock-closed-outline"} size={14} color={colors.moduleMathPrimary} />
-          </TouchableOpacity>
+          <View style={styles.navBtnRow}>
+            <TouchableOpacity
+              style={[styles.navBtnHalf, { backgroundColor: colors.moduleMathLight, borderColor: colors.moduleMathPrimary + "30" }]}
+              onPress={() => router.push("/(main)/math-history")}
+              activeOpacity={0.7}
+            >
+              <Ionicons name="time-outline" size={16} color={colors.moduleMathPrimary} />
+              <Text style={[styles.topicsNavText, { color: colors.moduleMathPrimary }]} numberOfLines={1}>
+                {t("mathHistory.title")}
+              </Text>
+              <Ionicons
+                name="chevron-forward-outline"
+                size={14}
+                color={colors.moduleMathPrimary}
+                style={I18nManager.isRTL ? { transform: [{ scaleX: -1 }] } : undefined}
+              />
+            </TouchableOpacity>
+
+            <TouchableOpacity
+              style={[styles.navBtnHalf, { backgroundColor: colors.moduleMathLight, borderColor: colors.moduleMathPrimary + "30" }]}
+              onPress={() => isPremium ? router.push("/(main)/math-topics") : openProGate()}
+              activeOpacity={0.7}
+            >
+              <Ionicons name="analytics-outline" size={16} color={colors.moduleMathPrimary} />
+              <Text style={[styles.topicsNavText, { color: colors.moduleMathPrimary }]} numberOfLines={1}>
+                {t("math.topicAnalysis")}
+              </Text>
+              {!isPremium && <View style={styles.proTagStandalone}><Text style={styles.proTagStandaloneText}>PRO</Text></View>}
+              <Ionicons
+                name={isPremium ? "chevron-forward-outline" : "lock-closed-outline"}
+                size={14}
+                color={colors.moduleMathPrimary}
+                style={isPremium && I18nManager.isRTL ? { transform: [{ scaleX: -1 }] } : undefined}
+              />
+            </TouchableOpacity>
+          </View>
         )}
 
         {/* ── Mod Seçici ── */}
@@ -608,9 +746,31 @@ export default function MathScreen() {
             <View style={[styles.handwritingHint, { backgroundColor: colors.moduleMathLight }]}>
               <Ionicons name="pencil-outline" size={12} color={colors.moduleMathPrimary} />
               <Text style={[styles.handwritingHintText, { color: colors.moduleMathPrimary }]}>
-                El yazısı ve baskı yazı desteklenir
+                {t("math.handwritingSupported")}
               </Text>
             </View>
+          )}
+
+          {/* Symbol bar — text mode only, so users can enter ^, √, π, fractions, etc. */}
+          {inputMethod === "text" && (
+            <MathSymbolBar
+              value={problem}
+              selection={problemSelection}
+              onChange={(next, caret) => {
+                setProblem(next);
+                setSolution(null); setTopic(null); setRelatedQuestions([]);
+                // Defer caret positioning until after the value update is applied.
+                setProblemSelection({ start: caret, end: caret });
+                requestAnimationFrame(() => {
+                  problemInputRef.current?.setNativeProps({ selection: { start: caret, end: caret } });
+                  problemInputRef.current?.focus();
+                });
+              }}
+              accentColor={colors.moduleMathPrimary}
+              backgroundColor={colors.backgroundSecondary}
+              keyColor={colors.card}
+              textColor={colors.textPrimary}
+            />
           )}
 
           {/* Giriş alanı */}
@@ -618,11 +778,13 @@ export default function MathScreen() {
             {inputMethod === "text" ? (
               <>
                 <TextInput
+                  ref={problemInputRef}
                   style={[styles.textInput, { color: colors.textPrimary }]}
                   placeholder={appMode === "verify" ? "2x + 4 = 10" : t("math.placeholder")}
                   placeholderTextColor={colors.textTertiary}
                   value={problem}
                   onChangeText={(v) => { setProblem(v); setSolution(null); setTopic(null); setRelatedQuestions([]); }}
+                  onSelectionChange={(e) => setProblemSelection(e.nativeEvent.selection)}
                   multiline
                   textAlignVertical="top"
                 />
@@ -710,7 +872,10 @@ export default function MathScreen() {
         <Animated.View style={{ transform: [{ scale: solveButtonScale }] }}>
           <Button
             title={appMode === "verify" ? t("math.verify.checkButton") : t("math.solve")}
-            onPress={() => showAdBeforeAction(appMode === "verify" ? handleVerify : handleSolve, "math")}
+            onPress={() => {
+              if (!isPremium && usageInfo?.allowed === false) { openLimitModal(); return; }
+              showAdBeforeAction(appMode === "verify" ? handleVerify : handleSolve, "math");
+            }}
             disabled={!canSolve || solving}
             loading={solving}
             icon={appMode === "verify" ? "checkmark-done" : "checkmark-circle"}
@@ -730,8 +895,10 @@ export default function MathScreen() {
               <Text style={[styles.errorTitle, { color: colors.textPrimary }]}>{t("common.error")}</Text>
             </View>
             <Text style={[styles.errorBody, { color: colors.textSecondary }]}>{lastError}</Text>
-            <Button title={t("math.retry")} onPress={() => showAdBeforeAction(appMode === "verify" ? handleVerify : handleSolve, "math")}
-              loading={solving} disabled={!canSolve || solving} modulePrimary={colors.moduleMathPrimary} />
+            <Button title={t("math.retry")} onPress={() => {
+              if (!isPremium && usageInfo?.allowed === false) { openLimitModal(); return; }
+              showAdBeforeAction(appMode === "verify" ? handleVerify : handleSolve, "math");
+            }} loading={solving} disabled={!canSolve || solving} modulePrimary={colors.moduleMathPrimary} />
           </View>
         )}
 
@@ -746,7 +913,7 @@ export default function MathScreen() {
                   size={24} color={verifyColor}
                 />
               </View>
-              <Text style={[styles.verifyResultLabel, { color: verifyColor }]}>{verifyResult.result}</Text>
+              <Text style={[styles.verifyResultLabel, { color: verifyColor }]}>{localizedVerifyResult}</Text>
               <TouchableOpacity onPress={() => setVerifyResult(null)}
                 style={[styles.closeBtn, { backgroundColor: colors.backgroundSecondary }]}>
                 <Ionicons name="close-outline" size={18} color={colors.textSecondary} />
@@ -802,7 +969,7 @@ export default function MathScreen() {
             {topic && (
               <View style={[styles.topicPill, { backgroundColor: colors.moduleMathLight }]}>
                 <Ionicons name="bookmark-outline" size={11} color={colors.moduleMathPrimary} />
-                <Text style={[styles.topicText, { color: colors.moduleMathPrimary }]}>{topic}</Text>
+                <Text style={[styles.topicText, { color: colors.moduleMathPrimary }]}>{formatTopicDisplay(topic, t)}</Text>
               </View>
             )}
 
@@ -822,7 +989,7 @@ export default function MathScreen() {
                 <View style={[styles.graphBox, { backgroundColor: colors.backgroundSecondary }]}>
                   <View style={styles.row}>
                     <Ionicons name="stats-chart-outline" size={13} color={colors.moduleMathPrimary} />
-                    <Text style={[styles.subSectionTitle, { color: colors.textPrimary }]}>Grafik</Text>
+                    <Text style={[styles.subSectionTitle, { color: colors.textPrimary }]}>{t("math.graph")}</Text>
                   </View>
                   <FunctionGraph
                     expression={expr}
@@ -840,17 +1007,23 @@ export default function MathScreen() {
               <View style={styles.gap8}>
                 <Text style={[styles.subSectionTitle, { color: colors.textPrimary }]}>{t("math.steps")}</Text>
 
-                {solution.steps.map((step, i) => (
-                  <AnimatedStep
-                    key={`${solutionKey}-${i}`}
-                    step={step}
-                    index={i}
-                    total={solution.steps.length}
-                    modulePrimary={colors.moduleMathPrimary}
-                    moduleLight={colors.moduleMathLight}
-                    textColor={colors.textSecondary}
-                  />
-                ))}
+                {solution.steps.map((step, i) => {
+                  const stepState = stepExplanations[i] || {};
+                  return (
+                    <AnimatedStep
+                      key={`${solutionKey}-${i}`}
+                      step={step}
+                      index={i}
+                      modulePrimary={colors.moduleMathPrimary}
+                      moduleLight={colors.moduleMathLight}
+                      textColor={colors.textSecondary}
+                      expanded={expandedSteps.has(i)}
+                      explanation={stepState.text}
+                      explanationLoading={stepState.loading}
+                      onToggle={() => handleStepToggle(i, step)}
+                    />
+                  );
+                })}
 
               </View>
             )}
@@ -958,7 +1131,7 @@ export default function MathScreen() {
                 <View style={styles.explainHeader}>
                   <Ionicons name="bulb" size={14} color={colors.moduleMathPrimary} />
                   <Text style={[styles.explainTitle, { color: colors.moduleMathPrimary }]}>
-                    {topic ? `${topic} — Açıklama` : "Konu Açıklaması"}
+                    {topic ? `${formatTopicDisplay(topic, t)} — ${t("math.topicExplanation")}` : t("math.topicExplanation")}
                   </Text>
                 </View>
                 <Text style={[styles.explainText, { color: colors.textPrimary }]}>{topicExplanation}</Text>
@@ -968,13 +1141,52 @@ export default function MathScreen() {
         )}
 
 
+        {/* ── Verify mode teaser — shown after solve to surface the unique "check my work" feature ── */}
+        {solution && appMode === "solve" && (
+          <TouchableOpacity
+            style={[styles.verifyTeaser, { borderColor: colors.moduleMathPrimary + "40", backgroundColor: colors.moduleMathLight }]}
+            onPress={() => {
+              if (!isPremium) { openProGate(); return; }
+              switchMode("verify");
+              // Keep the problem in place so the user only needs to add their own solution.
+              setTimeout(() => scrollViewRef.current?.scrollTo({ y: 0, animated: true }), 50);
+            }}
+            activeOpacity={0.8}
+          >
+            <View style={[styles.verifyTeaserIcon, { backgroundColor: colors.moduleMathPrimary + "22" }]}>
+              <Ionicons name="checkmark-done-outline" size={18} color={colors.moduleMathPrimary} />
+            </View>
+            <View style={{ flex: 1 }}>
+              <View style={styles.verifyTeaserTitleRow}>
+                <Text style={[styles.verifyTeaserTitle, { color: colors.moduleMathPrimary }]}>
+                  {t("math.verifyTeaser.title")}
+                </Text>
+                {!isPremium && (
+                  <View style={styles.proTagStandalone}>
+                    <Text style={styles.proTagStandaloneText}>PRO</Text>
+                  </View>
+                )}
+              </View>
+              <Text style={[styles.verifyTeaserSubtitle, { color: colors.textSecondary }]}>
+                {t("math.verifyTeaser.subtitle")}
+              </Text>
+            </View>
+            <Ionicons
+              name={isPremium ? "arrow-forward-outline" : "lock-closed-outline"}
+              size={16}
+              color={colors.moduleMathPrimary}
+              style={isPremium && I18nManager.isRTL ? { transform: [{ scaleX: -1 }] } : undefined}
+            />
+          </TouchableOpacity>
+        )}
+
         {/* ── Benzer Sorular ── */}
         {solution && (
           <View style={styles.relatedWrap}>
             {relatedQuestions.length === 0 ? (
               <TouchableOpacity
                 style={[styles.relatedBtn, { backgroundColor: colors.backgroundSecondary, borderColor: colors.borderSubtle }]}
-                onPress={handleFetchRelated}
+                onPress={() => handleFetchRelated()}
                 disabled={loadingRelated}
                 activeOpacity={0.7}
               >
@@ -988,33 +1200,68 @@ export default function MathScreen() {
               </TouchableOpacity>
             ) : (
               <View style={[styles.card, { backgroundColor: colors.card, borderColor: colors.borderSubtle }]}>
-                <Text style={[styles.subSectionTitle, { color: colors.textPrimary }]}>{t("math.related.title")}</Text>
+                <View style={styles.relatedHeaderRow}>
+                  <Text style={[styles.subSectionTitle, { color: colors.textPrimary }]}>{t("math.related.title")}</Text>
+                </View>
+
+                {/* Difficulty pills — user-visible knob for related question difficulty. */}
+                <View style={styles.difficultyRow}>
+                  {(["easier", "same", "harder"] as const).map((d) => {
+                    const active = relatedDifficulty === d;
+                    return (
+                      <TouchableOpacity
+                        key={d}
+                        onPress={() => handleFetchRelated(d)}
+                        disabled={loadingRelated}
+                        style={[
+                          styles.difficultyPill,
+                          {
+                            backgroundColor: active ? colors.moduleMathPrimary : colors.backgroundSecondary,
+                            borderColor: active ? colors.moduleMathPrimary : colors.borderSubtle,
+                          },
+                        ]}
+                        activeOpacity={0.7}
+                      >
+                        <Text
+                          style={[
+                            styles.difficultyPillText,
+                            { color: active ? "#fff" : colors.textSecondary },
+                          ]}
+                        >
+                          {t(`math.related.difficulty.${d}`)}
+                        </Text>
+                      </TouchableOpacity>
+                    );
+                  })}
+                </View>
+
                 {relatedQuestions.map((q, i) => (
-                  <TouchableOpacity
+                  <View
                     key={i}
                     style={[styles.relatedItem, { backgroundColor: colors.backgroundSecondary }]}
-                    onPress={() => {
-                      setProblem(q); setInputMethod("text"); clearAll();
-                      setAppMode("solve");
-                      setTimeout(() => scrollViewRef.current?.scrollTo({ y: 0, animated: true }), 50);
-                      // Buton pulse: kullanıcıya "artık çöz'e bas" sinyali ver
-                      setTimeout(() => {
-                        Animated.sequence([
-                          Animated.timing(solveButtonScale, { toValue: 1.06, duration: 150, useNativeDriver: true }),
-                          Animated.timing(solveButtonScale, { toValue: 0.97, duration: 100, useNativeDriver: true }),
-                          Animated.timing(solveButtonScale, { toValue: 1.06, duration: 150, useNativeDriver: true }),
-                          Animated.timing(solveButtonScale, { toValue: 1, duration: 120, useNativeDriver: true }),
-                        ]).start();
-                      }, 350); // scroll bittikten sonra
-                    }}
-                    activeOpacity={0.7}
                   >
                     <View style={[styles.relatedNum, { backgroundColor: colors.moduleMathLight }]}>
                       <Text style={[styles.relatedNumText, { color: colors.moduleMathPrimary }]}>{i + 1}</Text>
                     </View>
                     <Text style={[styles.relatedText, { color: colors.textSecondary }]}>{q}</Text>
-                    <Ionicons name="arrow-forward-outline" size={14} color={colors.textTertiary} />
-                  </TouchableOpacity>
+                    <TouchableOpacity
+                      onPress={() => {
+                        // "Solve this" — prefill + auto-solve immediately, skipping the extra tap.
+                        setProblem(q); setInputMethod("text"); clearAll();
+                        setAppMode("solve");
+                        setTimeout(() => scrollViewRef.current?.scrollTo({ y: 0, animated: true }), 50);
+                        setTimeout(() => {
+                          if (!isPremium && usageInfo?.allowed === false) { openLimitModal(); return; }
+                          showAdBeforeAction(() => handleSolve(q), "math");
+                        }, 200);
+                      }}
+                      style={[styles.relatedSolveBtn, { backgroundColor: colors.moduleMathPrimary }]}
+                      activeOpacity={0.8}
+                    >
+                      <Ionicons name="flash-outline" size={13} color="#fff" />
+                      <Text style={styles.relatedSolveBtnText}>{t("math.related.solveThis")}</Text>
+                    </TouchableOpacity>
+                  </View>
                 ))}
               </View>
             )}
@@ -1034,13 +1281,20 @@ const styles = StyleSheet.create({
   container: { flex: 1 },
   scroll: { padding: SPACING.lg, gap: SPACING.md },
 
-  // Konu analizi nav butonu
+  // Konu analizi / history nav butonları
   topicsNavBtn: {
     flexDirection: "row", alignItems: "center", gap: 8,
     paddingHorizontal: SPACING.md, paddingVertical: 10,
     borderRadius: BORDER_RADIUS.lg, borderWidth: 1,
   },
-  topicsNavText: { fontSize: 13, fontWeight: "600", flex: 1 },
+  navBtnRow: { flexDirection: "row", gap: SPACING.sm },
+  navBtnHalf: {
+    flex: 1,
+    flexDirection: "row", alignItems: "center", gap: 6,
+    paddingHorizontal: SPACING.sm + 2, paddingVertical: 10,
+    borderRadius: BORDER_RADIUS.lg, borderWidth: 1,
+  },
+  topicsNavText: { fontSize: 12, fontWeight: "600", flex: 1 },
 
   // Mod seçici (segmented control)
   segment: {
@@ -1098,7 +1352,10 @@ const styles = StyleSheet.create({
 
   // Görsel alan
   imageArea: { width: "100%", minHeight: 150, justifyContent: "center", alignItems: "center", position: "relative" },
-  image: { width: "100%", height: 200, resizeMode: "cover" },
+  // contain + taller fixed height so tall problem photos (typical SAT/YKS format) aren't cropped.
+  // cover was clipping the top/bottom of multi-line math questions. Background color provides
+  // letterboxing for portrait photos, while landscape photos fit within 280px.
+  image: { width: "100%", height: 280, resizeMode: "contain", backgroundColor: "rgba(0,0,0,0.02)" },
   imagePlaceholder: { width: "100%", minHeight: 150, justifyContent: "center", alignItems: "center", gap: SPACING.sm, padding: SPACING.lg },
   imagePlaceholderIcon: { width: 56, height: 56, borderRadius: 28, justifyContent: "center", alignItems: "center" },
   placeholderText: { fontSize: 13, textAlign: "center" },
@@ -1141,6 +1398,16 @@ const styles = StyleSheet.create({
   stepNum: { width: 24, height: 24, borderRadius: 12, justifyContent: "center", alignItems: "center", flexShrink: 0 },
   stepNumText: { fontSize: 12, fontWeight: "700" },
   stepText: { fontSize: 14, lineHeight: 21, flex: 1, paddingTop: 2 },
+  stepWhyIcon: { marginTop: 2, flexShrink: 0 },
+  stepWhyBox: {
+    marginTop: 4,
+    marginLeft: 32,
+    padding: SPACING.sm + 2,
+    borderRadius: BORDER_RADIUS.md,
+  },
+  stepWhyText: { fontSize: 13, lineHeight: 19 },
+  stepWhyLoadingRow: { flexDirection: "row", alignItems: "center", gap: 6 },
+  stepWhyLoadingText: { fontSize: 12, fontWeight: "600" },
   lockRow: {
     flexDirection: "row", alignItems: "center", gap: SPACING.sm,
     padding: SPACING.sm + 2, borderRadius: BORDER_RADIUS.md,
@@ -1184,6 +1451,19 @@ const styles = StyleSheet.create({
 
   // Konu istatistikleri
 
+  // Verify mode teaser (appears after solve)
+  verifyTeaser: {
+    flexDirection: "row", alignItems: "center", gap: SPACING.sm,
+    padding: SPACING.md, borderRadius: BORDER_RADIUS.lg, borderWidth: 1,
+  },
+  verifyTeaserIcon: {
+    width: 36, height: 36, borderRadius: 18,
+    justifyContent: "center", alignItems: "center",
+  },
+  verifyTeaserTitleRow: { flexDirection: "row", alignItems: "center", gap: 6 },
+  verifyTeaserTitle: { fontSize: 14, fontWeight: "700" },
+  verifyTeaserSubtitle: { fontSize: 12, marginTop: 2, lineHeight: 17 },
+
   // Benzer sorular
   relatedWrap: { gap: SPACING.sm },
   relatedBtn: {
@@ -1192,6 +1472,22 @@ const styles = StyleSheet.create({
     borderRadius: BORDER_RADIUS.lg, borderWidth: 1,
   },
   relatedBtnText: { fontSize: 14, fontWeight: "500" },
+  relatedHeaderRow: { flexDirection: "row", alignItems: "center", justifyContent: "space-between" },
+  difficultyRow: { flexDirection: "row", gap: 6 },
+  difficultyPill: {
+    flex: 1,
+    paddingVertical: 7,
+    borderRadius: BORDER_RADIUS.md,
+    borderWidth: 1,
+    alignItems: "center",
+  },
+  difficultyPillText: { fontSize: 11, fontWeight: "700" },
+  relatedSolveBtn: {
+    flexDirection: "row", alignItems: "center", gap: 4,
+    paddingHorizontal: 8, paddingVertical: 5,
+    borderRadius: BORDER_RADIUS.md,
+  },
+  relatedSolveBtnText: { color: "#fff", fontSize: 11, fontWeight: "700" },
   relatedItem: { flexDirection: "row", alignItems: "center", gap: SPACING.sm, padding: SPACING.sm, borderRadius: BORDER_RADIUS.md },
   relatedNum: { width: 24, height: 24, borderRadius: 12, justifyContent: "center", alignItems: "center", flexShrink: 0 },
   relatedNumText: { fontSize: 12, fontWeight: "700" },

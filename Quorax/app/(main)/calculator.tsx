@@ -63,6 +63,12 @@ export default function CalculatorScreen() {
   const handleOperation = (op: Operation) => {
     const currentValue = parseFloat(display.replace(/,/g, ""));
 
+    if (waitingForNewValue) {
+      // Kullanıcı henüz yeni sayı girmedi, sadece operatörü değiştir
+      setOperation(op);
+      return;
+    }
+
     if (previousValue === null) {
       setPreviousValue(currentValue);
     } else if (operation) {
@@ -84,7 +90,7 @@ export default function CalculatorScreen() {
       case "×":
         return prev * current;
       case "÷":
-        return current !== 0 ? prev / current : 0;
+        return current !== 0 ? prev / current : Infinity;
       case "^":
         return Math.pow(prev, current);
       default:
@@ -193,7 +199,9 @@ export default function CalculatorScreen() {
     }
 
     setDisplay(formatNumber(result));
-    setWaitingForNewValue(true);
+    setPreviousValue(null);
+    setOperation(null);
+    setWaitingForNewValue(false);
   };
 
   const factorial = (n: number): number => {
@@ -218,7 +226,9 @@ export default function CalculatorScreen() {
         break;
       case "recall":
         setDisplay(formatNumber(memory));
-        setWaitingForNewValue(true);
+        setPreviousValue(null);
+        setOperation(null);
+        setWaitingForNewValue(false);
         break;
       case "clear":
         setMemory(0);

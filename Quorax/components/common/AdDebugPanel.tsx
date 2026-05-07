@@ -20,7 +20,7 @@ export const AdDebugPanel: React.FC = () => {
   const { isLoggedIn } = useAuth();
   const { isPremium } = useSubscription();
   const { canShowAd, isReady, isLoading, adError, loadAd } = useAppAd();
-  const { showAdBeforeAction, tryShowIntervalAd } = useAd();
+  const { showAdBeforeAction } = useAd();
 
   // Sadece development modunda göster
   if (!__DEV__) {
@@ -34,7 +34,7 @@ export const AdDebugPanel: React.FC = () => {
   };
 
   const handleTestIntervalAd = () => {
-    tryShowIntervalAd();
+    showAdBeforeAction(() => console.log('✅ Interval ad test completed'), "math");
   };
 
   const handleLoadAd = async () => {

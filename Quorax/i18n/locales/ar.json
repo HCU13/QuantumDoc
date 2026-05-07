@@ -1,0 +1,306 @@
+{
+  "common": {
+    "loading": "جار التحميل...",
+    "error": "حدث خطأ",
+    "warning": "تحذير",
+    "success": "نجاح",
+    "save": "حفظ",
+    "cancel": "إلغاء",
+    "delete": "حذف",
+    "edit": "تعديل",
+    "back": "رجوع",
+    "close": "إغلاق",
+    "confirm": "تأكيد",
+    "ok": "موافق",
+    "yes": "نعم",
+    "no": "لا",
+    "next": "التالي",
+    "skip": "تخطي",
+    "getStarted": "ابدأ الآن",
+    "info": "معلومة",
+    "login": "تسجيل الدخول",
+    "timeout": "انتهت مهلة الطلب. يرجى المحاولة مجدداً.",
+    "goBack": "العودة"
+  },
+  "welcome": {
+    "title": "مرحباً بك في Quorax! 🎉",
+    "subtitle": "حل الرياضيات بالصورة، استعد للامتحانات، وتعلم مع مساعدك الذكي. التطبيق يتطور باستمرار.",
+    "earlyAccess": "أطلقنا للتو — إذا وجدت خطأ أخبرنا وسنصلحه سريعاً.",
+    "bugFoundPrefix": "وجدت مشكلة؟",
+    "bugFoundLink": "اذهب إلى الدعم ←",
+    "cta": "لنبدأ"
+  },
+  "examProgress": {
+    "question": "سؤال",
+    "answer": "إجابة",
+    "goBack": "العودة",
+    "toStudy": "{{count}} للدراسة",
+    "learned": "{{count}} تم تعلمه",
+    "masteryStats": "{{mastered}}/{{total}} إتقان · {{pct}}% نجاح",
+    "questionN": "سؤال {{n}}"
+  },
+  "modules": {
+    "locked": "يلزم تسجيل الدخول",
+    "dailyUsage": "{{used}}/{{limit}} استُخدم اليوم",
+    "dailyLimitReached": "تم الوصول للحد اليومي · انتقل لـ Premium",
+    "loginRequired": {
+      "title": "يلزم تسجيل الدخول",
+      "message": "يجب تسجيل الدخول لاستخدام هذه الوحدة.",
+      "signIn": "تسجيل الدخول",
+      "cancel": "إلغاء"
+    },
+    "chat": {
+      "title": "المساعد الذكي",
+      "description": "تحدث مع مساعدك الذكي"
+    },
+    "math": {
+      "title": "حل الرياضيات",
+      "description": "حلول خطوة بخطوة"
+    },
+    "calculator": {
+      "title": "الآلة الحاسبة",
+      "description": "حسابات متقدمة"
+    },
+    "examLab": {
+      "title": "مختبر الامتحانات",
+      "description": "تحضير الامتحانات حسب الموضوع"
+    }
+  },
+  "home": {
+    "tagline": "حل الرياضيات. استعد للامتحانات.",
+    "recentActivity": "النشاط الأخير",
+    "noActivity": "لا يوجد نشاط بعد",
+    "startUsing": "ابدأ باستخدام أحد الوحدات",
+    "viewAll": "عرض الكل",
+    "otherTools": "أدوات أخرى"
+  },
+  "auth": {
+    "login": {
+      "title": "تسجيل الدخول",
+      "subtitle": "مرحباً بعودتك",
+      "email": "البريد الإلكتروني",
+      "password": "كلمة المرور",
+      "loginButton": "تسجيل الدخول",
+      "noAccount": "ليس لديك حساب؟",
+      "signUp": "إنشاء حساب",
+      "forgotPassword": "نسيت كلمة المرور؟",
+      "orContinueWith": "أو تابع بـ",
+      "continueAsGuest": "تابع كضيف"
+    },
+    "signup": {
+      "title": "إنشاء حساب",
+      "subtitle": "انضم إلى Quorax اليوم",
+      "name": "الاسم الكامل",
+      "email": "البريد الإلكتروني",
+      "password": "كلمة المرور",
+      "signupButton": "إنشاء حساب",
+      "hasAccount": "لديك حساب بالفعل؟",
+      "signIn": "تسجيل الدخول",
+      "terms": "بالتسجيل، أنت توافق على شروط الخدمة وسياسة الخصوصية."
+    }
+  },
+  "premiumModal": {
+    "limitPill": "الحد اليومي",
+    "proPill": "ميزة بريميوم",
+    "limitTitle": "لقد استنفدت الحد المجاني لليوم",
+    "proTitle": "بريميوم يفتح هذه الميزة",
+    "limitSubtitle": "استخدمت {{used}}/{{limit}} حلول في {{module}} اليوم. قم بالترقية للوصول غير المحدود.",
+    "proSubtitle": "هذه الميزة مشمولة في بريميوم. شاهد خيارات الخطة في الشاشة التالية.",
+    "benefitUnlimited": "حلول رياضيات غير محدودة",
+    "benefitVerify": "تحقق من عملك بنفسك",
+    "benefitExplanations": "شروحات خطوة بخطوة",
+    "benefitNoAds": "بدون إعلانات على الإطلاق",
+    "trialHint": "جرّب مجاناً، ألغِ في أي وقت",
+    "cta": "عرض الخطط",
+    "later": "ربما لاحقاً"
+  },
+  "profile": {
+    "rtlRestartTitle": "يلزم إعادة التشغيل",
+    "rtlRestartMessage": "يرجى إعادة تشغيل التطبيق لتطبيق اتجاه النص الجديد.",
+    "premium": {
+      "ctaContinue": "متابعة",
+      "ctaStartTrial": "ابدأ تجربة مجانية لمدة {{days}} أيام",
+      "ctaTrialThen": "ثم {{price}}/{{period}} · ألغِ في أي وقت",
+      "planMonthly": "شهري",
+      "planYearly": "سنوي",
+      "perYear": "سنة",
+      "equivMonthly": "{{price}}/شهر",
+      "bestValue": "أفضل قيمة",
+      "savePercent": "وفّر {{pct}}٪",
+      "trialBadge": "{{days}} أيام مجاناً",
+      "heroTrialTitle": "جرّب مجاناً لمدة {{days}} أيام",
+      "heroTrialSubtitle": "وصول كامل. بدون دفع اليوم.",
+      "trialReminder": "سنذكّرك قبل يومين من انتهاء التجربة.",
+      "noPaymentToday": "لا دفع اليوم",
+      "uniqueBadge": "حصري في Quorax",
+      "verifyHeroTitle": "تحقق من عملك بنفسك",
+      "verifyHeroDesc": "الصق حلّك — سنجد الخطوة التي أخطأت فيها ونخبرك كيف تصلحها.",
+      "terms": "الشروط",
+      "privacy": "الخصوصية",
+      "legalAutoRenew": "يتجدد تلقائياً حتى الإلغاء. ألغِ في أي وقت من إعدادات iOS > Apple ID > الاشتراكات. يُحصَّل الدفع على Apple ID الخاص بك عند التأكيد.",
+      "featureUnlimited": "حلول رياضيات غير محدودة",
+      "featureVerify": "تحقق من عملك",
+      "featureExplanations": "شروحات خطوة بخطوة",
+      "featureTopics": "لوحة تحليل المواضيع"
+    },
+    "settings": {
+      "language": "اللغة",
+      "purchaseHistory": "سجل الشراء",
+      "languageTr": "Türkçe",
+      "languageEn": "English",
+      "languageAr": "العربية",
+      "languageHi": "हिन्दी",
+      "languageEs": "Español",
+      "theme": "المظهر",
+      "categories": {
+        "account": "الحساب",
+        "preferences": "التفضيلات",
+        "support": "الدعم"
+      }
+    },
+    "promo": {
+      "menuLabel": "رمز الترويج",
+      "placeholder": "أدخل الرمز",
+      "apply": "تطبيق",
+      "successTitle": "تم التفعيل 🎉",
+      "successMessage": "تم تفعيل Premium لمدة {{days}} أيام!",
+      "successExtended": "تم تمديد Premium بـ {{days}} أيام!",
+      "errors": {
+        "code_not_found": "رمز الترويج غير صالح.",
+        "code_expired": "انتهت صلاحية رمز الترويج.",
+        "code_exhausted": "وصل رمز الترويج إلى حد الاستخدام.",
+        "already_redeemed": "لقد استخدمت هذا الرمز من قبل.",
+        "redemption_failed": "حدث خطأ. يرجى المحاولة مجدداً.",
+        "server_error": "خطأ في الخادم. يرجى المحاولة مجدداً."
+      }
+    }
+  },
+  "math": {
+    "info": {
+      "title": "كيفية الاستخدام؟",
+      "content": "اكتب مسألتك أو التقط صورة / اختر من المعرض. يمكن للذكاء الاصطناعي التعامل مع الجبر والهندسة وحساب التفاضل والتكامل وغير ذلك الكثير.\n\nكل حل يتضمن إجابة واضحة وشرحاً مفصلاً خطوة بخطوة والتحقق من النتيجة."
+    },
+    "input": {
+      "text": "كتابة",
+      "gallery": "المعرض",
+      "camera": "الكاميرا"
+    },
+    "placeholder": "أدخل مسألتك الرياضية...",
+    "imagePlaceholder": "اختر من المعرض أو التقط صورة",
+    "tapToLoadImage": "اضغط لتحميل الصورة",
+    "tapToOpenCamera": "اضغط لفتح الكاميرا",
+    "solve": "حل",
+    "solution": "الحل",
+    "steps": "الخطوات",
+    "retry": "إعادة المحاولة",
+    "clear": "مسح",
+    "modeSolve": "حل",
+    "modeVerify": "تحقق من حلي",
+    "verify": {
+      "sectionLabel": "حلي",
+      "inputMethod": {
+        "text": "كتابة",
+        "gallery": "المعرض",
+        "camera": "صورة"
+      },
+      "placeholder": "اكتب خطوات الحل هنا...",
+      "tapToLoadImage": "تحميل صورة الحل",
+      "tapToOpenCamera": "التقاط صورة الحل",
+      "checkButton": "تحقق",
+      "result": {
+        "title": "نتيجة التحقق",
+        "correct": "صحيح",
+        "wrong": "خطأ",
+        "partial": "صحيح جزئياً",
+        "stepCheck": "فحص الخطوة",
+        "error": "خطأ",
+        "tip": "نصيحة"
+      }
+    },
+    "topic": "الموضوع",
+    "related": {
+      "button": "إنشاء أسئلة مشابهة",
+      "loading": "جارٍ التحضير...",
+      "title": "أسئلة مشابهة",
+      "failed": "تعذر إنشاء أسئلة مشابهة، حاول مجدداً",
+      "solveThis": "حل",
+      "difficulty": {
+        "easier": "أسهل",
+        "same": "مماثل",
+        "harder": "أصعب"
+      }
+    },
+    "topicAnalysis": "عرض تحليل الموضوع",
+    "stepsLocked": "{{count}} خطوات إضافية — شاهدها مع Premium",
+    "explainTopic": "اشرح هذا الموضوع",
+    "hideExplanation": "إخفاء الشرح",
+    "explaining": "جارٍ الشرح...",
+    "handwritingSupported": "يدعم الكتابة اليدوية والنص المطبوع",
+    "verifyTeaser": {
+      "title": "هل حللتها بنفسك؟ تحقق من عملك",
+      "subtitle": "الصق حلك — سنكتشف أي أخطاء خطوة بخطوة."
+    },
+    "graph": "رسم بياني",
+    "topicExplanation": "شرح الموضوع",
+    "permissions": {
+      "galleryDenied": "مطلوب إذن المعرض",
+      "galleryDeniedMessage": "يجب منح إذن الوصول إلى المعرض.",
+      "cameraDenied": "مطلوب إذن الكاميرا",
+      "cameraDeniedMessage": "يجب منح إذن الوصول إلى الكاميرا."
+    },
+    "errors": {
+      "emptyProblem": "المسألة مطلوبة",
+      "emptyProblemMessage": "يرجى إدخال مسألة رياضية.",
+      "noImage": "الصورة مطلوبة",
+      "noImageMessage": "يرجى اختيار صورة.",
+      "solveFailed": "حدث خطأ أثناء حل المسألة",
+      "emptySolution": "الحل مطلوب",
+      "emptySolutionMessage": "اكتب حلك أو أضف صورة.",
+      "noSolutionImage": "صورة الحل مطلوبة",
+      "noSolutionImageMessage": "يرجى إضافة صورة لحلك."
+    },
+    "comprehension": {
+      "question": "هل فهمت الحل؟",
+      "understood": "فهمت",
+      "notUnderstood": "لا يزال غير واضح",
+      "strongArea": "متقن — أنت تعرف هذا الموضوع جيداً",
+      "weakArea": "يحتاج إلى تدريب — انظر الشرح أدناه"
+    },
+    "topics": {
+      "title": "تحليل المواضيع",
+      "totalSolved": "إجمالي المحلولة",
+      "topicCount": "مجالات المواضيع",
+      "masteredCount": "متقنة",
+      "sectionTitle": "المواضيع التي درستها",
+      "strongBadge": "متقن",
+      "weakBadge": "يحتاج إلى عمل",
+      "generateBtn": "إنشاء أسئلة",
+      "generating": "جارٍ إنشاء الأسئلة...",
+      "hideQuestions": "إخفاء الأسئلة",
+      "emptyTitle": "لا توجد بيانات بعد",
+      "emptyText": "حل المسائل في وحدة الرياضيات لترى تحليل المواضيع هنا.",
+      "goToMath": "انتقل إلى وحدة الرياضيات",
+      "categories": {
+        "algebra": "الجبر",
+        "geometry": "الهندسة",
+        "trigonometry": "حساب المثلثات",
+        "calculus": "التفاضل والتكامل",
+        "statistics": "الإحصاء والاحتمالات",
+        "linear_algebra": "الجبر الخطي",
+        "number_theory": "نظرية الأعداد",
+        "basic_math": "الرياضيات الأساسية",
+        "other": "أخرى"
+      }
+    }
+  },
+  "mathHistory": {
+    "title": "مسائلي",
+    "emptyTitle": "لا توجد مسائل محفوظة بعد",
+    "emptyText": "ستظهر هنا المسائل التي تحلها لتتمكن من مراجعتها في أي وقت.",
+    "emptyCta": "حل مسألة",
+    "imageProblem": "مسألة بصورة",
+    "filter": {
+      "all": "الكل"
+    }
+  }
+}

@@ -69,17 +69,6 @@ export default function ChatDetailScreen() {
     color: "#8B5CF6",
   });
 
-  // Free kullanıcı için günlük kullanım bilgisini yükle
-  useEffect(() => {
-    if (isLoggedIn && !isPremium && authUser?.id) {
-      checkUsageLimit("chat").then((data) => {
-        if (data) setUsageInfo(data);
-      });
-    } else if (isPremium) {
-      setUsageInfo(null);
-    }
-  }, [isLoggedIn, isPremium, authUser?.id]);
-
   // Load chat data and messages
   useEffect(() => {
     if (id && isLoggedIn && authUser?.id) {
@@ -291,7 +280,7 @@ export default function ChatDetailScreen() {
         // ✅ Check usage limit before sending message
         if (!isPremium) {
           const usage = await checkUsageLimit("chat");
-          if (usage && !usage.allowed) {
+          if (usage?.allowed === false) {
             // Remove optimistic message
             setMessages((previousMessages) =>
               previousMessages.filter(

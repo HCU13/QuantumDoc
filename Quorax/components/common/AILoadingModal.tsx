@@ -14,19 +14,12 @@ import { useTheme } from "@/contexts/ThemeContext";
 
 interface AILoadingModalProps {
   visible: boolean;
-  /** "flashcard" | "math" | "exam" | "image" | "text" | "chat" */
-  type?: "flashcard" | "math" | "exam" | "image" | "text" | "chat";
+  type?: "math" | "exam" | "image" | "text" | "chat";
   /** İsteğe bağlı override mesaj */
   message?: string;
 }
 
 const MESSAGES: Record<string, string[]> = {
-  flashcard: [
-    "aiLoading.flashcard.0",
-    "aiLoading.flashcard.1",
-    "aiLoading.flashcard.2",
-    "aiLoading.flashcard.3",
-  ],
   math: [
     "aiLoading.math.0",
     "aiLoading.math.1",
@@ -53,7 +46,6 @@ const MESSAGES: Record<string, string[]> = {
 };
 
 const EMOJIS: Record<string, string> = {
-  flashcard: "🃏",
   math: "🔢",
   exam: "📝",
   image: "🔍",
@@ -62,7 +54,6 @@ const EMOJIS: Record<string, string> = {
 };
 
 const COLORS: Record<string, string> = {
-  flashcard: "#8B5CF6",
   math:      "#3B82F6",
   exam:      "#10B981",
   image:     "#F59E0B",

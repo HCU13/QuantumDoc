@@ -70,10 +70,10 @@ export default function SignUpScreen() {
         return;
       }
       if (data.user) {
-        const { error: profileError } = await supabase
+        await supabase
           .from("profiles")
-          .insert({ id: data.user.id, full_name: name.trim() });
-        if (profileError) console.error("Profile insert error:", profileError);
+          .update({ full_name: name.trim() })
+          .eq("id", data.user.id);
         router.replace({ pathname: "/(main)/login", params: { email: email.trim() } } as any);
       }
     } catch (error: any) {
