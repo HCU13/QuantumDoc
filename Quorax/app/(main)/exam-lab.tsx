@@ -27,6 +27,7 @@ import { Button } from "@/components/common/Button";
 import { Chip } from "@/components/common/Chip";
 import { MinimalUsageBadge } from "@/components/common/MinimalUsageBadge";
 import { ModuleHeader } from "@/components/common/ModuleHeader";
+import { NotebookBackground } from "@/components/common/NotebookBackground";
 import { AILoadingModal } from "@/components/common/AILoadingModal";
 import { PremiumModal } from "@/components/common/PremiumModal";
 import { BORDER_RADIUS, SHADOWS, SPACING, TEXT_STYLES } from "@/constants/theme";
@@ -1944,7 +1945,7 @@ export default function ExamLabScreen() {
   };
 
   return (
-    <View style={[styles.container, { backgroundColor: colors.background }]}>
+    <NotebookBackground cornerGlyphs={["α", "β"]}>
       <StatusBar style={isDark ? "light" : "dark"} />
       <ModuleHeader
         title={t("modules.examLab.title")}
@@ -1976,7 +1977,7 @@ export default function ExamLabScreen() {
         moduleType="exam_lab"
         usageInfo={premiumModalIsProGate ? undefined : usageInfo}
       />
-    </View>
+    </NotebookBackground>
   );
 }
 

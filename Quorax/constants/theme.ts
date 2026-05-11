@@ -171,6 +171,67 @@ export const SHADOWS = {
     android: { elevation: 2 },
     default: {},
   }),
+
+  /* 2026: kart / glass / FAB için derin yumuşak gölgeler */
+  medium: Platform.select({
+    ios: {
+      shadowColor: '#000',
+      shadowOffset: { width: 0, height: 6 },
+      shadowOpacity: 0.10,
+      shadowRadius: 16,
+    },
+    android: { elevation: 4 },
+    default: {},
+  }),
+
+  large: Platform.select({
+    ios: {
+      shadowColor: '#000',
+      shadowOffset: { width: 0, height: 12 },
+      shadowOpacity: 0.14,
+      shadowRadius: 28,
+    },
+    android: { elevation: 8 },
+    default: {},
+  }),
+
+  /* Renkli "glow" — gradient butonlarda altta */
+  glow: (color: string) =>
+    Platform.select({
+      ios: {
+        shadowColor: color,
+        shadowOffset: { width: 0, height: 8 },
+        shadowOpacity: 0.35,
+        shadowRadius: 16,
+      },
+      android: { elevation: 6 },
+      default: {},
+    }),
+};
+
+/* -------------------------------------------------------------------------- */
+/*  Spring presets (reanimated withSpring config)                              */
+/* -------------------------------------------------------------------------- */
+
+export const SPRING = {
+  /* Sayfa geçişleri / sheet */
+  smooth: { damping: 18, stiffness: 180, mass: 1 },
+  /* Buton press / küçük etkileşim */
+  snappy: { damping: 14, stiffness: 260, mass: 0.8 },
+  /* Bounce ihtiyaçları (FAB ilk açılış vb.) */
+  bouncy: { damping: 10, stiffness: 200, mass: 1 },
+  /* Çok yumuşak (toast slide) */
+  gentle: { damping: 22, stiffness: 140, mass: 1 },
+};
+
+/* -------------------------------------------------------------------------- */
+/*  Hit slop helper (44pt minimum dokunma alanı)                              */
+/* -------------------------------------------------------------------------- */
+
+export const HIT_SLOP = {
+  small: { top: 8, bottom: 8, left: 8, right: 8 },
+  medium: { top: 12, bottom: 12, left: 12, right: 12 },
+  large: { top: 16, bottom: 16, left: 16, right: 16 },
 };
 
 /* -------------------------------------------------------------------------- */

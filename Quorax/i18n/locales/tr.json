@@ -118,7 +118,59 @@
         "passwordsNotMatch": "Şifreler eşleşmiyor",
         "termsRequired": "Kullanım şartlarını kabul etmelisiniz",
         "emailExists": "Bu e-posta adresi zaten kullanılıyor",
+        "birthDateInvalid": "Geçerli bir doğum tarihi girin",
+        "ageTooYoung": "Kayıt için en az 13 yaşında olmalısın",
         "generic": "Kayıt olurken bir hata oluştu"
+      },
+      "flow": {
+        "stepCounter": "{{current}} / {{total}}",
+        "next": "Devam et",
+        "back": "Geri",
+        "skip": "Atla",
+        "finish": "Hesabımı oluştur",
+        "nameTitle": "Sana nasıl hitap edelim?",
+        "nameSubtitle": "Hesabında görünecek adın.",
+        "emailTitle": "E-posta adresin",
+        "emailSubtitle": "Giriş ve bildirimler için kullanılır.",
+        "passwordTitle": "Güçlü bir şifre belirle",
+        "passwordSubtitle": "En az 6 karakter, harf ve rakam karışımı önerilir.",
+        "passwordStrengthWeak": "Zayıf",
+        "passwordStrengthMedium": "Orta",
+        "passwordStrengthStrong": "Güçlü",
+        "gradeTitle": "Hangi kademedesin?",
+        "gradeSubtitle": "İçeriği sana göre uyarlayalım.",
+        "gradeMiddle": "Ortaokul",
+        "gradeHigh9": "9. Sınıf",
+        "gradeHigh10": "10. Sınıf",
+        "gradeHigh11": "11. Sınıf",
+        "gradeHigh12": "12. Sınıf",
+        "gradeUniversity": "Üniversite",
+        "gradeOther": "Diğer",
+        "examTitle": "Bir sınav hedefin var mı?",
+        "examSubtitle": "Sınav Kampı'nı buna göre hazırlayalım.",
+        "examLgs": "LGS",
+        "examYks": "YKS",
+        "examKpss": "KPSS",
+        "examNone": "Şu an yok",
+        "examOther": "Diğer",
+        "goalTitle": "Asıl hedefin ne?",
+        "goalSubtitle": "Birkaç kelimeyle yazabilirsin. AI sohbeti buna göre yön bulacak.",
+        "goalPlaceholder": "Örn. matematikte sınıfımın en iyisi olmak",
+        "birthTitle": "Doğum tarihin",
+        "birthSubtitle": "Yaşına uygun içerik ve KVKK uyumu için.",
+        "birthDay": "Gün",
+        "birthMonth": "Ay",
+        "birthYear": "Yıl",
+        "referralTitle": "Bizi nereden duydun?",
+        "referralSubtitle": "İsteğe bağlı, sana daha iyi hizmet verebilmemiz için.",
+        "refAppStore": "Uygulama Mağazası",
+        "refSocial": "Sosyal medya",
+        "refFriend": "Arkadaş tavsiyesi",
+        "refSearch": "Arama motoru",
+        "refAd": "Reklam",
+        "refOther": "Diğer",
+        "termsTitle": "Son adım",
+        "termsSubtitle": "Hesabını oluşturmadan önce şartları onayla."
       }
     }
   },
@@ -196,7 +248,7 @@
     },
     "chat": {
       "title": "AI Sohbet",
-      "description": "AI asistanınızla konuşun",
+      "description": "AI asistanınızla konuşun"
     },
     "math": {
       "title": "Matematik",
@@ -209,7 +261,7 @@
     "examLab": {
       "title": "Sınav Kampı",
       "description": "Konu odaklı sınav hazırlığı"
-    },
+    }
   },
   "examLab": {
     "info": {
@@ -709,7 +761,7 @@
       "ctaFree": "7 Gün Ücretsiz Dene",
       "ctaFreeSubtext": "Sonra {price}/ay · İstediğin zaman iptal",
       "perWeek": "haftaya",
-      "savePercent": "%{percent} tasarruf",
+      "savePercent": "%{{pct}} TASARRUF",
       "heroExpiresSubtitle": "{date} tarihine kadar",
       "activeBadge": "Aktif ✓",
       "featuresCardTitle": "Premium Avantajları",
@@ -752,7 +804,6 @@
       "perYear": "yıl",
       "equivMonthly": "Aylık {{price}}",
       "bestValue": "EN AVANTAJLI",
-      "savePercent": "%{{pct}} TASARRUF",
       "trialBadge": "{{days}} GÜN ÜCRETSİZ",
       "heroTrialTitle": "{{days}} gün ücretsiz dene",
       "heroTrialSubtitle": "Sınırsız erişim. Bugün ücret yok.",
@@ -1183,14 +1234,6 @@
       "verify": "Çalışmalarını doğrula",
       "explanations": "Konu açıklamaları ve detaylı çözümler"
     }
-  },
-  "welcome": {
-    "title": "Quorax'a Hoş Geldin! 🎉",
-    "subtitle": "Fotoğrafla matematik çöz, YKS sınavlarına hazırlan, AI asistanınla öğren. Uygulama sürekli gelişiyor.",
-    "earlyAccess": "Yeni yayındayız — eksik veya hata görürsen bize ilet, öncelikli düzeltiriz.",
-    "bugFoundPrefix": "Sorun mu buldun?",
-    "bugFoundLink": "Destek sayfasına git →",
-    "cta": "Haydi Başlayalım"
   },
   "rating": {
     "title": "Quorax'ı beğeniyor musun?",

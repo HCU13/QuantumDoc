@@ -118,7 +118,59 @@
         "passwordsNotMatch": "Passwords do not match",
         "termsRequired": "You must accept the terms and conditions",
         "emailExists": "This email address is already in use",
+        "birthDateInvalid": "Please enter a valid birth date",
+        "ageTooYoung": "You must be at least 13 to sign up",
         "generic": "An error occurred while signing up"
+      },
+      "flow": {
+        "stepCounter": "{{current}} / {{total}}",
+        "next": "Continue",
+        "back": "Back",
+        "skip": "Skip",
+        "finish": "Create my account",
+        "nameTitle": "What should we call you?",
+        "nameSubtitle": "This is the name shown on your account.",
+        "emailTitle": "Your email",
+        "emailSubtitle": "Used for sign-in and notifications.",
+        "passwordTitle": "Set a strong password",
+        "passwordSubtitle": "At least 6 characters; mix of letters and numbers recommended.",
+        "passwordStrengthWeak": "Weak",
+        "passwordStrengthMedium": "Medium",
+        "passwordStrengthStrong": "Strong",
+        "gradeTitle": "Which level are you in?",
+        "gradeSubtitle": "We'll tailor content for you.",
+        "gradeMiddle": "Middle school",
+        "gradeHigh9": "Grade 9",
+        "gradeHigh10": "Grade 10",
+        "gradeHigh11": "Grade 11",
+        "gradeHigh12": "Grade 12",
+        "gradeUniversity": "University",
+        "gradeOther": "Other",
+        "examTitle": "Any exam goal?",
+        "examSubtitle": "We'll tune Exam Camp accordingly.",
+        "examLgs": "LGS",
+        "examYks": "YKS",
+        "examKpss": "KPSS",
+        "examNone": "Not right now",
+        "examOther": "Other",
+        "goalTitle": "What's your main goal?",
+        "goalSubtitle": "A few words is enough — AI chat will follow your direction.",
+        "goalPlaceholder": "e.g., become the best in math in my class",
+        "birthTitle": "Your date of birth",
+        "birthSubtitle": "For age-appropriate content and compliance.",
+        "birthDay": "Day",
+        "birthMonth": "Month",
+        "birthYear": "Year",
+        "referralTitle": "Where did you hear about us?",
+        "referralSubtitle": "Optional — helps us serve you better.",
+        "refAppStore": "App store",
+        "refSocial": "Social media",
+        "refFriend": "Friend",
+        "refSearch": "Search engine",
+        "refAd": "Advertisement",
+        "refOther": "Other",
+        "termsTitle": "Last step",
+        "termsSubtitle": "Please accept the terms before creating your account."
       }
     }
   },
@@ -196,7 +248,7 @@
     },
     "chat": {
       "title": "AI Chat",
-      "description": "Talk with your AI",
+      "description": "Talk with your AI"
     },
     "math": {
       "title": "Math",
@@ -209,7 +261,7 @@
     "examLab": {
       "title": "Exam Lab",
       "description": "Topic-focused exam preparation"
-    },
+    }
   },
   "examLab": {
     "info": {
@@ -620,7 +672,7 @@
       "ctaFree": "Try Free for 7 Days",
       "ctaFreeSubtext": "Then {price}/mo · Cancel anytime",
       "perWeek": "week",
-      "savePercent": "Save {percent}%",
+      "savePercent": "SAVE {{pct}}%",
       "heroExpiresSubtitle": "Active until {date}",
       "activeBadge": "Active ✓",
       "featuresCardTitle": "Premium Benefits",
@@ -663,7 +715,6 @@
       "perYear": "yr",
       "equivMonthly": "{{price}}/mo",
       "bestValue": "BEST VALUE",
-      "savePercent": "SAVE {{pct}}%",
       "trialBadge": "{{days}} DAYS FREE",
       "heroTrialTitle": "Try free for {{days}} days",
       "heroTrialSubtitle": "Full access. No payment today.",
@@ -1183,14 +1234,6 @@
       "verify": "Verify your work",
       "explanations": "Topic explanations & detailed solutions"
     }
-  },
-  "welcome": {
-    "title": "Welcome to Quorax! 🎉",
-    "subtitle": "Solve math by photo, prep for exams, and learn with your AI assistant. The app is constantly improving.",
-    "earlyAccess": "We just launched — if you spot a bug or missing feature, let us know and we'll fix it fast.",
-    "bugFoundPrefix": "Found an issue?",
-    "bugFoundLink": "Go to Support →",
-    "cta": "Let's Get Started"
   },
   "rating": {
     "title": "Enjoying Quorax?",

@@ -19,10 +19,11 @@ import {
   View,
 } from "react-native";
 
-import { ModuleHeader } from "@/components/common/ModuleHeader";
+import { NotebookBackground } from "@/components/common/NotebookBackground";
 import { UserInitials } from "@/components/common/UserInitials";
 import {
   BORDER_RADIUS,
+  HIT_SLOP,
   SHADOWS,
   SPACING,
   TEXT_STYLES,
@@ -215,10 +216,31 @@ export default function ProfileScreen() {
   };
 
   return (
-    <View style={[styles.container, { backgroundColor: colors.background }]}>
+    <NotebookBackground cornerGlyphs={["Σ", "ω"]}>
       <StatusBar style={isDark ? "light" : "dark"} />
 
-      <ModuleHeader title={t("profile.title")} />
+      {/* Notebook page header */}
+      <View style={styles.pageHeader}>
+        <TouchableOpacity
+          onPress={() => router.back()}
+          hitSlop={HIT_SLOP.medium}
+          activeOpacity={0.7}
+          style={[
+            styles.backBtn,
+            {
+              backgroundColor: colors.surface,
+              borderColor: colors.borderSubtle,
+            },
+          ]}
+          accessibilityRole="button"
+          accessibilityLabel={t("common.back")}
+        >
+          <Ionicons name="chevron-back" size={20} color={colors.textPrimary} />
+        </TouchableOpacity>
+        <Text style={[styles.pageMeta, { color: colors.textTertiary }]}>
+          §  {t("profile.title")}
+        </Text>
+      </View>
 
       <ScrollView
         style={styles.scrollView}
@@ -359,9 +381,10 @@ export default function ProfileScreen() {
             SHADOWS.small,
           ]}
         >
-          <Text style={[styles.categoryTitle, { color: colors.textTertiary }]}>
-            {t("profile.settings.categories.account")}
+          <Text style={[styles.categoryTitle, { color: colors.primary }]}>
+            §  {t("profile.settings.categories.account")}
           </Text>
+          <View style={[styles.categoryAccent, { backgroundColor: colors.primary }]} />
           {isLoggedIn && (
             <>
               <TouchableOpacity
@@ -470,9 +493,10 @@ export default function ProfileScreen() {
             SHADOWS.small,
           ]}
         >
-          <Text style={[styles.categoryTitle, { color: colors.textTertiary }]}>
-            {t("profile.settings.categories.preferences")}
+          <Text style={[styles.categoryTitle, { color: colors.primary }]}>
+            §  {t("profile.settings.categories.preferences")}
           </Text>
+          <View style={[styles.categoryAccent, { backgroundColor: colors.primary }]} />
           <TouchableOpacity
             style={styles.settingsItem}
             activeOpacity={0.7}
@@ -553,9 +577,10 @@ export default function ProfileScreen() {
             SHADOWS.small,
           ]}
         >
-          <Text style={[styles.categoryTitle, { color: colors.textTertiary }]}>
-            {t("profile.settings.categories.support")}
+          <Text style={[styles.categoryTitle, { color: colors.primary }]}>
+            §  {t("profile.settings.categories.support")}
           </Text>
+          <View style={[styles.categoryAccent, { backgroundColor: colors.primary }]} />
           <TouchableOpacity
             style={styles.settingsItem}
             activeOpacity={0.7}
@@ -680,7 +705,7 @@ export default function ProfileScreen() {
           </TouchableOpacity>
         )}
       </ScrollView>
-    </View>
+    </NotebookBackground>
   );
 }
 
@@ -688,11 +713,34 @@ const styles = StyleSheet.create({
   container: {
     flex: 1,
   },
+  pageHeader: {
+    flexDirection: "row",
+    alignItems: "center",
+    gap: SPACING.md,
+    paddingTop: Platform.OS === "ios" ? 56 : 32,
+    paddingHorizontal: SPACING.xl,
+    paddingBottom: SPACING.md,
+  },
+  backBtn: {
+    width: 40,
+    height: 40,
+    borderRadius: BORDER_RADIUS.md + 2,
+    borderWidth: 1,
+    alignItems: "center",
+    justifyContent: "center",
+  },
+  pageMeta: {
+    fontSize: 13,
+    fontWeight: "700",
+    letterSpacing: 1.6,
+    textTransform: "uppercase",
+  },
   scrollView: {
     flex: 1,
   },
   scrollContent: {
-    padding: SPACING.lg,
+    paddingHorizontal: SPACING.xl,
+    paddingTop: SPACING.md,
     paddingBottom: SPACING.xxl * 2,
   },
   userHeader: {
@@ -770,15 +818,21 @@ const styles = StyleSheet.create({
     overflow: "hidden",
   },
   categoryTitle: {
-    ...TEXT_STYLES.labelSmall,
-    fontSize: 11,
-    fontWeight: "600",
+    fontSize: 12,
+    fontWeight: "700",
     textTransform: "uppercase",
-    letterSpacing: 0.8,
+    letterSpacing: 2,
     paddingHorizontal: SPACING.md,
     paddingTop: SPACING.md,
     paddingBottom: SPACING.xs,
-    opacity: 0.7,
+  },
+  categoryAccent: {
+    width: 28,
+    height: 3,
+    borderRadius: 2,
+    opacity: 0.85,
+    marginLeft: SPACING.md,
+    marginBottom: SPACING.sm,
   },
   settingsItem: {
     flexDirection: "row",

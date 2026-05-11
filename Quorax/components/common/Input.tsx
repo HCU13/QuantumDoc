@@ -1,14 +1,15 @@
+import { Ionicons } from "@expo/vector-icons";
 import React, { useState } from "react";
 import {
-  View,
+  StyleSheet,
   Text,
   TextInput,
-  StyleSheet,
   TouchableOpacity,
+  View,
 } from "react-native";
-import { Ionicons } from "@expo/vector-icons";
+
+import { BORDER_RADIUS, HIT_SLOP, SPACING, TEXT_STYLES } from "@/constants/theme";
 import { useTheme } from "@/contexts/ThemeContext";
-import { SPACING, BORDER_RADIUS, TEXT_STYLES } from "@/constants/theme";
 
 interface InputProps {
   label?: string;
@@ -26,8 +27,13 @@ interface InputProps {
   autoCapitalize?: "none" | "sentences" | "words" | "characters";
   autoCorrect?: boolean;
   editable?: boolean;
+  /** "filled" = arka plan card, "ghost" = transparan + alt çizgi */
+  variant?: "filled" | "ghost";
 }
 
+/**
+ * 2026: 2px focus ring + tema uyumlu, geriye dönük uyumlu API.
+ */
 export const Input: React.FC<InputProps> = ({
   label,
   value,
@@ -44,12 +50,21 @@ export const Input: React.FC<InputProps> = ({
   autoCapitalize = "none",
   autoCorrect = false,
   editable = true,
+  variant = "filled",
 }) => {
-  const { colors, isDark } = useTheme();
+  const { colors } = useTheme();
   const [isFocused, setIsFocused] = useState(false);
   const [isPasswordVisible, setIsPasswordVisible] = useState(false);
 
   const showPasswordToggle = secureTextEntry && value.length > 0;
+
+  const borderColor = error
+    ? colors.error
+    : isFocused
+      ? colors.primary
+      : colors.borderSubtle;
+
+  const ringColor = error ? colors.error : colors.focusRing;
 
   return (
     <View style={[styles.container, containerStyle]}>
@@ -62,25 +77,26 @@ export const Input: React.FC<InputProps> = ({
         style={[
           styles.inputContainer,
           {
-            backgroundColor: colors.card,
-            borderColor: error
-              ? colors.error || "#FF6B6B"
-              : isFocused
-              ? colors.primary
-              : colors.borderSubtle,
-            minHeight: multiline ? 100 : 50,
+            backgroundColor: variant === "ghost" ? "transparent" : colors.card,
+            borderColor,
+            borderWidth: isFocused || error ? 1.5 : 1,
+            minHeight: multiline ? 100 : 52,
             alignItems: multiline ? "flex-start" : "center",
             paddingVertical: multiline ? SPACING.sm : 0,
           },
-          isFocused && styles.focusedInput,
-          error && styles.errorInput,
+          (isFocused || error) && {
+            shadowColor: ringColor,
+            shadowOffset: { width: 0, height: 0 },
+            shadowOpacity: 0.4,
+            shadowRadius: 6,
+          },
         ]}
       >
         {icon && !onIconPress && (
           <Ionicons
             name={icon}
             size={20}
-            color={colors.textSecondary}
+            color={isFocused ? colors.primary : colors.textTertiary}
             style={styles.icon}
           />
         )}
@@ -105,11 +121,14 @@ export const Input: React.FC<InputProps> = ({
           editable={editable}
           onFocus={() => setIsFocused(true)}
           onBlur={() => setIsFocused(false)}
+          accessibilityLabel={label ?? placeholder}
         />
         {showPasswordToggle && (
           <TouchableOpacity
             onPress={() => setIsPasswordVisible(!isPasswordVisible)}
             style={styles.passwordToggle}
+            hitSlop={HIT_SLOP.medium}
+            accessibilityLabel={isPasswordVisible ? "Şifreyi gizle" : "Şifreyi göster"}
           >
             <Ionicons
               name={isPasswordVisible ? "eye-off-outline" : "eye-outline"}
@@ -119,13 +138,20 @@ export const Input: React.FC<InputProps> = ({
           </TouchableOpacity>
         )}
         {onIconPress && icon && (
-          <TouchableOpacity onPress={onIconPress} style={styles.iconButton}>
+          <TouchableOpacity
+            onPress={onIconPress}
+            style={styles.iconButton}
+            hitSlop={HIT_SLOP.medium}
+          >
             <Ionicons name={icon} size={20} color={colors.primary} />
           </TouchableOpacity>
         )}
       </View>
       {error && (
-        <Text style={[styles.errorText, { color: colors.error || "#FF6B6B" }]}>
+        <Text
+          style={[styles.errorText, { color: colors.error }]}
+          accessibilityLiveRegion="polite"
+        >
           {error}
         </Text>
       )}
@@ -140,20 +166,13 @@ const styles = StyleSheet.create({
   },
   label: {
     ...TEXT_STYLES.labelMedium,
-    marginBottom: SPACING.xs,
-    fontWeight: "500",
+    marginBottom: SPACING.xs + 2,
+    fontWeight: "600",
   },
   inputContainer: {
     flexDirection: "row",
-    borderRadius: BORDER_RADIUS.md,
+    borderRadius: BORDER_RADIUS.md + 2,
     paddingHorizontal: SPACING.md,
-    borderWidth: 1,
-  },
-  focusedInput: {
-    borderWidth: 2,
-  },
-  errorInput: {
-    borderWidth: 2,
   },
   input: {
     flex: 1,
@@ -174,6 +193,6 @@ const styles = StyleSheet.create({
     ...TEXT_STYLES.labelSmall,
     marginTop: SPACING.xs,
     marginLeft: SPACING.xs,
+    fontWeight: "500",
   },
 });
-

@@ -9,6 +9,7 @@ import {
   Alert,
   ActivityIndicator,
 } from "react-native";
+import { NotebookBackground } from "@/components/common/NotebookBackground";
 import { StatusBar } from "expo-status-bar";
 import { useTranslation } from "react-i18next";
 import { Ionicons } from "@expo/vector-icons";
@@ -252,7 +253,7 @@ export default function HelpSupportScreen() {
   };
 
   return (
-    <View style={[styles.container, { backgroundColor: colors.background }]}>
+    <NotebookBackground cornerGlyphs={["?", "!"]}>
       <StatusBar style={isDark ? "light" : "dark"} />
       <ModuleHeader title={t("profile.help.title")} />
 
@@ -636,7 +637,7 @@ export default function HelpSupportScreen() {
 
           <View style={{ height: SPACING.xl }} />
         </ScrollView>
-    </View>
+    </NotebookBackground>
   );
 }
 

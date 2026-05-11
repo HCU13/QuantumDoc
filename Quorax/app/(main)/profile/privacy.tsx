@@ -6,6 +6,7 @@ import { useTranslation } from "react-i18next";
 import { useTheme } from "@/contexts/ThemeContext";
 import { ModuleHeader } from "@/components/common/ModuleHeader";
 import { BORDER_RADIUS, SPACING, TEXT_STYLES } from "@/constants/theme";
+import { NotebookBackground } from "@/components/common/NotebookBackground";
 
 function SectionTitle({ text, color }: { text: string; color: string }) {
   return <Text style={[styles.sectionTitle, { color }]}>{text}</Text>;
@@ -34,7 +35,7 @@ export default function PrivacyScreen() {
   const accent = colors.primary ?? "#8B5CF6";
 
   return (
-    <View style={[styles.container, { backgroundColor: colors.background }]}>
+    <NotebookBackground cornerGlyphs={["🔒", "§"]}>
       <StatusBar style={isDark ? "light" : "dark"} />
       <ModuleHeader title={t("profile.privacy.title")} />
 
@@ -287,7 +288,7 @@ export default function PrivacyScreen() {
 
         <View style={{ height: SPACING.xl }} />
       </ScrollView>
-    </View>
+    </NotebookBackground>
   );
 }
 

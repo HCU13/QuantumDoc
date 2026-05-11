@@ -16,6 +16,7 @@ import {
 import { Button } from "@/components/common/Button";
 import { Input } from "@/components/common/Input";
 import { ModuleHeader } from "@/components/common/ModuleHeader";
+import { NotebookBackground } from "@/components/common/NotebookBackground";
 import { UserInitials } from "@/components/common/UserInitials";
 import { BORDER_RADIUS, SHADOWS, SPACING, TEXT_STYLES } from "@/constants/theme";
 import { useAuth } from "@/contexts/AuthContext";
@@ -123,7 +124,7 @@ export default function EditProfileScreen() {
 
   if (!user) {
     return (
-      <View style={[styles.container, { backgroundColor: colors.background }]}>
+      <NotebookBackground cornerGlyphs={["✎", "§"]}>
         <StatusBar style={isDark ? "light" : "dark"} />
         <ModuleHeader title={t("profile.edit.title")} />
         <View style={styles.center}>
@@ -132,14 +133,14 @@ export default function EditProfileScreen() {
             {t("profile.edit.loginRequired")}
           </Text>
         </View>
-      </View>
+      </NotebookBackground>
     );
   }
 
   const passwordHeight = passwordAnim.interpolate({ inputRange: [0, 1], outputRange: [0, 380] });
 
   return (
-    <View style={[styles.container, { backgroundColor: colors.background }]}>
+    <NotebookBackground cornerGlyphs={["✎", "§"]}>
       <StatusBar style={isDark ? "light" : "dark"} />
       <ModuleHeader title={t("profile.edit.title")} />
 
@@ -230,7 +231,7 @@ export default function EditProfileScreen() {
 
         <View style={{ height: SPACING.xxl }} />
       </ScrollView>
-    </View>
+    </NotebookBackground>
   );
 }
 

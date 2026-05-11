@@ -10,6 +10,9 @@ import { Animated, Image, SafeAreaView, StyleSheet, Text, TouchableOpacity, View
 import 'react-native-reanimated';
 import 'react-native-url-polyfill/auto';
 import * as Sentry from '@sentry/react-native';
+import { GestureHandlerRootView } from 'react-native-gesture-handler';
+import { Toaster } from 'sonner-native';
+import { SheetProvider } from '@/components/common/Sheet';
 
 Sentry.init({
   dsn: process.env.EXPO_PUBLIC_SENTRY_DSN,
@@ -18,7 +21,6 @@ Sentry.init({
 });
 
 import { RatingPromptModal } from '@/components/common/RatingPromptModal';
-import { WelcomeModal } from '@/components/common/WelcomeModal';
 import { Toast } from '@/components/common/Toast';
 import { ActivityProvider } from '@/contexts/ActivityContext';
 import { AdProvider } from '@/contexts/AdContext';
@@ -29,7 +31,6 @@ import { ThemeProvider, useTheme } from '@/contexts/ThemeContext';
 import i18n from '@/i18n/config';
 import { usePushToken } from '@/hooks/usePushToken';
 import { useRatingPrompt } from '@/hooks/useRatingPrompt';
-import { useWelcomeModal } from '@/hooks/useWelcomeModal';
 
 export const unstable_settings = {
   anchor: '(main)',
@@ -249,7 +250,6 @@ function RootLayoutContent() {
   const [isGuestMode, setIsGuestMode] = useState(false);
   const [guestChecked, setGuestChecked] = useState(false);
   const { shouldShow: showRatingPrompt, markPrompted } = useRatingPrompt();
-  const { shouldShow: showWelcome, dismiss: dismissWelcome } = useWelcomeModal();
   usePushToken();
 
   // Tüm veriler hazır mı?
@@ -345,8 +345,15 @@ function RootLayoutContent() {
       </Stack>
       <StatusBar style={isDark ? 'light' : 'dark'} />
       <Toast />
+      <Toaster
+        position="top-center"
+        offset={64}
+        duration={3500}
+        swipeToDismissDirection="up"
+        theme={isDark ? 'dark' : 'light'}
+        richColors
+      />
       <RatingPromptModal visible={showRatingPrompt} onDismiss={(choice) => markPrompted(choice)} />
-      <WelcomeModal visible={showWelcome && !showRatingPrompt} onDismiss={dismissWelcome} />
       {/* Splash: veriler hazır olunca fade out yapar ve kaldırılır */}
       {showSplash && (
         <SplashScreen allReady={allReady} onReady={() => setSplashDone(true)} />
@@ -430,23 +437,27 @@ const styles = StyleSheet.create({
 
 function RootLayout() {
   return (
-    <ErrorBoundary>
-      <I18nextProvider i18n={i18n}>
-        <ThemeProvider>
-          <AuthProvider>
-            <SubscriptionProvider>
+    <GestureHandlerRootView style={{ flex: 1 }}>
+      <ErrorBoundary>
+        <I18nextProvider i18n={i18n}>
+          <ThemeProvider>
+            <AuthProvider>
+              <SubscriptionProvider>
                 <ActivityProvider>
                   <AdProvider>
                     <ExamProgressProvider>
-                      <RootLayoutContent />
+                      <SheetProvider>
+                        <RootLayoutContent />
+                      </SheetProvider>
                     </ExamProgressProvider>
                   </AdProvider>
                 </ActivityProvider>
-            </SubscriptionProvider>
-          </AuthProvider>
-        </ThemeProvider>
-      </I18nextProvider>
-    </ErrorBoundary>
+              </SubscriptionProvider>
+            </AuthProvider>
+          </ThemeProvider>
+        </I18nextProvider>
+      </ErrorBoundary>
+    </GestureHandlerRootView>
   );
 }
 

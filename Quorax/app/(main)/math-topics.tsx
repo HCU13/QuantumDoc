@@ -12,6 +12,7 @@ import {
   TouchableOpacity,
   View,
 } from "react-native";
+import { NotebookBackground } from "@/components/common/NotebookBackground";
 
 import { ModuleHeader } from "@/components/common/ModuleHeader";
 import { BORDER_RADIUS, SPACING, TEXT_STYLES } from "@/constants/theme";
@@ -166,7 +167,7 @@ export default function MathTopicsScreen() {
   const maxCount = categories[0]?.count || 1;
 
   return (
-    <View style={[styles.container, { backgroundColor: colors.background }]}>
+    <NotebookBackground cornerGlyphs={["γ", "δ"]}>
       <StatusBar style={isDark ? "light" : "dark"} />
 
       <ModuleHeader
@@ -335,7 +336,7 @@ export default function MathTopicsScreen() {
 
         <View style={{ height: SPACING.xl * 2 }} />
       </ScrollView>
-    </View>
+    </NotebookBackground>
   );
 }
 

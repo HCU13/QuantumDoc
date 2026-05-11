@@ -16,6 +16,7 @@ import {
 import { ActivityItem, type Activity } from "@/components/home/ActivityItem";
 import { BORDER_RADIUS, SPACING, TEXT_STYLES } from "@/constants/theme";
 import { useActivity } from "@/contexts/ActivityContext";
+import { NotebookBackground } from "@/components/common/NotebookBackground";
 import { useAuth } from "@/contexts/AuthContext";
 import { useTheme } from "@/contexts/ThemeContext";
 import { supabase, TABLES } from "@/services/supabase";
@@ -215,16 +216,8 @@ export default function ActivityScreen() {
   };
 
   return (
-    <View style={[styles.container, { backgroundColor: colors.background }]}>
-      <View
-        style={[
-          styles.header,
-          {
-            backgroundColor: colors.background,
-            borderBottomColor: colors.borderSubtle,
-          },
-        ]}
-      >
+    <NotebookBackground cornerGlyphs={["⏱", "Λ"]}>
+      <View style={styles.header}>
         <View style={styles.headerContent}>
           <TouchableOpacity
             onPress={() => router.back()}
@@ -308,7 +301,7 @@ export default function ActivityScreen() {
           </Text>
         </View>
       )}
-    </View>
+    </NotebookBackground>
   );
 }
 

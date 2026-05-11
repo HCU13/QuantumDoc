@@ -18,6 +18,7 @@ import { useAuth } from "@/contexts/AuthContext";
 import { useActivity } from "@/contexts/ActivityContext";
 import { supabase, TABLES } from "@/services/supabase";
 import { ModuleHeader } from "@/components/common/ModuleHeader";
+import { NotebookBackground } from "@/components/common/NotebookBackground";
 import {
   SPACING,
   BORDER_RADIUS,
@@ -183,18 +184,18 @@ export default function ActivityDetailScreen() {
 
   if (loading) {
     return (
-      <View style={[styles.container, { backgroundColor: colors.background }]}>
+      <NotebookBackground cornerGlyphs={["⏱", "•"]}>
         <ModuleHeader title={t("home.recentActivity")} />
         <View style={styles.loadingContainer}>
           <ActivityIndicator size="large" color={colors.primary} />
         </View>
-      </View>
+      </NotebookBackground>
     );
   }
 
   if (!activity) {
     return (
-      <View style={[styles.container, { backgroundColor: colors.background }]}>
+      <NotebookBackground cornerGlyphs={["⏱", "•"]}>
         <ModuleHeader title={t("home.recentActivity")} />
         <View style={styles.emptyContainer}>
           <Ionicons name="alert-circle-outline" size={64} color={colors.textTertiary} />
@@ -202,12 +203,12 @@ export default function ActivityDetailScreen() {
             {t("home.activity.detail.notFound")}
           </Text>
         </View>
-      </View>
+      </NotebookBackground>
     );
   }
 
   return (
-    <View style={[styles.container, { backgroundColor: colors.background }]}>
+    <NotebookBackground cornerGlyphs={["⏱", "•"]}>
       <ModuleHeader
         title={t("home.activity.detail.title")}
         rightAction={
@@ -442,7 +443,7 @@ export default function ActivityDetailScreen() {
 
         <View style={{ height: SPACING.xl }} />
       </ScrollView>
-    </View>
+    </NotebookBackground>
   );
 }
 

@@ -7,6 +7,7 @@ import {
   Platform,
   Dimensions,
 } from "react-native";
+import { NotebookBackground } from "@/components/common/NotebookBackground";
 import { StatusBar } from "expo-status-bar";
 import { useRouter } from "expo-router";
 import { useTranslation } from "react-i18next";
@@ -346,7 +347,7 @@ export default function CalculatorScreen() {
   };
 
   return (
-    <View style={[styles.container, { backgroundColor: colors.background }]}>
+    <NotebookBackground cornerGlyphs={["×", "÷"]}>
       <StatusBar style={isDark ? "light" : "dark"} />
 
       <ModuleHeader
@@ -752,7 +753,7 @@ export default function CalculatorScreen() {
           </View>
         </View>
       </View>
-    </View>
+    </NotebookBackground>
   );
 }
 

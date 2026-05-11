@@ -17,6 +17,7 @@ import {
   TouchableOpacity,
   View,
 } from "react-native";
+import { NotebookBackground } from "@/components/common/NotebookBackground";
 
 import { Button } from "@/components/common/Button";
 import { Chip } from "@/components/common/Chip";
@@ -632,7 +633,7 @@ export default function MathScreen() {
   );
 
   return (
-    <View style={[styles.container, { backgroundColor: colors.background }]}>
+    <NotebookBackground cornerGlyphs={["∂", "∇"]}>
       <StatusBar style={isDark ? "light" : "dark"} />
 
       <ModuleHeader
@@ -1273,7 +1274,7 @@ export default function MathScreen() {
 
       <AILoadingModal visible={solving} type="math" />
       <PremiumModal visible={showPremiumModal} onClose={() => { setShowPremiumModal(false); setPremiumModalIsProGate(false); }} moduleType="math" usageInfo={premiumModalIsProGate ? undefined : usageInfo} />
-    </View>
+    </NotebookBackground>
   );
 }
 

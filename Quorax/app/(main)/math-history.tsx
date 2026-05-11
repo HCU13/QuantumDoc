@@ -13,6 +13,7 @@ import {
   TouchableOpacity,
   View,
 } from "react-native";
+import { NotebookBackground } from "@/components/common/NotebookBackground";
 
 import { ModuleHeader } from "@/components/common/ModuleHeader";
 import MathText from "@/components/math/MathText";
@@ -320,7 +321,7 @@ export default function MathHistoryScreen() {
   };
 
   return (
-    <View style={[styles.container, { backgroundColor: colors.background }]}>
+    <NotebookBackground cornerGlyphs={["∑", "∏"]}>
       <StatusBar style={isDark ? "light" : "dark"} />
       <ModuleHeader
         title={t("mathHistory.title")}
@@ -385,7 +386,7 @@ export default function MathHistoryScreen() {
           }
         />
       )}
-    </View>
+    </NotebookBackground>
   );
 }
 

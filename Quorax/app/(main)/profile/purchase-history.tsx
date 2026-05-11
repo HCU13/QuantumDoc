@@ -11,6 +11,7 @@ import { useAuth } from "@/contexts/AuthContext";
 import type { Purchase } from "@/contexts/SubscriptionContext";
 import { useSubscription } from "@/contexts/SubscriptionContext";
 import { useTheme } from "@/contexts/ThemeContext";
+import { NotebookBackground } from "@/components/common/NotebookBackground";
 
 function PurchaseCard({ item, colors, lang }: { item: Purchase; colors: any; lang: string }) {
   const locale = lang === "tr" ? "tr-TR" : "en-US";
@@ -91,7 +92,7 @@ export default function PurchaseHistoryScreen() {
   const title = lang === "tr" ? "Satın Alım Geçmişi" : "Purchase History";
 
   return (
-    <View style={[styles.container, { backgroundColor: colors.background }]}>
+    <NotebookBackground cornerGlyphs={["$", "€"]}>
       <StatusBar style={isDark ? "light" : "dark"} />
       <ModuleHeader
         title={title}
@@ -142,7 +143,7 @@ export default function PurchaseHistoryScreen() {
           }
         />
       )}
-    </View>
+    </NotebookBackground>
   );
 }
 

@@ -1,28 +1,24 @@
-import { Ionicons } from "@expo/vector-icons";
-import { LinearGradient } from "expo-linear-gradient";
+import AsyncStorage from "@react-native-async-storage/async-storage";
 import { useRouter } from "expo-router";
 import { StatusBar } from "expo-status-bar";
 import React from "react";
 import { useTranslation } from "react-i18next";
-import {
-  Image,
-  Platform,
-  StyleSheet,
-  Text,
-  TouchableOpacity,
-  View,
-} from "react-native";
-import AsyncStorage from "@react-native-async-storage/async-storage";
+import { Platform, Pressable, StyleSheet, Text, View } from "react-native";
 
-import { useTheme } from "@/contexts/ThemeContext";
+import { Button } from "@/components/common/Button";
+import { NotebookBackground } from "@/components/common/NotebookBackground";
 import { BORDER_RADIUS, SPACING } from "@/constants/theme";
+import { useTheme } from "@/contexts/ThemeContext";
+import { useHaptics } from "@/hooks/useHaptics";
 
 export default function WelcomeScreen() {
   const { colors, isDark } = useTheme();
   const { t } = useTranslation();
   const router = useRouter();
+  const haptics = useHaptics();
 
   const handleGuest = async () => {
+    haptics.selection();
     try {
       await AsyncStorage.setItem("@guest_mode", "true");
     } catch {}
@@ -30,123 +26,198 @@ export default function WelcomeScreen() {
   };
 
   return (
-    <View style={[styles.container, { backgroundColor: colors.background }]}>
+    <NotebookBackground cornerGlyphs={["∫", "π"]}>
       <StatusBar style={isDark ? "light" : "dark"} />
 
-      {/* Logo + Brand */}
-      <View style={styles.brandSection}>
-        <Image
-          source={require("@/assets/images/logo.png")}
-          style={styles.logo}
-          resizeMode="contain"
-        />
-        <Text style={[styles.appName, { color: colors.textPrimary }]}>QUORAX</Text>
-        <Text style={[styles.tagline, { color: colors.textSecondary }]}>
-          {t("welcome.tagline")}
-        </Text>
-      </View>
+      <View style={styles.container}>
+        {/* Page header — date + page number, like a notebook page */}
+        <View style={styles.pageHeader}>
+          <Text style={[styles.pageMeta, { color: colors.textTertiary }]}>
+            {formatToday()}
+          </Text>
+          <Text style={[styles.pageMeta, { color: colors.textTertiary }]}>
+            — 01 —
+          </Text>
+        </View>
 
-      {/* Buttons */}
-      <View style={styles.buttonSection}>
-        <TouchableOpacity activeOpacity={0.85} onPress={() => router.push("/(main)/login")}>
-          <LinearGradient
-            colors={["#8A4FFF", "#6932E0"]}
-            start={{ x: 0, y: 0 }}
-            end={{ x: 1, y: 0 }}
-            style={styles.primaryButton}
+        {/* Hero — left-aligned beside the red margin rule */}
+        <View style={styles.hero}>
+          <View style={styles.brandRow}>
+            <View
+              style={[
+                styles.logoMark,
+                {
+                  backgroundColor: colors.primary,
+                  shadowColor: colors.primary,
+                },
+              ]}
+            >
+              <Text style={styles.logoMarkText}>Q</Text>
+            </View>
+            <Text style={[styles.brand, { color: colors.textPrimary }]}>
+              Quorax
+            </Text>
+          </View>
+
+          <Text style={[styles.headline, { color: colors.textPrimary }]}>
+            {t("welcome.tagline")}
+          </Text>
+
+          {/* Hand-written-style underline accent */}
+          <View
+            style={[
+              styles.underlineAccent,
+              { backgroundColor: colors.primary },
+            ]}
+          />
+        </View>
+
+        {/* CTA section */}
+        <View style={styles.actions}>
+          <Button
+            title={t("welcome.createAccount")}
+            onPress={() => {
+              haptics.selection();
+              router.push("/(main)/signup");
+            }}
+            size="large"
+            fullWidth
+          />
+
+          <Pressable
+            onPress={() => {
+              haptics.selection();
+              router.push("/(main)/login");
+            }}
+            style={({ pressed }) => [
+              styles.signInBtn,
+              {
+                borderColor: colors.borderSubtle,
+                backgroundColor: colors.surface,
+                opacity: pressed ? 0.75 : 1,
+              },
+            ]}
+            accessibilityRole="button"
+            accessibilityLabel={t("welcome.signIn")}
           >
-            <Ionicons name="log-in-outline" size={20} color="#fff" />
-            <Text style={styles.primaryButtonText}>{t("welcome.signIn")}</Text>
-          </LinearGradient>
-        </TouchableOpacity>
+            <Text style={[styles.signInText, { color: colors.textPrimary }]}>
+              {t("welcome.signIn")}
+            </Text>
+          </Pressable>
 
-        <TouchableOpacity
-          style={[styles.outlineButton, { borderColor: colors.primary }]}
-          onPress={() => router.push("/(main)/signup")}
-          activeOpacity={0.8}
-        >
-          <Ionicons name="person-add-outline" size={20} color={colors.primary} />
-          <Text style={[styles.outlineButtonText, { color: colors.primary }]}>
-            {t("welcome.createAccount")}
-          </Text>
-        </TouchableOpacity>
-
-        <TouchableOpacity style={styles.guestButton} onPress={handleGuest} activeOpacity={0.7}>
-          <Text style={[styles.guestButtonText, { color: colors.textTertiary }]}>
-            {t("welcome.continueAsGuest")}
-          </Text>
-        </TouchableOpacity>
+          <Pressable
+            onPress={handleGuest}
+            style={({ pressed }) => [
+              styles.guestRow,
+              { opacity: pressed ? 0.5 : 1 },
+            ]}
+            hitSlop={8}
+            accessibilityRole="button"
+            accessibilityLabel={t("welcome.continueAsGuest")}
+          >
+            <Text style={[styles.guestText, { color: colors.textTertiary }]}>
+              {t("welcome.continueAsGuest")}
+            </Text>
+          </Pressable>
+        </View>
       </View>
-    </View>
+    </NotebookBackground>
   );
+}
+
+function formatToday(): string {
+  const d = new Date();
+  return `${String(d.getDate()).padStart(2, "0")}.${String(d.getMonth() + 1).padStart(2, "0")}.${d.getFullYear()}`;
 }
 
 const styles = StyleSheet.create({
   container: {
     flex: 1,
-    paddingHorizontal: SPACING.lg,
-    paddingBottom: Platform.OS === "ios" ? 48 : 32,
+    paddingTop: Platform.OS === "ios" ? 60 : 36,
+    paddingHorizontal: SPACING.xl,
+    paddingBottom: Platform.OS === "ios" ? 36 : 24,
+  },
+  pageHeader: {
+    flexDirection: "row",
     justifyContent: "space-between",
+    alignItems: "center",
   },
-  brandSection: {
+  pageMeta: {
+    fontSize: 12,
+    fontWeight: "500",
+    letterSpacing: 1.5,
+    fontVariant: ["tabular-nums"],
+  },
+
+  hero: {
     flex: 1,
+    justifyContent: "center",
+    paddingTop: SPACING.xxl,
+  },
+  brandRow: {
+    flexDirection: "row",
+    alignItems: "center",
+    gap: SPACING.md,
+    marginBottom: SPACING.xl,
+  },
+  logoMark: {
+    width: 52,
+    height: 52,
+    borderRadius: BORDER_RADIUS.md + 2,
     alignItems: "center",
     justifyContent: "center",
-    gap: 8,
+    // soft brand-tinted lift, not a glow
+    shadowOffset: { width: 0, height: 6 },
+    shadowOpacity: 0.18,
+    shadowRadius: 12,
+    elevation: 4,
   },
-  logo: {
-    width: 88,
-    height: 88,
-    borderRadius: 22,
-    marginBottom: 16,
-  },
-  appName: {
-    fontSize: 30,
+  logoMarkText: {
+    fontSize: 26,
     fontWeight: "800",
-    letterSpacing: 6,
+    color: "#FFFFFF",
+    letterSpacing: -0.5,
   },
-  tagline: {
-    fontSize: 15,
-    textAlign: "center",
-    lineHeight: 22,
-    marginTop: 4,
-    paddingHorizontal: 16,
+  brand: {
+    fontSize: 26,
+    lineHeight: 30,
+    fontWeight: "700",
+    letterSpacing: -0.4,
   },
-  buttonSection: {
-    gap: SPACING.sm,
+  headline: {
+    fontSize: 34,
+    lineHeight: 42,
+    fontWeight: "700",
+    letterSpacing: -0.6,
+    marginBottom: SPACING.md,
   },
-  primaryButton: {
-    flexDirection: "row",
+  underlineAccent: {
+    width: 56,
+    height: 4,
+    borderRadius: 2,
+    opacity: 0.85,
+  },
+
+  actions: {
+    gap: SPACING.md,
+  },
+  signInBtn: {
+    minHeight: 54,
+    borderRadius: BORDER_RADIUS.md + 2,
+    borderWidth: 1,
     alignItems: "center",
     justifyContent: "center",
-    gap: SPACING.sm,
-    paddingVertical: SPACING.md + 2,
-    borderRadius: BORDER_RADIUS.lg,
   },
-  primaryButtonText: {
-    color: "#fff",
+  signInText: {
     fontSize: 16,
-    fontWeight: "700",
+    fontWeight: "600",
+    letterSpacing: 0.1,
   },
-  outlineButton: {
-    flexDirection: "row",
-    alignItems: "center",
-    justifyContent: "center",
-    gap: SPACING.sm,
-    paddingVertical: SPACING.md + 2,
-    borderRadius: BORDER_RADIUS.lg,
-    borderWidth: 2,
-    backgroundColor: "transparent",
-  },
-  outlineButtonText: {
-    fontSize: 16,
-    fontWeight: "700",
-  },
-  guestButton: {
+  guestRow: {
     alignItems: "center",
     paddingVertical: SPACING.sm + 2,
   },
-  guestButtonText: {
+  guestText: {
     fontSize: 14,
     fontWeight: "500",
   },

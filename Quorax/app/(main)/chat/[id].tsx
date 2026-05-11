@@ -16,6 +16,7 @@ import {
     TouchableOpacity,
     View,
 } from "react-native";
+import { NotebookBackground } from "@/components/common/NotebookBackground";
 import {
     Bubble,
     GiftedChat,
@@ -729,7 +730,7 @@ export default function ChatDetailScreen() {
   };
 
   return (
-    <View style={[styles.container, { backgroundColor: colors.background }]}>
+    <NotebookBackground cornerGlyphs={["∴", "⟨⟩"]}>
       <StatusBar style={isDark ? "light" : "dark"} />
 
       <ModuleHeader
@@ -789,7 +790,7 @@ export default function ChatDetailScreen() {
         usageInfo={usageInfo}
         moduleType="chat"
       />
-    </View>
+    </NotebookBackground>
   );
 }
 

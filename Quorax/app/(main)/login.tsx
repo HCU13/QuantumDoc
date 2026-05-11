@@ -5,9 +5,9 @@ import React, { useEffect, useState } from "react";
 import { useTranslation } from "react-i18next";
 import {
   Alert,
-  Image,
   KeyboardAvoidingView,
   Platform,
+  Pressable,
   ScrollView,
   StyleSheet,
   Text,
@@ -17,7 +17,8 @@ import {
 
 import { Button } from "@/components/common/Button";
 import { Input } from "@/components/common/Input";
-import { SPACING } from "@/constants/theme";
+import { NotebookBackground } from "@/components/common/NotebookBackground";
+import { BORDER_RADIUS, HIT_SLOP, SPACING } from "@/constants/theme";
 import { useAuth } from "@/contexts/AuthContext";
 import { useTheme } from "@/contexts/ThemeContext";
 
@@ -45,9 +46,12 @@ export default function LoginScreen() {
   const validateForm = () => {
     const newErrors: { email?: string; password?: string } = {};
     if (!email.trim()) newErrors.email = t("auth.login.errors.emailRequired");
-    else if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email)) newErrors.email = t("auth.login.errors.emailInvalid");
-    if (!password.trim()) newErrors.password = t("auth.login.errors.passwordRequired");
-    else if (password.length < 6) newErrors.password = t("auth.login.errors.passwordMinLength");
+    else if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email))
+      newErrors.email = t("auth.login.errors.emailInvalid");
+    if (!password.trim())
+      newErrors.password = t("auth.login.errors.passwordRequired");
+    else if (password.length < 6)
+      newErrors.password = t("auth.login.errors.passwordMinLength");
     setErrors(newErrors);
     return Object.keys(newErrors).length === 0;
   };
@@ -59,7 +63,8 @@ export default function LoginScreen() {
       const result = await login(email, password, true);
       if (!result.success) {
         const msg =
-          result.error?.includes("Invalid login credentials") || result.error?.includes("Invalid login")
+          result.error?.includes("Invalid login credentials") ||
+          result.error?.includes("Invalid login")
             ? t("auth.login.errors.invalidCredentials")
             : result.error || t("auth.login.errors.generic");
         Alert.alert(t("auth.login.errors.title"), msg);
@@ -71,36 +76,56 @@ export default function LoginScreen() {
     }
   };
 
-  const handleBack = () => {
-    router.replace("/(main)/welcome");
-  };
+  const handleBack = () => router.replace("/(main)/welcome");
 
   return (
-    <View style={[styles.container, { backgroundColor: colors.background }]}>
+    <NotebookBackground cornerGlyphs={["∑", "√"]}>
       <StatusBar style={isDark ? "light" : "dark"} />
 
-      {/* Header */}
-      <View style={[styles.header, { backgroundColor: colors.background, borderBottomColor: colors.borderSubtle }]}>
-        <TouchableOpacity style={[styles.backBtn, { backgroundColor: colors.surface }]} onPress={handleBack} activeOpacity={0.7}>
-          <Ionicons name="chevron-back" size={22} color={colors.textPrimary} />
-        </TouchableOpacity>
-      </View>
+      <KeyboardAvoidingView
+        style={{ flex: 1 }}
+        behavior={Platform.OS === "ios" ? "padding" : "height"}
+      >
+        {/* Page header — back button outside the margin, page number on right */}
+        <View style={styles.pageHeader}>
+          <Pressable
+            onPress={handleBack}
+            hitSlop={HIT_SLOP.medium}
+            style={({ pressed }) => [
+              styles.backBtn,
+              {
+                backgroundColor: colors.surface,
+                borderColor: colors.borderSubtle,
+                opacity: pressed ? 0.6 : 1,
+              },
+            ]}
+            accessibilityRole="button"
+            accessibilityLabel={t("common.back")}
+          >
+            <Ionicons name="chevron-back" size={20} color={colors.textPrimary} />
+          </Pressable>
+          <Text style={[styles.pageMeta, { color: colors.textTertiary }]}>
+            — 02 —
+          </Text>
+        </View>
 
-      <KeyboardAvoidingView style={{ flex: 1 }} behavior={Platform.OS === "ios" ? "padding" : "height"}>
         <ScrollView
           contentContainerStyle={styles.scroll}
           showsVerticalScrollIndicator={false}
           keyboardShouldPersistTaps="handled"
         >
-          {/* Logo + Başlık */}
-          <View style={styles.titleWrap}>
-            <Image
-              source={require("@/assets/images/logo.png")}
-              style={styles.logo}
-              resizeMode="contain"
-            />
-            <Text style={[styles.title, { color: colors.textPrimary }]}>{t("auth.login.welcome")}</Text>
-            <Text style={[styles.subtitle, { color: colors.textSecondary }]}>{t("auth.login.subtitle")}</Text>
+          {/* Title block */}
+          <View style={styles.titleBlock}>
+            <Text style={[styles.section, { color: colors.primary }]}>
+              §  {t("auth.login.title")}
+            </Text>
+            <Text style={[styles.title, { color: colors.textPrimary }]}>
+              {t("auth.login.welcome")}
+            </Text>
+            <View style={[styles.titleUnderline, { backgroundColor: colors.primary }]} />
+            <Text style={[styles.subtitle, { color: colors.textSecondary }]}>
+              {t("auth.login.subtitle")}
+            </Text>
           </View>
 
           {/* Form */}
@@ -108,7 +133,10 @@ export default function LoginScreen() {
             <Input
               label={t("auth.login.email")}
               value={email}
-              onChangeText={(text) => { setEmail(text); if (errors.email) setErrors({ ...errors, email: undefined }); }}
+              onChangeText={(text) => {
+                setEmail(text);
+                if (errors.email) setErrors({ ...errors, email: undefined });
+              }}
               placeholder={t("auth.login.emailPlaceholder")}
               keyboardType="email-address"
               autoCapitalize="none"
@@ -117,111 +145,137 @@ export default function LoginScreen() {
               error={errors.email}
             />
 
-            <View style={{ marginTop: SPACING.md }}>
-              <Input
-                label={t("auth.login.password")}
-                value={password}
-                onChangeText={(text) => { setPassword(text); if (errors.password) setErrors({ ...errors, password: undefined }); }}
-                placeholder={t("auth.login.passwordPlaceholder")}
-                secureTextEntry={true}
-                icon="lock-closed-outline"
-                error={errors.password}
-              />
-            </View>
+            <Input
+              label={t("auth.login.password")}
+              value={password}
+              onChangeText={(text) => {
+                setPassword(text);
+                if (errors.password) setErrors({ ...errors, password: undefined });
+              }}
+              placeholder={t("auth.login.passwordPlaceholder")}
+              secureTextEntry
+              icon="lock-closed-outline"
+              error={errors.password}
+            />
 
             <TouchableOpacity
               style={styles.forgotRow}
               onPress={() => router.push("/(main)/reset-password")}
               activeOpacity={0.7}
+              hitSlop={HIT_SLOP.small}
             >
               <Text style={[styles.forgotText, { color: colors.primary }]}>
-                {t("auth.login.forgotPassword")}
+                {t("auth.login.forgotPassword")} →
               </Text>
             </TouchableOpacity>
 
-            <View style={{ marginTop: SPACING.xl }}>
-              <Button title={t("auth.login.button")} onPress={handleLogin} loading={loading} />
+            <View style={{ marginTop: SPACING.md }}>
+              <Button
+                title={t("auth.login.button")}
+                onPress={handleLogin}
+                loading={loading}
+                size="large"
+                fullWidth
+              />
             </View>
           </View>
 
-          {/* Alt link */}
-          <View style={styles.bottomRow}>
-            <Text style={[styles.bottomText, { color: colors.textSecondary }]}>
+          {/* Footer link */}
+          <View style={styles.footerRow}>
+            <Text style={[styles.footerText, { color: colors.textSecondary }]}>
               {t("auth.login.noAccount")}{" "}
             </Text>
-            <TouchableOpacity onPress={() => router.push("/(main)/signup")} activeOpacity={0.7}>
-              <Text style={[styles.bottomLink, { color: colors.primary }]}>
+            <TouchableOpacity
+              onPress={() => router.push("/(main)/signup")}
+              activeOpacity={0.7}
+              hitSlop={HIT_SLOP.small}
+            >
+              <Text style={[styles.footerLink, { color: colors.primary }]}>
                 {t("auth.login.signUp")}
               </Text>
             </TouchableOpacity>
           </View>
         </ScrollView>
       </KeyboardAvoidingView>
-    </View>
+    </NotebookBackground>
   );
 }
 
 const styles = StyleSheet.create({
-  container: { flex: 1 },
-
-  // Header
-  header: {
-    paddingTop: Platform.OS === "ios" ? 56 : 36,
-    paddingBottom: 12,
-    paddingHorizontal: 16,
-    borderBottomWidth: StyleSheet.hairlineWidth,
+  pageHeader: {
+    flexDirection: "row",
+    alignItems: "center",
+    justifyContent: "space-between",
+    paddingTop: Platform.OS === "ios" ? 56 : 32,
+    paddingHorizontal: SPACING.xl,
   },
   backBtn: {
-    width: 36,
-    height: 36,
-    borderRadius: 12,
-    justifyContent: "center",
+    width: 40,
+    height: 40,
+    borderRadius: BORDER_RADIUS.md + 2,
+    borderWidth: 1,
     alignItems: "center",
+    justifyContent: "center",
+  },
+  pageMeta: {
+    fontSize: 12,
+    fontWeight: "500",
+    letterSpacing: 1.5,
+    fontVariant: ["tabular-nums"],
   },
 
-  // Content
   scroll: {
-    paddingHorizontal: 24,
-    paddingTop: 36,
-    paddingBottom: 48,
+    paddingTop: SPACING.xl,
+    paddingHorizontal: SPACING.xl,
+    paddingBottom: SPACING.xxl,
   },
-  titleWrap: {
-    alignItems: "center",
-    marginBottom: 36,
+  titleBlock: {
+    marginBottom: SPACING.xl,
   },
-  logo: {
-    width: 72,
-    height: 72,
-    marginBottom: 20,
+  section: {
+    fontSize: 12,
+    fontWeight: "700",
+    letterSpacing: 2,
+    textTransform: "uppercase",
+    marginBottom: SPACING.sm,
   },
   title: {
-    fontSize: 28,
-    fontWeight: "700",
-    letterSpacing: -0.5,
-    marginBottom: 6,
-    textAlign: "center",
+    fontSize: 36,
+    lineHeight: 42,
+    fontWeight: "800",
+    letterSpacing: -1,
+    marginBottom: SPACING.sm,
+  },
+  titleUnderline: {
+    width: 48,
+    height: 4,
+    borderRadius: 2,
+    opacity: 0.85,
+    marginBottom: SPACING.md,
   },
   subtitle: {
     fontSize: 15,
     lineHeight: 22,
-    textAlign: "center",
+    fontWeight: "400",
   },
   form: {
-    marginBottom: 32,
+    gap: SPACING.sm,
   },
   forgotRow: {
     alignSelf: "flex-end",
-    marginTop: 12,
+    paddingVertical: SPACING.xs,
   },
   forgotText: {
     fontSize: 14,
     fontWeight: "600",
   },
-  bottomRow: {
+
+  footerRow: {
     flexDirection: "row",
     justifyContent: "center",
     alignItems: "center",
+    marginTop: SPACING.xl,
   },
-  bottomText: { fontSize: 15 },
-  bottomLink: { fontSize: 15, fontWeight: "700" },
+  footerText: { fontSize: 15, fontWeight: "400" },
+  footerLink: { fontSize: 15, fontWeight: "700" },
 });

@@ -22,6 +22,7 @@ import {
 import { SafeAreaView, useSafeAreaInsets } from "react-native-safe-area-context";
 
 import { ModuleHeader } from "@/components/common/ModuleHeader";
+import { NotebookBackground } from "@/components/common/NotebookBackground";
 import { BORDER_RADIUS, SHADOWS, SPACING } from "@/constants/theme";
 import { EXAM_COUNTRIES } from "@/constants/examTypes";
 import { useAuth } from "@/contexts/AuthContext";
@@ -382,7 +383,7 @@ export default function ExamProgressScreen() {
   const loading = loadingErrors || loadingMastery;
 
   return (
-    <View style={[styles.root, { backgroundColor: colors.background }]}>
+    <NotebookBackground cornerGlyphs={["✓", "✗"]}>
       <StatusBar style={isDark ? "light" : "dark"} />
 
       <ModuleHeader
@@ -506,7 +507,7 @@ export default function ExamProgressScreen() {
           </>
         )}
       </ScrollView>
-    </View>
+    </NotebookBackground>
   );
 }
 

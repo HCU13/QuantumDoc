@@ -7,6 +7,7 @@ import { useTheme } from "@/contexts/ThemeContext";
 import { useSubscription } from "@/contexts/SubscriptionContext";
 import { ModuleHeader } from "@/components/common/ModuleHeader";
 import { BORDER_RADIUS, SPACING, TEXT_STYLES } from "@/constants/theme";
+import { NotebookBackground } from "@/components/common/NotebookBackground";
 
 // ─── Section helpers ────────────────────────────────────────────────────────
 function SectionTitle({ text, color }: { text: string; color: string }) {
@@ -44,7 +45,7 @@ export default function TermsScreen() {
   const accent = colors.primary ?? "#8B5CF6";
 
   return (
-    <View style={[styles.container, { backgroundColor: colors.background }]}>
+    <NotebookBackground cornerGlyphs={["§", "¶"]}>
       <StatusBar style={isDark ? "light" : "dark"} />
       <ModuleHeader title={t("profile.terms.title")} />
 
@@ -270,7 +271,7 @@ export default function TermsScreen() {
 
         <View style={{ height: SPACING.xl }} />
       </ScrollView>
-    </View>
+    </NotebookBackground>
   );
 }
 

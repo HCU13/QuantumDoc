@@ -17,6 +17,7 @@ import {
     TouchableOpacity,
     View,
 } from "react-native";
+import { NotebookBackground } from "@/components/common/NotebookBackground";
 
 import { Button } from "@/components/common/Button";
 import { MinimalUsageBadge } from "@/components/common/MinimalUsageBadge";
@@ -248,7 +249,7 @@ export default function ChatScreen() {
   };
 
   return (
-    <View style={[styles.container, { backgroundColor: colors.background }]}>
+    <NotebookBackground cornerGlyphs={["∴", "⟨⟩"]}>
 
       <StatusBar style={isDark ? "light" : "dark"} />
 
@@ -499,7 +500,7 @@ export default function ChatScreen() {
         moduleType="chat"
         usageInfo={usageInfo}
       />
-    </View>
+    </NotebookBackground>
   );
 }
 

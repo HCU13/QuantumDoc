@@ -22,6 +22,7 @@ import { MODULES } from "@/constants/modules";
 import { Header } from "@/components/home/Header";
 import { ModuleCard } from "@/components/home/ModuleCard";
 import { ActivityItem, type Activity } from "@/components/home/ActivityItem";
+import { NotebookBackground } from "@/components/common/NotebookBackground";
 
 export default function HomeScreen() {
   const { colors, isDark } = useTheme();
@@ -75,7 +76,7 @@ export default function HomeScreen() {
 
 
   return (
-    <View style={[styles.container, { backgroundColor: colors.background }]}>
+    <NotebookBackground cornerGlyphs={["∮", "λ"]}>
       <StatusBar style={isDark ? "light" : "dark"} />
 
       <Header
@@ -107,11 +108,10 @@ export default function HomeScreen() {
 
         {/* SECONDARY */}
         <View style={styles.secondarySection}>
-          <Text
-            style={[styles.secondaryTitle, { color: colors.primary }]}
-          >
-            {t("home.otherTools")}
+          <Text style={[styles.sectionLabel, { color: colors.primary }]}>
+            §  {t("home.otherTools")}
           </Text>
+          <View style={[styles.sectionAccent, { backgroundColor: colors.primary }]} />
 
           <View style={styles.secondaryListWrap}>
             <ScrollView
@@ -137,25 +137,21 @@ export default function HomeScreen() {
 
         {/* HISTORY */}
         {isLoggedIn && (
-        <View
-          style={[
-            styles.historySection,
-            { backgroundColor: colors.backgroundSecondary },
-          ]}
-        >
+        <View style={styles.historySection}>
           <View style={styles.historyHeader}>
-            <Text
-              style={[styles.historyTitle, { color: colors.primary }]}
+            <View>
+              <Text style={[styles.sectionLabel, { color: colors.primary }]}>
+                §  {t("home.recentActivity")}
+              </Text>
+              <View
+                style={[styles.sectionAccent, { backgroundColor: colors.primary }]}
+              />
+            </View>
+            <TouchableOpacity
+              onPress={() => router.push("/(main)/activity" as any)}
             >
-              {t("home.recentActivity")}
-            </Text>
-              <TouchableOpacity
-                onPress={() => router.push("/(main)/activity" as any)}
-              >
-              <Text
-                style={[styles.viewAllText, { color: colors.primary }]}
-              >
-                {t("home.viewAll")}
+              <Text style={[styles.viewAllText, { color: colors.primary }]}>
+                {t("home.viewAll")} →
               </Text>
             </TouchableOpacity>
           </View>
@@ -190,7 +186,7 @@ export default function HomeScreen() {
 
         <View style={{ height: SPACING.xl }} />
       </ScrollView>
-    </View>
+    </NotebookBackground>
   );
 }
 const styles = StyleSheet.create({
@@ -198,59 +194,55 @@ const styles = StyleSheet.create({
     flex: 1,
   },
   scrollContent: {
-    paddingHorizontal: SPACING.lg,
-    paddingTop: SPACING.lg,
+    paddingHorizontal: SPACING.xl,
+    paddingTop: SPACING.md,
   },
 
   primarySection: {
-    marginBottom: SPACING.lg,
+    marginBottom: SPACING.xl,
   },
 
   secondarySection: {
-    marginBottom: SPACING.lg, // CHANGED
+    marginBottom: SPACING.xl,
   },
-  secondaryTitle: {
-    ...TEXT_STYLES.labelSmall,
-    fontWeight: "600",
-    marginBottom: SPACING.sm, // CHANGED
+  sectionLabel: {
+    fontSize: 12,
+    fontWeight: "700",
+    letterSpacing: 2,
     textTransform: "uppercase",
-    letterSpacing: 0.8,
-    fontSize: 11,
-    opacity: 0.7,
+    marginBottom: SPACING.xs,
+  },
+  sectionAccent: {
+    width: 32,
+    height: 3,
+    borderRadius: 2,
+    opacity: 0.85,
+    marginBottom: SPACING.md,
   },
   secondaryListWrap: {
-    marginLeft: -SPACING.lg,
-    marginRight: -SPACING.lg,
+    marginLeft: -SPACING.xl,
+    marginRight: -SPACING.xl,
   },
   secondaryScrollContent: {
-    paddingLeft: SPACING.lg,
-    paddingRight: SPACING.lg,
+    paddingLeft: SPACING.xl,
+    paddingRight: SPACING.xl,
   },
 
   historySection: {
     marginTop: SPACING.md,
-    marginHorizontal: -SPACING.lg,
-    paddingHorizontal: SPACING.lg,
     paddingTop: SPACING.md,
     paddingBottom: SPACING.sm,
-    borderRadius: BORDER_RADIUS.lg,
   },
   historyHeader: {
     flexDirection: "row",
     justifyContent: "space-between",
-    alignItems: "center",
+    alignItems: "flex-start",
     marginBottom: SPACING.sm,
   },
-  historyTitle: {
-    ...TEXT_STYLES.labelSmall,
-    fontWeight: "600",
-    fontSize: 12,
-    letterSpacing: 0.4,
-    opacity: 0.7,
-  },
   viewAllText: {
-    ...TEXT_STYLES.labelSmall,
-    fontSize: 11,
+    fontSize: 13,
+    fontWeight: "600",
+    marginTop: 4,
   },
   loadingContainer: {
     paddingVertical: SPACING.md,

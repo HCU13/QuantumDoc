@@ -69,6 +69,56 @@ export const COLORS = {
 
     // Overlay
     overlay: "rgba(26, 22, 37, 0.4)",
+    overlayStrong: "rgba(26, 22, 37, 0.6)",
+
+    // === 2026 UI tokens ===
+
+    // Brand gradient (button + hero)
+    gradientPrimaryStart: "#A06BFF",
+    gradientPrimaryEnd: "#6932E0",
+    gradientPrimaryAccent: "#C8A9FF", // shimmer/glow accent
+
+    // Module gradients (hero / featured cards)
+    gradientChatStart: "#A78BFA",
+    gradientChatEnd: "#7C3AED",
+    gradientMathStart: "#34D399",
+    gradientMathEnd: "#059669",
+    gradientCalcStart: "#60A5FA",
+    gradientCalcEnd: "#2563EB",
+    gradientExamStart: "#FBBF24",
+    gradientExamEnd: "#D97706",
+    gradientPremiumStart: "#FFD580",
+    gradientPremiumEnd: "#D4AF37",
+
+    // Status gradients
+    gradientSuccessStart: "#34D399",
+    gradientSuccessEnd: "#059669",
+    gradientErrorStart: "#FB7185",
+    gradientErrorEnd: "#E11D48",
+    gradientInfoStart: "#60A5FA",
+    gradientInfoEnd: "#2563EB",
+
+    // Glass / surface elevation
+    glassFill: "rgba(255,255,255,0.65)",
+    glassFillStrong: "rgba(255,255,255,0.82)",
+    glassBorder: "rgba(255,255,255,0.5)",
+    glassBorderSubtle: "rgba(20,16,38,0.06)",
+    glassTint: "light", // expo-blur tint
+
+    surfaceElevated: "#FFFFFF",
+    surfaceSunken: "#EFEAF5",
+    surfaceTransparent: "rgba(245,243,248,0.0)",
+
+    // Interaction states (44pt pressed/hover/focus)
+    pressedOverlay: "rgba(26,22,37,0.06)",
+    hoverOverlay: "rgba(26,22,37,0.04)",
+    focusRing: "rgba(138,79,255,0.35)",
+
+    // Status soft (toast / inline banners)
+    successSoft: "#D1FAE5",
+    errorSoft: "#FEE2E2",
+    warningSoft: "#FEF3C7",
+    infoSoft: "#DBEAFE",
   },
 
   dark: {
@@ -136,6 +186,50 @@ export const COLORS = {
 
     // Overlay
     overlay: "rgba(26, 22, 37, 0.7)",
+    overlayStrong: "rgba(0, 0, 0, 0.85)",
+
+    // === 2026 UI tokens ===
+
+    gradientPrimaryStart: "#B89AFF",
+    gradientPrimaryEnd: "#6932E0",
+    gradientPrimaryAccent: "#D8C0FF",
+
+    gradientChatStart: "#C4B5FD",
+    gradientChatEnd: "#7C3AED",
+    gradientMathStart: "#6EE7B7",
+    gradientMathEnd: "#059669",
+    gradientCalcStart: "#93C5FD",
+    gradientCalcEnd: "#2563EB",
+    gradientExamStart: "#FCD34D",
+    gradientExamEnd: "#D97706",
+    gradientPremiumStart: "#FFE7A8",
+    gradientPremiumEnd: "#D4AF37",
+
+    gradientSuccessStart: "#34D399",
+    gradientSuccessEnd: "#10B981",
+    gradientErrorStart: "#FB7185",
+    gradientErrorEnd: "#E11D48",
+    gradientInfoStart: "#60A5FA",
+    gradientInfoEnd: "#3B82F6",
+
+    glassFill: "rgba(42,37,56,0.55)",
+    glassFillStrong: "rgba(42,37,56,0.78)",
+    glassBorder: "rgba(255,255,255,0.08)",
+    glassBorderSubtle: "rgba(255,255,255,0.06)",
+    glassTint: "dark",
+
+    surfaceElevated: "#332C44",
+    surfaceSunken: "#16121F",
+    surfaceTransparent: "rgba(26,22,37,0.0)",
+
+    pressedOverlay: "rgba(255,255,255,0.08)",
+    hoverOverlay: "rgba(255,255,255,0.05)",
+    focusRing: "rgba(167,139,250,0.45)",
+
+    successSoft: "rgba(52,211,153,0.18)",
+    errorSoft: "rgba(248,113,113,0.18)",
+    warningSoft: "rgba(251,191,36,0.18)",
+    infoSoft: "rgba(96,165,250,0.18)",
   },
 };
 

@@ -9,6 +9,7 @@ import {
   KeyboardAvoidingView,
   Platform,
 } from "react-native";
+import { NotebookBackground } from "@/components/common/NotebookBackground";
 import { StatusBar } from "expo-status-bar";
 import { useTranslation } from "react-i18next";
 import { Ionicons } from "@expo/vector-icons";
@@ -158,7 +159,7 @@ export default function FeedbackScreen() {
   };
 
   return (
-    <View style={[styles.container, { backgroundColor: colors.background }]}>
+    <NotebookBackground cornerGlyphs={["✎", "★"]}>
       <StatusBar style={isDark ? "light" : "dark"} />
       <ModuleHeader title={t("profile.feedback.title")} />
 
@@ -344,7 +345,7 @@ export default function FeedbackScreen() {
           <View style={{ height: SPACING.xl }} />
         </ScrollView>
       </KeyboardAvoidingView>
-    </View>
+    </NotebookBackground>
   );
 }
 

@@ -23,12 +23,10 @@
     "goBack": "Volver"
   },
   "welcome": {
-    "title": "¡Bienvenido a Quorax! 🎉",
-    "subtitle": "Resuelve matemáticas con foto, prepárate para exámenes y aprende con tu asistente IA.",
-    "earlyAccess": "Acabamos de lanzar — si encuentras un error avísanos y lo corregiremos rápido.",
-    "bugFoundPrefix": "¿Encontraste un problema?",
-    "bugFoundLink": "Ir a Soporte →",
-    "cta": "¡Empecemos!"
+    "tagline": "Tu asistente de estudio con IA",
+    "signIn": "Iniciar sesión",
+    "createAccount": "Crear cuenta",
+    "continueAsGuest": "Continuar como invitado"
   },
   "examProgress": {
     "question": "PREGUNTA",
