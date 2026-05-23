@@ -2,7 +2,8 @@
   "common": {
     "loading": "جار التحميل...",
     "error": "حدث خطأ",
-    "warning": "تحذير",
+    "tryAgain": "حاول مجدداً",
+    "retry": "إعادة المحاولة",
     "success": "نجاح",
     "save": "حفظ",
     "cancel": "إلغاء",
@@ -18,41 +19,274 @@
     "skip": "تخطي",
     "getStarted": "ابدأ الآن",
     "info": "معلومة",
+    "warning": "تحذير",
     "login": "تسجيل الدخول",
     "timeout": "انتهت مهلة الطلب. يرجى المحاولة مجدداً.",
     "goBack": "العودة"
   },
-  "welcome": {
-    "tagline": "مساعد الدراسة المدعوم بالذكاء الاصطناعي",
-    "signIn": "تسجيل الدخول",
-    "createAccount": "إنشاء حساب",
-    "continueAsGuest": "المتابعة كضيف"
+  "ad": {},
+  "auth": {
+    "login": {
+      "title": "تسجيل الدخول",
+      "welcome": "مرحباً بعودتك",
+      "subtitle": "سجّل الدخول إلى حسابك",
+      "email": "البريد الإلكتروني",
+      "emailPlaceholder": "example@email.com",
+      "password": "كلمة المرور",
+      "passwordPlaceholder": "أدخل كلمة المرور",
+      "forgotPassword": "نسيت كلمة المرور",
+      "forgotPasswordComingSoon": "ميزة إعادة تعيين كلمة المرور قادمة قريباً",
+      "forgotPasswordEmailRequired": "يرجى إدخال بريدك الإلكتروني أولاً.",
+      "forgotPasswordConfirm": "سيتم إرسال رابط إعادة تعيين كلمة المرور إلى هذا البريد الإلكتروني. هل تريد الإرسال؟",
+      "forgotPasswordEmailSent": "تم إرسال رابط إعادة تعيين كلمة المرور إلى بريدك الإلكتروني. يرجى مراجعة صندوق الوارد.",
+      "forgotPasswordError": "حدث خطأ أثناء إرسال بريد إعادة تعيين كلمة المرور.",
+      "forgotPasswordContactUs": "يرجى التواصل معنا لإعادة تعيين كلمة المرور. يمكنك إنشاء تذكرة دعم عبر الملف الشخصي > المساعدة والدعم.",
+      "resetPassword": {
+        "title": "نسيت كلمة المرور",
+        "subtitle": "سنرسل رمزاً مكوناً من 6 أرقام إلى بريدك الإلكتروني",
+        "emailLabel": "البريد الإلكتروني",
+        "sendCode": "إرسال الرمز",
+        "sending": "جارٍ الإرسال...",
+        "codeSent": "تم إرسال الرمز! تحقق من بريدك.",
+        "otpLabel": "رمز التحقق",
+        "otpPlaceholder": "أدخل الرمز المكون من 6 أرقام",
+        "newPasswordLabel": "كلمة المرور الجديدة",
+        "confirmPasswordLabel": "تأكيد كلمة المرور",
+        "updateButton": "تحديث كلمة المرور",
+        "updating": "جارٍ التحديث...",
+        "successTitle": "تم بنجاح!",
+        "successMessage": "تم تحديث كلمة المرور. يمكنك الآن تسجيل الدخول.",
+        "resendCode": "إعادة إرسال الرمز",
+        "errors": {
+          "emailRequired": "البريد الإلكتروني مطلوب",
+          "emailInvalid": "يرجى إدخال بريد إلكتروني صالح",
+          "otpRequired": "رمز التحقق مطلوب",
+          "otpInvalid": "رمز غير صالح. حاول مجدداً.",
+          "otpExpired": "انتهت صلاحية الرمز. يرجى طلب رمز جديد.",
+          "passwordRequired": "كلمة المرور مطلوبة",
+          "passwordMinLength": "يجب أن تتكون كلمة المرور من 6 أحرف على الأقل",
+          "passwordsNotMatch": "كلمتا المرور غير متطابقتين",
+          "sendFailed": "فشل إرسال الرمز. حاول مجدداً.",
+          "updateFailed": "فشل تحديث كلمة المرور. حاول مجدداً.",
+          "tooManyAttempts": "محاولات فاشلة كثيرة. يرجى طلب رمز جديد.",
+          "attemptsRemaining": "{{count}} محاولات متبقية"
+        }
+      },
+      "rememberMe": "تذكرني",
+      "button": "تسجيل الدخول",
+      "noAccount": "ليس لديك حساب؟",
+      "signUp": "إنشاء حساب",
+      "success": "تم تسجيل الدخول بنجاح!",
+      "errors": {
+        "title": "خطأ في تسجيل الدخول",
+        "emailRequired": "البريد الإلكتروني مطلوب",
+        "emailInvalid": "يرجى إدخال بريد إلكتروني صالح",
+        "passwordRequired": "كلمة المرور مطلوبة",
+        "passwordMinLength": "يجب أن تتكون كلمة المرور من 6 أحرف على الأقل",
+        "invalidCredentials": "البريد الإلكتروني أو كلمة المرور غير صحيحة",
+        "generic": "حدث خطأ أثناء تسجيل الدخول"
+      }
+    },
+    "register": {
+      "title": "أنشئ حسابك",
+      "subtitle": "فقط بريد إلكتروني وكلمة مرور — هذا كل شيء.",
+      "upgradeTitle": "احفظ تقدمك",
+      "upgradeSubtitle": "أضف بريداً إلكترونياً وكلمة مرور للحفاظ على حلولك عبر الأجهزة.",
+      "cta": "متابعة",
+      "acceptPrefix": "أوافق على ",
+      "welcome": "إنشاء حساب",
+      "name": "الاسم الكامل",
+      "namePlaceholder": "أدخل اسمك",
+      "email": "البريد الإلكتروني",
+      "emailPlaceholder": "example@email.com",
+      "password": "كلمة المرور",
+      "passwordPlaceholder": "6 أحرف على الأقل",
+      "passwordShort": "يجب أن تتكون كلمة المرور من 6 أحرف على الأقل",
+      "confirmPassword": "تأكيد كلمة المرور",
+      "confirmPasswordPlaceholder": "أعد إدخال كلمة المرور",
+      "terms": "أوافق على شروط الاستخدام وسياسة الخصوصية",
+      "termsPrefix": "أوافق على ",
+      "termsLink": "شروط الخدمة",
+      "termsAnd": " و ",
+      "privacyLink": "سياسة الخصوصية",
+      "button": "إنشاء حساب",
+      "hasAccount": "لديك حساب بالفعل؟",
+      "signIn": "تسجيل الدخول",
+      "success": "تم التسجيل بنجاح!",
+      "errors": {
+        "title": "خطأ في التسجيل",
+        "nameRequired": "الاسم الكامل مطلوب",
+        "nameMinLength": "يجب أن يتكون الاسم من حرفين على الأقل",
+        "emailRequired": "البريد الإلكتروني مطلوب",
+        "emailInvalid": "يرجى إدخال بريد إلكتروني صالح",
+        "passwordRequired": "كلمة المرور مطلوبة",
+        "passwordMinLength": "يجب أن تتكون كلمة المرور من 6 أحرف على الأقل",
+        "passwordShort": "يجب أن تتكون كلمة المرور من 6 أحرف على الأقل",
+        "confirmPasswordRequired": "تأكيد كلمة المرور مطلوب",
+        "passwordsNotMatch": "كلمتا المرور غير متطابقتين",
+        "termsRequired": "يجب الموافقة على الشروط والأحكام",
+        "emailExists": "هذا البريد الإلكتروني مستخدم بالفعل",
+        "birthDateInvalid": "يرجى إدخال تاريخ ميلاد صالح",
+        "ageTooYoung": "يجب أن يكون عمرك 13 عاماً على الأقل للتسجيل",
+        "generic": "حدث خطأ أثناء التسجيل"
+      },
+      "flow": {
+        "stepCounter": "{{current}} / {{total}}",
+        "next": "متابعة",
+        "back": "رجوع",
+        "skip": "تخطي",
+        "finish": "أنشئ حسابي",
+        "nameTitle": "ماذا نناديك؟",
+        "nameSubtitle": "هذا هو الاسم الظاهر على حسابك.",
+        "emailTitle": "بريدك الإلكتروني",
+        "emailSubtitle": "يُستخدم لتسجيل الدخول والإشعارات.",
+        "passwordTitle": "اضبط كلمة مرور قوية",
+        "passwordSubtitle": "6 أحرف على الأقل؛ يُفضّل مزيج من الأحرف والأرقام.",
+        "passwordStrengthWeak": "ضعيفة",
+        "passwordStrengthMedium": "متوسطة",
+        "passwordStrengthStrong": "قوية",
+        "gradeTitle": "ما المرحلة الدراسية التي أنت فيها؟",
+        "gradeSubtitle": "سنخصص المحتوى لك.",
+        "gradeMiddle": "المرحلة المتوسطة",
+        "gradeHigh9": "الصف 9",
+        "gradeHigh10": "الصف 10",
+        "gradeHigh11": "الصف 11",
+        "gradeHigh12": "الصف 12",
+        "gradeUniversity": "الجامعة",
+        "gradeOther": "أخرى",
+        "examTitle": "هل لديك هدف امتحان معين؟",
+        "examSubtitle": "سنضبط مختبر الامتحانات وفقاً لذلك.",
+        "examLgs": "LGS",
+        "examYks": "YKS",
+        "examKpss": "KPSS",
+        "examNone": "ليس الآن",
+        "examOther": "أخرى",
+        "goalTitle": "ما هدفك الأساسي؟",
+        "goalSubtitle": "بضع كلمات تكفي — سيتبع المساعد الذكي توجيهك.",
+        "goalPlaceholder": "مثال: أن أكون الأفضل في الرياضيات في صفي",
+        "birthTitle": "تاريخ ميلادك",
+        "birthSubtitle": "لتقديم محتوى مناسب لعمرك والامتثال للأنظمة.",
+        "birthDay": "اليوم",
+        "birthMonth": "الشهر",
+        "birthYear": "السنة",
+        "referralTitle": "كيف سمعت عنا؟",
+        "referralSubtitle": "اختياري — يساعدنا على خدمتك بشكل أفضل.",
+        "refAppStore": "متجر التطبيقات",
+        "refSocial": "وسائل التواصل الاجتماعي",
+        "refFriend": "صديق",
+        "refSearch": "محرك بحث",
+        "refAd": "إعلان",
+        "refOther": "أخرى",
+        "termsTitle": "الخطوة الأخيرة",
+        "termsSubtitle": "يرجى قبول الشروط قبل إنشاء حسابك."
+      }
+    }
   },
-  "examProgress": {
-    "question": "سؤال",
-    "answer": "إجابة",
-    "goBack": "العودة",
-    "toStudy": "{{count}} للدراسة",
-    "learned": "{{count}} تم تعلمه",
-    "masteryStats": "{{mastered}}/{{total}} إتقان · {{pct}}% نجاح",
-    "questionN": "سؤال {{n}}"
+  "notifications": {
+    "softPrompt": {
+      "title": "تذكير دراسي يومي؟",
+      "body": "احصل على تذكير لمدة دقيقة عندما يحين وقت التدريب. بدون إزعاج أبداً.",
+      "enable": "تفعيل",
+      "notNow": "ليس الآن"
+    },
+    "daily": {
+      "title": "Quorax",
+      "body": "مراجعة سريعة اليوم؟ خصّص 5 دقائق وواصل التقدّم."
+    },
+    "reminder": {
+      "settingsTitle": "تذكير يومي",
+      "settingsSubtitle": "تنبيه للتدرّب كل يوم في نفس الوقت",
+      "timeLabel": "وقت التذكير",
+      "scheduled": "تم ضبط التذكير على {{time}}",
+      "cancelled": "تم إيقاف التذكير",
+      "permissionDenied": "تم رفض إذن الإشعارات. يمكنك تفعيله من الإعدادات."
+    }
+  },
+  "home": {
+    "greetingMorning": "صباح الخير,",
+    "greetingAfternoon": "مساء الخير,",
+    "greetingEvening": "مساء الخير,",
+    "greetingNight": "تصبح على خير,",
+    "continue": "متابعة",
+    "suggestionStartLearning": "ابدأ جلسة امتحانك الأولى",
+    "usageFormat": "{{remaining}} مجانية متبقية",
+    "greeting": "مرحباً",
+    "greetingGuest": "أهلاً بك",
+    "myModules": "وحداتي",
+    "recentActivity": "النشاط الأخير",
+    "noActivity": "لا يوجد نشاط بعد",
+    "startUsing": "ابدأ باستخدام أحد الوحدات",
+    "viewAll": "عرض الكل",
+    "otherTools": "أدوات أخرى",
+    "tagline": "حل الرياضيات. استعد للامتحانات.",
+    "activity": {
+      "justNow": "الآن",
+      "minutesAgo": "دقائق مضت",
+      "hoursAgo": "ساعات مضت",
+      "yesterday": "أمس",
+      "daysAgo": "أيام مضت",
+      "chatActivity": "محادثة",
+      "mathProblem": "مسألة رياضيات",
+      "exam": "امتحان",
+      "correctShort": "صحيحة",
+      "activity": "النشاط",
+      "detail": {
+        "title": "تفاصيل النشاط",
+        "problem": "المسألة",
+        "solution": "الحل",
+        "description": "الوصف",
+        "notFound": "النشاط غير موجود",
+        "examScore": "نتيجة الامتحان",
+        "correctShort": "صحيحة",
+        "report": "تقرير",
+        "correctAnswer": "صحيحة",
+        "yourAnswer": "إجابتك"
+      },
+      "details": {
+        "title": "تفاصيل النشاط",
+        "problem": "المسألة",
+        "solution": "الحل",
+        "description": "الوصف",
+        "notFound": "النشاط غير موجود",
+        "examScore": "نتيجة الامتحان",
+        "correctShort": "صحيحة",
+        "report": "تقرير",
+        "correctAnswer": "صحيحة",
+        "yourAnswer": "إجابتك"
+      },
+      "clear": {
+        "all": "مسح الكل",
+        "title": "مسح كل سجل النشاط",
+        "message": "سيتم حذف كل سجل نشاطك. لا يمكن التراجع عن هذا الإجراء. هل أنت متأكد من المتابعة؟",
+        "confirm": "حذف",
+        "success": "تم مسح كل سجل النشاط بنجاح",
+        "error": "حدث خطأ أثناء مسح سجل النشاط"
+      },
+      "delete": {
+        "title": "حذف النشاط",
+        "message": "هل أنت متأكد من حذف هذا النشاط؟",
+        "confirm": "حذف",
+        "success": "تم حذف النشاط بنجاح",
+        "error": "حدث خطأ أثناء حذف النشاط"
+      }
+    }
   },
   "modules": {
     "locked": "يلزم تسجيل الدخول",
-    "dailyUsage": "{{used}}/{{limit}} استُخدم اليوم",
-    "dailyLimitReached": "تم الوصول للحد اليومي · انتقل لـ Premium",
-    "loginRequired": {
+    "dailyUsage": "{{used}}/{{limit}} استُخدم مجانًا",
+    "dailyLimitReached": "انتهى الحد المجاني · انتقل لـ Premium",
+    "lockedAlert": {
       "title": "يلزم تسجيل الدخول",
       "message": "يجب تسجيل الدخول لاستخدام هذه الوحدة.",
       "signIn": "تسجيل الدخول",
       "cancel": "إلغاء"
     },
     "chat": {
-      "title": "المساعد الذكي",
+      "title": "AI Chat",
       "description": "تحدث مع مساعدك الذكي"
     },
     "math": {
-      "title": "حل الرياضيات",
+      "title": "الرياضيات",
       "description": "حلول خطوة بخطوة"
     },
     "calculator": {
@@ -64,92 +298,335 @@
       "description": "تحضير الامتحانات حسب الموضوع"
     }
   },
-  "home": {
-    "tagline": "حل الرياضيات. استعد للامتحانات.",
-    "recentActivity": "النشاط الأخير",
-    "noActivity": "لا يوجد نشاط بعد",
-    "startUsing": "ابدأ باستخدام أحد الوحدات",
-    "viewAll": "عرض الكل",
-    "otherTools": "أدوات أخرى"
-  },
-  "auth": {
-    "login": {
-      "title": "تسجيل الدخول",
-      "subtitle": "مرحباً بعودتك",
-      "email": "البريد الإلكتروني",
-      "password": "كلمة المرور",
-      "loginButton": "تسجيل الدخول",
-      "noAccount": "ليس لديك حساب؟",
-      "signUp": "إنشاء حساب",
-      "forgotPassword": "نسيت كلمة المرور؟",
-      "orContinueWith": "أو تابع بـ",
-      "continueAsGuest": "تابع كضيف"
+  "examLab": {
+    "info": {
+      "title": "كيفية الاستخدام؟",
+      "content": "اكتب موضوعاً (3 كلمات كحد أقصى) أو اختر من المواضيع الشائعة. يمكنك أيضاً رفع صورة من ملاحظاتك — وسيكتشف الذكاء الاصطناعي الموضوع تلقائياً.\n\nفي وضع الامتحان، اضبط عدد الأسئلة (5 أو 10 أو 15) ومستوى الصعوبة (سهل / متوسط / صعب). بعد الانتهاء، سترى الإجابة الصحيحة والشرح لكل سؤال.\n\nفي وضع البطاقات التعليمية، يحوّل الذكاء الاصطناعي الموضوع إلى بطاقات سؤال وجواب. اضغط على البطاقة لكشف الإجابة وتصفّحها."
     },
-    "signup": {
-      "title": "إنشاء حساب",
-      "subtitle": "انضم إلى Quorax اليوم",
-      "name": "الاسم الكامل",
-      "email": "البريد الإلكتروني",
-      "password": "كلمة المرور",
-      "signupButton": "إنشاء حساب",
-      "hasAccount": "لديك حساب بالفعل؟",
-      "signIn": "تسجيل الدخول",
-      "terms": "بالتسجيل، أنت توافق على شروط الخدمة وسياسة الخصوصية."
+    "popularTopics": "المواضيع الشائعة",
+    "popularTopicsItems": [
+      "المشتقات",
+      "النهايات",
+      "المعادلات",
+      "الرياضيات الأساسية",
+      "التكاملات",
+      "الدوال"
+    ],
+    "customTopic": {
+      "title": "أدخل الموضوع",
+      "placeholder": "الموضوع (3 كلمات كحد أقصى)",
+      "wordLimit": "تم بلوغ حد الكلمات",
+      "wordLimitMessage": "يمكن أن تتكون المواضيع من 3 كلمات كحد أقصى."
+    },
+    "input": {
+      "topic": "أدخل الموضوع",
+      "gallery": "المعرض",
+      "camera": "الكاميرا"
+    },
+    "difficulty": "الصعوبة",
+    "difficultyOptions": {
+      "easy": "سهل",
+      "medium": "متوسط",
+      "hard": "صعب"
+    },
+    "questionCount": "عدد الأسئلة",
+    "proOnlyDifficulty": "مستويات الصعوبة المتوسط والصعب متاحة فقط لـ PRO",
+    "proOnlyCount": "أكثر من 10 أسئلة لكل امتحان متاح فقط لـ PRO",
+    "configTitle": "إعدادات الامتحان",
+    "createExam": "إنشاء امتحان",
+    "orCustomExam": "أو امتحان مخصص",
+    "examType": {
+      "label": "نوع الامتحان",
+      "general": "عام",
+      "selectTitle": "اختر نوع الامتحان",
+      "readyTitle": "جاهز",
+      "readyDesc": "الموضوع اختياري — اتركه فارغاً وسيُنشئ الذكاء الاصطناعي أسئلة ذات صلة.",
+      "topicOptionalPlaceholder": "أضف موضوعاً (اختياري، مثال: التفاضل والتكامل)",
+      "selectSubjectDesc": "اختر مادة أو اكتب بحرية — اختياري",
+      "selectSubject": "أي مادة تريد التدرب عليها؟",
+      "selectFirst": "اختر أولاً نوع الامتحان أو اكتب موضوعاً",
+      "noSubjectHint": "لم يتم تحديد قسم — سيُنشئ الذكاء الاصطناعي أسئلة متنوعة لهذا الامتحان",
+      "loginCta": {
+        "title": "دفتر الأخطاء وإتقان المواضيع",
+        "desc": "سجّل الدخول لتتبع الأخطاء ومراقبة تقدمك"
+      }
+    },
+    "examTypes": {
+      "countries": {
+        "none": "عام",
+        "tr": "تركيا",
+        "us": "الولايات المتحدة",
+        "uk": "المملكة المتحدة",
+        "in": "الهند",
+        "intl": "دولي"
+      },
+      "placeholders": {
+        "general": "أدخل موضوعاً (مثال: التمثيل الضوئي، التفاضل والتكامل، الدولة العثمانية...)",
+        "tyt": "أدخل موضوعاً أو اختر قسماً (مثال: الفقرة، المعادلات...)",
+        "ayt": "أدخل موضوعاً أو اختر مادة (مثال: المشتقات، البصريات، علم الوراثة...)",
+        "lgs": "أدخل موضوعاً أو اختر مادة (مثال: المعادلات، القوى...)",
+        "kpss": "أدخل موضوعاً أو اختر قسماً (مثال: الدستور، الفقرة...)",
+        "ales": "Sayısal أو Sözel — اختر قسماً أو أدخل موضوعاً",
+        "sat": "أدخل موضوعاً أو اختر وحدة (مثال: المعادلات التربيعية، القواعد...)",
+        "act": "أدخل موضوعاً أو اختر قسماً (مثال: حساب المثلثات، الأحياء...)",
+        "gre": "Verbal أو Quantitative — اختر قسماً أو أدخل موضوعاً",
+        "ap": "أي مقرر AP تدرس؟ (مثال: AP Calculus BC، AP Biology...)",
+        "alevels": "أي مادة A-Level تدرس؟ (مثال: الرياضيات، الكيمياء...)",
+        "gcse": "أي مادة GCSE تدرس؟ (مثال: الأحياء، الفيزياء، التاريخ...)",
+        "jee": "أدخل موضوعاً أو اختر مادة (مثال: التفاضل والتكامل، الكيمياء العضوية...)",
+        "neet": "أدخل موضوعاً أو اختر مادة (مثال: الوراثة، الديناميكا الحرارية...)",
+        "ielts": "اختر مهارة أو أدخل موضوعاً (مثال: المفردات الأكاديمية، الأزمنة...)",
+        "toefl": "اختر مهارة أو أدخل موضوعاً (مثال: أسئلة الاستنتاج، القواعد...)",
+        "ib": "أي مقرر IB تدرس؟ (مثال: IB Math AA HL، IB Chemistry SL...)"
+      },
+      "subjectPlaceholders": {
+        "tyt_turkce": "موضوع فرعي اختياري (مثال: الفهم القرائي، أنواع الكلمات...)",
+        "tyt_mat": "موضوع فرعي اختياري (مثال: النسب، المجموعات، المعادلات...)",
+        "tyt_geometri": "موضوع فرعي اختياري (مثال: المثلثات، الدوائر، المساحة...)",
+        "tyt_tarih": "موضوع فرعي اختياري (مثال: تأسيس الدولة العثمانية، الإصلاحات...)",
+        "tyt_cografya": "موضوع فرعي اختياري (مثال: المناخ، السكان، الأقاليم...)",
+        "tyt_felsefe": "موضوع فرعي اختياري (مثال: التيارات الفلسفية، المنطق...)",
+        "tyt_din": "موضوع فرعي اختياري (مثال: العبادات، الأخلاق، الأنبياء...)",
+        "tyt_fizik": "موضوع فرعي اختياري (مثال: القوى، الحركة، الطاقة...)",
+        "tyt_kimya": "موضوع فرعي اختياري (مثال: التركيب الذري، الأحماض والقواعد، المخاليط...)",
+        "tyt_biyoloji": "موضوع فرعي اختياري (مثال: الخلية، الوراثة، النظام البيئي...)",
+        "ayt_mat": "موضوع فرعي اختياري (مثال: المشتقات، التكاملات، اللوغاريتمات...)",
+        "ayt_fizik": "موضوع فرعي اختياري (مثال: الكهرباء، المغناطيسية، الموجات...)",
+        "ayt_kimya": "موضوع فرعي اختياري (مثال: الكيمياء العضوية، الاتزان...)",
+        "ayt_biyoloji": "موضوع فرعي اختياري (مثال: الوراثة، التطور، علم وظائف الأعضاء...)",
+        "ayt_edebiyat": "موضوع فرعي اختياري (مثال: عصر التنظيمات، أساليب الشعر...)",
+        "ayt_tarih": "موضوع فرعي اختياري (مثال: انحدار الدولة العثمانية، حرب الاستقلال...)",
+        "ayt_cografya": "موضوع فرعي اختياري (مثال: الأنظمة المناخية، جغرافيا السكان...)",
+        "ayt_felsefe": "موضوع فرعي اختياري (مثال: علم النفس، علم الاجتماع، المنطق...)",
+        "lgs_turkce": "موضوع فرعي اختياري (مثال: الفكرة الرئيسية، بنية الجملة...)",
+        "lgs_mat": "موضوع فرعي اختياري (مثال: الجبر، التحليل، الاحتمالات...)",
+        "lgs_fen": "موضوع فرعي اختياري (مثال: الـDNA، الضوء، القوى والحركة...)",
+        "lgs_inkilap": "موضوع فرعي اختياري (مثال: حرب الاستقلال، مبادئ أتاتورك...)",
+        "lgs_din": "موضوع فرعي اختياري (مثال: العبادات، الأخلاق، الأنبياء...)",
+        "lgs_ing": "موضوع فرعي اختياري (مثال: الأزمنة، مفردات الحياة اليومية...)",
+        "kpss_turkce": "موضوع فرعي اختياري (مثال: الفقرة، القواعد، قواعد الإملاء...)",
+        "kpss_mat": "موضوع فرعي اختياري (مثال: السرعة والمسافة والزمن، النسب المئوية...)",
+        "kpss_geometri": "موضوع فرعي اختياري (مثال: المثلثات، الدوائر، المساحة والمحيط...)",
+        "kpss_tarih": "موضوع فرعي اختياري (مثال: العثمانيون، حرب الاستقلال، الإصلاحات...)",
+        "kpss_cografya": "موضوع فرعي اختياري (مثال: مناخ تركيا، الأنشطة الاقتصادية...)",
+        "kpss_vatandaslik": "موضوع فرعي اختياري (مثال: الدستور، الحقوق الأساسية، التشريع...)",
+        "ales_sayisal": "موضوع فرعي اختياري (مثال: المتتاليات العددية، حل المسائل...)",
+        "ales_sozel": "موضوع فرعي اختياري (مثال: المرادفات، إكمال الجمل...)",
+        "sat_rw": "موضوع فرعي اختياري (مثال: Transitions، Vocabulary in context...)",
+        "sat_algebra": "موضوع فرعي اختياري (مثال: Systems of equations، Inequalities...)",
+        "sat_advanced": "موضوع فرعي اختياري (مثال: Quadratics، Exponential functions...)",
+        "sat_data": "موضوع فرعي اختياري (مثال: Statistics، Probability، Circle theorems...)",
+        "act_english": "موضوع فرعي اختياري (مثال: Punctuation، Transitions، Sentence structure...)",
+        "act_math": "موضوع فرعي اختياري (مثال: Trigonometry، Coordinate geometry...)",
+        "act_reading": "موضوع فرعي اختياري (مثال: Main idea، Inference، Vocabulary...)",
+        "act_science": "موضوع فرعي اختياري (مثال: Data interpretation، Conflicting viewpoints...)",
+        "gre_verbal": "موضوع فرعي اختياري (مثال: Text completion، Reading comprehension...)",
+        "gre_quant": "موضوع فرعي اختياري (مثال: Geometry، Data analysis، Algebra...)",
+        "jee_physics": "موضوع فرعي اختياري (مثال: Rotational motion، Electrostatics، Optics...)",
+        "jee_chemistry": "موضوع فرعي اختياري (مثال: Organic mechanisms، Chemical equilibrium...)",
+        "jee_math": "موضوع فرعي اختياري (مثال: Integration، Coordinate geometry، Vectors...)",
+        "neet_botany": "موضوع فرعي اختياري (مثال: Photosynthesis، Plant reproduction...)",
+        "neet_zoology": "موضوع فرعي اختياري (مثال: Human physiology، Animal kingdom...)",
+        "neet_physics": "موضوع فرعي اختياري (مثال: Laws of motion، Electrostatics، Optics...)",
+        "neet_chemistry": "موضوع فرعي اختياري (مثال: Organic reactions، Thermodynamics...)",
+        "ielts_reading": "موضوع فرعي اختياري (مثال: True/False/NG، Matching headings...)",
+        "ielts_listening": "موضوع فرعي اختياري (مثال: Multiple choice، Form completion...)",
+        "ielts_vocab": "موضوع فرعي اختياري (مثال: Academic Word List، Collocations...)",
+        "ielts_grammar": "موضوع فرعي اختياري (مثال: Conditionals، Passive voice، Tenses...)",
+        "toefl_reading": "موضوع فرعي اختياري (مثال: Inference، Rhetorical purpose...)",
+        "toefl_listening": "موضوع فرعي اختياري (مثال: Main idea، Detail questions...)",
+        "toefl_vocab": "موضوع فرعي اختياري (مثال: Academic vocabulary، Paraphrase...)",
+        "toefl_grammar": "موضوع فرعي اختياري (مثال: Sentence structure، Usage in context...)"
+      }
+    },
+    "photoTopicDetected": "سيتم اكتشاف الموضوع من الصورة.",
+    "photoCapture": {
+      "title": "التقط صورة للسؤال",
+      "buttonTitle": "التقط صورة سؤال",
+      "description": "التقط صورة لسؤال من كتابك، وسيُحضّر لك الذكاء الاصطناعي امتحاناً مخصصاً بأسئلة مشابهة.",
+      "placeholder": "التقط صورة لسؤال"
+    },
+    "aiRecommendation": {
+      "title": "توصية الذكاء الاصطناعي",
+      "description": "حضّر لي امتحاناً عشوائياً."
+    },
+    "loading": "جارٍ تحضير الامتحان...",
+    "exam": "امتحان",
+    "question": "سؤال",
+    "correct": "صحيح! 🎉",
+    "correctSubtext": "أحسنت صنعاً!",
+    "incorrect": "خطأ! ❌",
+    "whyWrong": "لماذا خطأ؟",
+    "solveWithAI": "حل مع الذكاء الاصطناعي",
+    "solving": "جارٍ الحل...",
+    "aiSolution": "حل الذكاء الاصطناعي",
+    "answer": "الإجابة",
+    "steps": "خطوات الحل",
+    "exitConfirmTitle": "مغادرة الامتحان",
+    "exitConfirmMessage": "هل أنت متأكد من مغادرة الامتحان؟",
+    "exitConfirmLeave": "المغادرة بدون حفظ",
+    "exitSaveAndLeave": "حفظ ومغادرة",
+    "report": {
+      "title": "تقرير الامتحان",
+      "perfect": "ممتاز! جميع الأسئلة صحيحة!",
+      "excellent": "أداء رائع!",
+      "good": "أحسنت، تابع التقدم!",
+      "needsImprovement": "تحتاج إلى مزيد من التدريب.",
+      "keepPracticing": "استمر في التدريب، ستصل إلى هناك!",
+      "correct": "صحيحة",
+      "incorrect": "خاطئة",
+      "unanswered": "تم التخطي",
+      "total": "الإجمالي",
+      "duration": "الوقت",
+      "close": "إغلاق",
+      "newExam": "امتحان جديد",
+      "goToErrorNotebook": "{{count}} أسئلة خاطئة محفوظة في دفتر الأخطاء ←",
+      "retry": "إعادة المحاولة",
+      "share": "مشاركة النتيجة",
+      "perfectScore": "تهانينا! أجبت على جميع الأسئلة بشكل صحيح!",
+      "correctAnswers": "الإجابات الصحيحة",
+      "wrongAnswers": "الإجابات الخاطئة",
+      "skipped": "الأسئلة المتخطاة",
+      "askAI": "حل الإجابات الخاطئة بالذكاء الاصطناعي",
+      "weakTopics": "تحليل المواضيع",
+      "weakTopicsEmpty": "جميع الإجابات صحيحة!",
+      "topicScore": "{{correct}}/{{total}} صحيحة",
+      "yourAnswer": "إجابتك",
+      "correctAnswer": "الإجابة الصحيحة",
+      "explainWithAI": "اشرح بالذكاء الاصطناعي",
+      "hideExplanation": "إخفاء الشرح",
+      "explaining": "جارٍ الشرح...",
+      "explainFailed": "تعذر الحصول على الشرح، حاول مجدداً"
+    },
+    "resume": {
+      "title": "تابع من حيث توقفت",
+      "progress": "{{answered}}/{{total}} تمت الإجابة"
+    },
+    "errorNotebook": {
+      "title": "دفتر الأخطاء",
+      "desc": "تابع تقدمك"
+    },
+    "quickDrill": {
+      "title": "5 أسئلة سريعة",
+      "subtitle": "ابدأ فوراً · سهل · بدون إعداد",
+      "desc": "5 أسئلة · سريع"
+    },
+    "wrongQuestions": {
+      "title": "دفتر الأخطاء",
+      "subtitle": "راجع وتدرب على إجاباتك الخاطئة",
+      "empty": "لا توجد أسئلة في دفتر أخطائك بعد",
+      "emptyDesc": "ستظهر هنا الإجابات الخاطئة من امتحاناتك",
+      "mastered": "متقن",
+      "notMastered": "لا يزال صعباً",
+      "markMastered": "فهمت ✓",
+      "masteredBadge": "متقن",
+      "attemptCount": "{{count}}× خطأ",
+      "reviewMode": "وضع التدريب",
+      "allDone": "رائع! لقد أتقنتها جميعاً 🎉",
+      "allDoneDesc": "لقد راجعت جميع أسئلتك الخاطئة",
+      "cardOf": "{{current}} / {{total}}",
+      "showAnswer": "إظهار الإجابة",
+      "hideAnswer": "إخفاء",
+      "filterAll": "الكل",
+      "filterActive": "للتدريب",
+      "filterMastered": "متقن",
+      "deleteConfirm": "إزالة هذا السؤال من دفتر أخطائك؟",
+      "loading": "جارٍ التحميل...",
+      "errorLoad": "فشل التحميل",
+      "practiceAll": "تدرّب على الكل",
+      "practiceSubject": "{{subject}} — تدرّب",
+      "goToExam": "اذهب إلى الامتحان"
+    },
+    "mastery": {
+      "title": "إتقان المواضيع",
+      "subtitle": "تابع تقدمك حسب الموضوع",
+      "sectionTitle": "المواضيع",
+      "empty": "لم تكمل أي امتحانات بعد",
+      "emptyDesc": "ستظهر هنا دقتك لكل موضوع بعد إجراء الامتحانات",
+      "level": {
+        "learning": "قيد التعلم",
+        "developing": "قيد التطور",
+        "proficient": "ماهر",
+        "mastered": "متقن"
+      },
+      "levelDesc": {
+        "learning": "استمر في التدريب",
+        "developing": "تقترب من ذلك",
+        "proficient": "أوشكت على الوصول",
+        "mastered": "أنت تتقن ذلك!"
+      },
+      "stats": "{{correct}} / {{total}} صحيحة",
+      "lastStudied": "آخر دراسة: {{date}}",
+      "accuracy": "{{pct}}% دقة"
+    },
+    "realExam": {
+      "title": "وضع الامتحان الحقيقي",
+      "subtitle": "تدرّب بصيغة الامتحان الرسمية",
+      "selectPreset": "اختر الامتحان",
+      "customMode": "وضع مخصص",
+      "startExam": "ابدأ الامتحان",
+      "timeLeft": "الوقت المتبقي",
+      "timeUp": "انتهى الوقت!",
+      "timeUpMessage": "انتهى الوقت. تم تسليم الامتحان تلقائياً.",
+      "confirmExit": "هل أنت متأكد من الخروج؟ المؤقت لا يزال يعمل.",
+      "presets": {
+        "alesSayisal": "ALES Quantitative (50 سؤال / 100 دقيقة)",
+        "alesSozel": "ALES Verbal (50 سؤال / 100 دقيقة)",
+        "yksTyt": "YKS TYT (120 سؤال / 135 دقيقة)",
+        "yksAyt": "YKS AYT (80 سؤال / 180 دقيقة)",
+        "lgs": "LGS (90 سؤال / 130 دقيقة)",
+        "sat": "SAT (98 سؤال / 134 دقيقة)",
+        "act": "ACT (215 سؤال / 175 دقيقة)"
+      }
+    },
+    "explanation": "الشرح:",
+    "previous": "السابق",
+    "next": "التالي",
+    "finish": "إنهاء",
+    "finishWithoutAnswer": "تخطي هذا السؤال؟",
+    "finishWithoutAnswerDesc": "سيتم اعتبار هذا السؤال غير مُجاب إذا أنهيت الآن.",
+    "success": {
+      "title": "نجاح",
+      "message": "تم تحضير الامتحان!"
+    },
+    "errors": {
+      "failed": "خطأ",
+      "failedMessage": "فشل إنشاء الامتحان.",
+      "photoFailed": "خطأ",
+      "photoFailedMessage": "فشلت معالجة الصورة.",
+      "emptyTopic": "الموضوع مطلوب",
+      "emptyTopicMessage": "يرجى إدخال موضوع.",
+      "noImage": "الصورة مطلوبة",
+      "noImageMessage": "يرجى التقاط صورة لسؤال.",
+      "galleryDenied": "مطلوب إذن المعرض",
+      "galleryDeniedMessage": "يجب منح إذن الوصول إلى المعرض.",
+      "cameraDenied": "مطلوب إذن الكاميرا",
+      "cameraDeniedMessage": "يجب منح إذن الوصول إلى الكاميرا.",
+      "solveFailed": "فشل الحل",
+      "solveFailedMessage": "حدث خطأ أثناء حل السؤال."
     }
   },
-  "premiumModal": {
-    "limitPill": "الحد اليومي",
-    "proPill": "ميزة بريميوم",
-    "limitTitle": "لقد استنفدت الحد المجاني لليوم",
-    "proTitle": "بريميوم يفتح هذه الميزة",
-    "limitSubtitle": "استخدمت {{used}}/{{limit}} حلول في {{module}} اليوم. قم بالترقية للوصول غير المحدود.",
-    "proSubtitle": "هذه الميزة مشمولة في بريميوم. شاهد خيارات الخطة في الشاشة التالية.",
-    "benefitUnlimited": "حلول رياضيات غير محدودة",
-    "benefitVerify": "تحقق من عملك بنفسك",
-    "benefitExplanations": "شروحات خطوة بخطوة",
-    "benefitNoAds": "بدون إعلانات على الإطلاق",
-    "trialHint": "جرّب مجاناً، ألغِ في أي وقت",
-    "cta": "عرض الخطط",
-    "later": "ربما لاحقاً"
-  },
   "profile": {
+    "title": "الملف الشخصي",
     "rtlRestartTitle": "يلزم إعادة التشغيل",
     "rtlRestartMessage": "يرجى إعادة تشغيل التطبيق لتطبيق اتجاه النص الجديد.",
-    "premium": {
-      "ctaContinue": "متابعة",
-      "ctaStartTrial": "ابدأ تجربة مجانية لمدة {{days}} أيام",
-      "ctaTrialThen": "ثم {{price}}/{{period}} · ألغِ في أي وقت",
-      "planMonthly": "شهري",
-      "planYearly": "سنوي",
-      "perYear": "سنة",
-      "equivMonthly": "{{price}}/شهر",
-      "bestValue": "أفضل قيمة",
-      "savePercent": "وفّر {{pct}}٪",
-      "trialBadge": "{{days}} أيام مجاناً",
-      "heroTrialTitle": "جرّب مجاناً لمدة {{days}} أيام",
-      "heroTrialSubtitle": "وصول كامل. بدون دفع اليوم.",
-      "trialReminder": "سنذكّرك قبل يومين من انتهاء التجربة.",
-      "noPaymentToday": "لا دفع اليوم",
-      "uniqueBadge": "حصري في Quorax",
-      "verifyHeroTitle": "تحقق من عملك بنفسك",
-      "verifyHeroDesc": "الصق حلّك — سنجد الخطوة التي أخطأت فيها ونخبرك كيف تصلحها.",
-      "terms": "الشروط",
-      "privacy": "الخصوصية",
-      "legalAutoRenew": "يتجدد تلقائياً حتى الإلغاء. ألغِ في أي وقت من إعدادات iOS > Apple ID > الاشتراكات. يُحصَّل الدفع على Apple ID الخاص بك عند التأكيد.",
-      "featureUnlimited": "حلول رياضيات غير محدودة",
-      "featureVerify": "تحقق من عملك",
-      "featureExplanations": "شروحات خطوة بخطوة",
-      "featureTopics": "لوحة تحليل المواضيع"
-    },
     "settings": {
+      "title": "الإعدادات",
       "language": "اللغة",
-      "purchaseHistory": "سجل الشراء",
       "languageTr": "Türkçe",
       "languageEn": "English",
       "languageAr": "العربية",
       "languageHi": "हिन्दी",
       "languageEs": "Español",
       "theme": "المظهر",
+      "notifications": "الإشعارات",
+      "privacy": "الخصوصية",
+      "about": "حول",
+      "help": "المساعدة والدعم",
+      "editProfile": "تعديل الملف الشخصي",
+      "purchaseHistory": "سجل الشراء",
+      "feedback": "التعليقات",
+      "rateUs": "قيّمنا",
       "categories": {
         "account": "الحساب",
         "preferences": "التفضيلات",
@@ -171,9 +648,388 @@
         "redemption_failed": "حدث خطأ. يرجى المحاولة مجدداً.",
         "server_error": "خطأ في الخادم. يرجى المحاولة مجدداً."
       }
+    },
+    "logout": "تسجيل الخروج",
+    "deleteAccount": {
+      "button": "حذف الحساب",
+      "title": "حذف الحساب",
+      "message": "هل أنت متأكد من حذف حسابك نهائياً؟ لا يمكن التراجع عن هذا الإجراء وستفقد جميع بياناتك.",
+      "confirm": "حذف",
+      "error": "حدث خطأ أثناء حذف حسابك. يرجى المحاولة مجدداً أو التواصل مع الدعم."
+    },
+    "login": "تسجيل الدخول",
+    "account": "الحساب",
+    "notLoggedIn": "لم يتم تسجيل الدخول",
+    "loginToContinue": "سجّل الدخول للمتابعة",
+    "guest": "ضيف",
+    "guestTitle": "أنت تتصفح كضيف",
+    "guestSubtitle": "أنشئ حساباً لحفظ تقدمك ومزامنته عبر الأجهزة.",
+    "rate": {
+      "title": "قيّمنا",
+      "header": {
+        "title": "هل تستمتع بالتطبيق؟",
+        "subtitle": "قيّم تجربتك وراجعنا على App Store"
+      },
+      "selectRating": "اختر التقييم",
+      "button": "قيّم",
+      "info": "التقييمات العالية تساعدنا كثيراً!",
+      "ratings": {
+        "excellent": "ممتاز",
+        "good": "جيد",
+        "average": "متوسط",
+        "poor": "ضعيف",
+        "veryPoor": "ضعيف جداً"
+      },
+      "lowRating": {
+        "title": "هل تود تقديم تعليق؟",
+        "message": "هل يمكنك تزويدنا بتعليق لمساعدتنا على تحسين تجربتك؟",
+        "giveFeedback": "أعطِ تعليقاً"
+      },
+      "success": {
+        "thankYou": "شكراً لك! تقييمك مهم جداً لنا."
+      },
+      "errors": {
+        "selectRating": "يرجى اختيار تقييم",
+        "cannotOpenStore": "لا يمكن فتح المتجر",
+        "openStoreFailed": "حدث خطأ أثناء فتح المتجر"
+      },
+      "notAvailable": "لا يمكن فتح المتجر الآن."
+    },
+    "premium": {
+      "title": "Premium",
+      "subtitle": "وصول غير محدود وميزات حصرية",
+      "current": "عضو Premium",
+      "expires": "تنتهي في",
+      "expiresAt": "تنتهي في",
+      "upgrade": "ترقية إلى Premium",
+      "upgradeToPremium": "ترقية للاستخدام غير المحدود",
+      "manage": "إدارة الاشتراك",
+      "status": "حالة Premium",
+      "active": "مُفعّل",
+      "inactive": "غير مُفعّل",
+      "limitedOffer": "عرض محدود",
+      "freePlan": "الخطة المجانية",
+      "premiumPlan": "خطة Premium",
+      "dailyLimitedUsage": "استخدام يومي محدود",
+      "perDay": "/يوم",
+      "unlimited": "غير محدود",
+      "features": {
+        "title": "الميزات",
+        "aiChat": "AI Chat",
+        "math": "الرياضيات",
+        "examLab": "مختبر الامتحانات",
+        "prioritySupport": "دعم بأولوية",
+        "adFree": "بدون إعلانات",
+        "unlimited": "استخدام غير محدود",
+        "priority": "دعم بأولوية"
+      },
+      "purchase": {
+        "title": "الترقية إلى Premium",
+        "monthly": "شهري",
+        "price": "${price}/شهر",
+        "buy": "شراء",
+        "restore": "استعادة المشتريات",
+        "success": "تم تفعيل Premium بنجاح!",
+        "error": "فشل الشراء"
+      },
+      "heroActiveTitle": "Premium مُفعّل",
+      "heroInactiveTitle": "أزل حدودك",
+      "heroInactiveSubtitle2": "للمستخدمين الذين يصطدمون بالحد كل يوم.",
+      "heroActiveSubtitle": "جميع الميزات مفتوحة",
+      "heroInactiveSubtitle": "استخدم جميع الميزات بدون حدود",
+      "socialProof": "آلاف الطلاب بالداخل بالفعل",
+      "ctaFree": "جرّب مجاناً لمدة 7 أيام",
+      "ctaFreeSubtext": "ثم {price}/شهر · ألغِ في أي وقت",
+      "perWeek": "أسبوع",
+      "savePercent": "وفّر {{pct}}٪",
+      "heroExpiresSubtitle": "نشط حتى {date}",
+      "activeBadge": "نشط ✓",
+      "featuresCardTitle": "مزايا Premium",
+      "activeCardText": "Premium مُفعّل — جميع الميزات مفتوحة",
+      "legalText": "يتجدد الاشتراك تلقائياً. للإلغاء، اذهب إلى App Store ← الاشتراكات.",
+      "processing": "جارٍ المعالجة...",
+      "perMonth": "شهر",
+      "ctaWithPrice": "{price} / شهر  —  ترقية إلى Premium",
+      "restoring": "جارٍ الاستعادة...",
+      "featureUnlimitedChat": "AI Chat غير محدود",
+      "featureUnlimitedChatDesc": "الدردشة والملاحظات وأدوات النصوص دون أي حد يومي",
+      "featureUnlimitedMath": "أدوات AI غير محدودة",
+      "featureUnlimitedMathDesc": "حلّال الرياضيات ومختبر الامتحانات وجميع الوحدات مفتوحة",
+      "featureNoAds": "تجربة بدون إعلانات",
+      "featureNoAdsDesc": "بدون مقاطعات، تركيز خالص",
+      "featureUnlimitedExam": "مختبر امتحانات غير محدود",
+      "featurePrioritySupport": "دعم بأولوية",
+      "loadError": "فشل تحميل باقات Premium. حاول مجدداً.",
+      "purchaseSuccess": "🎉 Premium مُفعّل!",
+      "purchaseSuccessMessage": "الوصول غير المحدود مُفعّل الآن. استمتع!",
+      "great": "رائع!",
+      "restored": "✅ تمت الاستعادة",
+      "restoredMessage": "تمت استعادة اشتراك Premium الخاص بك.",
+      "noActiveSubscription": "لم يتم العثور على اشتراك نشط.",
+      "restoreError": "فشلت الاستعادة.",
+      "purchaseError": "فشل الشراء.",
+      "cancelAnytime": "ألغِ في أي وقت",
+      "noCommitment": "بدون التزام",
+      "cancelSubscription": "إلغاء الاشتراك",
+      "cancelTitle": "إلغاء الاشتراك",
+      "cancelMessage": "ستتم إعادة توجيهك إلى App Store ← الاشتراكات للإلغاء.",
+      "cancelConfirm": "الذهاب إلى App Store",
+      "nextRenewal": "تاريخ التجديد التالي",
+      "ctaButton": "ترقية إلى Premium",
+      "ctaContinue": "متابعة",
+      "ctaStartTrial": "ابدأ تجربة مجانية لمدة {{days}} أيام",
+      "ctaTrialThen": "ثم {{price}}/{{period}} · ألغِ في أي وقت",
+      "planMonthly": "شهري",
+      "planYearly": "سنوي",
+      "perYear": "سنة",
+      "equivMonthly": "{{price}}/شهر",
+      "bestValue": "أفضل قيمة",
+      "trialBadge": "{{days}} أيام مجاناً",
+      "heroTrialTitle": "جرّب مجاناً لمدة {{days}} أيام",
+      "heroTrialSubtitle": "وصول كامل. بدون دفع اليوم.",
+      "trialReminder": "سنذكّرك قبل يومين من انتهاء التجربة.",
+      "noPaymentToday": "لا دفع اليوم",
+      "uniqueBadge": "حصري في Quorax",
+      "verifyHeroTitle": "تحقق من عملك بنفسك",
+      "verifyHeroDesc": "الصق حلّك — سنجد الخطوة التي أخطأت فيها ونخبرك كيف تصلحها.",
+      "terms": "الشروط",
+      "privacy": "الخصوصية",
+      "legalAutoRenew": "يتجدد تلقائياً حتى الإلغاء. ألغِ في أي وقت من إعدادات iOS > Apple ID > الاشتراكات. يُحصَّل الدفع على Apple ID الخاص بك عند التأكيد.",
+      "featureUnlimited": "حلول رياضيات غير محدودة",
+      "featureVerify": "تحقق من عملك",
+      "featureExplanations": "شروحات خطوة بخطوة",
+      "featureTopics": "لوحة تحليل المواضيع",
+      "trustSecure": "دفع آمن",
+      "trustCancel": "إلغاء في أي وقت",
+      "trustSafe": "خصوصيتك محمية",
+      "heroLimitTitle": "تابع الحل — افتح كل شيء",
+      "exitTitle": "انتظر — شيء أخير",
+      "exitSubtitle": "جرّب الاشتراك الشهري — ألغِ في أي وقت. بدون التزام طويل.",
+      "exitTryMonthly": "جرّب الشهري · {{price}}",
+      "exitTryMonthlyTrial": "ابدأ تجربة {{days}} أيام · {{price}}/شهر",
+      "exitNoThanks": "لا، شكراً"
+    },
+    "verification": {
+      "label": "التحقق من البريد الإلكتروني",
+      "verified": "تم التحقق",
+      "pending": "قيد الانتظار",
+      "sendButton": "إرسال بريد التحقق",
+      "sending": "جارٍ الإرسال...",
+      "sent": "تم إرسال البريد",
+      "sentMessage": "تحقق من صندوق الوارد. اضغط على الرابط للتحقق من بريدك.",
+      "error": "فشل الإرسال",
+      "errorMessage": "حدث خطأ أثناء إرسال البريد. حاول مجدداً."
+    },
+    "selectAvatar": "اختر صورة رمزية",
+    "edit": {
+      "title": "تعديل الملف الشخصي",
+      "save": "حفظ",
+      "changeAvatar": "اختر صورة رمزية",
+      "changePassword": "تغيير كلمة المرور",
+      "changePasswordComingSoon": "ميزة تغيير كلمة المرور قادمة قريباً",
+      "success": "تم تحديث الملف الشخصي بنجاح",
+      "loginRequired": "يجب تسجيل الدخول لتعديل ملفك الشخصي",
+      "emailNotEditable": "لا يمكن تغيير البريد الإلكتروني.",
+      "fields": {
+        "name": "الاسم الكامل",
+        "email": "البريد الإلكتروني",
+        "phone": "الهاتف"
+      },
+      "placeholders": {
+        "name": "أدخل اسمك",
+        "email": "بريدك الإلكتروني",
+        "phone": "رقم هاتفك"
+      },
+      "errors": {
+        "nameRequired": "الاسم مطلوب",
+        "emailRequired": "البريد الإلكتروني مطلوب",
+        "emailInvalid": "يرجى إدخال بريد إلكتروني صالح",
+        "userNotFound": "المستخدم غير موجود",
+        "updateFailed": "حدث خطأ أثناء تحديث الملف الشخصي",
+        "avatarUpdateFailed": "تم تحديث الملف الشخصي ولكن تعذر تحديث الصورة الرمزية"
+      },
+      "password": {
+        "title": "تغيير كلمة المرور",
+        "save": "تحديث كلمة المرور",
+        "warning": "لتغيير كلمة المرور، يجب التحقق من كلمة المرور الحالية أولاً.",
+        "success": "تم تحديث كلمة المرور بنجاح",
+        "fields": {
+          "current": "كلمة المرور الحالية",
+          "new": "كلمة المرور الجديدة",
+          "confirm": "تأكيد كلمة المرور الجديدة"
+        },
+        "placeholders": {
+          "current": "أدخل كلمة المرور الحالية",
+          "new": "أدخل كلمة المرور الجديدة",
+          "confirm": "أكّد كلمة المرور الجديدة"
+        },
+        "errors": {
+          "currentRequired": "كلمة المرور الحالية مطلوبة",
+          "currentInvalid": "كلمة المرور الحالية غير صحيحة",
+          "newRequired": "كلمة المرور الجديدة مطلوبة",
+          "confirmRequired": "تأكيد كلمة المرور مطلوب",
+          "passwordsDontMatch": "كلمتا المرور غير متطابقتين",
+          "updateFailed": "حدث خطأ أثناء تحديث كلمة المرور"
+        }
+      }
+    },
+    "privacy": {
+      "title": "الخصوصية",
+      "policy": "ساري المفعول: 4 مارس 2026\n\nيجمع Quorax معلومات الحساب (الاسم، البريد الإلكتروني)، وبيانات استخدام التطبيق، والمحتوى الذي تقدمه لوحدات الذكاء الاصطناعي، وبيانات الاشتراك/الدفع (تتم معالجتها بواسطة Apple/Google — لا نخزن تفاصيل بطاقتك أبداً).\n\nتُستخدم بياناتك لتقديم الخدمات وتحسين التطبيق ومنع الاحتيال. نحن لا نبيع بياناتك الشخصية.\n\nمزودو الطرف الثالث: Anthropic (Claude AI — لا تستخدم بياناتك لتدريب النماذج)، Supabase، RevenueCat، Google AdMob، Apple/Google.\n\nلديك الحق في الوصول إلى بياناتك وتصحيحها وحذفها ونقلها وسحب الموافقة في أي وقت. للتواصل: privacy@quorax.app\n\nللاطلاع على سياسة الخصوصية الكاملة، انظر الملف الشخصي > سياسة الخصوصية.",
+      "sections": {
+        "controls": "ضوابط الخصوصية",
+        "dataCollection": "جمع البيانات",
+        "rights": "حقوق المستخدم"
+      },
+      "controls": {
+        "dataSaving": {
+          "title": "توفير البيانات",
+          "description": "استلم ردود الذكاء الاصطناعي مع استهلاك أقل للبيانات"
+        },
+        "saveHistory": {
+          "title": "حفظ السجل",
+          "description": "تخزين سجل المحادثات والنشاط الخاص بك"
+        },
+        "anonymousAnalytics": {
+          "title": "تحليلات مجهولة",
+          "description": "بيانات مجهولة لتحسين التطبيق"
+        },
+        "personalizedContent": {
+          "title": "محتوى مخصص",
+          "description": "استلم توصيات بناءً على اهتماماتك"
+        },
+        "thirdPartySharing": {
+          "title": "المشاركة مع طرف ثالث",
+          "description": "مشاركة بيانات مجهولة مع شركاء البحث"
+        },
+        "locationTracking": {
+          "title": "تتبع الموقع",
+          "description": "تفعيل الميزات القائمة على الموقع"
+        }
+      },
+      "collected": {
+        "title": "البيانات المجمّعة",
+        "description": "يجمع تطبيقنا البيانات التالية:",
+        "account": "معلومات الحساب (البريد الإلكتروني، الاسم)",
+        "history": "سجل الاستخدام والأنشطة",
+        "device": "معلومات الجهاز والبيانات التقنية",
+        "location": "بيانات الموقع (عند السماح)"
+      },
+      "usage": {
+        "title": "استخدام البيانات",
+        "description": "تُستخدم البيانات المجمّعة لـ:",
+        "improve": "تحسين أداء التطبيق",
+        "personalize": "تقديم تجربة مخصصة",
+        "security": "الأمن ومنع الاحتيال",
+        "support": "تقديم دعم العملاء"
+      },
+      "securityInfo": "تُنقل جميع بياناتك عبر اتصالات مشفرة وتُخزن على خوادم آمنة.",
+      "userRights": {
+        "title": "حقوقك كمستخدم",
+        "description": "وفقاً للائحة GDPR وقوانين حماية البيانات الأخرى، حقوقك هي:",
+        "access": "حق الوصول إلى بياناتك",
+        "rectify": "حق تصحيح البيانات غير الصحيحة",
+        "delete": "حق حذف بياناتك",
+        "object": "حق الاعتراض على معالجة البيانات"
+      },
+      "contact": {
+        "title": "تواصل معنا",
+        "email": "privacy@quorax.com",
+        "alert": "سيتم فتح تطبيق البريد..."
+      }
+    },
+    "help": {
+      "title": "المساعدة والدعم",
+      "howCanHelp": "كيف يمكننا مساعدتك؟",
+      "helpDescription": "هل لديك أسئلة؟ يسعدنا المساعدة. يمكنك مراجعة الأسئلة الشائعة أدناه أو إنشاء تذكرة دعم مباشرة.",
+      "sendTicket": "إنشاء تذكرة دعم",
+      "cancel": "إلغاء",
+      "faq": "الأسئلة الشائعة",
+      "noFaqTitle": "لا توجد أسئلة شائعة بعد",
+      "noFaqSubtitle": "ستتم إضافة الأسئلة الشائعة قريباً",
+      "ticketsHistory": "تذاكر الدعم الخاصة بي",
+      "noTickets": "لا توجد تذاكر دعم بعد",
+      "noTicketsSubtitle": "اضغط على الزر أعلاه لإنشاء تذكرة دعم",
+      "subject": "الموضوع",
+      "subjectPlaceholder": "موضوع مشكلتك...",
+      "message": "رسالتك",
+      "messagePlaceholder": "صف مشكلتك بالتفصيل...",
+      "priority": "الأولوية",
+      "priorityLow": "منخفضة",
+      "priorityMedium": "متوسطة",
+      "priorityHigh": "عالية",
+      "send": "إرسال",
+      "helperText": "بمجرد إنشاء تذكرة الدعم، سنعود إليك في أقرب وقت ممكن.",
+      "success": {
+        "title": "نجاح!",
+        "message": "تم إنشاء تذكرة الدعم بنجاح. سنعود إليك قريباً."
+      },
+      "errors": {
+        "subjectRequired": "حقل الموضوع مطلوب",
+        "subjectMinLength": "يجب أن يتكون الموضوع من 5 أحرف على الأقل",
+        "messageRequired": "حقل الرسالة مطلوب",
+        "messageMinLength": "يجب أن تتكون الرسالة من 20 حرفاً على الأقل",
+        "sendError": "حدث خطأ أثناء إنشاء تذكرة الدعم"
+      },
+      "faqList": [
+        {
+          "id": "1",
+          "question": "ما هي عضوية Premium؟",
+          "answer": "مع عضوية Premium، تحصل على استخدام غير محدود وتجربة بدون إعلانات. تفضل بزيارة الملف الشخصي > Premium للتفاصيل."
+        },
+        {
+          "id": "3",
+          "question": "كيف يمكنني حذف حسابي؟",
+          "answer": "لحذف حسابك، اذهب إلى الملف الشخصي > تعديل الملف الشخصي واستخدم خيار 'حذف الحساب'. لا يمكن التراجع عن هذا الإجراء."
+        }
+      ]
+    },
+    "feedback": {
+      "title": "التعليقات",
+      "rating": "قيّم التطبيق",
+      "type": "نوع التعليق",
+      "subject": "الموضوع",
+      "subjectPlaceholder": "موضوع التعليق...",
+      "message": "التفاصيل",
+      "messagePlaceholder": "اكتب تعليقك بالتفصيل...",
+      "submit": "إرسال",
+      "helperText": "تعليقك مهم جداً لنا!",
+      "promiseTitle": "نقرأ كل تعليق بعناية",
+      "promiseText": "تذهب مشكلاتك واقتراحاتك مباشرة إلى فريقنا. نعمل على حلها بأسرع ما يمكن — لن تصل مخاوفك إلى App Store قبل أن نسمعها.",
+      "ratings": {
+        "excellent": "ممتاز",
+        "good": "جيد",
+        "average": "متوسط",
+        "poor": "ضعيف",
+        "veryPoor": "ضعيف جداً"
+      },
+      "types": {
+        "bug": "خطأ/علة",
+        "suggestion": "اقتراح",
+        "improvement": "تحسين",
+        "other": "أخرى"
+      },
+      "success": {
+        "message": "شكراً لتعليقك!"
+      },
+      "errors": {
+        "subjectRequired": "الموضوع مطلوب",
+        "subjectMinLength": "يجب أن يتكون الموضوع من 5 أحرف على الأقل",
+        "messageRequired": "الرسالة مطلوبة",
+        "messageMinLength": "يجب أن تتكون الرسالة من 20 حرفاً على الأقل",
+        "typeRequired": "يجب اختيار نوع التعليق",
+        "sendError": "حدث خطأ أثناء إرسال التعليق",
+        "userNotFound": "المستخدم غير موجود",
+        "loginRequired": "يجب تسجيل الدخول لإرسال تعليق"
+      }
+    },
+    "terms": {
+      "title": "شروط الخدمة",
+      "menuLabel": "شروط الخدمة"
     }
   },
   "math": {
+    "unlockExplanation": "ترقّ إلى Premium لفتح الشرح",
     "info": {
       "title": "كيفية الاستخدام؟",
       "content": "اكتب مسألتك أو التقط صورة / اختر من المعرض. يمكن للذكاء الاصطناعي التعامل مع الجبر والهندسة وحساب التفاضل والتكامل وغير ذلك الكثير.\n\nكل حل يتضمن إجابة واضحة وشرحاً مفصلاً خطوة بخطوة والتحقق من النتيجة."
@@ -299,6 +1155,186 @@
     "imageProblem": "مسألة بصورة",
     "filter": {
       "all": "الكل"
+    }
+  },
+  "settings": {
+    "title": "الإعدادات",
+    "language": "اللغة",
+    "theme": "المظهر",
+    "darkMode": "الوضع الداكن",
+    "lightMode": "الوضع الفاتح",
+    "systemMode": "حسب النظام"
+  },
+  "onboarding": {
+    "demoLabel": "مثال",
+    "slide1": {
+      "title": "مرحباً بك في Quorax",
+      "description": "حل الرياضيات وأنشئ الاختبارات واطرح الأسئلة — كل ذلك في تطبيق واحد."
+    },
+    "slide2": {
+      "title": "مساعد دردشة بالذكاء الاصطناعي",
+      "description": "افتح دردشات حسب الموضوع. أضف الصور أو ملفات PDF أو الملفات وتابع من حيث توقفت."
+    },
+    "slide3": {
+      "title": "حلّال الرياضيات",
+      "description": "اكتب المعادلة أو وجّه الكاميرا. شاهد كل خطوة مع المنطق ثم تحقق من الإجابة."
+    },
+    "slide4": {
+      "title": "مختبر الامتحانات",
+      "description": "أنشئ اختبارات من ملاحظاتك الخاصة أو من مواضيع المنهج. احسب وقتك وراجع الإجابات الخاطئة بشروح كاملة."
+    },
+    "buttons": {
+      "skip": "تخطي",
+      "next": "التالي",
+      "start": "ابدأ الآن",
+      "signIn": "تسجيل الدخول",
+      "createAccount": "إنشاء حساب",
+      "continueAsGuest": "المتابعة كضيف"
+    },
+    "aiConsentTitle": "موافقة على معالجة البيانات بالذكاء الاصطناعي",
+    "aiConsentBody": "يستخدم Quorax تقنية Claude AI من Anthropic لتشغيل ميزاته. لتقديم هذه الخدمات، قد يتم إرسال البيانات التالية إلى Anthropic:\n\n• رسائلك وسجل الدردشة\n• النصوص التي ترسلها للتحرير أو إنشاء الملاحظات\n• المسائل الرياضية (بما في ذلك الصور)\n• الصور التي ترفعها للتحليل\n\nتُرسل هذه البيانات إلى Anthropic, Inc. ‏(anthropic.com) وتُعالج وفقاً لسياسة الخصوصية الخاصة بها. لا تُباع أو تُستخدم لتدريب نماذج الذكاء الاصطناعي دون موافقة.",
+    "aiConsentCheckbox": "أفهم وأوافق على أنه قد تتم معالجة بياناتي بواسطة Anthropic ‏(Claude AI) كما هو موضح أعلاه.",
+    "aiConsentRequired": "يجب قبول موافقة معالجة البيانات بالذكاء الاصطناعي للمتابعة.",
+    "aiConsentAcceptButton": "أوافق",
+    "aiConsent": "بالمتابعة، أنت توافق على أن مدخلاتك قد تُعالج بواسطة Anthropic ‏(Claude AI). تعرّف على المزيد في",
+    "privacyPolicy": "سياسة الخصوصية",
+    "termsOfService": "شروط الخدمة",
+    "andText": "و"
+  },
+  "welcome": {
+    "tagline": "مساعد الدراسة المدعوم بالذكاء الاصطناعي",
+    "signIn": "تسجيل الدخول",
+    "createAccount": "إنشاء حساب",
+    "continueAsGuest": "المتابعة كضيف",
+    "getStarted": "ابدأ الآن",
+    "alreadyHaveAccount": "لديك حساب بالفعل؟"
+  },
+  "chat": {
+    "newChatStarted": "بدأت محادثة جديدة",
+    "userFallback": "المستخدم",
+    "filter": {
+      "all": "الكل",
+      "recent": "حديث"
+    },
+    "empty": {
+      "title": "لا توجد محادثات بعد",
+      "description": "اضغط على الزر أدناه لبدء محادثة جديدة",
+      "message": "لا توجد رسائل بعد. أرسل رسالتك الأولى!"
+    },
+    "newChat": "محادثة جديدة",
+    "newChatModal": {
+      "title": "إنشاء محادثة جديدة",
+      "titleLabel": "عنوان المحادثة",
+      "titlePlaceholder": "أدخل عنوان المحادثة...",
+      "colorLabel": "اختر اللون",
+      "create": "إنشاء"
+    },
+    "input": {
+      "placeholder": "اكتب رسالتك..."
+    },
+    "typing": "يكتب...",
+    "delete": {
+      "title": "حذف المحادثة",
+      "message": "هل أنت متأكد من حذف محادثة \"{{title}}\"؟ لا يمكن التراجع عن هذا الإجراء.",
+      "success": "تم حذف المحادثة بنجاح",
+      "error": "حدث خطأ أثناء حذف المحادثة",
+      "activitiesDeleteWarning": "تم حذف المحادثة ولكن تعذر تحديث سجلات النشاط المرتبطة."
+    },
+    "errors": {
+      "loadFailed": "حدث خطأ أثناء تحميل المحادثات",
+      "createFailed": "حدث خطأ أثناء إنشاء المحادثة",
+      "loadChatFailed": "حدث خطأ أثناء تحميل بيانات المحادثة",
+      "loadMessagesFailed": "حدث خطأ أثناء تحميل الرسائل",
+      "sendFailed": "حدث خطأ أثناء إرسال الرسالة",
+      "aiFailed": "فشل الحصول على رد الذكاء الاصطناعي. حاول مجدداً."
+    }
+  },
+  "premiumModal": {
+    "limitPill": "الحد اليومي",
+    "proPill": "ميزة PRO",
+    "limitTitle": "لقد استنفدت الحد المجاني لليوم",
+    "proTitle": "Premium يفتح هذه الميزة",
+    "limitSubtitle": "استخدمت {{used}}/{{limit}} حلول في {{module}} اليوم. قم بالترقية للوصول غير المحدود.",
+    "proSubtitle": "هذه الميزة مشمولة في Premium. شاهد خيارات الخطة في الشاشة التالية.",
+    "benefitUnlimited": "حلول رياضيات غير محدودة",
+    "benefitVerify": "تحقق من عملك بنفسك",
+    "benefitExplanations": "شروحات خطوة بخطوة",
+    "benefitNoAds": "بدون إعلانات على الإطلاق",
+    "trialHint": "جرّب مجاناً، ألغِ في أي وقت",
+    "cta": "عرض الخطط",
+    "later": "ربما لاحقاً"
+  },
+  "premium": {
+    "limitReached": "تم الوصول للحد اليومي",
+    "proFeature": "ميزة PRO",
+    "proFeatureSubtitle": "ترقّ إلى Premium لفتح هذه الميزة",
+    "usageToday": "{{used}}/{{limit}} مُستخدم اليوم لـ {{module}}",
+    "upgradeMessage": "ترقّ إلى Premium واستمتع بالاستخدام غير المحدود!",
+    "upgradeToPremium": "ترقية إلى Premium",
+    "freeUsageBanner": {
+      "remaining": "لديك {{remaining}}/{{limit}} استخدام اليوم",
+      "limitReached": "استخدمت {{used}}/{{limit}} اليوم. لا توجد استخدامات متبقية.",
+      "upgradeCta": "احصل على Premium للاستخدام غير المحدود",
+      "premiumHint": "غير محدود مع Premium",
+      "infoCta": "معلومات الاستخدام اليومي",
+      "limitReachedCta": "لا توجد استخدامات متبقية، ترقّ إلى Premium"
+    },
+    "features": {
+      "unlimited": "استخدام غير محدود",
+      "priority": "دعم بأولوية",
+      "noAds": "تجربة بدون إعلانات",
+      "topicAnalysis": "تحليل المواضيع وتتبع نقاط القوة والضعف",
+      "verify": "تحقق من عملك",
+      "explanations": "شروحات المواضيع والحلول المفصلة"
+    }
+  },
+  "rating": {
+    "title": "هل تستمتع بـ Quorax؟",
+    "subtitle": "مشاركة تجربتك تساعدنا كثيراً. لن تستغرق سوى دقيقة!",
+    "yes": "نعم، أحبه!",
+    "no": "لا، لديّ مشكلات",
+    "skip": "ليس الآن",
+    "feedbackTitle": "كيف يمكننا التحسين؟",
+    "feedbackSubtitle": "أخبرنا عن مشكلتك أو اقتراحك — سيعود إليك فريقنا قريباً.",
+    "feedbackPromise": "نقرأ كل تعليق بعناية. حل مشكلاتك هو أولويتنا.",
+    "feedbackPlaceholder": "شارك تجربتك معنا...",
+    "feedbackSend": "إرسال",
+    "thanksTitle": "شكراً لك!",
+    "thanksSubtitle": "شكراً لتعليقك. نعمل بجد لجعل Quorax أفضل."
+  },
+  "examProgress": {
+    "question": "سؤال",
+    "answer": "إجابة",
+    "goBack": "العودة",
+    "toStudy": "{{count}} للدراسة",
+    "learned": "{{count}} تم تعلمه",
+    "masteryStats": "{{mastered}}/{{total}} إتقان · {{pct}}% نجاح",
+    "questionN": "سؤال {{n}}"
+  },
+  "aiLoading": {
+    "hint": "قد يستغرق ذلك بضع ثوانٍ",
+    "math": {
+      "0": "قراءة المسألة",
+      "1": "حساب الخطوات",
+      "2": "تحضير الحل"
+    },
+    "exam": {
+      "0": "فحص الموضوع",
+      "1": "إنشاء الأسئلة",
+      "2": "تحضير امتحانك"
+    },
+    "image": {
+      "0": "تحليل الصورة",
+      "1": "تحديد المحتوى",
+      "2": "تحضير النتيجة"
+    },
+    "text": {
+      "0": "معالجة النص",
+      "1": "تحضير النتيجة"
+    },
+    "chat": {
+      "0": "جارٍ التفكير",
+      "1": "تحضير الرد"
     }
   }
 }

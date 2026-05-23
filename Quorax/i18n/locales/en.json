@@ -2,6 +2,8 @@
   "common": {
     "loading": "Loading...",
     "error": "An error occurred",
+    "tryAgain": "Try again",
+    "retry": "Retry",
     "success": "Success",
     "save": "Save",
     "cancel": "Cancel",
@@ -86,15 +88,20 @@
       }
     },
     "register": {
-      "title": "Sign Up",
+      "title": "Create your account",
+      "subtitle": "Just an email and password — that's it.",
+      "upgradeTitle": "Save your progress",
+      "upgradeSubtitle": "Add an email + password to keep your solves across devices.",
+      "cta": "Continue",
+      "acceptPrefix": "I agree to the ",
       "welcome": "Create Account",
-      "subtitle": "Create your new account and get started",
       "name": "Full Name",
       "namePlaceholder": "Enter your name",
       "email": "Email",
       "emailPlaceholder": "example@email.com",
       "password": "Password",
-      "passwordPlaceholder": "Enter your password",
+      "passwordPlaceholder": "Min. 6 characters",
+      "passwordShort": "Password must be at least 6 characters",
       "confirmPassword": "Confirm Password",
       "confirmPasswordPlaceholder": "Re-enter your password",
       "terms": "I agree to the Terms of Use and Privacy Policy",
@@ -114,6 +121,7 @@
         "emailInvalid": "Please enter a valid email address",
         "passwordRequired": "Password is required",
         "passwordMinLength": "Password must be at least 6 characters",
+        "passwordShort": "Password must be at least 6 characters",
         "confirmPasswordRequired": "Password confirmation is required",
         "passwordsNotMatch": "Passwords do not match",
         "termsRequired": "You must accept the terms and conditions",
@@ -174,7 +182,34 @@
       }
     }
   },
+  "notifications": {
+    "softPrompt": {
+      "title": "Daily study nudge?",
+      "body": "Get a 1-minute reminder when it's time to practice. No spam, ever.",
+      "enable": "Enable",
+      "notNow": "Not now"
+    },
+    "daily": {
+      "title": "Quorax",
+      "body": "Quick review today? Set aside 5 minutes and keep going."
+    },
+    "reminder": {
+      "settingsTitle": "Daily reminder",
+      "settingsSubtitle": "A nudge to practice every day at the same time",
+      "timeLabel": "Reminder time",
+      "scheduled": "Reminder set for {{time}}",
+      "cancelled": "Reminder turned off",
+      "permissionDenied": "Notification permission denied. You can enable it from Settings."
+    }
+  },
   "home": {
+    "greetingMorning": "Good morning,",
+    "greetingAfternoon": "Good afternoon,",
+    "greetingEvening": "Good evening,",
+    "greetingNight": "Good night,",
+    "continue": "Continue",
+    "suggestionStartLearning": "Start your first exam session",
+    "usageFormat": "{{remaining}} free left",
     "greeting": "Hello",
     "greetingGuest": "Welcome",
     "myModules": "My Modules",
@@ -238,8 +273,8 @@
   },
   "modules": {
     "locked": "Sign in required",
-    "dailyUsage": "{{used}}/{{limit}} used today",
-    "dailyLimitReached": "Daily limit reached · Go Premium",
+    "dailyUsage": "{{used}}/{{limit}} free used",
+    "dailyLimitReached": "Free limit reached · Go Premium",
     "lockedAlert": {
       "title": "Sign In Required",
       "message": "You need to sign in to use this module.",
@@ -627,6 +662,39 @@
     "notLoggedIn": "Not Logged In",
     "loginToContinue": "Sign in to continue",
     "guest": "Guest",
+    "guestTitle": "You're browsing as a guest",
+    "guestSubtitle": "Create an account to save your progress and sync across devices.",
+    "rate": {
+      "notAvailable": "Store can't be opened right now.",
+      "title": "Rate Us",
+      "header": {
+        "title": "Enjoying the App?",
+        "subtitle": "Rate your experience and review us on the App Store"
+      },
+      "selectRating": "Select Rating",
+      "button": "Rate",
+      "info": "High ratings help us a lot!",
+      "ratings": {
+        "excellent": "Excellent",
+        "good": "Good",
+        "average": "Average",
+        "poor": "Poor",
+        "veryPoor": "Very Poor"
+      },
+      "lowRating": {
+        "title": "Would You Like to Give Feedback?",
+        "message": "Could you give us feedback to help us improve your experience?",
+        "giveFeedback": "Give Feedback"
+      },
+      "success": {
+        "thankYou": "Thank you! Your rating is very valuable to us."
+      },
+      "errors": {
+        "selectRating": "Please select a rating",
+        "cannotOpenStore": "Cannot open store",
+        "openStoreFailed": "An error occurred while opening store"
+      }
+    },
     "premium": {
       "title": "Premium",
       "subtitle": "Unlimited access and exclusive features",
@@ -639,6 +707,7 @@
       "status": "Premium Status",
       "active": "Active",
       "inactive": "Inactive",
+      "limitedOffer": "LIMITED OFFER",
       "freePlan": "Free Plan",
       "premiumPlan": "Premium Plan",
       "dailyLimitedUsage": "Daily limited usage",
@@ -732,7 +801,13 @@
       "featureTopics": "Topic analysis dashboard",
       "trustSecure": "Secure Payment",
       "trustCancel": "Cancel Anytime",
-      "trustSafe": "Privacy Protected"
+      "trustSafe": "Privacy Protected",
+      "heroLimitTitle": "Keep solving — unlock everything",
+      "exitTitle": "Wait — one more thing",
+      "exitSubtitle": "Try monthly — cancel anytime. No long commitment.",
+      "exitTryMonthly": "Try Monthly · {{price}}",
+      "exitTryMonthlyTrial": "Start {{days}}-Day Trial · {{price}}/mo",
+      "exitNoThanks": "No thanks"
     },
     "verification": {
       "label": "Email verification",
@@ -948,42 +1023,13 @@
         "loginRequired": "You need to log in to send feedback"
       }
     },
-    "rate": {
-      "title": "Rate Us",
-      "header": {
-        "title": "Enjoying the App?",
-        "subtitle": "Rate your experience and review us on the App Store"
-      },
-      "selectRating": "Select Rating",
-      "button": "Rate",
-      "info": "High ratings help us a lot!",
-      "ratings": {
-        "excellent": "Excellent",
-        "good": "Good",
-        "average": "Average",
-        "poor": "Poor",
-        "veryPoor": "Very Poor"
-      },
-      "lowRating": {
-        "title": "Would You Like to Give Feedback?",
-        "message": "Could you give us feedback to help us improve your experience?",
-        "giveFeedback": "Give Feedback"
-      },
-      "success": {
-        "thankYou": "Thank you! Your rating is very valuable to us."
-      },
-      "errors": {
-        "selectRating": "Please select a rating",
-        "cannotOpenStore": "Cannot open store",
-        "openStoreFailed": "An error occurred while opening store"
-      }
-    },
     "terms": {
       "title": "Terms of Service",
       "menuLabel": "Terms of Service"
     }
   },
   "math": {
+    "unlockExplanation": "Upgrade to Premium to unlock the explanation",
     "info": {
       "title": "How to Use?",
       "content": "Type your problem or take a photo / select from gallery. AI can handle algebra, geometry, calculus and much more.\n\nEvery solution includes a clear answer, numbered step-by-step explanations, and result verification."
@@ -1120,21 +1166,22 @@
     "systemMode": "System"
   },
   "onboarding": {
+    "demoLabel": "EXAMPLE",
     "slide1": {
       "title": "Welcome to Quorax",
-      "description": "Learning with AI just got easier. Prepare for exams, solve math, ask anything."
+      "description": "Solve math, generate tests, ask questions — all in one app."
     },
     "slide2": {
       "title": "AI Chat Assistant",
-      "description": "Chat with your smart assistant about anything. Explain homework, understand concepts, get instant answers."
+      "description": "Open topic-by-topic chats. Drop in photos, PDFs or files and pick up right where you left off."
     },
     "slide3": {
       "title": "Math Solver",
-      "description": "Type or photograph your problem. Algebra, geometry, calculus — step-by-step explained solutions."
+      "description": "Type the equation or point your camera. See every step with reasoning, then verify the answer."
     },
     "slide4": {
       "title": "Exam Lab",
-      "description": "Generate tests on any topic. Pick difficulty, question count, or even upload your notes."
+      "description": "Generate tests from your own notes or curriculum topics. Time yourself, review wrong answers with full explanations."
     },
     "buttons": {
       "skip": "Skip",
@@ -1158,11 +1205,17 @@
     "tagline": "Your AI-powered study companion",
     "signIn": "Sign In",
     "createAccount": "Create Account",
-    "continueAsGuest": "Continue as Guest"
+    "continueAsGuest": "Continue as Guest",
+    "getStarted": "Get Started",
+    "alreadyHaveAccount": "Already have an account?"
   },
   "chat": {
     "newChatStarted": "New chat started",
     "userFallback": "User",
+    "filter": {
+      "all": "All",
+      "recent": "Recent"
+    },
     "empty": {
       "title": "No chats yet",
       "description": "Click the button below to start a new chat",

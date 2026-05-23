@@ -2,7 +2,8 @@
   "common": {
     "loading": "Cargando...",
     "error": "Ocurrió un error",
-    "warning": "Advertencia",
+    "tryAgain": "Intentar de nuevo",
+    "retry": "Reintentar",
     "success": "Éxito",
     "save": "Guardar",
     "cancel": "Cancelar",
@@ -18,41 +19,274 @@
     "skip": "Omitir",
     "getStarted": "Empezar",
     "info": "Información",
+    "warning": "Advertencia",
     "login": "Iniciar sesión",
     "timeout": "Tiempo de solicitud agotado. Por favor intenta de nuevo.",
     "goBack": "Volver"
   },
-  "welcome": {
-    "tagline": "Tu asistente de estudio con IA",
-    "signIn": "Iniciar sesión",
-    "createAccount": "Crear cuenta",
-    "continueAsGuest": "Continuar como invitado"
+  "ad": {},
+  "auth": {
+    "login": {
+      "title": "Iniciar sesión",
+      "welcome": "Bienvenido de vuelta",
+      "subtitle": "Inicia sesión en tu cuenta",
+      "email": "Correo electrónico",
+      "emailPlaceholder": "ejemplo@correo.com",
+      "password": "Contraseña",
+      "passwordPlaceholder": "Ingresa tu contraseña",
+      "forgotPassword": "¿Olvidaste tu contraseña?",
+      "forgotPasswordComingSoon": "La función de restablecer contraseña estará disponible pronto",
+      "forgotPasswordEmailRequired": "Por favor ingresa primero tu correo electrónico.",
+      "forgotPasswordConfirm": "Se enviará un enlace para restablecer la contraseña a este correo. ¿Enviar?",
+      "forgotPasswordEmailSent": "Se envió un enlace para restablecer la contraseña a tu correo. Revisa tu bandeja de entrada.",
+      "forgotPasswordError": "Ocurrió un error al enviar el correo de restablecimiento.",
+      "forgotPasswordContactUs": "Por favor contáctanos para restablecer tu contraseña. Puedes crear un ticket de soporte desde Perfil > Ayuda y soporte.",
+      "resetPassword": {
+        "title": "Olvidé mi contraseña",
+        "subtitle": "Te enviaremos un código de 6 dígitos a tu correo electrónico",
+        "emailLabel": "Correo electrónico",
+        "sendCode": "Enviar código",
+        "sending": "Enviando...",
+        "codeSent": "¡Código enviado! Revisa tu correo.",
+        "otpLabel": "Código de verificación",
+        "otpPlaceholder": "Ingresa el código de 6 dígitos",
+        "newPasswordLabel": "Nueva contraseña",
+        "confirmPasswordLabel": "Confirmar contraseña",
+        "updateButton": "Actualizar contraseña",
+        "updating": "Actualizando...",
+        "successTitle": "¡Éxito!",
+        "successMessage": "Tu contraseña ha sido actualizada. Ya puedes iniciar sesión.",
+        "resendCode": "Reenviar código",
+        "errors": {
+          "emailRequired": "El correo electrónico es obligatorio",
+          "emailInvalid": "Por favor ingresa un correo electrónico válido",
+          "otpRequired": "El código de verificación es obligatorio",
+          "otpInvalid": "Código inválido. Por favor intenta de nuevo.",
+          "otpExpired": "El código ha expirado. Solicita uno nuevo.",
+          "passwordRequired": "La contraseña es obligatoria",
+          "passwordMinLength": "La contraseña debe tener al menos 6 caracteres",
+          "passwordsNotMatch": "Las contraseñas no coinciden",
+          "sendFailed": "No se pudo enviar el código. Por favor intenta de nuevo.",
+          "updateFailed": "No se pudo actualizar la contraseña. Por favor intenta de nuevo.",
+          "tooManyAttempts": "Demasiados intentos fallidos. Solicita un código nuevo.",
+          "attemptsRemaining": "{{count}} intentos restantes"
+        }
+      },
+      "rememberMe": "Recordarme",
+      "button": "Iniciar sesión",
+      "noAccount": "¿No tienes cuenta?",
+      "signUp": "Registrarse",
+      "success": "¡Inicio de sesión exitoso!",
+      "errors": {
+        "title": "Error de inicio de sesión",
+        "emailRequired": "El correo electrónico es obligatorio",
+        "emailInvalid": "Por favor ingresa un correo electrónico válido",
+        "passwordRequired": "La contraseña es obligatoria",
+        "passwordMinLength": "La contraseña debe tener al menos 6 caracteres",
+        "invalidCredentials": "Correo o contraseña inválidos",
+        "generic": "Ocurrió un error al iniciar sesión"
+      }
+    },
+    "register": {
+      "title": "Crea tu cuenta",
+      "subtitle": "Solo un correo y una contraseña — eso es todo.",
+      "upgradeTitle": "Guarda tu progreso",
+      "upgradeSubtitle": "Agrega un correo y una contraseña para conservar tus soluciones en todos tus dispositivos.",
+      "cta": "Continuar",
+      "acceptPrefix": "Acepto los ",
+      "welcome": "Crear cuenta",
+      "name": "Nombre completo",
+      "namePlaceholder": "Ingresa tu nombre",
+      "email": "Correo electrónico",
+      "emailPlaceholder": "ejemplo@correo.com",
+      "password": "Contraseña",
+      "passwordPlaceholder": "Mín. 6 caracteres",
+      "passwordShort": "La contraseña debe tener al menos 6 caracteres",
+      "confirmPassword": "Confirmar contraseña",
+      "confirmPasswordPlaceholder": "Vuelve a ingresar tu contraseña",
+      "terms": "Acepto los Términos de Uso y la Política de Privacidad",
+      "termsPrefix": "Acepto los ",
+      "termsLink": "Términos de Servicio",
+      "termsAnd": " y la ",
+      "privacyLink": "Política de Privacidad",
+      "button": "Registrarse",
+      "hasAccount": "¿Ya tienes cuenta?",
+      "signIn": "Iniciar sesión",
+      "success": "¡Registro exitoso!",
+      "errors": {
+        "title": "Error de registro",
+        "nameRequired": "El nombre completo es obligatorio",
+        "nameMinLength": "El nombre debe tener al menos 2 caracteres",
+        "emailRequired": "El correo electrónico es obligatorio",
+        "emailInvalid": "Por favor ingresa un correo electrónico válido",
+        "passwordRequired": "La contraseña es obligatoria",
+        "passwordMinLength": "La contraseña debe tener al menos 6 caracteres",
+        "passwordShort": "La contraseña debe tener al menos 6 caracteres",
+        "confirmPasswordRequired": "Debes confirmar la contraseña",
+        "passwordsNotMatch": "Las contraseñas no coinciden",
+        "termsRequired": "Debes aceptar los términos y condiciones",
+        "emailExists": "Este correo electrónico ya está en uso",
+        "birthDateInvalid": "Por favor ingresa una fecha de nacimiento válida",
+        "ageTooYoung": "Debes tener al menos 13 años para registrarte",
+        "generic": "Ocurrió un error al registrarte"
+      },
+      "flow": {
+        "stepCounter": "{{current}} / {{total}}",
+        "next": "Continuar",
+        "back": "Atrás",
+        "skip": "Omitir",
+        "finish": "Crear mi cuenta",
+        "nameTitle": "¿Cómo te llamamos?",
+        "nameSubtitle": "Este es el nombre que aparecerá en tu cuenta.",
+        "emailTitle": "Tu correo electrónico",
+        "emailSubtitle": "Usado para inicio de sesión y notificaciones.",
+        "passwordTitle": "Crea una contraseña segura",
+        "passwordSubtitle": "Al menos 6 caracteres; se recomienda mezclar letras y números.",
+        "passwordStrengthWeak": "Débil",
+        "passwordStrengthMedium": "Media",
+        "passwordStrengthStrong": "Fuerte",
+        "gradeTitle": "¿En qué nivel estás?",
+        "gradeSubtitle": "Adaptaremos el contenido a tu nivel.",
+        "gradeMiddle": "Secundaria",
+        "gradeHigh9": "9.° grado",
+        "gradeHigh10": "10.° grado",
+        "gradeHigh11": "11.° grado",
+        "gradeHigh12": "12.° grado",
+        "gradeUniversity": "Universidad",
+        "gradeOther": "Otro",
+        "examTitle": "¿Algún examen como objetivo?",
+        "examSubtitle": "Ajustaremos el Exam Lab en consecuencia.",
+        "examLgs": "LGS",
+        "examYks": "YKS",
+        "examKpss": "KPSS",
+        "examNone": "Por ahora no",
+        "examOther": "Otro",
+        "goalTitle": "¿Cuál es tu objetivo principal?",
+        "goalSubtitle": "Con unas pocas palabras basta — el chat de IA seguirá tu rumbo.",
+        "goalPlaceholder": "ej., ser el mejor de mi clase en matemáticas",
+        "birthTitle": "Tu fecha de nacimiento",
+        "birthSubtitle": "Para contenido apropiado a tu edad y por cumplimiento.",
+        "birthDay": "Día",
+        "birthMonth": "Mes",
+        "birthYear": "Año",
+        "referralTitle": "¿Dónde nos conociste?",
+        "referralSubtitle": "Opcional — nos ayuda a atenderte mejor.",
+        "refAppStore": "App Store",
+        "refSocial": "Redes sociales",
+        "refFriend": "Un amigo",
+        "refSearch": "Motor de búsqueda",
+        "refAd": "Publicidad",
+        "refOther": "Otro",
+        "termsTitle": "Último paso",
+        "termsSubtitle": "Por favor acepta los términos antes de crear tu cuenta."
+      }
+    }
   },
-  "examProgress": {
-    "question": "PREGUNTA",
-    "answer": "RESPUESTA",
-    "goBack": "Volver",
-    "toStudy": "{{count}} por estudiar",
-    "learned": "{{count}} aprendido",
-    "masteryStats": "{{mastered}}/{{total}} dominado · {{pct}}% éxito",
-    "questionN": "Pregunta {{n}}"
+  "notifications": {
+    "softPrompt": {
+      "title": "¿Recordatorio diario de estudio?",
+      "body": "Recibe un aviso de 1 minuto cuando sea hora de practicar. Sin spam, jamás.",
+      "enable": "Activar",
+      "notNow": "Ahora no"
+    },
+    "daily": {
+      "title": "Quorax",
+      "body": "¿Un repaso rápido hoy? Dedica 5 minutos y sigue avanzando."
+    },
+    "reminder": {
+      "settingsTitle": "Recordatorio diario",
+      "settingsSubtitle": "Un aviso para practicar cada día a la misma hora",
+      "timeLabel": "Hora del recordatorio",
+      "scheduled": "Recordatorio configurado para las {{time}}",
+      "cancelled": "Recordatorio desactivado",
+      "permissionDenied": "Permiso de notificaciones denegado. Puedes activarlo desde Ajustes."
+    }
+  },
+  "home": {
+    "greetingMorning": "Buenos días,",
+    "greetingAfternoon": "Buenas tardes,",
+    "greetingEvening": "Buenas noches,",
+    "greetingNight": "Buenas noches,",
+    "continue": "Continuar",
+    "suggestionStartLearning": "Inicia tu primera sesión de examen",
+    "usageFormat": "{{remaining}} gratis restantes",
+    "greeting": "Hola",
+    "greetingGuest": "Bienvenido",
+    "myModules": "Mis módulos",
+    "recentActivity": "Actividad reciente",
+    "noActivity": "Aún sin actividad",
+    "startUsing": "Comienza a usar uno de los módulos",
+    "viewAll": "Ver todo",
+    "otherTools": "Otras herramientas",
+    "tagline": "Resuelve matemáticas. Prepárate para exámenes.",
+    "activity": {
+      "justNow": "Justo ahora",
+      "minutesAgo": "minutos atrás",
+      "hoursAgo": "horas atrás",
+      "yesterday": "Ayer",
+      "daysAgo": "días atrás",
+      "chatActivity": "Chat",
+      "mathProblem": "Problema matemático",
+      "exam": "Examen",
+      "correctShort": "correctas",
+      "activity": "Actividad",
+      "detail": {
+        "title": "Detalle de actividad",
+        "problem": "Problema",
+        "solution": "Solución",
+        "description": "Descripción",
+        "notFound": "Actividad no encontrada",
+        "examScore": "Puntaje del examen",
+        "correctShort": "correctas",
+        "report": "Reporte",
+        "correctAnswer": "Correcta",
+        "yourAnswer": "Tu respuesta"
+      },
+      "details": {
+        "title": "Detalle de actividad",
+        "problem": "Problema",
+        "solution": "Solución",
+        "description": "Descripción",
+        "notFound": "Actividad no encontrada",
+        "examScore": "Puntaje del examen",
+        "correctShort": "correctas",
+        "report": "Reporte",
+        "correctAnswer": "Correcta",
+        "yourAnswer": "Tu respuesta"
+      },
+      "clear": {
+        "all": "Borrar todo",
+        "title": "Borrar todo el historial de actividad",
+        "message": "Se eliminará todo tu historial de actividad. Esta acción no se puede deshacer. ¿Seguro que quieres continuar?",
+        "confirm": "Eliminar",
+        "success": "Historial de actividad borrado con éxito",
+        "error": "Ocurrió un error al borrar el historial de actividad"
+      },
+      "delete": {
+        "title": "Eliminar actividad",
+        "message": "¿Seguro que quieres eliminar esta actividad?",
+        "confirm": "Eliminar",
+        "success": "Actividad eliminada con éxito",
+        "error": "Ocurrió un error al eliminar la actividad"
+      }
+    }
   },
   "modules": {
     "locked": "Se requiere inicio de sesión",
-    "dailyUsage": "{{used}}/{{limit}} usado hoy",
-    "dailyLimitReached": "Límite diario alcanzado · Ir a Premium",
-    "loginRequired": {
+    "dailyUsage": "{{used}}/{{limit}} gratis usado",
+    "dailyLimitReached": "Límite gratuito alcanzado · Ir a Premium",
+    "lockedAlert": {
       "title": "Inicio de sesión requerido",
       "message": "Debes iniciar sesión para usar este módulo.",
       "signIn": "Iniciar sesión",
       "cancel": "Cancelar"
     },
     "chat": {
-      "title": "Asistente IA",
-      "description": "Habla con tu asistente de IA"
+      "title": "Chat IA",
+      "description": "Habla con tu IA"
     },
     "math": {
-      "title": "Resolver Matemáticas",
+      "title": "Matemáticas",
       "description": "Soluciones paso a paso"
     },
     "calculator": {
@@ -60,96 +294,339 @@
       "description": "Cálculos avanzados"
     },
     "examLab": {
-      "title": "Laboratorio de Exámenes",
+      "title": "Exam Lab",
       "description": "Preparación de exámenes por tema"
     }
   },
-  "home": {
-    "tagline": "Resuelve matemáticas. Prepárate para exámenes.",
-    "recentActivity": "Actividad reciente",
-    "noActivity": "Aún sin actividad",
-    "startUsing": "Comienza a usar uno de los módulos",
-    "viewAll": "Ver todo",
-    "otherTools": "Otras herramientas"
-  },
-  "auth": {
-    "login": {
-      "title": "Iniciar sesión",
-      "subtitle": "Bienvenido de vuelta",
-      "email": "Correo electrónico",
-      "password": "Contraseña",
-      "loginButton": "Iniciar sesión",
-      "noAccount": "¿No tienes cuenta?",
-      "signUp": "Registrarse",
-      "forgotPassword": "¿Olvidaste tu contraseña?",
-      "orContinueWith": "O continúa con",
-      "continueAsGuest": "Continuar como invitado"
+  "examLab": {
+    "info": {
+      "title": "¿Cómo usar?",
+      "content": "Escribe un tema (máx. 3 palabras) o elige uno de los populares. También puedes subir una foto de tus apuntes — la IA detectará el tema automáticamente.\n\nEn el modo Examen, define la cantidad de preguntas (5, 10 o 15) y la dificultad (Fácil / Medio / Difícil). Al terminar, verás la respuesta correcta y la explicación de cada pregunta.\n\nEn el modo Flashcards, la IA convierte el tema en tarjetas de pregunta-respuesta. Toca una tarjeta para ver la respuesta y desliza para pasar a la siguiente."
     },
-    "signup": {
-      "title": "Crear cuenta",
-      "subtitle": "Únete a Quorax hoy",
-      "name": "Nombre completo",
-      "email": "Correo electrónico",
-      "password": "Contraseña",
-      "signupButton": "Registrarse",
-      "hasAccount": "¿Ya tienes cuenta?",
-      "signIn": "Iniciar sesión",
-      "terms": "Al registrarte, aceptas los Términos de Servicio y la Política de Privacidad."
+    "popularTopics": "Temas populares",
+    "popularTopicsItems": [
+      "Derivadas",
+      "Límites",
+      "Ecuaciones",
+      "Matemática básica",
+      "Integrales",
+      "Funciones"
+    ],
+    "customTopic": {
+      "title": "Ingresa el tema",
+      "placeholder": "Tema (máx. 3 palabras)",
+      "wordLimit": "Límite de palabras alcanzado",
+      "wordLimitMessage": "Los temas pueden tener máximo 3 palabras."
+    },
+    "input": {
+      "topic": "Ingresa el tema",
+      "gallery": "Galería",
+      "camera": "Cámara"
+    },
+    "difficulty": "Dificultad",
+    "difficultyOptions": {
+      "easy": "Fácil",
+      "medium": "Medio",
+      "hard": "Difícil"
+    },
+    "questionCount": "Cantidad de preguntas",
+    "proOnlyDifficulty": "Las dificultades Medio y Difícil son solo para Pro",
+    "proOnlyCount": "Más de 10 preguntas por examen es solo para Pro",
+    "configTitle": "Configuración del examen",
+    "createExam": "Crear examen",
+    "orCustomExam": "o examen personalizado",
+    "examType": {
+      "label": "Tipo de examen",
+      "general": "General",
+      "selectTitle": "Selecciona el tipo de examen",
+      "readyTitle": "Listo",
+      "readyDesc": "El tema es opcional — déjalo en blanco y la IA generará preguntas relevantes.",
+      "topicOptionalPlaceholder": "Agrega un tema (opcional, ej. Cálculo)",
+      "selectSubjectDesc": "Selecciona una materia o escribe libremente — opcional",
+      "selectSubject": "¿Qué materia quieres practicar?",
+      "selectFirst": "Primero selecciona un tipo de examen o escribe un tema",
+      "noSubjectHint": "No se seleccionó sección — la IA generará preguntas mixtas para este examen",
+      "loginCta": {
+        "title": "Cuaderno de errores y dominio por tema",
+        "desc": "Inicia sesión para registrar tus errores y monitorear tu progreso"
+      }
+    },
+    "examTypes": {
+      "countries": {
+        "none": "General",
+        "tr": "Turquía",
+        "us": "Estados Unidos",
+        "uk": "Reino Unido",
+        "in": "India",
+        "intl": "Internacional"
+      },
+      "placeholders": {
+        "general": "Ingresa un tema (ej. Fotosíntesis, Cálculo, Imperio otomano...)",
+        "tyt": "Ingresa un tema o selecciona una sección (ej. Párrafo, Ecuaciones...)",
+        "ayt": "Ingresa un tema o selecciona una materia (ej. Derivadas, Óptica, Genética...)",
+        "lgs": "Ingresa un tema o selecciona una materia (ej. Ecuaciones, Fuerzas...)",
+        "kpss": "Ingresa un tema o selecciona una sección (ej. Constitución, Párrafo...)",
+        "ales": "Sayısal o Sözel — selecciona una sección o ingresa un tema",
+        "sat": "Ingresa un tema o selecciona un módulo (ej. Quadratic equations, Grammar...)",
+        "act": "Ingresa un tema o selecciona una sección (ej. Trigonometry, Biology...)",
+        "gre": "Verbal o Quantitative — selecciona una sección o ingresa un tema",
+        "ap": "¿Qué curso AP estás estudiando? (ej. AP Calculus BC, AP Biology...)",
+        "alevels": "¿Qué materia A-Level estás estudiando? (ej. Mathematics, Chemistry...)",
+        "gcse": "¿Qué materia GCSE estás estudiando? (ej. Biology, Physics, History...)",
+        "jee": "Ingresa un tema o selecciona una materia (ej. Calculus, Organic Chemistry...)",
+        "neet": "Ingresa un tema o selecciona una materia (ej. Genetics, Thermodynamics...)",
+        "ielts": "Selecciona una habilidad o ingresa un tema (ej. Academic Vocabulary, Tenses...)",
+        "toefl": "Selecciona una habilidad o ingresa un tema (ej. Inference questions, Grammar...)",
+        "ib": "¿Qué curso IB estás estudiando? (ej. IB Math AA HL, IB Chemistry SL...)"
+      },
+      "subjectPlaceholders": {
+        "tyt_turkce": "Subtema opcional (ej. Comprensión lectora, Tipos de palabras...)",
+        "tyt_mat": "Subtema opcional (ej. Razones, Conjuntos, Ecuaciones...)",
+        "tyt_geometri": "Subtema opcional (ej. Triángulos, Círculos, Área...)",
+        "tyt_tarih": "Subtema opcional (ej. Fundación otomana, Reformas...)",
+        "tyt_cografya": "Subtema opcional (ej. Clima, Población, Regiones...)",
+        "tyt_felsefe": "Subtema opcional (ej. Corrientes filosóficas, Lógica...)",
+        "tyt_din": "Subtema opcional (ej. Culto, Moral, Profetas...)",
+        "tyt_fizik": "Subtema opcional (ej. Fuerzas, Movimiento, Energía...)",
+        "tyt_kimya": "Subtema opcional (ej. Estructura atómica, Ácido-base, Mezclas...)",
+        "tyt_biyoloji": "Subtema opcional (ej. Célula, Herencia, Ecosistema...)",
+        "ayt_mat": "Subtema opcional (ej. Derivadas, Integrales, Logaritmos...)",
+        "ayt_fizik": "Subtema opcional (ej. Electricidad, Magnetismo, Ondas...)",
+        "ayt_kimya": "Subtema opcional (ej. Química orgánica, Equilibrio...)",
+        "ayt_biyoloji": "Subtema opcional (ej. Genética, Evolución, Fisiología...)",
+        "ayt_edebiyat": "Subtema opcional (ej. Período Tanzimat, Estilos poéticos...)",
+        "ayt_tarih": "Subtema opcional (ej. Decadencia otomana, Guerra de Independencia...)",
+        "ayt_cografya": "Subtema opcional (ej. Sistemas climáticos, Geografía de la población...)",
+        "ayt_felsefe": "Subtema opcional (ej. Psicología, Sociología, Lógica...)",
+        "lgs_turkce": "Subtema opcional (ej. Idea principal, Estructura de la oración...)",
+        "lgs_mat": "Subtema opcional (ej. Álgebra, Factorización, Probabilidad...)",
+        "lgs_fen": "Subtema opcional (ej. ADN, Luz, Fuerzas y movimiento...)",
+        "lgs_inkilap": "Subtema opcional (ej. Guerra de Independencia, Principios de Atatürk...)",
+        "lgs_din": "Subtema opcional (ej. Culto, Moral, Profetas...)",
+        "lgs_ing": "Subtema opcional (ej. Tiempos verbales, Vocabulario diario...)",
+        "kpss_turkce": "Subtema opcional (ej. Párrafo, Gramática, Reglas ortográficas...)",
+        "kpss_mat": "Subtema opcional (ej. Velocidad-distancia-tiempo, Porcentajes...)",
+        "kpss_geometri": "Subtema opcional (ej. Triángulos, Círculos, Área-perímetro...)",
+        "kpss_tarih": "Subtema opcional (ej. Imperio Otomano, Guerra de Independencia, Reformas...)",
+        "kpss_cografya": "Subtema opcional (ej. Clima de Turquía, Actividades económicas...)",
+        "kpss_vatandaslik": "Subtema opcional (ej. Constitución, Derechos básicos, Legislativo...)",
+        "ales_sayisal": "Subtema opcional (ej. Series numéricas, Resolución de problemas...)",
+        "ales_sozel": "Subtema opcional (ej. Sinónimos, Completar oraciones...)",
+        "sat_rw": "Subtema opcional (ej. Transitions, Vocabulary in context...)",
+        "sat_algebra": "Subtema opcional (ej. Systems of equations, Inequalities...)",
+        "sat_advanced": "Subtema opcional (ej. Quadratics, Exponential functions...)",
+        "sat_data": "Subtema opcional (ej. Statistics, Probability, Circle theorems...)",
+        "act_english": "Subtema opcional (ej. Punctuation, Transitions, Sentence structure...)",
+        "act_math": "Subtema opcional (ej. Trigonometry, Coordinate geometry...)",
+        "act_reading": "Subtema opcional (ej. Main idea, Inference, Vocabulary...)",
+        "act_science": "Subtema opcional (ej. Data interpretation, Conflicting viewpoints...)",
+        "gre_verbal": "Subtema opcional (ej. Text completion, Reading comprehension...)",
+        "gre_quant": "Subtema opcional (ej. Geometry, Data analysis, Algebra...)",
+        "jee_physics": "Subtema opcional (ej. Rotational motion, Electrostatics, Optics...)",
+        "jee_chemistry": "Subtema opcional (ej. Organic mechanisms, Chemical equilibrium...)",
+        "jee_math": "Subtema opcional (ej. Integration, Coordinate geometry, Vectors...)",
+        "neet_botany": "Subtema opcional (ej. Photosynthesis, Plant reproduction...)",
+        "neet_zoology": "Subtema opcional (ej. Human physiology, Animal kingdom...)",
+        "neet_physics": "Subtema opcional (ej. Laws of motion, Electrostatics, Optics...)",
+        "neet_chemistry": "Subtema opcional (ej. Organic reactions, Thermodynamics...)",
+        "ielts_reading": "Subtema opcional (ej. True/False/NG, Matching headings...)",
+        "ielts_listening": "Subtema opcional (ej. Multiple choice, Form completion...)",
+        "ielts_vocab": "Subtema opcional (ej. Academic Word List, Collocations...)",
+        "ielts_grammar": "Subtema opcional (ej. Conditionals, Passive voice, Tenses...)",
+        "toefl_reading": "Subtema opcional (ej. Inference, Rhetorical purpose...)",
+        "toefl_listening": "Subtema opcional (ej. Main idea, Detail questions...)",
+        "toefl_vocab": "Subtema opcional (ej. Academic vocabulary, Paraphrase...)",
+        "toefl_grammar": "Subtema opcional (ej. Sentence structure, Usage in context...)"
+      }
+    },
+    "photoTopicDetected": "El tema se detectará a partir de la foto.",
+    "photoCapture": {
+      "title": "Toma una foto de la pregunta",
+      "buttonTitle": "Tomar foto de una pregunta",
+      "description": "Toma una foto de una pregunta de tu libro y la IA preparará un examen personalizado con preguntas similares.",
+      "placeholder": "Toma una foto de la pregunta"
+    },
+    "aiRecommendation": {
+      "title": "Recomendación de IA",
+      "description": "Prepara un examen aleatorio para mí."
+    },
+    "loading": "Preparando examen...",
+    "exam": "Examen",
+    "question": "Pregunta",
+    "correct": "¡Correcto! 🎉",
+    "correctSubtext": "¡Excelente trabajo!",
+    "incorrect": "¡Incorrecto! ❌",
+    "whyWrong": "¿Por qué está mal?",
+    "solveWithAI": "Resolver con IA",
+    "solving": "Resolviendo...",
+    "aiSolution": "Solución de la IA",
+    "answer": "Respuesta",
+    "steps": "Pasos de la solución",
+    "exitConfirmTitle": "Salir del examen",
+    "exitConfirmMessage": "¿Seguro que quieres salir del examen?",
+    "exitConfirmLeave": "Salir sin guardar",
+    "exitSaveAndLeave": "Guardar y salir",
+    "report": {
+      "title": "Reporte del examen",
+      "perfect": "¡Perfecto! ¡Todas las preguntas correctas!",
+      "excellent": "¡Rendimiento sobresaliente!",
+      "good": "¡Buen trabajo, sigue así!",
+      "needsImprovement": "Necesitas un poco más de práctica.",
+      "keepPracticing": "¡Sigue practicando, lo lograrás!",
+      "correct": "Correctas",
+      "incorrect": "Incorrectas",
+      "unanswered": "Omitidas",
+      "total": "Total",
+      "duration": "Tiempo",
+      "close": "Cerrar",
+      "newExam": "Nuevo examen",
+      "goToErrorNotebook": "{{count}} preguntas incorrectas guardadas en el Cuaderno de errores →",
+      "retry": "Reintentar",
+      "share": "Compartir resultado",
+      "perfectScore": "¡Felicidades! ¡Respondiste todas las preguntas correctamente!",
+      "correctAnswers": "Respuestas correctas",
+      "wrongAnswers": "Respuestas incorrectas",
+      "skipped": "Preguntas omitidas",
+      "askAI": "Resolver respuestas incorrectas con IA",
+      "weakTopics": "Análisis por tema",
+      "weakTopicsEmpty": "¡Todas las respuestas correctas!",
+      "topicScore": "{{correct}}/{{total}} correctas",
+      "yourAnswer": "Tu respuesta",
+      "correctAnswer": "Respuesta correcta",
+      "explainWithAI": "Explicar con IA",
+      "hideExplanation": "Ocultar explicación",
+      "explaining": "Explicando...",
+      "explainFailed": "No se pudo obtener la explicación, intenta de nuevo"
+    },
+    "resume": {
+      "title": "Continúa donde lo dejaste",
+      "progress": "{{answered}}/{{total}} respondidas"
+    },
+    "errorNotebook": {
+      "title": "Cuaderno de errores",
+      "desc": "Sigue tu progreso"
+    },
+    "quickDrill": {
+      "title": "5 preguntas rápidas",
+      "subtitle": "Empieza al instante · Fácil · Sin configuración",
+      "desc": "5 preguntas · Rápido"
+    },
+    "wrongQuestions": {
+      "title": "Cuaderno de errores",
+      "subtitle": "Revisa y practica tus respuestas incorrectas",
+      "empty": "Aún no hay preguntas en tu cuaderno de errores",
+      "emptyDesc": "Las respuestas incorrectas de tus exámenes aparecerán aquí",
+      "mastered": "Dominada",
+      "notMastered": "Aún difícil",
+      "markMastered": "Lo entendí ✓",
+      "masteredBadge": "Dominada",
+      "attemptCount": "{{count}}x incorrecta",
+      "reviewMode": "Modo práctica",
+      "allDone": "¡Increíble! Las has dominado todas 🎉",
+      "allDoneDesc": "Has revisado todas tus preguntas incorrectas",
+      "cardOf": "{{current}} / {{total}}",
+      "showAnswer": "Mostrar respuesta",
+      "hideAnswer": "Ocultar",
+      "filterAll": "Todas",
+      "filterActive": "Por practicar",
+      "filterMastered": "Dominadas",
+      "deleteConfirm": "¿Eliminar esta pregunta de tu cuaderno de errores?",
+      "loading": "Cargando...",
+      "errorLoad": "No se pudo cargar",
+      "practiceAll": "Practicar todas",
+      "practiceSubject": "{{subject}} — Práctica",
+      "goToExam": "Ir al examen"
+    },
+    "mastery": {
+      "title": "Dominio por tema",
+      "subtitle": "Sigue tu progreso por tema",
+      "sectionTitle": "Temas",
+      "empty": "Aún no has completado exámenes",
+      "emptyDesc": "Tu precisión por tema aparecerá aquí después de hacer exámenes",
+      "level": {
+        "learning": "Aprendiendo",
+        "developing": "En desarrollo",
+        "proficient": "Competente",
+        "mastered": "Dominado"
+      },
+      "levelDesc": {
+        "learning": "Sigue practicando",
+        "developing": "Vas avanzando",
+        "proficient": "Ya casi lo logras",
+        "mastered": "¡Lo dominas!"
+      },
+      "stats": "{{correct}} / {{total}} correctas",
+      "lastStudied": "Último estudio: {{date}}",
+      "accuracy": "{{pct}}% de precisión"
+    },
+    "realExam": {
+      "title": "Modo examen real",
+      "subtitle": "Practica con el formato oficial del examen",
+      "selectPreset": "Selecciona el examen",
+      "customMode": "Modo personalizado",
+      "startExam": "Iniciar examen",
+      "timeLeft": "Tiempo restante",
+      "timeUp": "¡Tiempo agotado!",
+      "timeUpMessage": "El tiempo se acabó. El examen se envió automáticamente.",
+      "confirmExit": "¿Seguro que quieres salir? El temporizador sigue corriendo.",
+      "presets": {
+        "alesSayisal": "ALES Cuantitativo (50p / 100 min)",
+        "alesSozel": "ALES Verbal (50p / 100 min)",
+        "yksTyt": "YKS TYT (120p / 135 min)",
+        "yksAyt": "YKS AYT (80p / 180 min)",
+        "lgs": "LGS (90p / 130 min)",
+        "sat": "SAT (98p / 134 min)",
+        "act": "ACT (215p / 175 min)"
+      }
+    },
+    "explanation": "Explicación:",
+    "previous": "Anterior",
+    "next": "Siguiente",
+    "finish": "Finalizar",
+    "finishWithoutAnswer": "¿Omitir esta pregunta?",
+    "finishWithoutAnswerDesc": "Esta pregunta se marcará como no respondida si finalizas ahora.",
+    "success": {
+      "title": "Éxito",
+      "message": "¡Examen preparado!"
+    },
+    "errors": {
+      "failed": "Error",
+      "failedMessage": "No se pudo crear el examen.",
+      "photoFailed": "Error",
+      "photoFailedMessage": "No se pudo procesar la foto.",
+      "emptyTopic": "Tema requerido",
+      "emptyTopicMessage": "Por favor ingresa un tema.",
+      "noImage": "Foto requerida",
+      "noImageMessage": "Por favor toma una foto de la pregunta.",
+      "galleryDenied": "Se requiere permiso de galería",
+      "galleryDeniedMessage": "Debes otorgar permiso de acceso a la galería.",
+      "cameraDenied": "Se requiere permiso de cámara",
+      "cameraDeniedMessage": "Debes otorgar permiso de acceso a la cámara.",
+      "solveFailed": "Falló la solución",
+      "solveFailedMessage": "Ocurrió un error al resolver la pregunta."
     }
   },
-  "premiumModal": {
-    "limitPill": "LÍMITE DIARIO",
-    "proPill": "FUNCIÓN PRO",
-    "limitTitle": "Alcanzaste el límite gratuito de hoy",
-    "proTitle": "Premium desbloquea esto",
-    "limitSubtitle": "Usaste {{used}}/{{limit}} soluciones en {{module}} hoy. Mejora para acceso ilimitado.",
-    "proSubtitle": "Esta función está incluida en Premium. Mira los planes en la siguiente pantalla.",
-    "benefitUnlimited": "Soluciones de matemáticas ilimitadas",
-    "benefitVerify": "Verifica tu propio trabajo",
-    "benefitExplanations": "Explicaciones paso a paso",
-    "benefitNoAds": "Sin anuncios, nunca",
-    "trialHint": "Prueba gratis, cancela cuando quieras",
-    "cta": "Ver planes",
-    "later": "Quizás luego"
-  },
   "profile": {
+    "title": "Perfil",
     "rtlRestartTitle": "Reinicio necesario",
     "rtlRestartMessage": "Reinicia la aplicación para aplicar la nueva dirección del texto.",
-    "premium": {
-      "ctaContinue": "Continuar",
-      "ctaStartTrial": "Inicia {{days}} días de prueba gratis",
-      "ctaTrialThen": "Luego {{price}}/{{period}} · Cancela cuando quieras",
-      "planMonthly": "Mensual",
-      "planYearly": "Anual",
-      "perYear": "año",
-      "equivMonthly": "{{price}}/mes",
-      "bestValue": "MEJOR VALOR",
-      "savePercent": "AHORRA {{pct}}%",
-      "trialBadge": "{{days}} DÍAS GRATIS",
-      "heroTrialTitle": "Prueba gratis por {{days}} días",
-      "heroTrialSubtitle": "Acceso total. Sin pago hoy.",
-      "trialReminder": "Te avisaremos 2 días antes de que termine la prueba.",
-      "noPaymentToday": "Sin pago hoy",
-      "uniqueBadge": "EXCLUSIVO DE QUORAX",
-      "verifyHeroTitle": "Revisa tu propio trabajo",
-      "verifyHeroDesc": "Pega tu solución — encontraremos el paso exacto donde te equivocaste y te diremos cómo corregirlo.",
-      "terms": "Términos",
-      "privacy": "Privacidad",
-      "legalAutoRenew": "Se renueva automáticamente hasta que canceles. Cancela cuando quieras en Ajustes de iOS > Apple ID > Suscripciones. El pago se carga a tu Apple ID al confirmar.",
-      "featureUnlimited": "Soluciones de matemáticas ilimitadas",
-      "featureVerify": "Verifica tu trabajo",
-      "featureExplanations": "Explicaciones paso a paso",
-      "featureTopics": "Panel de análisis de temas"
-    },
     "settings": {
+      "title": "Ajustes",
       "language": "Idioma",
-      "purchaseHistory": "Historial de compras",
       "languageTr": "Türkçe",
       "languageEn": "English",
       "languageAr": "العربية",
       "languageHi": "हिन्दी",
       "languageEs": "Español",
       "theme": "Tema",
+      "notifications": "Notificaciones",
+      "privacy": "Privacidad",
+      "about": "Acerca de",
+      "help": "Ayuda y soporte",
+      "editProfile": "Editar perfil",
+      "purchaseHistory": "Historial de compras",
+      "feedback": "Comentarios",
+      "rateUs": "Califícanos",
       "categories": {
         "account": "Cuenta",
         "preferences": "Preferencias",
@@ -171,9 +648,388 @@
         "redemption_failed": "Ocurrió un error. Por favor intenta de nuevo.",
         "server_error": "Error del servidor. Por favor intenta de nuevo."
       }
+    },
+    "logout": "Cerrar sesión",
+    "deleteAccount": {
+      "button": "Eliminar cuenta",
+      "title": "Eliminar cuenta",
+      "message": "¿Seguro que quieres eliminar tu cuenta permanentemente? Esta acción no se puede deshacer y se perderán todos tus datos.",
+      "confirm": "Eliminar",
+      "error": "Ocurrió un error al eliminar tu cuenta. Intenta de nuevo o contacta a soporte."
+    },
+    "login": "Iniciar sesión",
+    "account": "Cuenta",
+    "notLoggedIn": "No has iniciado sesión",
+    "loginToContinue": "Inicia sesión para continuar",
+    "guest": "Invitado",
+    "guestTitle": "Estás navegando como invitado",
+    "guestSubtitle": "Crea una cuenta para guardar tu progreso y sincronizarlo entre dispositivos.",
+    "rate": {
+      "notAvailable": "No se puede abrir la tienda ahora mismo.",
+      "title": "Califícanos",
+      "header": {
+        "title": "¿Disfrutas la app?",
+        "subtitle": "Califica tu experiencia y reséñanos en el App Store"
+      },
+      "selectRating": "Selecciona una calificación",
+      "button": "Calificar",
+      "info": "¡Las buenas calificaciones nos ayudan muchísimo!",
+      "ratings": {
+        "excellent": "Excelente",
+        "good": "Bueno",
+        "average": "Regular",
+        "poor": "Malo",
+        "veryPoor": "Muy malo"
+      },
+      "lowRating": {
+        "title": "¿Te gustaría darnos tu opinión?",
+        "message": "¿Podrías compartir comentarios que nos ayuden a mejorar tu experiencia?",
+        "giveFeedback": "Dar comentarios"
+      },
+      "success": {
+        "thankYou": "¡Gracias! Tu calificación es muy valiosa para nosotros."
+      },
+      "errors": {
+        "selectRating": "Por favor selecciona una calificación",
+        "cannotOpenStore": "No se puede abrir la tienda",
+        "openStoreFailed": "Ocurrió un error al abrir la tienda"
+      }
+    },
+    "premium": {
+      "title": "Premium",
+      "subtitle": "Acceso ilimitado y funciones exclusivas",
+      "current": "Miembro Premium",
+      "expires": "Expira",
+      "expiresAt": "Expira",
+      "upgrade": "Mejorar a Premium",
+      "upgradeToPremium": "Mejora para uso ilimitado",
+      "manage": "Administrar suscripción",
+      "status": "Estado Premium",
+      "active": "Activo",
+      "inactive": "Inactivo",
+      "limitedOffer": "OFERTA LIMITADA",
+      "freePlan": "Plan gratuito",
+      "premiumPlan": "Plan Premium",
+      "dailyLimitedUsage": "Uso diario limitado",
+      "perDay": "/día",
+      "unlimited": "Ilimitado",
+      "features": {
+        "title": "Funciones",
+        "aiChat": "Chat IA",
+        "math": "Matemáticas",
+        "examLab": "Exam Lab",
+        "prioritySupport": "Soporte prioritario",
+        "adFree": "Sin anuncios",
+        "unlimited": "Uso ilimitado",
+        "priority": "Soporte prioritario"
+      },
+      "purchase": {
+        "title": "Mejorar a Premium",
+        "monthly": "Mensual",
+        "price": "${price}/mes",
+        "buy": "Comprar",
+        "restore": "Restaurar compras",
+        "success": "¡Premium activado con éxito!",
+        "error": "La compra falló"
+      },
+      "heroActiveTitle": "Premium activo",
+      "heroInactiveTitle": "Elimina tus límites",
+      "heroInactiveSubtitle2": "Para usuarios que se topan con el muro cada día.",
+      "heroActiveSubtitle": "Todas las funciones desbloqueadas",
+      "heroInactiveSubtitle": "Usa todas las funciones sin límites",
+      "socialProof": "Miles de estudiantes ya están dentro",
+      "ctaFree": "Prueba gratis por 7 días",
+      "ctaFreeSubtext": "Luego {price}/mes · Cancela cuando quieras",
+      "perWeek": "semana",
+      "savePercent": "AHORRA {{pct}}%",
+      "heroExpiresSubtitle": "Activo hasta {date}",
+      "activeBadge": "Activo ✓",
+      "featuresCardTitle": "Beneficios Premium",
+      "activeCardText": "Premium activo — todas las funciones desbloqueadas",
+      "legalText": "La suscripción se renueva automáticamente. Para cancelar, ve a App Store → Suscripciones.",
+      "processing": "Procesando...",
+      "perMonth": "mes",
+      "ctaWithPrice": "{price} / mes  —  Hazte Premium",
+      "restoring": "Restaurando...",
+      "featureUnlimitedChat": "Chat IA ilimitado",
+      "featureUnlimitedChatDesc": "Chat, notas y herramientas de texto sin límite diario",
+      "featureUnlimitedMath": "Herramientas IA ilimitadas",
+      "featureUnlimitedMathDesc": "Solucionador de matemáticas, exam lab y todos los módulos desbloqueados",
+      "featureNoAds": "Experiencia sin anuncios",
+      "featureNoAdsDesc": "Sin interrupciones, pura concentración",
+      "featureUnlimitedExam": "Exam Lab ilimitado",
+      "featurePrioritySupport": "Soporte prioritario",
+      "loadError": "No se pudieron cargar los paquetes Premium. Intenta de nuevo.",
+      "purchaseSuccess": "🎉 ¡Premium activo!",
+      "purchaseSuccessMessage": "El acceso ilimitado ya está activo. ¡Disfrútalo!",
+      "great": "¡Genial!",
+      "restored": "✅ Restaurado",
+      "restoredMessage": "Tu suscripción Premium ha sido restaurada.",
+      "noActiveSubscription": "No se encontró una suscripción activa.",
+      "restoreError": "Falló la restauración.",
+      "purchaseError": "La compra falló.",
+      "cancelAnytime": "Cancela cuando quieras",
+      "noCommitment": "Sin compromiso",
+      "cancelSubscription": "Cancelar suscripción",
+      "cancelTitle": "Cancelar suscripción",
+      "cancelMessage": "Serás redirigido a App Store → Suscripciones para cancelar.",
+      "cancelConfirm": "Ir a App Store",
+      "nextRenewal": "Próxima fecha de renovación",
+      "ctaButton": "Hazte Premium",
+      "ctaContinue": "Continuar",
+      "ctaStartTrial": "Inicia {{days}} días de prueba gratis",
+      "ctaTrialThen": "Luego {{price}}/{{period}} · Cancela cuando quieras",
+      "planMonthly": "Mensual",
+      "planYearly": "Anual",
+      "perYear": "año",
+      "equivMonthly": "{{price}}/mes",
+      "bestValue": "MEJOR VALOR",
+      "trialBadge": "{{days}} DÍAS GRATIS",
+      "heroTrialTitle": "Prueba gratis por {{days}} días",
+      "heroTrialSubtitle": "Acceso total. Sin pago hoy.",
+      "trialReminder": "Te avisaremos 2 días antes de que termine la prueba.",
+      "noPaymentToday": "Sin pago hoy",
+      "uniqueBadge": "EXCLUSIVO DE QUORAX",
+      "verifyHeroTitle": "Revisa tu propio trabajo",
+      "verifyHeroDesc": "Pega tu solución — encontraremos el paso exacto donde te equivocaste y te diremos cómo corregirlo.",
+      "terms": "Términos",
+      "privacy": "Privacidad",
+      "legalAutoRenew": "Se renueva automáticamente hasta que canceles. Cancela cuando quieras en Ajustes de iOS > Apple ID > Suscripciones. El pago se carga a tu Apple ID al confirmar.",
+      "featureUnlimited": "Soluciones de matemáticas ilimitadas",
+      "featureVerify": "Verifica tu trabajo",
+      "featureExplanations": "Explicaciones paso a paso",
+      "featureTopics": "Panel de análisis de temas",
+      "trustSecure": "Pago seguro",
+      "trustCancel": "Cancela cuando quieras",
+      "trustSafe": "Privacidad protegida",
+      "heroLimitTitle": "Sigue resolviendo — desbloquea todo",
+      "exitTitle": "Espera — una cosa más",
+      "exitSubtitle": "Prueba el plan mensual — cancela cuando quieras. Sin compromisos largos.",
+      "exitTryMonthly": "Prueba mensual · {{price}}",
+      "exitTryMonthlyTrial": "Inicia prueba de {{days}} días · {{price}}/mes",
+      "exitNoThanks": "No, gracias"
+    },
+    "verification": {
+      "label": "Verificación de correo",
+      "verified": "Verificado",
+      "pending": "Pendiente",
+      "sendButton": "Enviar correo de verificación",
+      "sending": "Enviando...",
+      "sent": "Correo enviado",
+      "sentMessage": "Revisa tu bandeja de entrada. Haz clic en el enlace para verificar tu correo.",
+      "error": "No se pudo enviar",
+      "errorMessage": "Ocurrió un error al enviar el correo. Por favor intenta de nuevo."
+    },
+    "selectAvatar": "Selecciona avatar",
+    "edit": {
+      "title": "Editar perfil",
+      "save": "Guardar",
+      "changeAvatar": "Selecciona avatar",
+      "changePassword": "Cambiar contraseña",
+      "changePasswordComingSoon": "La función para cambiar contraseña estará disponible pronto",
+      "success": "Perfil actualizado con éxito",
+      "loginRequired": "Debes iniciar sesión para editar tu perfil",
+      "emailNotEditable": "No se puede cambiar el correo electrónico.",
+      "fields": {
+        "name": "Nombre completo",
+        "email": "Correo electrónico",
+        "phone": "Teléfono"
+      },
+      "placeholders": {
+        "name": "Ingresa tu nombre",
+        "email": "Tu correo electrónico",
+        "phone": "Tu número de teléfono"
+      },
+      "errors": {
+        "nameRequired": "El nombre es obligatorio",
+        "emailRequired": "El correo es obligatorio",
+        "emailInvalid": "Por favor ingresa un correo electrónico válido",
+        "userNotFound": "Usuario no encontrado",
+        "updateFailed": "Ocurrió un error al actualizar el perfil",
+        "avatarUpdateFailed": "Perfil actualizado pero no se pudo actualizar el avatar"
+      },
+      "password": {
+        "title": "Cambiar contraseña",
+        "save": "Actualizar contraseña",
+        "warning": "Para cambiar tu contraseña, primero debes verificar la actual.",
+        "success": "Contraseña actualizada con éxito",
+        "fields": {
+          "current": "Contraseña actual",
+          "new": "Nueva contraseña",
+          "confirm": "Confirmar nueva contraseña"
+        },
+        "placeholders": {
+          "current": "Ingresa tu contraseña actual",
+          "new": "Ingresa tu nueva contraseña",
+          "confirm": "Confirma tu nueva contraseña"
+        },
+        "errors": {
+          "currentRequired": "La contraseña actual es obligatoria",
+          "currentInvalid": "La contraseña actual es incorrecta",
+          "newRequired": "La nueva contraseña es obligatoria",
+          "confirmRequired": "Debes confirmar la contraseña",
+          "passwordsDontMatch": "Las contraseñas no coinciden",
+          "updateFailed": "Ocurrió un error al actualizar la contraseña"
+        }
+      }
+    },
+    "privacy": {
+      "title": "Privacidad",
+      "policy": "Vigente: 4 de marzo de 2026\n\nQuorax recopila información de la cuenta (nombre, correo), datos de uso de la app, contenido que envías a los módulos de IA y datos de suscripción/pago (procesados por Apple/Google — nunca almacenamos los datos de tu tarjeta).\n\nTus datos se usan para entregar los servicios, mejorar la app y prevenir fraudes. No vendemos tus datos personales.\n\nProveedores externos: Anthropic (Claude AI — no usa tus datos para entrenar modelos), Supabase, RevenueCat, Google AdMob, Apple/Google.\n\nTienes derecho a acceder, corregir, eliminar y portar tus datos, y a retirar tu consentimiento en cualquier momento. Contacto: privacy@quorax.app\n\nPara la Política de Privacidad completa, consulta Perfil > Política de Privacidad.",
+      "sections": {
+        "controls": "Controles de privacidad",
+        "dataCollection": "Recopilación de datos",
+        "rights": "Derechos del usuario"
+      },
+      "controls": {
+        "dataSaving": {
+          "title": "Ahorro de datos",
+          "description": "Recibe respuestas de la IA usando menos datos"
+        },
+        "saveHistory": {
+          "title": "Guardar historial",
+          "description": "Almacena tu historial de chats y actividad"
+        },
+        "anonymousAnalytics": {
+          "title": "Analíticas anónimas",
+          "description": "Datos anónimos para mejorar la app"
+        },
+        "personalizedContent": {
+          "title": "Contenido personalizado",
+          "description": "Recibe recomendaciones según tus intereses"
+        },
+        "thirdPartySharing": {
+          "title": "Compartir con terceros",
+          "description": "Compartir datos anónimos con socios de investigación"
+        },
+        "locationTracking": {
+          "title": "Rastreo de ubicación",
+          "description": "Activa funciones basadas en ubicación"
+        }
+      },
+      "collected": {
+        "title": "Datos recopilados",
+        "description": "Nuestra app recopila los siguientes datos:",
+        "account": "Información de la cuenta (correo, nombre)",
+        "history": "Historial de uso y actividades",
+        "device": "Información del dispositivo y datos técnicos",
+        "location": "Datos de ubicación (cuando se permite)"
+      },
+      "usage": {
+        "title": "Uso de datos",
+        "description": "Los datos recopilados se usan para:",
+        "improve": "Mejorar el rendimiento de la app",
+        "personalize": "Brindar una experiencia personalizada",
+        "security": "Seguridad y prevención de fraudes",
+        "support": "Brindar atención al cliente"
+      },
+      "securityInfo": "Todos tus datos se transfieren por conexiones cifradas y se almacenan en servidores seguros.",
+      "userRights": {
+        "title": "Tus derechos de usuario",
+        "description": "Según el GDPR y otras leyes de protección de datos, tus derechos son:",
+        "access": "Derecho a acceder a tus datos",
+        "rectify": "Derecho a rectificar datos incorrectos",
+        "delete": "Derecho a eliminar tus datos",
+        "object": "Derecho a oponerte al procesamiento de datos"
+      },
+      "contact": {
+        "title": "Contacto",
+        "email": "privacy@quorax.com",
+        "alert": "Se abrirá la app de correo..."
+      }
+    },
+    "help": {
+      "title": "Ayuda y soporte",
+      "howCanHelp": "¿Cómo podemos ayudarte?",
+      "helpDescription": "¿Tienes preguntas? Estamos para ayudarte. Puedes revisar las preguntas frecuentes o crear un ticket de soporte directamente.",
+      "sendTicket": "Crear ticket de soporte",
+      "cancel": "Cancelar",
+      "faq": "Preguntas frecuentes",
+      "noFaqTitle": "Aún no hay preguntas frecuentes",
+      "noFaqSubtitle": "Las preguntas frecuentes se agregarán pronto",
+      "ticketsHistory": "Mis tickets de soporte",
+      "noTickets": "Aún no hay tickets de soporte",
+      "noTicketsSubtitle": "Toca el botón de arriba para crear un ticket de soporte",
+      "subject": "Asunto",
+      "subjectPlaceholder": "Asunto de tu problema...",
+      "message": "Tu mensaje",
+      "messagePlaceholder": "Describe tu problema en detalle...",
+      "priority": "Prioridad",
+      "priorityLow": "Baja",
+      "priorityMedium": "Media",
+      "priorityHigh": "Alta",
+      "send": "Enviar",
+      "helperText": "Una vez creado tu ticket de soporte, te responderemos lo antes posible.",
+      "success": {
+        "title": "¡Éxito!",
+        "message": "Tu ticket de soporte fue creado con éxito. Te responderemos a la brevedad."
+      },
+      "errors": {
+        "subjectRequired": "El asunto es obligatorio",
+        "subjectMinLength": "El asunto debe tener al menos 5 caracteres",
+        "messageRequired": "El mensaje es obligatorio",
+        "messageMinLength": "El mensaje debe tener al menos 20 caracteres",
+        "sendError": "Ocurrió un error al crear el ticket de soporte"
+      },
+      "faqList": [
+        {
+          "id": "1",
+          "question": "¿Qué es la membresía Premium?",
+          "answer": "Con la membresía Premium obtienes uso ilimitado y una experiencia sin anuncios. Visita Perfil > Premium para más detalles."
+        },
+        {
+          "id": "3",
+          "question": "¿Cómo puedo eliminar mi cuenta?",
+          "answer": "Para eliminar tu cuenta, ve a Perfil > Editar perfil y usa la opción 'Eliminar cuenta'. Esta acción no se puede deshacer."
+        }
+      ]
+    },
+    "feedback": {
+      "title": "Comentarios",
+      "rating": "Califica la app",
+      "type": "Tipo de comentario",
+      "subject": "Asunto",
+      "subjectPlaceholder": "Asunto del comentario...",
+      "message": "Detalles",
+      "messagePlaceholder": "Escribe tu comentario en detalle...",
+      "submit": "Enviar",
+      "helperText": "¡Tus comentarios son muy valiosos para nosotros!",
+      "promiseTitle": "Leemos con atención cada comentario",
+      "promiseText": "Tus problemas y sugerencias llegan directo a nuestro equipo. Trabajamos para resolverlos lo más rápido posible — tus inquietudes nunca llegan al App Store sin que las escuchemos antes.",
+      "ratings": {
+        "excellent": "Excelente",
+        "good": "Bueno",
+        "average": "Regular",
+        "poor": "Malo",
+        "veryPoor": "Muy malo"
+      },
+      "types": {
+        "bug": "Error/Bug",
+        "suggestion": "Sugerencia",
+        "improvement": "Mejora",
+        "other": "Otro"
+      },
+      "success": {
+        "message": "¡Gracias por tus comentarios!"
+      },
+      "errors": {
+        "subjectRequired": "El asunto es obligatorio",
+        "subjectMinLength": "El asunto debe tener al menos 5 caracteres",
+        "messageRequired": "El mensaje es obligatorio",
+        "messageMinLength": "El mensaje debe tener al menos 20 caracteres",
+        "typeRequired": "Debes seleccionar un tipo de comentario",
+        "sendError": "Ocurrió un error al enviar el comentario",
+        "userNotFound": "Usuario no encontrado",
+        "loginRequired": "Debes iniciar sesión para enviar comentarios"
+      }
+    },
+    "terms": {
+      "title": "Términos de Servicio",
+      "menuLabel": "Términos de Servicio"
     }
   },
   "math": {
+    "unlockExplanation": "Mejora a Premium para desbloquear la explicación",
     "info": {
       "title": "¿Cómo usar?",
       "content": "Escribe tu problema o toma una foto / selecciona de la galería. La IA puede resolver álgebra, geometría, cálculo y mucho más.\n\nCada solución incluye una respuesta clara, explicaciones paso a paso numeradas y verificación del resultado."
@@ -299,6 +1155,186 @@
     "imageProblem": "Problema con imagen",
     "filter": {
       "all": "Todos"
+    }
+  },
+  "settings": {
+    "title": "Ajustes",
+    "language": "Idioma",
+    "theme": "Tema",
+    "darkMode": "Modo oscuro",
+    "lightMode": "Modo claro",
+    "systemMode": "Sistema"
+  },
+  "onboarding": {
+    "demoLabel": "EJEMPLO",
+    "slide1": {
+      "title": "Bienvenido a Quorax",
+      "description": "Resuelve matemáticas, genera exámenes y haz preguntas — todo en una sola app."
+    },
+    "slide2": {
+      "title": "Asistente de chat con IA",
+      "description": "Abre chats por tema. Agrega fotos, PDF o archivos y retoma justo donde lo dejaste."
+    },
+    "slide3": {
+      "title": "Solucionador de matemáticas",
+      "description": "Escribe la ecuación o apunta con la cámara. Ve cada paso con su razonamiento y luego verifica la respuesta."
+    },
+    "slide4": {
+      "title": "Exam Lab",
+      "description": "Genera exámenes a partir de tus propios apuntes o de los temas del plan de estudios. Tómate el tiempo y revisa los errores con explicaciones completas."
+    },
+    "buttons": {
+      "skip": "Omitir",
+      "next": "Siguiente",
+      "start": "Empezar",
+      "signIn": "Iniciar sesión",
+      "createAccount": "Crear cuenta",
+      "continueAsGuest": "Continuar como invitado"
+    },
+    "aiConsentTitle": "Consentimiento de procesamiento de datos por IA",
+    "aiConsentBody": "Quorax usa Claude AI de Anthropic para potenciar sus funciones. Para ofrecer estos servicios, los siguientes datos pueden enviarse a Anthropic:\n\n• Tus mensajes e historial de chat\n• Texto que envías para editar o generar notas\n• Problemas matemáticos (incluyendo fotos)\n• Imágenes que subes para análisis\n\nEstos datos se envían a Anthropic, Inc. (anthropic.com) y se procesan según su política de privacidad. No se venden ni se usan para entrenar modelos de IA sin consentimiento.",
+    "aiConsentCheckbox": "Entiendo y acepto que mis datos pueden ser procesados por Anthropic (Claude AI) como se describe arriba.",
+    "aiConsentRequired": "Debes aceptar el consentimiento de procesamiento de datos por IA para continuar.",
+    "aiConsentAcceptButton": "Acepto",
+    "aiConsent": "Al continuar, aceptas que tus entradas pueden ser procesadas por Anthropic (Claude AI). Más información en nuestra",
+    "privacyPolicy": "Política de Privacidad",
+    "termsOfService": "Términos de Servicio",
+    "andText": "y"
+  },
+  "welcome": {
+    "tagline": "Tu asistente de estudio con IA",
+    "signIn": "Iniciar sesión",
+    "createAccount": "Crear cuenta",
+    "continueAsGuest": "Continuar como invitado",
+    "getStarted": "Empezar",
+    "alreadyHaveAccount": "¿Ya tienes cuenta?"
+  },
+  "chat": {
+    "newChatStarted": "Nuevo chat iniciado",
+    "userFallback": "Usuario",
+    "filter": {
+      "all": "Todos",
+      "recent": "Recientes"
+    },
+    "empty": {
+      "title": "Aún no hay chats",
+      "description": "Toca el botón de abajo para iniciar un nuevo chat",
+      "message": "Aún no hay mensajes. ¡Envía tu primer mensaje!"
+    },
+    "newChat": "Nuevo chat",
+    "newChatModal": {
+      "title": "Crear nuevo chat",
+      "titleLabel": "Título del chat",
+      "titlePlaceholder": "Ingresa el título del chat...",
+      "colorLabel": "Selecciona un color",
+      "create": "Crear"
+    },
+    "input": {
+      "placeholder": "Escribe tu mensaje..."
+    },
+    "typing": "Escribiendo...",
+    "delete": {
+      "title": "Eliminar chat",
+      "message": "¿Seguro que quieres eliminar el chat \"{{title}}\"? Esta acción no se puede deshacer.",
+      "success": "Chat eliminado con éxito",
+      "error": "Ocurrió un error al eliminar el chat",
+      "activitiesDeleteWarning": "El chat se eliminó pero no se pudieron actualizar los registros de actividad relacionados."
+    },
+    "errors": {
+      "loadFailed": "Ocurrió un error al cargar los chats",
+      "createFailed": "Ocurrió un error al crear el chat",
+      "loadChatFailed": "Ocurrió un error al cargar los datos del chat",
+      "loadMessagesFailed": "Ocurrió un error al cargar los mensajes",
+      "sendFailed": "Ocurrió un error al enviar el mensaje",
+      "aiFailed": "No se pudo obtener respuesta de la IA. Por favor intenta de nuevo."
+    }
+  },
+  "premiumModal": {
+    "limitPill": "LÍMITE DIARIO",
+    "proPill": "FUNCIÓN PRO",
+    "limitTitle": "Alcanzaste el límite gratuito de hoy",
+    "proTitle": "Premium desbloquea esto",
+    "limitSubtitle": "Usaste {{used}}/{{limit}} soluciones en {{module}} hoy. Mejora para acceso ilimitado.",
+    "proSubtitle": "Esta función está incluida en Premium. Mira los planes en la siguiente pantalla.",
+    "benefitUnlimited": "Soluciones de matemáticas ilimitadas",
+    "benefitVerify": "Verifica tu propio trabajo",
+    "benefitExplanations": "Explicaciones paso a paso",
+    "benefitNoAds": "Sin anuncios, nunca",
+    "trialHint": "Prueba gratis, cancela cuando quieras",
+    "cta": "Ver planes",
+    "later": "Quizás luego"
+  },
+  "premium": {
+    "limitReached": "Límite diario alcanzado",
+    "proFeature": "Función PRO",
+    "proFeatureSubtitle": "Mejora a Premium para desbloquear esta función",
+    "usageToday": "{{used}}/{{limit}} usado hoy en {{module}}",
+    "upgradeMessage": "¡Mejora a Premium y disfruta del uso ilimitado!",
+    "upgradeToPremium": "Mejorar a Premium",
+    "freeUsageBanner": {
+      "remaining": "Tienes {{remaining}}/{{limit}} uso(s) hoy",
+      "limitReached": "Usaste {{used}}/{{limit}} hoy. No quedan usos.",
+      "upgradeCta": "Obtén Premium para uso ilimitado",
+      "premiumHint": "Ilimitado con Premium",
+      "infoCta": "Información de uso diario",
+      "limitReachedCta": "No quedan usos, mejora a Premium"
+    },
+    "features": {
+      "unlimited": "Uso ilimitado",
+      "priority": "Soporte prioritario",
+      "noAds": "Experiencia sin anuncios",
+      "topicAnalysis": "Análisis de temas y seguimiento de fortalezas/debilidades",
+      "verify": "Verifica tu trabajo",
+      "explanations": "Explicaciones de temas y soluciones detalladas"
+    }
+  },
+  "rating": {
+    "title": "¿Disfrutas Quorax?",
+    "subtitle": "Compartir tu experiencia nos ayuda mucho. ¡Solo te toma un minuto!",
+    "yes": "¡Sí, me encanta!",
+    "no": "No, tengo problemas",
+    "skip": "Ahora no",
+    "feedbackTitle": "¿Cómo podemos mejorar?",
+    "feedbackSubtitle": "Cuéntanos tu problema o sugerencia — nuestro equipo te responderá pronto.",
+    "feedbackPromise": "Leemos con atención cada comentario. Resolver tus problemas es nuestra prioridad.",
+    "feedbackPlaceholder": "Comparte tu experiencia con nosotros...",
+    "feedbackSend": "Enviar",
+    "thanksTitle": "¡Gracias!",
+    "thanksSubtitle": "Gracias por tus comentarios. Estamos trabajando duro para hacer Quorax mejor."
+  },
+  "examProgress": {
+    "question": "PREGUNTA",
+    "answer": "RESPUESTA",
+    "goBack": "Volver",
+    "toStudy": "{{count}} por estudiar",
+    "learned": "{{count}} aprendido",
+    "masteryStats": "{{mastered}}/{{total}} dominado · {{pct}}% éxito",
+    "questionN": "Pregunta {{n}}"
+  },
+  "aiLoading": {
+    "hint": "Esto puede tardar unos segundos",
+    "math": {
+      "0": "Leyendo el problema",
+      "1": "Calculando los pasos",
+      "2": "Preparando la solución"
+    },
+    "exam": {
+      "0": "Analizando el tema",
+      "1": "Generando preguntas",
+      "2": "Preparando tu examen"
+    },
+    "image": {
+      "0": "Analizando la imagen",
+      "1": "Identificando el contenido",
+      "2": "Preparando el resultado"
+    },
+    "text": {
+      "0": "Procesando el texto",
+      "1": "Preparando el resultado"
+    },
+    "chat": {
+      "0": "Pensando",
+      "1": "Preparando la respuesta"
     }
   }
 }

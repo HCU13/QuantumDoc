@@ -2,6 +2,8 @@
   "common": {
     "loading": "Yükleniyor...",
     "error": "Hata oluştu",
+    "tryAgain": "Tekrar dene",
+    "retry": "Yeniden Dene",
     "warning": "Uyarı",
     "success": "Başarılı",
     "save": "Kaydet",
@@ -86,15 +88,20 @@
       }
     },
     "register": {
-      "title": "Kayıt Ol",
+      "title": "Hesabını oluştur",
+      "subtitle": "Sadece e-posta ve şifre, hepsi bu.",
+      "upgradeTitle": "İlerlemeni kaydet",
+      "upgradeSubtitle": "E-posta + şifre ekle, çözümlerin cihazlar arası saklansın.",
+      "cta": "Devam et",
+      "acceptPrefix": "Kabul ediyorum: ",
       "welcome": "Hesap Oluştur",
-      "subtitle": "Yeni hesabınızı oluşturun ve başlayın",
       "name": "Ad Soyad",
       "namePlaceholder": "Adınızı girin",
       "email": "E-posta",
       "emailPlaceholder": "ornek@email.com",
       "password": "Şifre",
-      "passwordPlaceholder": "Şifrenizi girin",
+      "passwordPlaceholder": "Min. 6 karakter",
+      "passwordShort": "Şifre en az 6 karakter olmalı",
       "confirmPassword": "Şifre Tekrar",
       "confirmPasswordPlaceholder": "Şifrenizi tekrar girin",
       "terms": "Kullanım şartlarını ve gizlilik politikasını kabul ediyorum",
@@ -114,6 +121,7 @@
         "emailInvalid": "Geçerli bir e-posta adresi girin",
         "passwordRequired": "Şifre gereklidir",
         "passwordMinLength": "Şifre en az 6 karakter olmalıdır",
+        "passwordShort": "Şifre en az 6 karakter olmalı",
         "confirmPasswordRequired": "Şifre tekrarı gereklidir",
         "passwordsNotMatch": "Şifreler eşleşmiyor",
         "termsRequired": "Kullanım şartlarını kabul etmelisiniz",
@@ -174,9 +182,36 @@
       }
     }
   },
+  "notifications": {
+    "softPrompt": {
+      "title": "Günlük çalışma hatırlatıcısı?",
+      "body": "Pratiğe oturma vakti geldiğinde 1 dakikalık hatırlatma alın. Spam yok, söz veriyoruz.",
+      "enable": "Aç",
+      "notNow": "Şimdi değil"
+    },
+    "daily": {
+      "title": "Quorax",
+      "body": "Bugün kısa bir tekrar? 5 dakikanı ayır, devam edelim."
+    },
+    "reminder": {
+      "settingsTitle": "Günlük hatırlatıcı",
+      "settingsSubtitle": "Her gün aynı saatte çalışma hatırlatması",
+      "timeLabel": "Hatırlatma saati",
+      "scheduled": "{{time}}'de hatırlatma kuruldu",
+      "cancelled": "Hatırlatma kapatıldı",
+      "permissionDenied": "Bildirim izni verilmedi. Ayarlardan açabilirsin."
+    }
+  },
   "home": {
     "greeting": "Merhaba",
     "greetingGuest": "Hoş Geldiniz",
+    "greetingMorning": "Günaydın,",
+    "greetingAfternoon": "İyi günler,",
+    "greetingEvening": "İyi akşamlar,",
+    "greetingNight": "İyi geceler,",
+    "continue": "Devam et",
+    "suggestionStartLearning": "İlk sınavına başla",
+    "usageFormat": "{{remaining}} ücretsiz kaldı",
     "myModules": "Modüllerim",
     "recentActivity": "Son İşlemler",
     "noActivity": "Henüz işlem geçmişiniz yok",
@@ -238,8 +273,8 @@
   },
   "modules": {
     "locked": "Giriş gerekli",
-    "dailyUsage": "Bugün {{used}}/{{limit}} kullanıldı",
-    "dailyLimitReached": "Günlük limit doldu · Premium'a geç",
+    "dailyUsage": "{{used}}/{{limit}} ücretsiz kullanıldı",
+    "dailyLimitReached": "Ücretsiz hak doldu · Premium'a geç",
     "lockedAlert": {
       "title": "Giriş Gerekli",
       "message": "Bu modülü kullanmak için giriş yapman gerekiyor.",
@@ -572,6 +607,7 @@
     }
   },
   "math": {
+    "unlockExplanation": "Açıklamayı açmak için Premium'a geç",
     "info": {
       "title": "Nasıl Kullanılır?",
       "content": "Probleminizi yazın ya da fotoğraf çekin / galeriden seçin. AI cebir, geometri, kalkülüs ve daha pek çok konuyu çözebilir.\n\nHer çözüm; net cevap, numaralı adım adım açıklama ve sonucun doğrulamasını içerir."
@@ -716,6 +752,39 @@
     "notLoggedIn": "Giriş Yapılmamış",
     "loginToContinue": "Devam etmek için giriş yapın",
     "guest": "Misafir",
+    "guestTitle": "Misafir olarak geziniyorsun",
+    "guestSubtitle": "Hesap oluşturarak ilerlemeni kaydet, cihazlar arasında senkronize et.",
+    "rate": {
+      "notAvailable": "Mağaza şu anda açılamıyor.",
+      "title": "Bizi Değerlendir",
+      "header": {
+        "title": "Uygulamayı Beğendiniz mi?",
+        "subtitle": "Deneyiminizi değerlendirin ve App Store'da bizi değerlendirin"
+      },
+      "selectRating": "Değerlendirme Seçin",
+      "button": "Değerlendir",
+      "info": "Yüksek değerlendirmeler bize çok yardımcı olur!",
+      "ratings": {
+        "excellent": "Mükemmel",
+        "good": "İyi",
+        "average": "Orta",
+        "poor": "Kötü",
+        "veryPoor": "Çok Kötü"
+      },
+      "lowRating": {
+        "title": "Geri Bildirim İster misiniz?",
+        "message": "Deneyiminizi iyileştirmemize yardımcı olmak için geri bildirim verebilir misiniz?",
+        "giveFeedback": "Geri Bildirim Ver"
+      },
+      "success": {
+        "thankYou": "Teşekkür ederiz! Değerlendirmeniz bizim için çok değerli."
+      },
+      "errors": {
+        "selectRating": "Lütfen bir değerlendirme seçin",
+        "cannotOpenStore": "Mağaza açılamadı",
+        "openStoreFailed": "Mağaza açılırken bir hata oluştu"
+      }
+    },
     "premium": {
       "title": "Premium",
       "subtitle": "Sınırsız erişim ve özel özellikler",
@@ -728,6 +797,7 @@
       "status": "Premium Durumu",
       "active": "Aktif",
       "inactive": "Pasif",
+      "limitedOffer": "SINIRLI TEKLİF",
       "freePlan": "Ücretsiz Plan",
       "premiumPlan": "Premium Plan",
       "dailyLimitedUsage": "Günlük sınırlı kullanım",
@@ -821,7 +891,13 @@
       "featureTopics": "Konu analizi panosu",
       "trustSecure": "Güvenli Ödeme",
       "trustCancel": "İstediğinde İptal",
-      "trustSafe": "Gizlilik Korumalı"
+      "trustSafe": "Gizlilik Korumalı",
+      "heroLimitTitle": "Çözmeye devam et — her şeyin kilidini aç",
+      "exitTitle": "Bekle — son bir şey",
+      "exitSubtitle": "Aylık deneyebilirsin — istediğin zaman iptal. Uzun bağlantı yok.",
+      "exitTryMonthly": "Aylık dene · {{price}}",
+      "exitTryMonthlyTrial": "{{days}} Gün Ücretsiz Başlat · {{price}}/ay",
+      "exitNoThanks": "İstemiyorum"
     },
     "verification": {
       "label": "E-posta doğrulama",
@@ -1076,36 +1152,6 @@
         "loginRequired": "Geri bildirim göndermek için giriş yapmanız gerekiyor"
       }
     },
-    "rate": {
-      "title": "Bizi Değerlendir",
-      "header": {
-        "title": "Uygulamayı Beğendiniz mi?",
-        "subtitle": "Deneyiminizi değerlendirin ve App Store'da bizi değerlendirin"
-      },
-      "selectRating": "Değerlendirme Seçin",
-      "button": "Değerlendir",
-      "info": "Yüksek değerlendirmeler bize çok yardımcı olur!",
-      "ratings": {
-        "excellent": "Mükemmel",
-        "good": "İyi",
-        "average": "Orta",
-        "poor": "Kötü",
-        "veryPoor": "Çok Kötü"
-      },
-      "lowRating": {
-        "title": "Geri Bildirim İster misiniz?",
-        "message": "Deneyiminizi iyileştirmemize yardımcı olmak için geri bildirim verebilir misiniz?",
-        "giveFeedback": "Geri Bildirim Ver"
-      },
-      "success": {
-        "thankYou": "Teşekkür ederiz! Değerlendirmeniz bizim için çok değerli."
-      },
-      "errors": {
-        "selectRating": "Lütfen bir değerlendirme seçin",
-        "cannotOpenStore": "Mağaza açılamadı",
-        "openStoreFailed": "Mağaza açılırken bir hata oluştu"
-      }
-    },
     "terms": {
       "title": "Kullanım Koşulları",
       "menuLabel": "Kullanım Koşulları"
@@ -1120,21 +1166,22 @@
     "systemMode": "Sistem"
   },
   "onboarding": {
+    "demoLabel": "ÖRNEK",
     "slide1": {
       "title": "Quorax'a Hoş Geldin",
-      "description": "Yapay zeka ile öğrenmek artık çok daha kolay. Sınava hazırlan, matematik çöz, soru sor."
+      "description": "Matematik çöz, test üret, soru sor — hepsi tek uygulamada."
     },
     "slide2": {
       "title": "AI Sohbet Asistanı",
-      "description": "Her konuda akıllı asistanınla sohbet et. Ödevlerini açıkla, kavramları anla, sorularını yanıtla."
+      "description": "Konu konu ayrılmış sohbetler aç. Fotoğraf, PDF veya dosya yükle, kaldığın yerden devam et."
     },
     "slide3": {
       "title": "Matematik Çözücü",
-      "description": "Problemini yaz veya fotoğrafla. Cebir, geometri, kalkülüs — adım adım açıklamalı çözüm."
+      "description": "Denklemi yaz veya kameraya tut. Her adımın gerekçesiyle birlikte çözümü göster, sonucu doğrula."
     },
     "slide4": {
       "title": "Sınav Kampı",
-      "description": "İstediğin konuda test oluştur. Zorluk seviyesi, soru sayısı, hatta ders fotoğrafından bile."
+      "description": "YKS, LGS veya kendi konularından test üret. Süre tut, yanlışlarını çözümleriyle gör."
     },
     "buttons": {
       "skip": "Atla",
@@ -1158,11 +1205,17 @@
     "tagline": "Yapay zeka destekli çalışma asistanın",
     "signIn": "Giriş Yap",
     "createAccount": "Hesap Oluştur",
-    "continueAsGuest": "Misafir olarak devam et"
+    "continueAsGuest": "Misafir olarak devam et",
+    "getStarted": "Başla",
+    "alreadyHaveAccount": "Hesabın var mı?"
   },
   "chat": {
     "newChatStarted": "Yeni sohbet başlatıldı",
     "userFallback": "Kullanıcı",
+    "filter": {
+      "all": "Tümü",
+      "recent": "Son"
+    },
     "empty": {
       "title": "Henüz sohbet yok",
       "description": "Yeni bir sohbet başlatmak için aşağıdaki butona tıklayın",

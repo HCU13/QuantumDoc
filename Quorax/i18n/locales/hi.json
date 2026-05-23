@@ -2,7 +2,8 @@
   "common": {
     "loading": "लोड हो रहा है...",
     "error": "त्रुटि हुई",
-    "warning": "चेतावनी",
+    "tryAgain": "पुनः प्रयास करें",
+    "retry": "पुनः प्रयास",
     "success": "सफल",
     "save": "सहेजें",
     "cancel": "रद्द करें",
@@ -18,41 +19,274 @@
     "skip": "छोड़ें",
     "getStarted": "शुरू करें",
     "info": "जानकारी",
+    "warning": "चेतावनी",
     "login": "लॉग इन करें",
     "timeout": "अनुरोध का समय समाप्त हो गया। कृपया पुनः प्रयास करें।",
     "goBack": "वापस जाएं"
   },
-  "welcome": {
-    "tagline": "आपका AI-संचालित अध्ययन सहायक",
-    "signIn": "साइन इन करें",
-    "createAccount": "खाता बनाएं",
-    "continueAsGuest": "अतिथि के रूप में जारी रखें"
+  "ad": {},
+  "auth": {
+    "login": {
+      "title": "लॉग इन करें",
+      "welcome": "वापस स्वागत है",
+      "subtitle": "अपने खाते में लॉग इन करें",
+      "email": "ईमेल",
+      "emailPlaceholder": "example@email.com",
+      "password": "पासवर्ड",
+      "passwordPlaceholder": "अपना पासवर्ड दर्ज करें",
+      "forgotPassword": "पासवर्ड भूल गए",
+      "forgotPasswordComingSoon": "पासवर्ड रीसेट सुविधा जल्द आ रही है",
+      "forgotPasswordEmailRequired": "कृपया पहले अपना ईमेल पता दर्ज करें।",
+      "forgotPasswordConfirm": "इस ईमेल पते पर एक पासवर्ड रीसेट लिंक भेजा जाएगा। भेजें?",
+      "forgotPasswordEmailSent": "आपके ईमेल पर एक पासवर्ड रीसेट लिंक भेज दिया गया है। कृपया अपना इनबॉक्स देखें।",
+      "forgotPasswordError": "पासवर्ड रीसेट ईमेल भेजते समय एक त्रुटि हुई।",
+      "forgotPasswordContactUs": "अपना पासवर्ड रीसेट करने के लिए कृपया हमसे संपर्क करें। आप Profile > Help & Support के माध्यम से सहायता टिकट बना सकते हैं।",
+      "resetPassword": {
+        "title": "पासवर्ड भूल गए",
+        "subtitle": "हम आपके ईमेल पते पर 6 अंकों का कोड भेजेंगे",
+        "emailLabel": "ईमेल पता",
+        "sendCode": "कोड भेजें",
+        "sending": "भेजा जा रहा है...",
+        "codeSent": "कोड भेज दिया गया! अपना ईमेल देखें।",
+        "otpLabel": "सत्यापन कोड",
+        "otpPlaceholder": "6 अंकों का कोड दर्ज करें",
+        "newPasswordLabel": "नया पासवर्ड",
+        "confirmPasswordLabel": "पासवर्ड की पुष्टि करें",
+        "updateButton": "पासवर्ड अपडेट करें",
+        "updating": "अपडेट हो रहा है...",
+        "successTitle": "सफल!",
+        "successMessage": "आपका पासवर्ड अपडेट हो गया है। अब आप लॉग इन कर सकते हैं।",
+        "resendCode": "कोड पुनः भेजें",
+        "errors": {
+          "emailRequired": "ईमेल पता आवश्यक है",
+          "emailInvalid": "कृपया एक मान्य ईमेल पता दर्ज करें",
+          "otpRequired": "सत्यापन कोड आवश्यक है",
+          "otpInvalid": "अमान्य कोड। कृपया पुनः प्रयास करें।",
+          "otpExpired": "कोड समाप्त हो गया है। कृपया नया अनुरोध करें।",
+          "passwordRequired": "पासवर्ड आवश्यक है",
+          "passwordMinLength": "पासवर्ड कम से कम 6 अक्षरों का होना चाहिए",
+          "passwordsNotMatch": "पासवर्ड मेल नहीं खाते",
+          "sendFailed": "कोड भेजने में विफल। कृपया पुनः प्रयास करें।",
+          "updateFailed": "पासवर्ड अपडेट करने में विफल। कृपया पुनः प्रयास करें।",
+          "tooManyAttempts": "बहुत अधिक असफल प्रयास। कृपया नया कोड अनुरोध करें।",
+          "attemptsRemaining": "{{count}} प्रयास शेष"
+        }
+      },
+      "rememberMe": "मुझे याद रखें",
+      "button": "लॉग इन करें",
+      "noAccount": "खाता नहीं है?",
+      "signUp": "साइन अप करें",
+      "success": "लॉगिन सफल!",
+      "errors": {
+        "title": "लॉगिन त्रुटि",
+        "emailRequired": "ईमेल पता आवश्यक है",
+        "emailInvalid": "कृपया एक मान्य ईमेल पता दर्ज करें",
+        "passwordRequired": "पासवर्ड आवश्यक है",
+        "passwordMinLength": "पासवर्ड कम से कम 6 अक्षरों का होना चाहिए",
+        "invalidCredentials": "अमान्य ईमेल या पासवर्ड",
+        "generic": "साइन इन करते समय एक त्रुटि हुई"
+      }
+    },
+    "register": {
+      "title": "अपना खाता बनाएं",
+      "subtitle": "बस एक ईमेल और पासवर्ड — बस इतना ही।",
+      "upgradeTitle": "अपनी प्रगति सहेजें",
+      "upgradeSubtitle": "अपने हल किए गए सवाल सभी डिवाइस पर रखने के लिए ईमेल और पासवर्ड जोड़ें।",
+      "cta": "जारी रखें",
+      "acceptPrefix": "मैं सहमत हूं ",
+      "welcome": "खाता बनाएं",
+      "name": "पूरा नाम",
+      "namePlaceholder": "अपना नाम दर्ज करें",
+      "email": "ईमेल",
+      "emailPlaceholder": "example@email.com",
+      "password": "पासवर्ड",
+      "passwordPlaceholder": "न्यूनतम 6 अक्षर",
+      "passwordShort": "पासवर्ड कम से कम 6 अक्षरों का होना चाहिए",
+      "confirmPassword": "पासवर्ड की पुष्टि करें",
+      "confirmPasswordPlaceholder": "अपना पासवर्ड पुनः दर्ज करें",
+      "terms": "मैं उपयोग की शर्तें और गोपनीयता नीति से सहमत हूं",
+      "termsPrefix": "मैं स्वीकार करता हूं ",
+      "termsLink": "सेवा की शर्तें",
+      "termsAnd": " और ",
+      "privacyLink": "गोपनीयता नीति",
+      "button": "साइन अप करें",
+      "hasAccount": "पहले से खाता है?",
+      "signIn": "लॉग इन करें",
+      "success": "पंजीकरण सफल!",
+      "errors": {
+        "title": "पंजीकरण त्रुटि",
+        "nameRequired": "पूरा नाम आवश्यक है",
+        "nameMinLength": "पूरा नाम कम से कम 2 अक्षरों का होना चाहिए",
+        "emailRequired": "ईमेल पता आवश्यक है",
+        "emailInvalid": "कृपया एक मान्य ईमेल पता दर्ज करें",
+        "passwordRequired": "पासवर्ड आवश्यक है",
+        "passwordMinLength": "पासवर्ड कम से कम 6 अक्षरों का होना चाहिए",
+        "passwordShort": "पासवर्ड कम से कम 6 अक्षरों का होना चाहिए",
+        "confirmPasswordRequired": "पासवर्ड पुष्टि आवश्यक है",
+        "passwordsNotMatch": "पासवर्ड मेल नहीं खाते",
+        "termsRequired": "आपको शर्तें स्वीकार करनी होंगी",
+        "emailExists": "यह ईमेल पता पहले से उपयोग में है",
+        "birthDateInvalid": "कृपया एक मान्य जन्म तिथि दर्ज करें",
+        "ageTooYoung": "साइन अप के लिए आपकी उम्र कम से कम 13 होनी चाहिए",
+        "generic": "साइन अप करते समय एक त्रुटि हुई"
+      },
+      "flow": {
+        "stepCounter": "{{current}} / {{total}}",
+        "next": "जारी रखें",
+        "back": "वापस",
+        "skip": "छोड़ें",
+        "finish": "मेरा खाता बनाएं",
+        "nameTitle": "हम आपको क्या कहें?",
+        "nameSubtitle": "यह नाम आपके खाते पर दिखेगा।",
+        "emailTitle": "आपका ईमेल",
+        "emailSubtitle": "साइन-इन और सूचनाओं के लिए उपयोग होता है।",
+        "passwordTitle": "एक मज़बूत पासवर्ड सेट करें",
+        "passwordSubtitle": "कम से कम 6 अक्षर; अक्षरों और संख्याओं का मिश्रण सुझाया जाता है।",
+        "passwordStrengthWeak": "कमज़ोर",
+        "passwordStrengthMedium": "मध्यम",
+        "passwordStrengthStrong": "मज़बूत",
+        "gradeTitle": "आप किस स्तर पर हैं?",
+        "gradeSubtitle": "हम आपके लिए सामग्री तैयार करेंगे।",
+        "gradeMiddle": "मिडल स्कूल",
+        "gradeHigh9": "कक्षा 9",
+        "gradeHigh10": "कक्षा 10",
+        "gradeHigh11": "कक्षा 11",
+        "gradeHigh12": "कक्षा 12",
+        "gradeUniversity": "विश्वविद्यालय",
+        "gradeOther": "अन्य",
+        "examTitle": "कोई परीक्षा लक्ष्य?",
+        "examSubtitle": "हम उसी अनुसार Exam Camp को सेट करेंगे।",
+        "examLgs": "LGS",
+        "examYks": "YKS",
+        "examKpss": "KPSS",
+        "examNone": "अभी नहीं",
+        "examOther": "अन्य",
+        "goalTitle": "आपका मुख्य लक्ष्य क्या है?",
+        "goalSubtitle": "कुछ शब्द ही काफी हैं — AI चैट आपकी दिशा का पालन करेगा।",
+        "goalPlaceholder": "जैसे, अपनी कक्षा में गणित में सर्वश्रेष्ठ बनना",
+        "birthTitle": "आपकी जन्म तिथि",
+        "birthSubtitle": "उम्र-अनुकूल सामग्री और अनुपालन के लिए।",
+        "birthDay": "दिन",
+        "birthMonth": "महीना",
+        "birthYear": "वर्ष",
+        "referralTitle": "आपने हमारे बारे में कहाँ सुना?",
+        "referralSubtitle": "वैकल्पिक — हमें आपकी बेहतर सेवा में मदद करता है।",
+        "refAppStore": "ऐप स्टोर",
+        "refSocial": "सोशल मीडिया",
+        "refFriend": "मित्र",
+        "refSearch": "सर्च इंजन",
+        "refAd": "विज्ञापन",
+        "refOther": "अन्य",
+        "termsTitle": "अंतिम चरण",
+        "termsSubtitle": "अपना खाता बनाने से पहले कृपया शर्तें स्वीकार करें।"
+      }
+    }
   },
-  "examProgress": {
-    "question": "प्रश्न",
-    "answer": "उत्तर",
-    "goBack": "वापस जाएं",
-    "toStudy": "{{count}} पढ़ना बाकी",
-    "learned": "{{count}} सीखा",
-    "masteryStats": "{{mastered}}/{{total}} महारत · {{pct}}% सफलता",
-    "questionN": "प्रश्न {{n}}"
+  "notifications": {
+    "softPrompt": {
+      "title": "रोज़ाना अध्ययन का रिमाइंडर?",
+      "body": "अभ्यास का समय होने पर 1 मिनट का रिमाइंडर पाएं। कोई स्पैम नहीं, कभी नहीं।",
+      "enable": "सक्षम करें",
+      "notNow": "अभी नहीं"
+    },
+    "daily": {
+      "title": "Quorax",
+      "body": "आज एक त्वरित समीक्षा? 5 मिनट निकालें और आगे बढ़ते रहें।"
+    },
+    "reminder": {
+      "settingsTitle": "दैनिक रिमाइंडर",
+      "settingsSubtitle": "हर दिन एक ही समय पर अभ्यास के लिए एक संकेत",
+      "timeLabel": "रिमाइंडर समय",
+      "scheduled": "{{time}} के लिए रिमाइंडर सेट किया गया",
+      "cancelled": "रिमाइंडर बंद कर दिया गया",
+      "permissionDenied": "सूचना अनुमति अस्वीकृत। आप इसे सेटिंग्स से सक्षम कर सकते हैं।"
+    }
+  },
+  "home": {
+    "greetingMorning": "सुप्रभात,",
+    "greetingAfternoon": "नमस्कार,",
+    "greetingEvening": "शुभ संध्या,",
+    "greetingNight": "शुभ रात्रि,",
+    "continue": "जारी रखें",
+    "suggestionStartLearning": "अपना पहला परीक्षा सत्र शुरू करें",
+    "usageFormat": "{{remaining}} निःशुल्क शेष",
+    "greeting": "नमस्ते",
+    "greetingGuest": "स्वागत है",
+    "myModules": "मेरे मॉड्यूल",
+    "recentActivity": "हालिया गतिविधि",
+    "noActivity": "अभी कोई गतिविधि नहीं",
+    "startUsing": "कोई भी मॉड्यूल उपयोग करना शुरू करें",
+    "viewAll": "सभी देखें",
+    "otherTools": "अन्य टूल्स",
+    "tagline": "गणित हल करें। परीक्षा की तैयारी करें।",
+    "activity": {
+      "justNow": "अभी-अभी",
+      "minutesAgo": "मिनट पहले",
+      "hoursAgo": "घंटे पहले",
+      "yesterday": "कल",
+      "daysAgo": "दिन पहले",
+      "chatActivity": "चैट",
+      "mathProblem": "गणित की समस्या",
+      "exam": "परीक्षा",
+      "correctShort": "सही",
+      "activity": "गतिविधि",
+      "detail": {
+        "title": "गतिविधि विवरण",
+        "problem": "समस्या",
+        "solution": "समाधान",
+        "description": "विवरण",
+        "notFound": "गतिविधि नहीं मिली",
+        "examScore": "परीक्षा स्कोर",
+        "correctShort": "सही",
+        "report": "रिपोर्ट",
+        "correctAnswer": "सही",
+        "yourAnswer": "आपका उत्तर"
+      },
+      "details": {
+        "title": "गतिविधि विवरण",
+        "problem": "समस्या",
+        "solution": "समाधान",
+        "description": "विवरण",
+        "notFound": "गतिविधि नहीं मिली",
+        "examScore": "परीक्षा स्कोर",
+        "correctShort": "सही",
+        "report": "रिपोर्ट",
+        "correctAnswer": "सही",
+        "yourAnswer": "आपका उत्तर"
+      },
+      "clear": {
+        "all": "सभी साफ़ करें",
+        "title": "सभी गतिविधि इतिहास साफ़ करें",
+        "message": "आपकी सारी गतिविधि का इतिहास हटा दिया जाएगा। यह क्रिया वापस नहीं की जा सकती। क्या आप जारी रखना चाहते हैं?",
+        "confirm": "हटाएं",
+        "success": "सभी गतिविधि इतिहास सफलतापूर्वक साफ़ हो गया",
+        "error": "गतिविधि इतिहास साफ़ करते समय एक त्रुटि हुई"
+      },
+      "delete": {
+        "title": "गतिविधि हटाएं",
+        "message": "क्या आप वाकई इस गतिविधि को हटाना चाहते हैं?",
+        "confirm": "हटाएं",
+        "success": "गतिविधि सफलतापूर्वक हटा दी गई",
+        "error": "गतिविधि हटाते समय एक त्रुटि हुई"
+      }
+    }
   },
   "modules": {
     "locked": "लॉगिन आवश्यक",
-    "dailyUsage": "आज {{used}}/{{limit}} उपयोग हुआ",
-    "dailyLimitReached": "दैनिक सीमा पूरी · Premium लें",
-    "loginRequired": {
+    "dailyUsage": "{{used}}/{{limit}} निःशुल्क उपयोग",
+    "dailyLimitReached": "निःशुल्क सीमा पूरी · Premium लें",
+    "lockedAlert": {
       "title": "लॉगिन आवश्यक",
       "message": "इस मॉड्यूल का उपयोग करने के लिए लॉगिन करें।",
       "signIn": "लॉग इन करें",
       "cancel": "रद्द करें"
     },
     "chat": {
-      "title": "AI सहायक",
-      "description": "अपने AI सहायक से बात करें"
+      "title": "AI चैट",
+      "description": "अपने AI से बात करें"
     },
     "math": {
-      "title": "गणित हल करें",
+      "title": "गणित",
       "description": "चरण-दर-चरण समाधान"
     },
     "calculator": {
@@ -60,96 +294,339 @@
       "description": "उन्नत गणनाएं"
     },
     "examLab": {
-      "title": "परीक्षा लैब",
+      "title": "Exam Lab",
       "description": "विषय-आधारित परीक्षा तैयारी"
     }
   },
-  "home": {
-    "tagline": "गणित हल करें। परीक्षा की तैयारी करें।",
-    "recentActivity": "हालिया गतिविधि",
-    "noActivity": "अभी कोई गतिविधि नहीं",
-    "startUsing": "कोई भी मॉड्यूल उपयोग करना शुरू करें",
-    "viewAll": "सभी देखें",
-    "otherTools": "अन्य टूल्स"
-  },
-  "auth": {
-    "login": {
-      "title": "लॉग इन करें",
-      "subtitle": "वापस स्वागत है",
-      "email": "ईमेल",
-      "password": "पासवर्ड",
-      "loginButton": "लॉग इन करें",
-      "noAccount": "खाता नहीं है?",
-      "signUp": "साइन अप करें",
-      "forgotPassword": "पासवर्ड भूल गए?",
-      "orContinueWith": "या इसके साथ जारी रखें",
-      "continueAsGuest": "अतिथि के रूप में जारी रखें"
+  "examLab": {
+    "info": {
+      "title": "उपयोग कैसे करें?",
+      "content": "एक विषय टाइप करें (अधिकतम 3 शब्द) या लोकप्रिय विषयों में से चुनें। आप अपने नोट्स की फोटो भी अपलोड कर सकते हैं — AI विषय अपने आप पहचान लेगा।\n\nExam मोड में, प्रश्नों की संख्या (5, 10, या 15) और कठिनाई (आसान / मध्यम / कठिन) सेट करें। पूरा होने के बाद, आपको हर प्रश्न का सही उत्तर और व्याख्या मिलेगी।\n\nFlashcards मोड में, AI विषय को प्रश्न-उत्तर कार्ड में बदल देता है। उत्तर देखने के लिए कार्ड पर टैप करें और स्वाइप करें।"
     },
-    "signup": {
-      "title": "खाता बनाएं",
-      "subtitle": "आज Quorax से जुड़ें",
-      "name": "पूरा नाम",
-      "email": "ईमेल",
-      "password": "पासवर्ड",
-      "signupButton": "साइन अप करें",
-      "hasAccount": "पहले से खाता है?",
-      "signIn": "लॉग इन करें",
-      "terms": "साइन अप करके आप सेवा की शर्तें और गोपनीयता नीति से सहमत हैं।"
+    "popularTopics": "लोकप्रिय विषय",
+    "popularTopicsItems": [
+      "अवकलज",
+      "सीमाएं",
+      "समीकरण",
+      "प्रारंभिक गणित",
+      "समाकलन",
+      "फलन"
+    ],
+    "customTopic": {
+      "title": "विषय दर्ज करें",
+      "placeholder": "विषय (अधिकतम 3 शब्द)",
+      "wordLimit": "शब्द सीमा पूरी हो गई",
+      "wordLimitMessage": "विषय अधिकतम 3 शब्दों के हो सकते हैं।"
+    },
+    "input": {
+      "topic": "विषय दर्ज करें",
+      "gallery": "गैलरी",
+      "camera": "कैमरा"
+    },
+    "difficulty": "कठिनाई",
+    "difficultyOptions": {
+      "easy": "आसान",
+      "medium": "मध्यम",
+      "hard": "कठिन"
+    },
+    "questionCount": "प्रश्नों की संख्या",
+    "proOnlyDifficulty": "मध्यम और कठिन स्तर केवल Pro के लिए हैं",
+    "proOnlyCount": "10+ प्रश्न प्रति परीक्षा केवल Pro के लिए है",
+    "configTitle": "परीक्षा सेटिंग्स",
+    "createExam": "परीक्षा बनाएं",
+    "orCustomExam": "या कस्टम परीक्षा",
+    "examType": {
+      "label": "परीक्षा प्रकार",
+      "general": "सामान्य",
+      "selectTitle": "परीक्षा प्रकार चुनें",
+      "readyTitle": "तैयार",
+      "readyDesc": "विषय वैकल्पिक है — खाली छोड़ें और AI प्रासंगिक प्रश्न बना देगा।",
+      "topicOptionalPlaceholder": "एक विषय जोड़ें (वैकल्पिक, जैसे Calculus)",
+      "selectSubjectDesc": "एक विषय चुनें या स्वतंत्र रूप से टाइप करें — वैकल्पिक",
+      "selectSubject": "आप किस विषय का अभ्यास करना चाहते हैं?",
+      "selectFirst": "पहले एक परीक्षा प्रकार चुनें या विषय टाइप करें",
+      "noSubjectHint": "कोई सेक्शन नहीं चुना गया — AI इस परीक्षा के लिए मिश्रित प्रश्न बनाएगा",
+      "loginCta": {
+        "title": "Error Notebook और Topic Mastery",
+        "desc": "गलतियों को ट्रैक करने और अपनी प्रगति देखने के लिए लॉग इन करें"
+      }
+    },
+    "examTypes": {
+      "countries": {
+        "none": "सामान्य",
+        "tr": "तुर्की",
+        "us": "संयुक्त राज्य",
+        "uk": "यूनाइटेड किंगडम",
+        "in": "भारत",
+        "intl": "अंतर्राष्ट्रीय"
+      },
+      "placeholders": {
+        "general": "एक विषय दर्ज करें (जैसे प्रकाश संश्लेषण, Calculus, ऑटोमन साम्राज्य...)",
+        "tyt": "विषय दर्ज करें या सेक्शन चुनें (जैसे Paragraph, Equations...)",
+        "ayt": "विषय दर्ज करें या विषय चुनें (जैसे Derivatives, Optics, Genetics...)",
+        "lgs": "विषय दर्ज करें या विषय चुनें (जैसे Equations, Forces...)",
+        "kpss": "विषय दर्ज करें या सेक्शन चुनें (जैसे Constitution, Paragraph...)",
+        "ales": "Sayısal या Sözel — एक सेक्शन चुनें या विषय दर्ज करें",
+        "sat": "विषय दर्ज करें या मॉड्यूल चुनें (जैसे Quadratic equations, Grammar...)",
+        "act": "विषय दर्ज करें या सेक्शन चुनें (जैसे Trigonometry, Biology...)",
+        "gre": "Verbal या Quantitative — एक सेक्शन चुनें या विषय दर्ज करें",
+        "ap": "आप कौन सा AP कोर्स पढ़ रहे हैं? (जैसे AP Calculus BC, AP Biology...)",
+        "alevels": "आप कौन सा A-Level विषय पढ़ रहे हैं? (जैसे Mathematics, Chemistry...)",
+        "gcse": "आप कौन सा GCSE विषय पढ़ रहे हैं? (जैसे Biology, Physics, History...)",
+        "jee": "विषय दर्ज करें या सब्जेक्ट चुनें (जैसे Calculus, Organic Chemistry...)",
+        "neet": "विषय दर्ज करें या सब्जेक्ट चुनें (जैसे Genetics, Thermodynamics...)",
+        "ielts": "एक स्किल चुनें या विषय दर्ज करें (जैसे Academic Vocabulary, Tenses...)",
+        "toefl": "एक स्किल चुनें या विषय दर्ज करें (जैसे Inference questions, Grammar...)",
+        "ib": "आप कौन सा IB कोर्स पढ़ रहे हैं? (जैसे IB Math AA HL, IB Chemistry SL...)"
+      },
+      "subjectPlaceholders": {
+        "tyt_turkce": "उप-विषय वैकल्पिक (जैसे Reading comprehension, Word types...)",
+        "tyt_mat": "उप-विषय वैकल्पिक (जैसे Ratios, Sets, Equations...)",
+        "tyt_geometri": "उप-विषय वैकल्पिक (जैसे Triangles, Circles, Area...)",
+        "tyt_tarih": "उप-विषय वैकल्पिक (जैसे Ottoman founding, Reforms...)",
+        "tyt_cografya": "उप-विषय वैकल्पिक (जैसे Climate, Population, Regions...)",
+        "tyt_felsefe": "उप-विषय वैकल्पिक (जैसे Philosophical movements, Logic...)",
+        "tyt_din": "उप-विषय वैकल्पिक (जैसे Worship, Morality, Prophets...)",
+        "tyt_fizik": "उप-विषय वैकल्पिक (जैसे Forces, Motion, Energy...)",
+        "tyt_kimya": "उप-विषय वैकल्पिक (जैसे Atomic structure, Acid-base, Mixtures...)",
+        "tyt_biyoloji": "उप-विषय वैकल्पिक (जैसे Cell, Heredity, Ecosystem...)",
+        "ayt_mat": "उप-विषय वैकल्पिक (जैसे Derivatives, Integrals, Logarithms...)",
+        "ayt_fizik": "उप-विषय वैकल्पिक (जैसे Electricity, Magnetism, Waves...)",
+        "ayt_kimya": "उप-विषय वैकल्पिक (जैसे Organic chemistry, Equilibrium...)",
+        "ayt_biyoloji": "उप-विषय वैकल्पिक (जैसे Genetics, Evolution, Physiology...)",
+        "ayt_edebiyat": "उप-विषय वैकल्पिक (जैसे Tanzimat period, Poetry styles...)",
+        "ayt_tarih": "उप-विषय वैकल्पिक (जैसे Ottoman decline, War of Independence...)",
+        "ayt_cografya": "उप-विषय वैकल्पिक (जैसे Climate systems, Population geography...)",
+        "ayt_felsefe": "उप-विषय वैकल्पिक (जैसे Psychology, Sociology, Logic...)",
+        "lgs_turkce": "उप-विषय वैकल्पिक (जैसे Main idea, Sentence structure...)",
+        "lgs_mat": "उप-विषय वैकल्पिक (जैसे Algebra, Factoring, Probability...)",
+        "lgs_fen": "उप-विषय वैकल्पिक (जैसे DNA, Light, Forces and motion...)",
+        "lgs_inkilap": "उप-विषय वैकल्पिक (जैसे War of Independence, Atatürk's principles...)",
+        "lgs_din": "उप-विषय वैकल्पिक (जैसे Worship, Morality, Prophets...)",
+        "lgs_ing": "उप-विषय वैकल्पिक (जैसे Tenses, Daily life vocabulary...)",
+        "kpss_turkce": "उप-विषय वैकल्पिक (जैसे Paragraph, Grammar, Spelling rules...)",
+        "kpss_mat": "उप-विषय वैकल्पिक (जैसे Speed-distance-time, Percentages...)",
+        "kpss_geometri": "उप-विषय वैकल्पिक (जैसे Triangles, Circles, Area-perimeter...)",
+        "kpss_tarih": "उप-विषय वैकल्पिक (जैसे Ottoman, War of Independence, Reforms...)",
+        "kpss_cografya": "उप-विषय वैकल्पिक (जैसे Turkey's climate, Economic activities...)",
+        "kpss_vatandaslik": "उप-विषय वैकल्पिक (जैसे Constitution, Basic rights, Legislature...)",
+        "ales_sayisal": "उप-विषय वैकल्पिक (जैसे Number sequences, Problem solving...)",
+        "ales_sozel": "उप-विषय वैकल्पिक (जैसे Synonyms, Sentence completion...)",
+        "sat_rw": "उप-विषय वैकल्पिक (जैसे Transitions, Vocabulary in context...)",
+        "sat_algebra": "उप-विषय वैकल्पिक (जैसे Systems of equations, Inequalities...)",
+        "sat_advanced": "उप-विषय वैकल्पिक (जैसे Quadratics, Exponential functions...)",
+        "sat_data": "उप-विषय वैकल्पिक (जैसे Statistics, Probability, Circle theorems...)",
+        "act_english": "उप-विषय वैकल्पिक (जैसे Punctuation, Transitions, Sentence structure...)",
+        "act_math": "उप-विषय वैकल्पिक (जैसे Trigonometry, Coordinate geometry...)",
+        "act_reading": "उप-विषय वैकल्पिक (जैसे Main idea, Inference, Vocabulary...)",
+        "act_science": "उप-विषय वैकल्पिक (जैसे Data interpretation, Conflicting viewpoints...)",
+        "gre_verbal": "उप-विषय वैकल्पिक (जैसे Text completion, Reading comprehension...)",
+        "gre_quant": "उप-विषय वैकल्पिक (जैसे Geometry, Data analysis, Algebra...)",
+        "jee_physics": "उप-विषय वैकल्पिक (जैसे Rotational motion, Electrostatics, Optics...)",
+        "jee_chemistry": "उप-विषय वैकल्पिक (जैसे Organic mechanisms, Chemical equilibrium...)",
+        "jee_math": "उप-विषय वैकल्पिक (जैसे Integration, Coordinate geometry, Vectors...)",
+        "neet_botany": "उप-विषय वैकल्पिक (जैसे Photosynthesis, Plant reproduction...)",
+        "neet_zoology": "उप-विषय वैकल्पिक (जैसे Human physiology, Animal kingdom...)",
+        "neet_physics": "उप-विषय वैकल्पिक (जैसे Laws of motion, Electrostatics, Optics...)",
+        "neet_chemistry": "उप-विषय वैकल्पिक (जैसे Organic reactions, Thermodynamics...)",
+        "ielts_reading": "उप-विषय वैकल्पिक (जैसे True/False/NG, Matching headings...)",
+        "ielts_listening": "उप-विषय वैकल्पिक (जैसे Multiple choice, Form completion...)",
+        "ielts_vocab": "उप-विषय वैकल्पिक (जैसे Academic Word List, Collocations...)",
+        "ielts_grammar": "उप-विषय वैकल्पिक (जैसे Conditionals, Passive voice, Tenses...)",
+        "toefl_reading": "उप-विषय वैकल्पिक (जैसे Inference, Rhetorical purpose...)",
+        "toefl_listening": "उप-विषय वैकल्पिक (जैसे Main idea, Detail questions...)",
+        "toefl_vocab": "उप-विषय वैकल्पिक (जैसे Academic vocabulary, Paraphrase...)",
+        "toefl_grammar": "उप-विषय वैकल्पिक (जैसे Sentence structure, Usage in context...)"
+      }
+    },
+    "photoTopicDetected": "विषय फोटो से पहचाना जाएगा।",
+    "photoCapture": {
+      "title": "प्रश्न की फोटो लें",
+      "buttonTitle": "प्रश्न की फोटो लें",
+      "description": "अपनी किताब से किसी प्रश्न की फोटो लें, AI आपके लिए समान प्रश्नों के साथ कस्टम परीक्षा तैयार करेगा।",
+      "placeholder": "प्रश्न की फोटो लें"
+    },
+    "aiRecommendation": {
+      "title": "AI सुझाव",
+      "description": "मेरे लिए एक रैंडम परीक्षा तैयार करें।"
+    },
+    "loading": "परीक्षा तैयार हो रही है...",
+    "exam": "परीक्षा",
+    "question": "प्रश्न",
+    "correct": "सही! 🎉",
+    "correctSubtext": "आपने बहुत बढ़िया किया!",
+    "incorrect": "गलत! ❌",
+    "whyWrong": "क्यों गलत?",
+    "solveWithAI": "AI से हल करें",
+    "solving": "हल कर रहे हैं...",
+    "aiSolution": "AI समाधान",
+    "answer": "उत्तर",
+    "steps": "हल के चरण",
+    "exitConfirmTitle": "परीक्षा छोड़ें",
+    "exitConfirmMessage": "क्या आप वाकई परीक्षा छोड़ना चाहते हैं?",
+    "exitConfirmLeave": "बिना सहेजे छोड़ें",
+    "exitSaveAndLeave": "सहेजें और छोड़ें",
+    "report": {
+      "title": "परीक्षा रिपोर्ट",
+      "perfect": "बहुत बढ़िया! हर प्रश्न सही!",
+      "excellent": "उत्कृष्ट प्रदर्शन!",
+      "good": "अच्छा किया, जारी रखें!",
+      "needsImprovement": "थोड़ा और अभ्यास चाहिए।",
+      "keepPracticing": "अभ्यास करते रहें, आप कर पाएंगे!",
+      "correct": "सही",
+      "incorrect": "गलत",
+      "unanswered": "छोड़ा गया",
+      "total": "कुल",
+      "duration": "समय",
+      "close": "बंद करें",
+      "newExam": "नई परीक्षा",
+      "goToErrorNotebook": "{{count}} गलत प्रश्न Error Notebook में सहेजे गए →",
+      "retry": "पुनः प्रयास",
+      "share": "परिणाम साझा करें",
+      "perfectScore": "बधाई हो! आपने हर प्रश्न सही उत्तर दिया!",
+      "correctAnswers": "सही उत्तर",
+      "wrongAnswers": "गलत उत्तर",
+      "skipped": "छोड़े गए प्रश्न",
+      "askAI": "गलत उत्तर AI से हल करें",
+      "weakTopics": "विषय विश्लेषण",
+      "weakTopicsEmpty": "सभी उत्तर सही!",
+      "topicScore": "{{correct}}/{{total}} सही",
+      "yourAnswer": "आपका उत्तर",
+      "correctAnswer": "सही उत्तर",
+      "explainWithAI": "AI से समझाएं",
+      "hideExplanation": "व्याख्या छिपाएं",
+      "explaining": "समझा रहे हैं...",
+      "explainFailed": "व्याख्या नहीं मिल सकी, पुनः प्रयास करें"
+    },
+    "resume": {
+      "title": "जहाँ छोड़ा था वहाँ से जारी रखें",
+      "progress": "{{answered}}/{{total}} उत्तर दिए"
+    },
+    "errorNotebook": {
+      "title": "Error Notebook",
+      "desc": "अपनी प्रगति ट्रैक करें"
+    },
+    "quickDrill": {
+      "title": "त्वरित 5 प्रश्न",
+      "subtitle": "तुरंत शुरू करें · आसान · कोई सेटअप नहीं",
+      "desc": "5 प्रश्न · त्वरित"
+    },
+    "wrongQuestions": {
+      "title": "Error Notebook",
+      "subtitle": "अपने गलत उत्तरों की समीक्षा और अभ्यास करें",
+      "empty": "आपके Error Notebook में अभी कोई प्रश्न नहीं है",
+      "emptyDesc": "आपकी परीक्षाओं के गलत उत्तर यहां दिखेंगे",
+      "mastered": "महारत हासिल",
+      "notMastered": "अभी भी कठिन",
+      "markMastered": "समझ गया ✓",
+      "masteredBadge": "महारत हासिल",
+      "attemptCount": "{{count}}x गलत",
+      "reviewMode": "अभ्यास मोड",
+      "allDone": "शानदार! आपने सब पर महारत हासिल कर ली 🎉",
+      "allDoneDesc": "आपने अपने सभी गलत प्रश्नों की समीक्षा कर ली",
+      "cardOf": "{{current}} / {{total}}",
+      "showAnswer": "उत्तर दिखाएं",
+      "hideAnswer": "छिपाएं",
+      "filterAll": "सभी",
+      "filterActive": "अभ्यास के लिए",
+      "filterMastered": "महारत हासिल",
+      "deleteConfirm": "इस प्रश्न को Error Notebook से हटाएं?",
+      "loading": "लोड हो रहा है...",
+      "errorLoad": "लोड करने में विफल",
+      "practiceAll": "सभी का अभ्यास करें",
+      "practiceSubject": "{{subject}} — अभ्यास",
+      "goToExam": "परीक्षा पर जाएं"
+    },
+    "mastery": {
+      "title": "Topic Mastery",
+      "subtitle": "विषय के अनुसार अपनी प्रगति ट्रैक करें",
+      "sectionTitle": "विषय",
+      "empty": "अभी तक कोई परीक्षा पूरी नहीं हुई",
+      "emptyDesc": "परीक्षा देने के बाद यहां विषय अनुसार आपकी सटीकता दिखेगी",
+      "level": {
+        "learning": "सीख रहे हैं",
+        "developing": "विकसित हो रहा",
+        "proficient": "कुशल",
+        "mastered": "महारत हासिल"
+      },
+      "levelDesc": {
+        "learning": "अभ्यास जारी रखें",
+        "developing": "पहुंच रहे हैं",
+        "proficient": "लगभग पहुंच गए",
+        "mastered": "आप इसमें माहिर हैं!"
+      },
+      "stats": "{{correct}} / {{total}} सही",
+      "lastStudied": "अंतिम बार पढ़ा: {{date}}",
+      "accuracy": "{{pct}}% सटीकता"
+    },
+    "realExam": {
+      "title": "वास्तविक परीक्षा मोड",
+      "subtitle": "आधिकारिक परीक्षा प्रारूप में अभ्यास करें",
+      "selectPreset": "परीक्षा चुनें",
+      "customMode": "कस्टम मोड",
+      "startExam": "परीक्षा शुरू करें",
+      "timeLeft": "शेष समय",
+      "timeUp": "समय समाप्त!",
+      "timeUpMessage": "समय समाप्त हो गया है। परीक्षा अपने आप जमा कर दी गई है।",
+      "confirmExit": "क्या आप वाकई बाहर निकलना चाहते हैं? टाइमर चलता रहेगा।",
+      "presets": {
+        "alesSayisal": "ALES Quantitative (50 प्रश्न / 100 मिनट)",
+        "alesSozel": "ALES Verbal (50 प्रश्न / 100 मिनट)",
+        "yksTyt": "YKS TYT (120 प्रश्न / 135 मिनट)",
+        "yksAyt": "YKS AYT (80 प्रश्न / 180 मिनट)",
+        "lgs": "LGS (90 प्रश्न / 130 मिनट)",
+        "sat": "SAT (98 प्रश्न / 134 मिनट)",
+        "act": "ACT (215 प्रश्न / 175 मिनट)"
+      }
+    },
+    "explanation": "व्याख्या:",
+    "previous": "पिछला",
+    "next": "अगला",
+    "finish": "समाप्त करें",
+    "finishWithoutAnswer": "इस प्रश्न को छोड़ें?",
+    "finishWithoutAnswerDesc": "यदि आप अभी समाप्त करते हैं तो यह प्रश्न अनुत्तरित माना जाएगा।",
+    "success": {
+      "title": "सफल",
+      "message": "परीक्षा तैयार है!"
+    },
+    "errors": {
+      "failed": "त्रुटि",
+      "failedMessage": "परीक्षा बनाने में विफल।",
+      "photoFailed": "त्रुटि",
+      "photoFailedMessage": "फोटो प्रोसेस करने में विफल।",
+      "emptyTopic": "विषय आवश्यक",
+      "emptyTopicMessage": "कृपया एक विषय दर्ज करें।",
+      "noImage": "फोटो आवश्यक",
+      "noImageMessage": "कृपया प्रश्न की फोटो लें।",
+      "galleryDenied": "गैलरी अनुमति आवश्यक",
+      "galleryDeniedMessage": "आपको गैलरी तक पहुंच की अनुमति देनी होगी।",
+      "cameraDenied": "कैमरा अनुमति आवश्यक",
+      "cameraDeniedMessage": "आपको कैमरा तक पहुंच की अनुमति देनी होगी।",
+      "solveFailed": "हल करने में विफल",
+      "solveFailedMessage": "प्रश्न हल करते समय एक त्रुटि हुई।"
     }
   },
-  "premiumModal": {
-    "limitPill": "दैनिक सीमा",
-    "proPill": "प्रो फ़ीचर",
-    "limitTitle": "आज की मुफ़्त सीमा समाप्त हो गई",
-    "proTitle": "Premium इसे अनलॉक करता है",
-    "limitSubtitle": "आपने आज {{module}} में {{used}}/{{limit}} हल उपयोग किए। असीमित एक्सेस के लिए अपग्रेड करें।",
-    "proSubtitle": "यह फ़ीचर Premium में शामिल है। अगली स्क्रीन पर अपने प्लान विकल्प देखें।",
-    "benefitUnlimited": "असीमित गणित हल",
-    "benefitVerify": "अपने काम की जाँच करें",
-    "benefitExplanations": "चरण-दर-चरण व्याख्या",
-    "benefitNoAds": "कोई विज्ञापन नहीं, कभी नहीं",
-    "trialHint": "मुफ़्त आज़माएँ, कभी भी रद्द करें",
-    "cta": "प्लान देखें",
-    "later": "शायद बाद में"
-  },
   "profile": {
+    "title": "प्रोफ़ाइल",
     "rtlRestartTitle": "पुनरारंभ आवश्यक",
     "rtlRestartMessage": "नई पाठ दिशा लागू करने के लिए कृपया ऐप को पुनरारंभ करें।",
-    "premium": {
-      "ctaContinue": "जारी रखें",
-      "ctaStartTrial": "{{days}}-दिन का मुफ़्त ट्रायल शुरू करें",
-      "ctaTrialThen": "फिर {{price}}/{{period}} · कभी भी रद्द करें",
-      "planMonthly": "मासिक",
-      "planYearly": "वार्षिक",
-      "perYear": "वर्ष",
-      "equivMonthly": "{{price}}/माह",
-      "bestValue": "सर्वोत्तम मूल्य",
-      "savePercent": "{{pct}}% बचाएँ",
-      "trialBadge": "{{days}} दिन मुफ़्त",
-      "heroTrialTitle": "{{days}} दिनों के लिए मुफ़्त आज़माएँ",
-      "heroTrialSubtitle": "पूरा एक्सेस। आज कोई भुगतान नहीं।",
-      "trialReminder": "ट्रायल समाप्त होने से 2 दिन पहले हम आपको याद दिलाएँगे।",
-      "noPaymentToday": "आज कोई भुगतान नहीं",
-      "uniqueBadge": "केवल QUORAX में",
-      "verifyHeroTitle": "अपने काम की जाँच करें",
-      "verifyHeroDesc": "अपना हल पेस्ट करें — हम ठीक वह चरण ढूँढेंगे जहाँ आप गलत हुए और बताएँगे कि कैसे ठीक करें।",
-      "terms": "शर्तें",
-      "privacy": "गोपनीयता",
-      "legalAutoRenew": "रद्द होने तक स्वतः नवीनीकरण होता है। iOS Settings > Apple ID > Subscriptions में कभी भी रद्द करें। पुष्टि पर आपके Apple ID से भुगतान लिया जाएगा।",
-      "featureUnlimited": "असीमित गणित हल",
-      "featureVerify": "अपने काम की जाँच",
-      "featureExplanations": "चरण-दर-चरण व्याख्या",
-      "featureTopics": "विषय विश्लेषण डैशबोर्ड"
-    },
     "settings": {
+      "title": "सेटिंग्स",
       "language": "भाषा",
-      "purchaseHistory": "खरीद इतिहास",
       "languageTr": "Türkçe",
       "languageEn": "English",
       "languageAr": "العربية",
       "languageHi": "हिन्दी",
       "languageEs": "Español",
       "theme": "थीम",
+      "notifications": "सूचनाएं",
+      "privacy": "गोपनीयता",
+      "about": "के बारे में",
+      "help": "सहायता और समर्थन",
+      "editProfile": "प्रोफ़ाइल संपादित करें",
+      "purchaseHistory": "खरीद इतिहास",
+      "feedback": "प्रतिक्रिया",
+      "rateUs": "हमें रेट करें",
       "categories": {
         "account": "खाता",
         "preferences": "प्राथमिकताएं",
@@ -171,9 +648,388 @@
         "redemption_failed": "एक त्रुटि हुई। कृपया पुनः प्रयास करें।",
         "server_error": "सर्वर त्रुटि। कृपया पुनः प्रयास करें।"
       }
+    },
+    "logout": "लॉग आउट",
+    "deleteAccount": {
+      "button": "खाता हटाएं",
+      "title": "खाता हटाएं",
+      "message": "क्या आप वाकई अपना खाता हमेशा के लिए हटाना चाहते हैं? यह क्रिया वापस नहीं की जा सकती और आपका सारा डेटा खो जाएगा।",
+      "confirm": "हटाएं",
+      "error": "खाता हटाते समय एक त्रुटि हुई। कृपया पुनः प्रयास करें या सहायता से संपर्क करें।"
+    },
+    "login": "लॉग इन करें",
+    "account": "खाता",
+    "notLoggedIn": "लॉग इन नहीं है",
+    "loginToContinue": "जारी रखने के लिए लॉग इन करें",
+    "guest": "अतिथि",
+    "guestTitle": "आप अतिथि के रूप में ब्राउज़ कर रहे हैं",
+    "guestSubtitle": "अपनी प्रगति सहेजने और सभी डिवाइस पर सिंक करने के लिए एक खाता बनाएं।",
+    "rate": {
+      "title": "हमें रेट करें",
+      "header": {
+        "title": "ऐप पसंद आ रहा है?",
+        "subtitle": "अपने अनुभव को रेट करें और App Store पर समीक्षा करें"
+      },
+      "selectRating": "रेटिंग चुनें",
+      "button": "रेट करें",
+      "info": "ऊँची रेटिंग हमें बहुत मदद करती है!",
+      "ratings": {
+        "excellent": "उत्कृष्ट",
+        "good": "अच्छा",
+        "average": "औसत",
+        "poor": "खराब",
+        "veryPoor": "बहुत खराब"
+      },
+      "lowRating": {
+        "title": "क्या आप प्रतिक्रिया देना चाहेंगे?",
+        "message": "क्या आप हमें अपना अनुभव बेहतर करने के लिए प्रतिक्रिया दे सकते हैं?",
+        "giveFeedback": "प्रतिक्रिया दें"
+      },
+      "success": {
+        "thankYou": "धन्यवाद! आपकी रेटिंग हमारे लिए बहुत मूल्यवान है।"
+      },
+      "errors": {
+        "selectRating": "कृपया एक रेटिंग चुनें",
+        "cannotOpenStore": "स्टोर नहीं खोल सका",
+        "openStoreFailed": "स्टोर खोलते समय त्रुटि हुई"
+      },
+      "notAvailable": "स्टोर अभी नहीं खोला जा सकता।"
+    },
+    "premium": {
+      "title": "Premium",
+      "subtitle": "असीमित एक्सेस और विशेष फ़ीचर",
+      "current": "Premium सदस्य",
+      "expires": "समाप्ति",
+      "expiresAt": "समाप्ति",
+      "upgrade": "Premium में अपग्रेड करें",
+      "upgradeToPremium": "असीमित उपयोग के लिए अपग्रेड करें",
+      "manage": "सब्सक्रिप्शन प्रबंधित करें",
+      "status": "Premium स्थिति",
+      "active": "सक्रिय",
+      "inactive": "निष्क्रिय",
+      "limitedOffer": "सीमित ऑफ़र",
+      "freePlan": "मुफ़्त प्लान",
+      "premiumPlan": "Premium प्लान",
+      "dailyLimitedUsage": "दैनिक सीमित उपयोग",
+      "perDay": "/दिन",
+      "unlimited": "असीमित",
+      "features": {
+        "title": "फ़ीचर",
+        "aiChat": "AI चैट",
+        "math": "गणित",
+        "examLab": "Exam Lab",
+        "prioritySupport": "प्राथमिकता सहायता",
+        "adFree": "विज्ञापन रहित",
+        "unlimited": "असीमित उपयोग",
+        "priority": "प्राथमिकता सहायता"
+      },
+      "purchase": {
+        "title": "Premium में अपग्रेड करें",
+        "monthly": "मासिक",
+        "price": "${price}/माह",
+        "buy": "खरीदें",
+        "restore": "खरीदारी पुनर्स्थापित करें",
+        "success": "Premium सफलतापूर्वक सक्रिय हो गया!",
+        "error": "खरीदारी विफल"
+      },
+      "heroActiveTitle": "Premium सक्रिय",
+      "heroInactiveTitle": "अपनी सीमाएं हटाएं",
+      "heroInactiveSubtitle2": "उन उपयोगकर्ताओं के लिए जो हर दिन सीमा तक पहुँचते हैं।",
+      "heroActiveSubtitle": "सभी फ़ीचर अनलॉक",
+      "heroInactiveSubtitle": "बिना किसी सीमा के सभी फ़ीचर उपयोग करें",
+      "socialProof": "हज़ारों छात्र पहले से अंदर हैं",
+      "ctaFree": "7 दिनों के लिए मुफ़्त आज़माएँ",
+      "ctaFreeSubtext": "फिर {price}/माह · कभी भी रद्द करें",
+      "perWeek": "सप्ताह",
+      "savePercent": "{{pct}}% बचाएँ",
+      "heroExpiresSubtitle": "{date} तक सक्रिय",
+      "activeBadge": "सक्रिय ✓",
+      "featuresCardTitle": "Premium लाभ",
+      "activeCardText": "Premium सक्रिय — सभी फ़ीचर अनलॉक",
+      "legalText": "सब्सक्रिप्शन स्वतः नवीनीकृत होता है। रद्द करने के लिए App Store → Subscriptions पर जाएं।",
+      "processing": "प्रोसेस हो रहा है...",
+      "perMonth": "माह",
+      "ctaWithPrice": "{price} / माह  —  Premium लें",
+      "restoring": "पुनर्स्थापित हो रहा है...",
+      "featureUnlimitedChat": "असीमित AI चैट",
+      "featureUnlimitedChatDesc": "किसी भी दैनिक सीमा के बिना चैट, नोट्स और टेक्स्ट टूल",
+      "featureUnlimitedMath": "असीमित AI टूल",
+      "featureUnlimitedMathDesc": "गणित सॉल्वर, Exam Lab और सभी मॉड्यूल अनलॉक",
+      "featureNoAds": "विज्ञापन रहित अनुभव",
+      "featureNoAdsDesc": "कोई बाधा नहीं, पूरा ध्यान",
+      "featureUnlimitedExam": "असीमित Exam Lab",
+      "featurePrioritySupport": "प्राथमिकता सहायता",
+      "loadError": "Premium पैकेज लोड करने में विफल। कृपया पुनः प्रयास करें।",
+      "purchaseSuccess": "🎉 Premium सक्रिय!",
+      "purchaseSuccessMessage": "असीमित एक्सेस अब सक्रिय है। आनंद लें!",
+      "great": "बढ़िया!",
+      "restored": "✅ पुनर्स्थापित",
+      "restoredMessage": "आपका Premium सब्सक्रिप्शन पुनर्स्थापित हो गया है।",
+      "noActiveSubscription": "कोई सक्रिय सब्सक्रिप्शन नहीं मिला।",
+      "restoreError": "पुनर्स्थापना विफल।",
+      "purchaseError": "खरीदारी विफल।",
+      "cancelAnytime": "कभी भी रद्द करें",
+      "noCommitment": "कोई प्रतिबद्धता नहीं",
+      "cancelSubscription": "सब्सक्रिप्शन रद्द करें",
+      "cancelTitle": "सब्सक्रिप्शन रद्द करें",
+      "cancelMessage": "आपको रद्द करने के लिए App Store → Subscriptions पर भेजा जाएगा।",
+      "cancelConfirm": "App Store पर जाएं",
+      "nextRenewal": "अगली नवीनीकरण तिथि",
+      "ctaButton": "Premium लें",
+      "ctaContinue": "जारी रखें",
+      "ctaStartTrial": "{{days}}-दिन का मुफ़्त ट्रायल शुरू करें",
+      "ctaTrialThen": "फिर {{price}}/{{period}} · कभी भी रद्द करें",
+      "planMonthly": "मासिक",
+      "planYearly": "वार्षिक",
+      "perYear": "वर्ष",
+      "equivMonthly": "{{price}}/माह",
+      "bestValue": "सर्वोत्तम मूल्य",
+      "trialBadge": "{{days}} दिन मुफ़्त",
+      "heroTrialTitle": "{{days}} दिनों के लिए मुफ़्त आज़माएँ",
+      "heroTrialSubtitle": "पूरा एक्सेस। आज कोई भुगतान नहीं।",
+      "trialReminder": "ट्रायल समाप्त होने से 2 दिन पहले हम आपको याद दिलाएँगे।",
+      "noPaymentToday": "आज कोई भुगतान नहीं",
+      "uniqueBadge": "केवल QUORAX में",
+      "verifyHeroTitle": "अपने काम की जाँच करें",
+      "verifyHeroDesc": "अपना हल पेस्ट करें — हम ठीक वह चरण ढूँढेंगे जहाँ आप गलत हुए और बताएँगे कि कैसे ठीक करें।",
+      "terms": "शर्तें",
+      "privacy": "गोपनीयता",
+      "legalAutoRenew": "रद्द होने तक स्वतः नवीनीकरण होता है। iOS Settings > Apple ID > Subscriptions में कभी भी रद्द करें। पुष्टि पर आपके Apple ID से भुगतान लिया जाएगा।",
+      "featureUnlimited": "असीमित गणित हल",
+      "featureVerify": "अपने काम की जाँच",
+      "featureExplanations": "चरण-दर-चरण व्याख्या",
+      "featureTopics": "विषय विश्लेषण डैशबोर्ड",
+      "trustSecure": "सुरक्षित भुगतान",
+      "trustCancel": "कभी भी रद्द करें",
+      "trustSafe": "गोपनीयता सुरक्षित",
+      "heroLimitTitle": "हल करते रहें — सब कुछ अनलॉक करें",
+      "exitTitle": "रुकिए — एक और बात",
+      "exitSubtitle": "मासिक आज़माएँ — कभी भी रद्द करें। कोई लंबी प्रतिबद्धता नहीं।",
+      "exitTryMonthly": "मासिक आज़माएँ · {{price}}",
+      "exitTryMonthlyTrial": "{{days}}-दिन का ट्रायल शुरू करें · {{price}}/माह",
+      "exitNoThanks": "नहीं, धन्यवाद"
+    },
+    "verification": {
+      "label": "ईमेल सत्यापन",
+      "verified": "सत्यापित",
+      "pending": "लंबित",
+      "sendButton": "सत्यापन ईमेल भेजें",
+      "sending": "भेजा जा रहा है...",
+      "sent": "ईमेल भेजा गया",
+      "sentMessage": "अपना इनबॉक्स देखें। अपना ईमेल सत्यापित करने के लिए लिंक पर क्लिक करें।",
+      "error": "भेजने में विफल",
+      "errorMessage": "ईमेल भेजते समय एक त्रुटि हुई। कृपया पुनः प्रयास करें।"
+    },
+    "selectAvatar": "अवतार चुनें",
+    "edit": {
+      "title": "प्रोफ़ाइल संपादित करें",
+      "save": "सहेजें",
+      "changeAvatar": "अवतार चुनें",
+      "changePassword": "पासवर्ड बदलें",
+      "changePasswordComingSoon": "पासवर्ड बदलने की सुविधा जल्द आ रही है",
+      "success": "प्रोफ़ाइल सफलतापूर्वक अपडेट हुई",
+      "loginRequired": "अपनी प्रोफ़ाइल संपादित करने के लिए आपको लॉग इन करना होगा",
+      "emailNotEditable": "ईमेल पता बदला नहीं जा सकता।",
+      "fields": {
+        "name": "पूरा नाम",
+        "email": "ईमेल",
+        "phone": "फ़ोन"
+      },
+      "placeholders": {
+        "name": "अपना नाम दर्ज करें",
+        "email": "आपका ईमेल पता",
+        "phone": "आपका फ़ोन नंबर"
+      },
+      "errors": {
+        "nameRequired": "नाम आवश्यक है",
+        "emailRequired": "ईमेल आवश्यक है",
+        "emailInvalid": "कृपया एक मान्य ईमेल पता दर्ज करें",
+        "userNotFound": "उपयोगकर्ता नहीं मिला",
+        "updateFailed": "प्रोफ़ाइल अपडेट करते समय एक त्रुटि हुई",
+        "avatarUpdateFailed": "प्रोफ़ाइल अपडेट हो गई पर अवतार अपडेट नहीं हो सका"
+      },
+      "password": {
+        "title": "पासवर्ड बदलें",
+        "save": "पासवर्ड अपडेट करें",
+        "warning": "अपना पासवर्ड बदलने के लिए, आपको पहले अपने वर्तमान पासवर्ड को सत्यापित करना होगा।",
+        "success": "पासवर्ड सफलतापूर्वक अपडेट हुआ",
+        "fields": {
+          "current": "वर्तमान पासवर्ड",
+          "new": "नया पासवर्ड",
+          "confirm": "नए पासवर्ड की पुष्टि करें"
+        },
+        "placeholders": {
+          "current": "अपना वर्तमान पासवर्ड दर्ज करें",
+          "new": "अपना नया पासवर्ड दर्ज करें",
+          "confirm": "अपने नए पासवर्ड की पुष्टि करें"
+        },
+        "errors": {
+          "currentRequired": "वर्तमान पासवर्ड आवश्यक है",
+          "currentInvalid": "वर्तमान पासवर्ड गलत है",
+          "newRequired": "नया पासवर्ड आवश्यक है",
+          "confirmRequired": "पासवर्ड पुष्टि आवश्यक है",
+          "passwordsDontMatch": "पासवर्ड मेल नहीं खाते",
+          "updateFailed": "पासवर्ड अपडेट करते समय एक त्रुटि हुई"
+        }
+      }
+    },
+    "privacy": {
+      "title": "गोपनीयता",
+      "policy": "प्रभावी: 4 मार्च, 2026\n\nQuorax खाता जानकारी (नाम, ईमेल), ऐप उपयोग डेटा, AI मॉड्यूल को आपके द्वारा भेजी गई सामग्री, और सब्सक्रिप्शन/भुगतान डेटा (Apple/Google द्वारा प्रोसेस — हम कभी आपके कार्ड विवरण नहीं रखते) एकत्र करता है।\n\nआपका डेटा सेवाएं प्रदान करने, ऐप सुधारने और धोखाधड़ी रोकने के लिए उपयोग होता है। हम आपका व्यक्तिगत डेटा नहीं बेचते।\n\nतृतीय-पक्ष प्रदाता: Anthropic (Claude AI — आपके डेटा का उपयोग मॉडल प्रशिक्षण के लिए नहीं करता), Supabase, RevenueCat, Google AdMob, Apple/Google।\n\nआपको अपने डेटा तक पहुंचने, उसे सुधारने, हटाने, पोर्ट करने और किसी भी समय सहमति वापस लेने का अधिकार है। संपर्क: privacy@quorax.app\n\nपूरी गोपनीयता नीति के लिए Profile > Privacy Policy देखें।",
+      "sections": {
+        "controls": "गोपनीयता नियंत्रण",
+        "dataCollection": "डेटा संग्रह",
+        "rights": "उपयोगकर्ता अधिकार"
+      },
+      "controls": {
+        "dataSaving": {
+          "title": "डेटा बचत",
+          "description": "कम डेटा का उपयोग करके AI प्रतिक्रियाएँ प्राप्त करें"
+        },
+        "saveHistory": {
+          "title": "इतिहास सहेजें",
+          "description": "अपना चैट और गतिविधि इतिहास संग्रहीत करें"
+        },
+        "anonymousAnalytics": {
+          "title": "अनाम विश्लेषण",
+          "description": "ऐप सुधारने के लिए अनाम डेटा"
+        },
+        "personalizedContent": {
+          "title": "व्यक्तिगत सामग्री",
+          "description": "अपनी रुचियों के आधार पर सिफ़ारिशें प्राप्त करें"
+        },
+        "thirdPartySharing": {
+          "title": "तृतीय पक्ष साझाकरण",
+          "description": "अनुसंधान भागीदारों के साथ अनाम डेटा साझा करना"
+        },
+        "locationTracking": {
+          "title": "स्थान ट्रैकिंग",
+          "description": "स्थान आधारित फ़ीचर सक्षम करें"
+        }
+      },
+      "collected": {
+        "title": "एकत्रित डेटा",
+        "description": "हमारा ऐप निम्नलिखित डेटा एकत्र करता है:",
+        "account": "खाता जानकारी (ईमेल, नाम)",
+        "history": "उपयोग इतिहास और गतिविधियाँ",
+        "device": "डिवाइस जानकारी और तकनीकी डेटा",
+        "location": "स्थान डेटा (जब अनुमति हो)"
+      },
+      "usage": {
+        "title": "डेटा उपयोग",
+        "description": "एकत्रित डेटा का उपयोग निम्न के लिए होता है:",
+        "improve": "ऐप प्रदर्शन सुधारना",
+        "personalize": "व्यक्तिगत अनुभव प्रदान करना",
+        "security": "सुरक्षा और धोखाधड़ी रोकथाम",
+        "support": "ग्राहक सहायता प्रदान करना"
+      },
+      "securityInfo": "आपका सारा डेटा एन्क्रिप्टेड कनेक्शन पर स्थानांतरित होता है और सुरक्षित सर्वर पर संग्रहीत रहता है।",
+      "userRights": {
+        "title": "आपके उपयोगकर्ता अधिकार",
+        "description": "GDPR और अन्य डेटा सुरक्षा कानूनों के अनुसार, आपके अधिकार:",
+        "access": "अपने डेटा तक पहुँचने का अधिकार",
+        "rectify": "गलत डेटा सुधारने का अधिकार",
+        "delete": "अपना डेटा हटाने का अधिकार",
+        "object": "डेटा प्रोसेसिंग पर आपत्ति का अधिकार"
+      },
+      "contact": {
+        "title": "संपर्क",
+        "email": "privacy@quorax.com",
+        "alert": "ईमेल ऐप खुलेगा..."
+      }
+    },
+    "help": {
+      "title": "सहायता और समर्थन",
+      "howCanHelp": "हम आपकी कैसे मदद कर सकते हैं?",
+      "helpDescription": "कोई प्रश्न है? हम मदद करने के लिए ख़ुश हैं। आप नीचे FAQ देख सकते हैं या सीधे एक सहायता टिकट बना सकते हैं।",
+      "sendTicket": "सहायता टिकट बनाएं",
+      "cancel": "रद्द करें",
+      "faq": "अक्सर पूछे जाने वाले प्रश्न",
+      "noFaqTitle": "अभी कोई FAQ नहीं",
+      "noFaqSubtitle": "FAQ जल्द ही जोड़े जाएंगे",
+      "ticketsHistory": "मेरे सहायता टिकट",
+      "noTickets": "अभी कोई सहायता टिकट नहीं",
+      "noTicketsSubtitle": "सहायता टिकट बनाने के लिए ऊपर बटन पर क्लिक करें",
+      "subject": "विषय",
+      "subjectPlaceholder": "आपकी समस्या का विषय...",
+      "message": "आपका संदेश",
+      "messagePlaceholder": "अपनी समस्या विस्तार से बताएं...",
+      "priority": "प्राथमिकता",
+      "priorityLow": "कम",
+      "priorityMedium": "मध्यम",
+      "priorityHigh": "उच्च",
+      "send": "भेजें",
+      "helperText": "आपका सहायता टिकट बनने के बाद, हम जल्द से जल्द आपसे संपर्क करेंगे।",
+      "success": {
+        "title": "सफल!",
+        "message": "आपका सहायता टिकट सफलतापूर्वक बन गया है। हम जल्द ही आपसे संपर्क करेंगे।"
+      },
+      "errors": {
+        "subjectRequired": "विषय फ़ील्ड आवश्यक है",
+        "subjectMinLength": "विषय कम से कम 5 अक्षरों का होना चाहिए",
+        "messageRequired": "संदेश फ़ील्ड आवश्यक है",
+        "messageMinLength": "संदेश कम से कम 20 अक्षरों का होना चाहिए",
+        "sendError": "सहायता टिकट बनाते समय एक त्रुटि हुई"
+      },
+      "faqList": [
+        {
+          "id": "1",
+          "question": "Premium सदस्यता क्या है?",
+          "answer": "Premium सदस्यता के साथ आपको असीमित उपयोग और विज्ञापन-मुक्त अनुभव मिलता है। विवरण के लिए Profile > Premium देखें।"
+        },
+        {
+          "id": "3",
+          "question": "मैं अपना खाता कैसे हटा सकता हूं?",
+          "answer": "अपना खाता हटाने के लिए Profile > Edit Profile पर जाएं और 'Delete Account' विकल्प का उपयोग करें। यह क्रिया वापस नहीं की जा सकती।"
+        }
+      ]
+    },
+    "feedback": {
+      "title": "प्रतिक्रिया",
+      "rating": "ऐप को रेट करें",
+      "type": "प्रतिक्रिया प्रकार",
+      "subject": "विषय",
+      "subjectPlaceholder": "प्रतिक्रिया विषय...",
+      "message": "विवरण",
+      "messagePlaceholder": "अपनी प्रतिक्रिया विस्तार से लिखें...",
+      "submit": "जमा करें",
+      "helperText": "आपकी प्रतिक्रिया हमारे लिए बहुत मूल्यवान है!",
+      "promiseTitle": "हम हर प्रतिक्रिया को ध्यान से पढ़ते हैं",
+      "promiseText": "आपकी समस्याएं और सुझाव सीधे हमारी टीम तक पहुँचते हैं। हम उन्हें जितनी जल्दी हो सके सुलझाने के लिए काम करते हैं — आपकी चिंताएं App Store तक पहुँचने से पहले हम सुन लेते हैं।",
+      "ratings": {
+        "excellent": "उत्कृष्ट",
+        "good": "अच्छा",
+        "average": "औसत",
+        "poor": "खराब",
+        "veryPoor": "बहुत खराब"
+      },
+      "types": {
+        "bug": "बग/त्रुटि",
+        "suggestion": "सुझाव",
+        "improvement": "सुधार",
+        "other": "अन्य"
+      },
+      "success": {
+        "message": "आपकी प्रतिक्रिया के लिए धन्यवाद!"
+      },
+      "errors": {
+        "subjectRequired": "विषय आवश्यक है",
+        "subjectMinLength": "विषय कम से कम 5 अक्षरों का होना चाहिए",
+        "messageRequired": "संदेश आवश्यक है",
+        "messageMinLength": "संदेश कम से कम 20 अक्षरों का होना चाहिए",
+        "typeRequired": "प्रतिक्रिया प्रकार चुना जाना चाहिए",
+        "sendError": "प्रतिक्रिया भेजते समय एक त्रुटि हुई",
+        "userNotFound": "उपयोगकर्ता नहीं मिला",
+        "loginRequired": "प्रतिक्रिया भेजने के लिए आपको लॉग इन करना होगा"
+      }
+    },
+    "terms": {
+      "title": "सेवा की शर्तें",
+      "menuLabel": "सेवा की शर्तें"
     }
   },
   "math": {
+    "unlockExplanation": "व्याख्या अनलॉक करने के लिए Premium में अपग्रेड करें",
     "info": {
       "title": "उपयोग कैसे करें?",
       "content": "अपनी समस्या टाइप करें या फोटो लें / गैलरी से चुनें। AI बीजगणित, ज्यामिति, कैलकुलस और बहुत कुछ संभाल सकता है।\n\nप्रत्येक समाधान में स्पष्ट उत्तर, क्रमांकित चरण-दर-चरण व्याख्या और परिणाम सत्यापन शामिल है।"
@@ -299,6 +1155,186 @@
     "imageProblem": "छवि वाली समस्या",
     "filter": {
       "all": "सभी"
+    }
+  },
+  "settings": {
+    "title": "सेटिंग्स",
+    "language": "भाषा",
+    "theme": "थीम",
+    "darkMode": "डार्क मोड",
+    "lightMode": "लाइट मोड",
+    "systemMode": "सिस्टम"
+  },
+  "onboarding": {
+    "demoLabel": "उदाहरण",
+    "slide1": {
+      "title": "Quorax में आपका स्वागत है",
+      "description": "गणित हल करें, टेस्ट बनाएं, सवाल पूछें — सब कुछ एक ही ऐप में।"
+    },
+    "slide2": {
+      "title": "AI चैट सहायक",
+      "description": "विषय-अनुसार चैट खोलें। फोटो, PDF या फाइलें डालें और जहाँ छोड़ा था वहीं से जारी रखें।"
+    },
+    "slide3": {
+      "title": "गणित सॉल्वर",
+      "description": "समीकरण टाइप करें या कैमरा लगाएं। हर चरण को तर्क के साथ देखें, फिर उत्तर सत्यापित करें।"
+    },
+    "slide4": {
+      "title": "Exam Lab",
+      "description": "अपने नोट्स या पाठ्यक्रम विषयों से टेस्ट बनाएं। समय लगाएं, गलत उत्तरों की पूरी व्याख्या के साथ समीक्षा करें।"
+    },
+    "buttons": {
+      "skip": "छोड़ें",
+      "next": "अगला",
+      "start": "शुरू करें",
+      "signIn": "लॉग इन करें",
+      "createAccount": "खाता बनाएं",
+      "continueAsGuest": "अतिथि के रूप में जारी रखें"
+    },
+    "aiConsentTitle": "AI डेटा प्रोसेसिंग सहमति",
+    "aiConsentBody": "Quorax अपने फ़ीचर के लिए Anthropic के Claude AI का उपयोग करता है। ये सेवाएं प्रदान करने के लिए निम्नलिखित डेटा Anthropic को भेजा जा सकता है:\n\n• आपके संदेश और चैट इतिहास\n• संपादन या नोट निर्माण के लिए भेजा गया पाठ\n• गणित की समस्याएं (फोटो सहित)\n• विश्लेषण के लिए अपलोड की गई छवियाँ\n\nयह डेटा Anthropic, Inc. (anthropic.com) को भेजा जाता है और उनकी गोपनीयता नीति के अनुसार प्रोसेस होता है। इसे बिना सहमति बेचा या AI मॉडल प्रशिक्षित करने के लिए उपयोग नहीं किया जाता।",
+    "aiConsentCheckbox": "मैं समझता हूँ और सहमत हूँ कि मेरा डेटा ऊपर बताए अनुसार Anthropic (Claude AI) द्वारा प्रोसेस किया जा सकता है।",
+    "aiConsentRequired": "जारी रखने के लिए आपको AI डेटा प्रोसेसिंग सहमति स्वीकार करनी होगी।",
+    "aiConsentAcceptButton": "मैं स्वीकार करता हूँ",
+    "aiConsent": "जारी रखने पर, आप सहमत हैं कि आपके इनपुट Anthropic (Claude AI) द्वारा प्रोसेस किए जा सकते हैं। और जानें हमारी",
+    "privacyPolicy": "गोपनीयता नीति",
+    "termsOfService": "सेवा की शर्तें",
+    "andText": "और"
+  },
+  "welcome": {
+    "tagline": "आपका AI-संचालित अध्ययन सहायक",
+    "signIn": "साइन इन करें",
+    "createAccount": "खाता बनाएं",
+    "continueAsGuest": "अतिथि के रूप में जारी रखें",
+    "getStarted": "शुरू करें",
+    "alreadyHaveAccount": "पहले से खाता है?"
+  },
+  "chat": {
+    "newChatStarted": "नई चैट शुरू हुई",
+    "userFallback": "उपयोगकर्ता",
+    "filter": {
+      "all": "सभी",
+      "recent": "हाल ही"
+    },
+    "empty": {
+      "title": "अभी कोई चैट नहीं",
+      "description": "नई चैट शुरू करने के लिए नीचे दिए गए बटन पर क्लिक करें",
+      "message": "अभी कोई संदेश नहीं। अपना पहला संदेश भेजें!"
+    },
+    "newChat": "नई चैट",
+    "newChatModal": {
+      "title": "नई चैट बनाएं",
+      "titleLabel": "चैट शीर्षक",
+      "titlePlaceholder": "चैट शीर्षक दर्ज करें...",
+      "colorLabel": "रंग चुनें",
+      "create": "बनाएं"
+    },
+    "input": {
+      "placeholder": "अपना संदेश टाइप करें..."
+    },
+    "typing": "टाइप कर रहे हैं...",
+    "delete": {
+      "title": "चैट हटाएं",
+      "message": "क्या आप वाकई \"{{title}}\" चैट हटाना चाहते हैं? यह क्रिया वापस नहीं की जा सकती।",
+      "success": "चैट सफलतापूर्वक हट गई",
+      "error": "चैट हटाते समय एक त्रुटि हुई",
+      "activitiesDeleteWarning": "चैट हट गई पर संबंधित गतिविधि रिकॉर्ड अपडेट नहीं हो सके।"
+    },
+    "errors": {
+      "loadFailed": "चैट लोड करते समय एक त्रुटि हुई",
+      "createFailed": "चैट बनाते समय एक त्रुटि हुई",
+      "loadChatFailed": "चैट डेटा लोड करते समय एक त्रुटि हुई",
+      "loadMessagesFailed": "संदेश लोड करते समय एक त्रुटि हुई",
+      "sendFailed": "संदेश भेजते समय एक त्रुटि हुई",
+      "aiFailed": "AI प्रतिक्रिया प्राप्त नहीं हो सकी। कृपया पुनः प्रयास करें।"
+    }
+  },
+  "premiumModal": {
+    "limitPill": "दैनिक सीमा",
+    "proPill": "प्रो फ़ीचर",
+    "limitTitle": "आज की मुफ़्त सीमा समाप्त हो गई",
+    "proTitle": "Premium इसे अनलॉक करता है",
+    "limitSubtitle": "आपने आज {{module}} में {{used}}/{{limit}} हल उपयोग किए। असीमित एक्सेस के लिए अपग्रेड करें।",
+    "proSubtitle": "यह फ़ीचर Premium में शामिल है। अगली स्क्रीन पर अपने प्लान विकल्प देखें।",
+    "benefitUnlimited": "असीमित गणित हल",
+    "benefitVerify": "अपने काम की जाँच करें",
+    "benefitExplanations": "चरण-दर-चरण व्याख्या",
+    "benefitNoAds": "कोई विज्ञापन नहीं, कभी नहीं",
+    "trialHint": "मुफ़्त आज़माएँ, कभी भी रद्द करें",
+    "cta": "प्लान देखें",
+    "later": "शायद बाद में"
+  },
+  "premium": {
+    "limitReached": "दैनिक सीमा पूरी",
+    "proFeature": "PRO फ़ीचर",
+    "proFeatureSubtitle": "इस फ़ीचर को अनलॉक करने के लिए Premium में अपग्रेड करें",
+    "usageToday": "{{module}} के लिए आज {{used}}/{{limit}} उपयोग हुआ",
+    "upgradeMessage": "Premium में अपग्रेड करें और असीमित उपयोग का आनंद लें!",
+    "upgradeToPremium": "Premium में अपग्रेड करें",
+    "freeUsageBanner": {
+      "remaining": "आज आपके पास {{remaining}}/{{limit}} उपयोग है",
+      "limitReached": "आपने आज {{used}}/{{limit}} उपयोग किया। कोई उपयोग शेष नहीं।",
+      "upgradeCta": "असीमित उपयोग के लिए Premium लें",
+      "premiumHint": "Premium के साथ असीमित",
+      "infoCta": "दैनिक उपयोग जानकारी",
+      "limitReachedCta": "कोई उपयोग शेष नहीं, Premium में अपग्रेड करें"
+    },
+    "features": {
+      "unlimited": "असीमित उपयोग",
+      "priority": "प्राथमिकता सहायता",
+      "noAds": "विज्ञापन रहित अनुभव",
+      "topicAnalysis": "विषय विश्लेषण और मजबूती/कमजोरी ट्रैकिंग",
+      "verify": "अपने काम की जाँच",
+      "explanations": "विषय व्याख्या और विस्तृत समाधान"
+    }
+  },
+  "rating": {
+    "title": "Quorax पसंद आ रहा है?",
+    "subtitle": "अपना अनुभव साझा करने से हमें बहुत मदद मिलती है। बस एक मिनट लगेगा!",
+    "yes": "हाँ, मुझे पसंद है!",
+    "no": "नहीं, मुझे समस्या है",
+    "skip": "अभी नहीं",
+    "feedbackTitle": "हम कैसे सुधार करें?",
+    "feedbackSubtitle": "अपनी समस्या या सुझाव बताएं — हमारी टीम जल्द ही जवाब देगी।",
+    "feedbackPromise": "हम हर प्रतिक्रिया को ध्यान से पढ़ते हैं। आपकी समस्याएं ठीक करना हमारी प्राथमिकता है।",
+    "feedbackPlaceholder": "हमारे साथ अपना अनुभव साझा करें...",
+    "feedbackSend": "भेजें",
+    "thanksTitle": "धन्यवाद!",
+    "thanksSubtitle": "आपकी प्रतिक्रिया के लिए धन्यवाद। हम Quorax को बेहतर बनाने के लिए कड़ी मेहनत कर रहे हैं।"
+  },
+  "examProgress": {
+    "question": "प्रश्न",
+    "answer": "उत्तर",
+    "goBack": "वापस जाएं",
+    "toStudy": "{{count}} पढ़ना बाकी",
+    "learned": "{{count}} सीखा",
+    "masteryStats": "{{mastered}}/{{total}} महारत · {{pct}}% सफलता",
+    "questionN": "प्रश्न {{n}}"
+  },
+  "aiLoading": {
+    "hint": "इसमें कुछ सेकंड लग सकते हैं",
+    "math": {
+      "0": "समस्या पढ़ रहे हैं",
+      "1": "चरणों की गणना",
+      "2": "समाधान तैयार कर रहे हैं"
+    },
+    "exam": {
+      "0": "विषय स्कैन कर रहे हैं",
+      "1": "प्रश्न बना रहे हैं",
+      "2": "आपकी परीक्षा तैयार कर रहे हैं"
+    },
+    "image": {
+      "0": "छवि का विश्लेषण",
+      "1": "सामग्री पहचान रहे हैं",
+      "2": "परिणाम तैयार कर रहे हैं"
+    },
+    "text": {
+      "0": "टेक्स्ट प्रोसेस हो रहा है",
+      "1": "परिणाम तैयार कर रहे हैं"
+    },
+    "chat": {
+      "0": "सोच रहे हैं",
+      "1": "प्रतिक्रिया तैयार कर रहे हैं"
     }
   }
 }
