@@ -28,9 +28,16 @@ $$;
 
 revoke all on function public.sweep_expired_subscriptions() from public, anon, authenticated;
 
--- Her saatin 7. dakikasında çalıştır
-select cron.schedule(
-  'sweep-expired-subscriptions',
-  '7 * * * *',
-  $$select public.sweep_expired_subscriptions();$$
-);
+-- Her saatin 7. dakikasında çalıştır.
+-- Idempotent: varsa önce kaldır, sonra yeniden zamanla (re-run güvenli).
+do $$
+declare j_id integer;
+begin
+  for j_id in select jobid from cron.job where jobname = 'sweep-expired-subscriptions'
+  loop perform cron.unschedule(j_id); end loop;
+  perform cron.schedule(
+    'sweep-expired-subscriptions',
+    '7 * * * *',
+    $cmd$select public.sweep_expired_subscriptions();$cmd$
+  );
+end $$;
