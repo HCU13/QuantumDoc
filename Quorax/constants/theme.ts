@@ -255,3 +255,64 @@ export const Z_INDEX = {
   modalBackdrop: 900,
   modal: 1000,
 };
+
+/* ========================================================================== */
+/*  V2 — 2026 Redesign Tokens                                                 */
+/*  Use these for new components and redesigned screens.                      */
+/* ========================================================================== */
+
+export const SPACING_V2 = {
+  xs: 4,
+  sm: 8,
+  md: 12,
+  lg: 16,
+  xl: 24,
+  xxl: 40,
+};
+
+export const RADIUS_V2 = {
+  sm: 12,
+  md: 20,
+  lg: 28,
+  pill: 9999,
+};
+
+export const TYPE_V2 = {
+  display: { fontSize: 32, lineHeight: 38, fontWeight: '700' as const, letterSpacing: -0.8 },
+  title:   { fontSize: 22, lineHeight: 28, fontWeight: '600' as const, letterSpacing: -0.4 },
+  body:    { fontSize: 15, lineHeight: 22, fontWeight: '400' as const, letterSpacing: 0 },
+  label:   { fontSize: 12, lineHeight: 16, fontWeight: '500' as const, letterSpacing: 0.2 },
+  caption: { fontSize: 11, lineHeight: 14, fontWeight: '500' as const, letterSpacing: 0.4 },
+};
+
+export const MOTION_V2 = {
+  duration: { instant: 80, fast: 160, normal: 240, slow: 360 },
+  spring: {
+    snappy: { damping: 18, stiffness: 280, mass: 0.9 },
+    smooth: { damping: 22, stiffness: 180, mass: 1 },
+    gentle: { damping: 26, stiffness: 140, mass: 1 },
+  },
+};
+
+export const ELEVATION_V2 = {
+  flat: Platform.select({
+    ios: { shadowColor: 'transparent', shadowOpacity: 0, shadowRadius: 0 },
+    android: { elevation: 0 },
+    default: {},
+  }),
+  low: Platform.select({
+    ios: { shadowColor: '#000', shadowOffset: { width: 0, height: 2 }, shadowOpacity: 0.04, shadowRadius: 8 },
+    android: { elevation: 1 },
+    default: {},
+  }),
+  medium: Platform.select({
+    ios: { shadowColor: '#000', shadowOffset: { width: 0, height: 4 }, shadowOpacity: 0.06, shadowRadius: 16 },
+    android: { elevation: 3 },
+    default: {},
+  }),
+  high: Platform.select({
+    ios: { shadowColor: '#000', shadowOffset: { width: 0, height: 8 }, shadowOpacity: 0.10, shadowRadius: 24 },
+    android: { elevation: 6 },
+    default: {},
+  }),
+};

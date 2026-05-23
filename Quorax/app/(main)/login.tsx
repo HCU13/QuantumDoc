@@ -17,7 +17,7 @@ import {
 
 import { Button } from "@/components/common/Button";
 import { Input } from "@/components/common/Input";
-import { NotebookBackground } from "@/components/common/NotebookBackground";
+import { SoftSurface } from "@/components/v2";
 import { BORDER_RADIUS, HIT_SLOP, SPACING } from "@/constants/theme";
 import { useAuth } from "@/contexts/AuthContext";
 import { useTheme } from "@/contexts/ThemeContext";
@@ -79,7 +79,7 @@ export default function LoginScreen() {
   const handleBack = () => router.replace("/(main)/welcome");
 
   return (
-    <NotebookBackground cornerGlyphs={["∑", "√"]}>
+    <SoftSurface tone="warm">
       <StatusBar style={isDark ? "light" : "dark"} />
 
       <KeyboardAvoidingView
@@ -197,7 +197,7 @@ export default function LoginScreen() {
           </View>
         </ScrollView>
       </KeyboardAvoidingView>
-    </NotebookBackground>
+    </SoftSurface>
   );
 }
 

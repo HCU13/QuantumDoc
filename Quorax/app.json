@@ -13,7 +13,7 @@
       "bundleIdentifier": "com.quorax.app",
       "buildNumber": "10",
       "associatedDomains": [
-        "applinks:quorax.app"
+        "applinks:quorax.vercel.app"
       ],
       "appleTeamId": "HBP69DD3KV",
       "infoPlist": {
@@ -54,7 +54,7 @@
           "data": [
             {
               "scheme": "https",
-              "host": "quorax.app"
+              "host": "quorax.vercel.app"
             },
             {
               "scheme": "quorax"

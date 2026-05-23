@@ -4,9 +4,8 @@ import { StatusBar } from "expo-status-bar";
 import { useTranslation } from "react-i18next";
 
 import { useTheme } from "@/contexts/ThemeContext";
-import { ModuleHeader } from "@/components/common/ModuleHeader";
 import { BORDER_RADIUS, SPACING, TEXT_STYLES } from "@/constants/theme";
-import { NotebookBackground } from "@/components/common/NotebookBackground";
+import { MinimalHeader, SoftSurface } from "@/components/v2";
 
 function SectionTitle({ text, color }: { text: string; color: string }) {
   return <Text style={[styles.sectionTitle, { color }]}>{text}</Text>;
@@ -35,9 +34,9 @@ export default function PrivacyScreen() {
   const accent = colors.primary ?? "#8B5CF6";
 
   return (
-    <NotebookBackground cornerGlyphs={["🔒", "§"]}>
+    <SoftSurface tone="neutral">
       <StatusBar style={isDark ? "light" : "dark"} />
-      <ModuleHeader title={t("profile.privacy.title")} />
+      <MinimalHeader title={t("profile.privacy.title")} />
 
       <ScrollView
         style={styles.scroll}
@@ -218,15 +217,15 @@ export default function PrivacyScreen() {
             "Right to lodge a complaint: File a complaint with the Personal Data Protection Authority (KVKK) or your local data protection authority",
           ]).map((item, i) => <BulletItem key={i} text={item} color={primary} />)}
           <Paragraph color={primary} text={isTr
-            ? "Haklarınızı kullanmak için privacy@quorax.app adresine e-posta gönderin veya Uygulama içinde Profil > Yardım & Destek üzerinden destek talebi oluşturun. Talepler en geç 30 gün içinde yanıtlanır."
-            : "To exercise your rights, email privacy@quorax.app or submit a support request via Profile > Help & Support in the App. Requests are responded to within 30 days."} />
+            ? "Haklarınızı kullanmak için noreply.quorax@gmail.com adresine e-posta gönderin veya Uygulama içinde Profil > Yardım & Destek üzerinden destek talebi oluşturun. Talepler en geç 30 gün içinde yanıtlanır."
+            : "To exercise your rights, email noreply.quorax@gmail.com or submit a support request via Profile > Help & Support in the App. Requests are responded to within 30 days."} />
 
           {/* 8 */}
           <SectionTitle color={accent}
             text={isTr ? "8. Çocukların Gizliliği" : "8. Children's Privacy"} />
           <Paragraph color={primary} text={isTr
-            ? "Uygulama 13 yaşın altındaki çocuklara yönelik değildir. 13 yaşın altındaki bireylerden bilerek kişisel veri toplamıyoruz. Ebeveyn veya vasi olarak çocuğunuzun bizimle kişisel veri paylaştığını fark ederseniz lütfen privacy@quorax.app adresinden bizimle iletişime geçin; söz konusu verileri derhal sileceğiz."
-            : "The App is not directed at children under 13. We do not knowingly collect personal data from individuals under 13. If you are a parent or guardian and discover that your child has shared personal data with us, please contact us at privacy@quorax.app and we will promptly delete such data."} />
+            ? "Uygulama 13 yaşın altındaki çocuklara yönelik değildir. 13 yaşın altındaki bireylerden bilerek kişisel veri toplamıyoruz. Ebeveyn veya vasi olarak çocuğunuzun bizimle kişisel veri paylaştığını fark ederseniz lütfen noreply.quorax@gmail.com adresinden bizimle iletişime geçin; söz konusu verileri derhal sileceğiz."
+            : "The App is not directed at children under 13. We do not knowingly collect personal data from individuals under 13. If you are a parent or guardian and discover that your child has shared personal data with us, please contact us at noreply.quorax@gmail.com and we will promptly delete such data."} />
 
           {/* 9 */}
           <SectionTitle color={accent}
@@ -277,8 +276,8 @@ export default function PrivacyScreen() {
           <SectionTitle color={accent}
             text={isTr ? "13. İletişim ve Veri Sorumlusu" : "13. Contact & Data Controller"} />
           <Paragraph color={primary} text={isTr
-            ? "Veri Sorumlusu: Quorax\nGizlilik talepleri: privacy@quorax.app\nGenel destek: support@quorax.app\nUygulama içi: Profil > Yardım & Destek\nWeb: https://quorax.app\n\nTalepler en geç 30 gün içinde yanıtlanır."
-            : "Data Controller: Quorax\nPrivacy requests: privacy@quorax.app\nGeneral support: support@quorax.app\nIn-app: Profile > Help & Support\nWeb: https://quorax.app\n\nRequests are responded to within 30 days."} />
+            ? "Veri Sorumlusu: Quorax\nGizlilik talepleri: noreply.quorax@gmail.com\nGenel destek: noreply.quorax@gmail.com\nUygulama içi: Profil > Yardım & Destek\nWeb: https://quorax.vercel.app\n\nTalepler en geç 30 gün içinde yanıtlanır."
+            : "Data Controller: Quorax\nPrivacy requests: noreply.quorax@gmail.com\nGeneral support: noreply.quorax@gmail.com\nIn-app: Profile > Help & Support\nWeb: https://quorax.vercel.app\n\nRequests are responded to within 30 days."} />
 
           <Text style={[styles.versionNote, { color: secondary }]}>
             {isTr ? "Sürüm 2.0 · 4 Mart 2026" : "Version 2.0 · March 4, 2026"}
@@ -288,7 +287,7 @@ export default function PrivacyScreen() {
 
         <View style={{ height: SPACING.xl }} />
       </ScrollView>
-    </NotebookBackground>
+    </SoftSurface>
   );
 }
 

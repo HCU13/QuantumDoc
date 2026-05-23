@@ -5,13 +5,12 @@ import React from "react";
 import { useTranslation } from "react-i18next";
 import { FlatList, StyleSheet, Text, View } from "react-native";
 
-import { ModuleHeader } from "@/components/common/ModuleHeader";
 import { BORDER_RADIUS, SHADOWS, SPACING, TEXT_STYLES } from "@/constants/theme";
 import { useAuth } from "@/contexts/AuthContext";
 import type { Purchase } from "@/contexts/SubscriptionContext";
 import { useSubscription } from "@/contexts/SubscriptionContext";
 import { useTheme } from "@/contexts/ThemeContext";
-import { NotebookBackground } from "@/components/common/NotebookBackground";
+import { MinimalHeader, SoftSurface } from "@/components/v2";
 
 function PurchaseCard({ item, colors, lang }: { item: Purchase; colors: any; lang: string }) {
   const locale = lang === "tr" ? "tr-TR" : "en-US";
@@ -92,11 +91,11 @@ export default function PurchaseHistoryScreen() {
   const title = lang === "tr" ? "Satın Alım Geçmişi" : "Purchase History";
 
   return (
-    <NotebookBackground cornerGlyphs={["$", "€"]}>
+    <SoftSurface tone="neutral">
       <StatusBar style={isDark ? "light" : "dark"} />
-      <ModuleHeader
+      <MinimalHeader
         title={title}
-        onBackPress={() => router.canDismiss() ? router.dismiss() : router.back()}
+        onBack={() => router.canDismiss() ? router.dismiss() : router.back()}
       />
 
       {!isLoggedIn ? (
@@ -143,7 +142,7 @@ export default function PurchaseHistoryScreen() {
           }
         />
       )}
-    </NotebookBackground>
+    </SoftSurface>
   );
 }
 

@@ -1,6 +1,7 @@
 import { Ionicons } from "@expo/vector-icons";
 import { useRouter } from "expo-router";
 import React from "react";
+import { useTranslation } from "react-i18next";
 import {
   I18nManager,
   Platform,
@@ -38,6 +39,7 @@ export const ModuleHeader: React.FC<ModuleHeaderProps> = ({
   modulePrimary,
 }) => {
   const { colors } = useTheme();
+  const { t } = useTranslation();
   const router = useRouter();
 
   const accent = modulePrimary ?? colors.primary;
@@ -62,7 +64,7 @@ export const ModuleHeader: React.FC<ModuleHeaderProps> = ({
             },
           ]}
           accessibilityRole="button"
-          accessibilityLabel="back"
+          accessibilityLabel={t("common.back")}
         >
           <Ionicons
             name="chevron-back"

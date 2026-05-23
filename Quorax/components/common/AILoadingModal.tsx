@@ -19,6 +19,8 @@ interface AILoadingModalProps {
   message?: string;
 }
 
+// Per-type rotating status messages. Only the copy changes between modules —
+// the animation itself is identical everywhere for a consistent feel.
 const MESSAGES: Record<string, string[]> = {
   math: [
     "aiLoading.math.0",
@@ -45,20 +47,45 @@ const MESSAGES: Record<string, string[]> = {
   ],
 };
 
-const EMOJIS: Record<string, string> = {
-  math: "🔢",
-  exam: "📝",
-  image: "🔍",
-  text: "✍️",
-  chat: "💬",
-};
-
 const COLORS: Record<string, string> = {
   math:      "#3B82F6",
   exam:      "#10B981",
   image:     "#F59E0B",
   text:      "#EC4899",
   chat:      "#6366F1",
+};
+
+const DOT_COUNT = 3;
+
+/** A single bouncing dot — drives its own loop, offset by `delay`. */
+const BouncingDot: React.FC<{ color: string; delay: number }> = ({ color, delay }) => {
+  const anim = useRef(new Animated.Value(0)).current;
+
+  useEffect(() => {
+    const loop = Animated.loop(
+      Animated.sequence([
+        Animated.delay(delay),
+        Animated.timing(anim, { toValue: 1, duration: 320, easing: Easing.out(Easing.quad), useNativeDriver: true }),
+        Animated.timing(anim, { toValue: 0, duration: 320, easing: Easing.in(Easing.quad), useNativeDriver: true }),
+        Animated.delay((DOT_COUNT - 1) * 160),
+      ])
+    );
+    loop.start();
+    return () => { loop.stop(); anim.setValue(0); };
+  }, [delay]);
+
+  const translateY = anim.interpolate({ inputRange: [0, 1], outputRange: [0, -12] });
+  const scale = anim.interpolate({ inputRange: [0, 1], outputRange: [1, 1.15] });
+  const opacity = anim.interpolate({ inputRange: [0, 1], outputRange: [0.45, 1] });
+
+  return (
+    <Animated.View
+      style={[
+        styles.dot,
+        { backgroundColor: color, transform: [{ translateY }, { scale }], opacity },
+      ]}
+    />
+  );
 };
 
 export const AILoadingModal: React.FC<AILoadingModalProps> = ({
@@ -70,44 +97,15 @@ export const AILoadingModal: React.FC<AILoadingModalProps> = ({
   const { t } = useTranslation();
 
   const [msgIndex, setMsgIndex] = useState(0);
-  const [dotCount, setDotCount] = useState(1);
-
-  // Pulse animasyonu — 3 iç içe daire
-  const pulse1 = useRef(new Animated.Value(1)).current;
-  const pulse2 = useRef(new Animated.Value(1)).current;
-  const pulse3 = useRef(new Animated.Value(1)).current;
   const fadeMsg = useRef(new Animated.Value(1)).current;
-  const spinAnim = useRef(new Animated.Value(0)).current;
 
   const accentColor = COLORS[type] ?? COLORS.chat;
-  const emoji = EMOJIS[type] ?? "✨";
   const msgKeys = MESSAGES[type] ?? MESSAGES.chat;
 
   useEffect(() => {
     if (!visible) return;
 
-    // Sıralı pulse — dalga efekti
-    const pulseFn = (anim: Animated.Value, delay: number) =>
-      Animated.loop(
-        Animated.sequence([
-          Animated.delay(delay),
-          Animated.timing(anim, { toValue: 1.5, duration: 900, easing: Easing.out(Easing.ease), useNativeDriver: true }),
-          Animated.timing(anim, { toValue: 1,   duration: 900, easing: Easing.in(Easing.ease),  useNativeDriver: true }),
-        ])
-      );
-
-    const p1 = pulseFn(pulse1, 0);
-    const p2 = pulseFn(pulse2, 300);
-    const p3 = pulseFn(pulse3, 600);
-
-    // Dönen spinner çemberi
-    const spin = Animated.loop(
-      Animated.timing(spinAnim, { toValue: 1, duration: 1800, easing: Easing.linear, useNativeDriver: true })
-    );
-
-    p1.start(); p2.start(); p3.start(); spin.start();
-
-    // Mesaj değiştirici
+    // Rotate the status message every couple seconds with a soft cross-fade.
     const msgTimer = setInterval(() => {
       Animated.timing(fadeMsg, { toValue: 0, duration: 200, useNativeDriver: true }).start(() => {
         setMsgIndex(i => (i + 1) % msgKeys.length);
@@ -115,27 +113,14 @@ export const AILoadingModal: React.FC<AILoadingModalProps> = ({
       });
     }, 2200);
 
-    // Nokta animasyonu
-    const dotTimer = setInterval(() => {
-      setDotCount(d => (d % 3) + 1);
-    }, 500);
-
     return () => {
-      p1.stop(); p2.stop(); p3.stop(); spin.stop();
       clearInterval(msgTimer);
-      clearInterval(dotTimer);
-      pulse1.setValue(1); pulse2.setValue(1); pulse3.setValue(1); spinAnim.setValue(0);
       setMsgIndex(0);
+      fadeMsg.setValue(1);
     };
   }, [visible]);
 
-  const rotate = spinAnim.interpolate({
-    inputRange: [0, 1],
-    outputRange: ["0deg", "360deg"],
-  });
-
   const currentMsg = message ?? t(msgKeys[msgIndex] ?? msgKeys[0]);
-  const dots = ".".repeat(dotCount);
 
   return (
     <Modal visible={visible} transparent animationType="fade" statusBarTranslucent>
@@ -145,42 +130,19 @@ export const AILoadingModal: React.FC<AILoadingModalProps> = ({
           shadowColor: accentColor,
         }]}>
 
-          {/* Pulse daireler */}
-          <View style={styles.pulseContainer}>
-            <Animated.View style={[styles.pulseRing, styles.ring3, {
-              borderColor: accentColor + "18",
-              transform: [{ scale: pulse3 }],
-            }]} />
-            <Animated.View style={[styles.pulseRing, styles.ring2, {
-              borderColor: accentColor + "30",
-              transform: [{ scale: pulse2 }],
-            }]} />
-            <Animated.View style={[styles.pulseRing, styles.ring1, {
-              borderColor: accentColor + "50",
-              transform: [{ scale: pulse1 }],
-            }]} />
-
-            {/* Dönen çember */}
-            <Animated.View style={[styles.spinnerRing, {
-              borderTopColor: accentColor,
-              borderRightColor: "transparent",
-              borderBottomColor: "transparent",
-              borderLeftColor: "transparent",
-              transform: [{ rotate }],
-            }]} />
-
-            {/* Emoji merkez */}
-            <View style={[styles.emojiCircle, { backgroundColor: accentColor + "20" }]}>
-              <Text style={styles.emoji}>{emoji}</Text>
-            </View>
+          {/* Bouncing dots — same animation in every module, only the accent color varies. */}
+          <View style={styles.dotsRow}>
+            {Array.from({ length: DOT_COUNT }).map((_, i) => (
+              <BouncingDot key={i} color={accentColor} delay={i * 160} />
+            ))}
           </View>
 
-          {/* Mesaj */}
+          {/* Rotating status message */}
           <Animated.Text style={[styles.message, { color: colors.textPrimary, opacity: fadeMsg }]}>
-            {currentMsg}{dots}
+            {currentMsg}
           </Animated.Text>
 
-          {/* Alt küçük bilgi */}
+          {/* Footer hint */}
           <Text style={[styles.hint, { color: colors.textSecondary }]}>
             {t("aiLoading.hint")}
           </Text>
@@ -212,34 +174,19 @@ const styles = StyleSheet.create({
     elevation: 16,
   },
 
-  /* Pulse */
-  pulseContainer: {
-    width: 100, height: 100,
-    justifyContent: "center",
-    alignItems: "center",
+  /* Bouncing dots */
+  dotsRow: {
+    flexDirection: "row",
+    alignItems: "flex-end",
+    height: 44,
+    gap: 10,
     marginBottom: SPACING.sm,
   },
-  pulseRing: {
-    position: "absolute",
-    borderRadius: 999,
-    borderWidth: 2,
+  dot: {
+    width: 12,
+    height: 12,
+    borderRadius: 6,
   },
-  ring1: { width: 68,  height: 68  },
-  ring2: { width: 82,  height: 82  },
-  ring3: { width: 96,  height: 96  },
-  spinnerRing: {
-    position: "absolute",
-    width: 68, height: 68,
-    borderRadius: 34,
-    borderWidth: 2.5,
-  },
-  emojiCircle: {
-    width: 52, height: 52,
-    borderRadius: 26,
-    justifyContent: "center",
-    alignItems: "center",
-  },
-  emoji: { fontSize: 26 },
 
   /* Metin */
   message: {

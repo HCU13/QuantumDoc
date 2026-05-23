@@ -15,8 +15,7 @@ import {
 
 import { Button } from "@/components/common/Button";
 import { Input } from "@/components/common/Input";
-import { ModuleHeader } from "@/components/common/ModuleHeader";
-import { NotebookBackground } from "@/components/common/NotebookBackground";
+import { MinimalHeader, SoftSurface } from "@/components/v2";
 import { UserInitials } from "@/components/common/UserInitials";
 import { BORDER_RADIUS, SHADOWS, SPACING, TEXT_STYLES } from "@/constants/theme";
 import { useAuth } from "@/contexts/AuthContext";
@@ -31,7 +30,7 @@ export default function EditProfileScreen() {
   const { user, profile, updateProfile, refreshUser } = useAuth();
 
   const [loading, setLoading] = useState(false);
-  const [formData, setFormData] = useState({ name: "", email: "", phone: "" });
+  const [formData, setFormData] = useState({ name: "", email: "" });
   const [errors, setErrors] = useState<{ [key: string]: string }>({});
 
   const [showPassword, setShowPassword] = useState(false);
@@ -45,7 +44,6 @@ export default function EditProfileScreen() {
       setFormData({
         name: profile?.full_name || profile?.display_name || "",
         email: user?.email || "",
-        phone: profile?.phone || "",
       });
     }
   }, [profile, user]);
@@ -74,7 +72,6 @@ export default function EditProfileScreen() {
       const result = await updateProfile({
         full_name: formData.name.trim(),
         display_name: formData.name.trim(),
-        phone: formData.phone.trim() || undefined,
       });
       if (!result.success) {
         Alert.alert(t("common.error"), result.error || t("profile.edit.errors.updateFailed"));
@@ -124,25 +121,25 @@ export default function EditProfileScreen() {
 
   if (!user) {
     return (
-      <NotebookBackground cornerGlyphs={["✎", "§"]}>
+      <SoftSurface tone="neutral">
         <StatusBar style={isDark ? "light" : "dark"} />
-        <ModuleHeader title={t("profile.edit.title")} />
+        <MinimalHeader title={t("profile.edit.title")} />
         <View style={styles.center}>
           <Ionicons name="lock-closed" size={48} color={colors.textTertiary} />
           <Text style={[styles.centerText, { color: colors.textSecondary }]}>
             {t("profile.edit.loginRequired")}
           </Text>
         </View>
-      </NotebookBackground>
+      </SoftSurface>
     );
   }
 
   const passwordHeight = passwordAnim.interpolate({ inputRange: [0, 1], outputRange: [0, 380] });
 
   return (
-    <NotebookBackground cornerGlyphs={["✎", "§"]}>
+    <SoftSurface tone="neutral">
       <StatusBar style={isDark ? "light" : "dark"} />
-      <ModuleHeader title={t("profile.edit.title")} />
+      <MinimalHeader title={t("profile.edit.title")} />
 
       <ScrollView
         contentContainerStyle={styles.content}
@@ -182,15 +179,6 @@ export default function EditProfileScreen() {
             containerStyle={{ opacity: 0.55 }}
           />
 
-          <Input
-            label={t("profile.edit.fields.phone")}
-            value={formData.phone}
-            onChangeText={(v) => { setFormData({ ...formData, phone: v }); setErrors({ ...errors, phone: "" }); }}
-            placeholder={t("profile.edit.placeholders.phone")}
-            keyboardType="phone-pad"
-            icon="call-outline"
-            error={errors.phone}
-          />
         </View>
 
         <Button
@@ -231,7 +219,7 @@ export default function EditProfileScreen() {
 
         <View style={{ height: SPACING.xxl }} />
       </ScrollView>
-    </NotebookBackground>
+    </SoftSurface>
   );
 }
 

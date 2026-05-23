@@ -21,8 +21,7 @@ import {
 } from "react-native";
 import { SafeAreaView, useSafeAreaInsets } from "react-native-safe-area-context";
 
-import { ModuleHeader } from "@/components/common/ModuleHeader";
-import { NotebookBackground } from "@/components/common/NotebookBackground";
+import { MinimalHeader, SoftSurface } from "@/components/v2";
 import { BORDER_RADIUS, SHADOWS, SPACING } from "@/constants/theme";
 import { EXAM_COUNTRIES } from "@/constants/examTypes";
 import { useAuth } from "@/contexts/AuthContext";
@@ -383,14 +382,12 @@ export default function ExamProgressScreen() {
   const loading = loadingErrors || loadingMastery;
 
   return (
-    <NotebookBackground cornerGlyphs={["✓", "✗"]}>
+    <SoftSurface tone="module" moduleColor={colors.moduleExamLabPrimary}>
       <StatusBar style={isDark ? "light" : "dark"} />
 
-      <ModuleHeader
+      <MinimalHeader
         title={t("examLab.wrongQuestions.title")}
-        modulePrimary={colors.moduleExamLabPrimary}
-        moduleLight={colors.moduleExamLabLight}
-        onBackPress={() => router.canDismiss() ? router.dismiss() : router.replace("/(main)")}
+        accent={colors.moduleExamLabPrimary}
       />
 
       <ScrollView showsVerticalScrollIndicator={false} contentContainerStyle={[styles.scroll, { paddingBottom: insets.bottom + SPACING.xl }]}>
@@ -507,7 +504,7 @@ export default function ExamProgressScreen() {
           </>
         )}
       </ScrollView>
-    </NotebookBackground>
+    </SoftSurface>
   );
 }
 

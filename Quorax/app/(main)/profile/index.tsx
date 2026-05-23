@@ -19,8 +19,17 @@ import {
   View,
 } from "react-native";
 
-import { NotebookBackground } from "@/components/common/NotebookBackground";
+import { MinimalHeader, SoftSurface } from "@/components/v2";
+import { SimpleTimePicker } from "@/components/common/SimpleTimePicker";
 import { UserInitials } from "@/components/common/UserInitials";
+import {
+  cancelDailyReminder,
+  DEFAULT_REMINDER_HOUR,
+  DEFAULT_REMINDER_MINUTE,
+  getReminderSettings,
+  scheduleDailyReminder,
+} from "@/services/dailyReminder";
+import { triggerNotificationPermissionPrompt } from "@/hooks/usePushToken";
 import {
   BORDER_RADIUS,
   HIT_SLOP,
@@ -40,19 +49,77 @@ export default function ProfileScreen() {
   const { colors, isDark, setTheme } = useTheme();
   const { t, i18n } = useTranslation();
   const router = useRouter();
-  const { user, profile, isLoggedIn, logout } = useAuth();
+  const { user, profile, isLoggedIn, isAnonymous, logout } = useAuth();
+  const isRealUser = isLoggedIn && !isAnonymous;
   const { isPremium, expiresAt, refreshSubscription } = useSubscription();
 
-  // User data from context
-  const userName =
-    profile?.full_name ||
-    profile?.display_name ||
-    user?.email?.split("@")[0] ||
-    "";
+  // User data from context — anonymous users have a DB-default "Guest" full_name; skip it.
+  const userName = isAnonymous
+    ? ""
+    : profile?.full_name ||
+      profile?.display_name ||
+      user?.email?.split("@")[0] ||
+      "";
   const userEmail = user?.email || profile?.email || "";
 
   const [logoutLoading, setLogoutLoading] = useState(false);
   const [deleteLoading, setDeleteLoading] = useState(false);
+
+  // Daily reminder
+  const [reminderEnabled, setReminderEnabled] = useState(false);
+  const [reminderHour, setReminderHour] = useState(DEFAULT_REMINDER_HOUR);
+  const [reminderMinute, setReminderMinute] = useState(DEFAULT_REMINDER_MINUTE);
+  const [showTimePicker, setShowTimePicker] = useState(false);
+
+  useEffect(() => {
+    getReminderSettings().then((s) => {
+      setReminderEnabled(s.enabled);
+      setReminderHour(s.hour);
+      setReminderMinute(s.minute);
+    });
+  }, []);
+
+  const formatTime = (h: number, m: number) =>
+    `${String(h).padStart(2, "0")}:${String(m).padStart(2, "0")}`;
+
+  const applyReminder = async (hour: number, minute: number) => {
+    const granted = await triggerNotificationPermissionPrompt(user?.id);
+    if (!granted) {
+      Alert.alert(t("common.info"), t("notifications.reminder.permissionDenied"));
+      return false;
+    }
+    const ok = await scheduleDailyReminder(
+      hour,
+      minute,
+      t("notifications.daily.title"),
+      t("notifications.daily.body"),
+    );
+    if (ok) {
+      setReminderEnabled(true);
+      setReminderHour(hour);
+      setReminderMinute(minute);
+    }
+    return ok;
+  };
+
+  const handleReminderToggle = async (value: boolean) => {
+    if (value) {
+      await applyReminder(reminderHour, reminderMinute);
+    } else {
+      await cancelDailyReminder();
+      setReminderEnabled(false);
+    }
+  };
+
+  const handleReminderTimeChange = async (hour: number, minute: number) => {
+    setShowTimePicker(false);
+    if (reminderEnabled) {
+      await applyReminder(hour, minute);
+    } else {
+      setReminderHour(hour);
+      setReminderMinute(minute);
+    }
+  };
 
   // Promo code state
   const [promoCode, setPromoCode] = useState("");
@@ -216,7 +283,7 @@ export default function ProfileScreen() {
   };
 
   return (
-    <NotebookBackground cornerGlyphs={["Σ", "ω"]}>
+    <SoftSurface tone="neutral">
       <StatusBar style={isDark ? "light" : "dark"} />
 
       {/* Notebook page header */}
@@ -248,7 +315,7 @@ export default function ProfileScreen() {
         showsVerticalScrollIndicator={false}
       >
         {/* Profile Card */}
-        {isLoggedIn ? (
+        {isRealUser ? (
           <View
             style={[
               styles.profileCard,
@@ -280,37 +347,54 @@ export default function ProfileScreen() {
             </View>
           </View>
         ) : (
-          <TouchableOpacity
+          <View
             style={[
-              styles.userHeader,
-              { backgroundColor: colors.card },
+              styles.guestCard,
+              { backgroundColor: colors.card, borderColor: colors.borderSubtle },
               SHADOWS.small,
             ]}
-            activeOpacity={0.7}
-            onPress={() => router.push("/(main)/login")}
           >
-            <UserInitials size={48} />
-            <View style={styles.userInfo}>
-              <Text style={[styles.userName, { color: colors.textPrimary }]}>
-                {t("profile.notLoggedIn")}
-              </Text>
-              <Text
-                style={[styles.userEmail, { color: colors.textSecondary }]}
-                numberOfLines={1}
-              >
-                {t("profile.loginToContinue")}
-              </Text>
+            <View style={styles.guestHeader}>
+              <View style={[styles.guestAvatar, { backgroundColor: colors.surfaceMuted ?? colors.borderSubtle }]}>
+                <Ionicons name="person-outline" size={28} color={colors.textSecondary} />
+              </View>
+              <View style={styles.guestHeaderText}>
+                <Text style={[styles.guestTitle, { color: colors.textPrimary }]}>
+                  {t("profile.guestTitle", { defaultValue: "Misafir olarak geziniyorsun" })}
+                </Text>
+                <Text style={[styles.guestSubtitle, { color: colors.textSecondary }]}>
+                  {t("profile.guestSubtitle", { defaultValue: "Hesap oluşturarak ilerlemeni kaydet, cihazlar arasında senkronize et." })}
+                </Text>
+              </View>
             </View>
-            <Ionicons
-              name="chevron-forward"
-              size={20}
-              color={colors.textTertiary}
-            />
-          </TouchableOpacity>
+
+            <View style={styles.guestActions}>
+              <TouchableOpacity
+                style={[styles.guestPrimaryBtn, { backgroundColor: colors.primary }]}
+                activeOpacity={0.85}
+                onPress={() => router.push("/(main)/signup")}
+              >
+                <Ionicons name="person-add" size={18} color="#FFFFFF" />
+                <Text style={styles.guestPrimaryBtnText}>
+                  {t("welcome.createAccount", { defaultValue: "Hesap Oluştur" })}
+                </Text>
+              </TouchableOpacity>
+              <TouchableOpacity
+                style={[styles.guestSecondaryBtn, { borderColor: colors.borderSubtle, backgroundColor: colors.background }]}
+                activeOpacity={0.85}
+                onPress={() => router.push("/(main)/login")}
+              >
+                <Ionicons name="log-in-outline" size={18} color={colors.textPrimary} />
+                <Text style={[styles.guestSecondaryBtnText, { color: colors.textPrimary }]}>
+                  {t("welcome.signIn", { defaultValue: "Giriş Yap" })}
+                </Text>
+              </TouchableOpacity>
+            </View>
+          </View>
         )}
 
         {/* Subscription Status Card */}
-        {isLoggedIn && (
+        {isRealUser && (
           <TouchableOpacity
             style={[
               styles.premiumStatusCard,
@@ -385,7 +469,7 @@ export default function ProfileScreen() {
             §  {t("profile.settings.categories.account")}
           </Text>
           <View style={[styles.categoryAccent, { backgroundColor: colors.primary }]} />
-          {isLoggedIn && (
+          {isRealUser && (
             <>
               <TouchableOpacity
                 style={styles.settingsItem}
@@ -402,7 +486,7 @@ export default function ProfileScreen() {
             </>
           )}
 
-          {isLoggedIn && (
+          {isRealUser && (
             <>
               <TouchableOpacity
                 style={styles.settingsItem}
@@ -449,38 +533,30 @@ export default function ProfileScreen() {
           )}
 
           <TouchableOpacity
-            style={[styles.settingsItem, !isLoggedIn && { opacity: 0.5 }]}
+            style={[styles.settingsItem, !isRealUser && { opacity: 0.5 }]}
             activeOpacity={0.7}
             onPress={() => {
-              if (!isLoggedIn) {
+              if (!isRealUser) {
                 router.push("/(main)/login");
                 return;
               }
               router.push("/(main)/profile/edit");
             }}
-            disabled={!isLoggedIn}
+            disabled={!isRealUser}
           >
             <Ionicons
-              name={isLoggedIn ? "create-outline" : "lock-closed"}
+              name={isRealUser ? "create-outline" : "lock-closed"}
               size={22}
               color={colors.textSecondary}
             />
             <Text style={[styles.settingsText, { color: colors.textPrimary }]}>
               {t("profile.settings.editProfile")}
             </Text>
-            {isLoggedIn ? (
-              <Ionicons
-                name="chevron-forward"
-                size={18}
-                color={colors.textTertiary}
-              />
-            ) : (
-              <Ionicons
-                name="lock-closed"
-                size={16}
-                color={colors.textTertiary}
-              />
-            )}
+            <Ionicons
+              name={isRealUser ? "chevron-forward" : "lock-closed"}
+              size={isRealUser ? 18 : 16}
+              color={colors.textTertiary}
+            />
           </TouchableOpacity>
 
         </View>
@@ -567,6 +643,48 @@ export default function ProfileScreen() {
               />
             </View>
           </View>
+
+          <View style={[styles.divider, { backgroundColor: colors.borderSubtle }]} />
+
+          {/* Daily reminder toggle */}
+          <View style={styles.settingsItem}>
+            <Ionicons name="notifications-outline" size={22} color={colors.textSecondary} />
+            <View style={{ flex: 1 }}>
+              <Text style={[styles.settingsText, { color: colors.textPrimary, flex: 0 }]}>
+                {t("notifications.reminder.settingsTitle")}
+              </Text>
+              <Text style={[styles.reminderHint, { color: colors.textTertiary }]}>
+                {reminderEnabled
+                  ? t("notifications.reminder.scheduled", { time: formatTime(reminderHour, reminderMinute) })
+                  : t("notifications.reminder.settingsSubtitle")}
+              </Text>
+            </View>
+            <View style={styles.switchContainer}>
+              <Switch
+                value={reminderEnabled}
+                onValueChange={handleReminderToggle}
+                trackColor={{ false: colors.borderSubtle, true: colors.primary }}
+                thumbColor={colors.background}
+              />
+            </View>
+          </View>
+
+          {reminderEnabled && (
+            <TouchableOpacity
+              style={[styles.settingsItem, { paddingTop: 0 }]}
+              activeOpacity={0.7}
+              onPress={() => setShowTimePicker(true)}
+            >
+              <Ionicons name="time-outline" size={22} color={colors.textSecondary} />
+              <Text style={[styles.settingsText, { color: colors.textPrimary }]}>
+                {t("notifications.reminder.timeLabel")}
+              </Text>
+              <Text style={[styles.langCurrentValue, { color: colors.primary, fontWeight: "700" }]}>
+                {formatTime(reminderHour, reminderMinute)}
+              </Text>
+              <Ionicons name="chevron-forward" size={16} color={colors.textTertiary} />
+            </TouchableOpacity>
+          )}
         </View>
 
         {/* Support Category */}
@@ -674,26 +792,28 @@ export default function ProfileScreen() {
           </TouchableOpacity>
         </View>
 
-        {/* Logout Button */}
-        <View style={styles.logoutContainer}>
-          <TouchableOpacity
-            style={[
-              styles.logoutButton,
-              { backgroundColor: colors.error || "#FF3B30" },
-            ]}
-            activeOpacity={0.7}
-            onPress={handleLogout}
-            disabled={logoutLoading}
-          >
-            <Ionicons name="log-out-outline" size={20} color="#FFFFFF" />
-            <Text style={styles.logoutButtonText}>
-              {logoutLoading ? t("common.loading", { defaultValue: "Yükleniyor..." }) : t("profile.logout")}
-            </Text>
-          </TouchableOpacity>
-        </View>
+        {/* Logout Button — only for real users; guests use the login/signup CTAs above */}
+        {isRealUser && (
+          <View style={styles.logoutContainer}>
+            <TouchableOpacity
+              style={[
+                styles.logoutButton,
+                { backgroundColor: colors.error || "#FF3B30" },
+              ]}
+              activeOpacity={0.7}
+              onPress={handleLogout}
+              disabled={logoutLoading}
+            >
+              <Ionicons name="log-out-outline" size={20} color="#FFFFFF" />
+              <Text style={styles.logoutButtonText}>
+                {logoutLoading ? t("common.loading", { defaultValue: "Yükleniyor..." }) : t("profile.logout")}
+              </Text>
+            </TouchableOpacity>
+          </View>
+        )}
 
         {/* Delete Account — en altta, gizli */}
-        {isLoggedIn && (
+        {isRealUser && (
           <TouchableOpacity
             style={styles.deleteAccountBtn}
             activeOpacity={0.7}
@@ -705,7 +825,15 @@ export default function ProfileScreen() {
           </TouchableOpacity>
         )}
       </ScrollView>
-    </NotebookBackground>
+
+      <SimpleTimePicker
+        visible={showTimePicker}
+        initialHour={reminderHour}
+        initialMinute={reminderMinute}
+        onCancel={() => setShowTimePicker(false)}
+        onConfirm={handleReminderTimeChange}
+      />
+    </SoftSurface>
   );
 }
 
@@ -754,6 +882,67 @@ const styles = StyleSheet.create({
     borderRadius: BORDER_RADIUS.lg,
     marginBottom: SPACING.lg,
     overflow: "hidden",
+  },
+  guestCard: {
+    borderRadius: BORDER_RADIUS.lg,
+    marginBottom: SPACING.lg,
+    padding: SPACING.lg,
+    borderWidth: 1,
+    gap: SPACING.md,
+  },
+  guestHeader: {
+    flexDirection: "row",
+    alignItems: "center",
+    gap: SPACING.md,
+  },
+  guestAvatar: {
+    width: 52,
+    height: 52,
+    borderRadius: 26,
+    alignItems: "center",
+    justifyContent: "center",
+  },
+  guestHeaderText: {
+    flex: 1,
+  },
+  guestTitle: {
+    fontSize: 16,
+    fontWeight: "700",
+    letterSpacing: -0.2,
+    marginBottom: 2,
+  },
+  guestSubtitle: {
+    fontSize: 13,
+    lineHeight: 18,
+  },
+  guestActions: {
+    gap: SPACING.sm,
+  },
+  guestPrimaryBtn: {
+    flexDirection: "row",
+    alignItems: "center",
+    justifyContent: "center",
+    gap: SPACING.sm,
+    paddingVertical: SPACING.md,
+    borderRadius: BORDER_RADIUS.md,
+  },
+  guestPrimaryBtnText: {
+    color: "#FFFFFF",
+    fontSize: 15,
+    fontWeight: "700",
+  },
+  guestSecondaryBtn: {
+    flexDirection: "row",
+    alignItems: "center",
+    justifyContent: "center",
+    gap: SPACING.sm,
+    paddingVertical: SPACING.md - 1,
+    borderRadius: BORDER_RADIUS.md,
+    borderWidth: 1,
+  },
+  guestSecondaryBtnText: {
+    fontSize: 15,
+    fontWeight: "600",
   },
   profileCardContent: {
     flexDirection: "row",
@@ -866,6 +1055,10 @@ const styles = StyleSheet.create({
   langCurrentValue: {
     fontSize: 13,
     marginRight: SPACING.xs,
+  },
+  reminderHint: {
+    fontSize: 12,
+    marginTop: 2,
   },
   langPickerWrap: {
     borderTopWidth: 1,

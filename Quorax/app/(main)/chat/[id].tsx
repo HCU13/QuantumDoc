@@ -16,7 +16,6 @@ import {
     TouchableOpacity,
     View,
 } from "react-native";
-import { NotebookBackground } from "@/components/common/NotebookBackground";
 import {
     Bubble,
     GiftedChat,
@@ -24,13 +23,14 @@ import {
     User,
 } from "react-native-gifted-chat";
 
-import { MinimalUsageBadge } from "@/components/common/MinimalUsageBadge";
-import { ModuleHeader } from "@/components/common/ModuleHeader";
 import { PremiumModal } from "@/components/common/PremiumModal";
+import { MinimalHeader, SoftSurface } from "@/components/v2";
 import {
     BORDER_RADIUS,
+    RADIUS_V2,
     SHADOWS,
     SPACING,
+    SPACING_V2,
     TEXT_STYLES,
 } from "@/constants/theme";
 import { useAd } from "@/contexts/AdContext";
@@ -56,8 +56,8 @@ export default function ChatDetailScreen() {
   const typingAnimation = useRef(new Animated.Value(0)).current;
 
   const [inputText, setInputText] = useState("");
-  const [inputHeight, setInputHeight] = useState(44);
-  const MIN_INPUT_HEIGHT = 44;
+  const [inputHeight, setInputHeight] = useState(40);
+  const MIN_INPUT_HEIGHT = 40;
   const MAX_INPUT_HEIGHT = 120;
 
   const [chatData, setChatData] = useState<{
@@ -526,31 +526,19 @@ export default function ChatDetailScreen() {
       return null;
     }
 
-    // AI Avatar
+    // AI Avatar — flat, no gradient
     if (currentMessage.user._id === 2 || currentMessage.user.avatar === "ai") {
       return (
-        <View style={[styles.avatarContainer, styles.aiAvatarContainer]}>
-          <LinearGradient
-            colors={[chatData.color, `${chatData.color}CC`]}
-            start={{ x: 0, y: 0 }}
-            end={{ x: 1, y: 1 }}
-            style={styles.aiAvatarGradient}
-          >
-            <Ionicons name="sparkles" size={20} color="#FFFFFF" />
-          </LinearGradient>
+        <View style={[styles.avatarFlat, { backgroundColor: `${chatData.color}22` }]}>
+          <Ionicons name="sparkles" size={16} color={chatData.color} />
         </View>
       );
     }
 
-    // User avatar: her zaman ikon
     if (currentMessage.user._id === 1) {
       return (
-        <View style={[styles.avatarContainer, styles.userAvatarContainer]}>
-          <View
-            style={[styles.fallbackAvatar, { backgroundColor: chatData.color }]}
-          >
-            <Ionicons name="person" size={18} color="#FFFFFF" />
-          </View>
+        <View style={[styles.avatarFlat, { backgroundColor: chatData.color }]}>
+          <Ionicons name="person" size={16} color="#FFFFFF" />
         </View>
       );
     }
@@ -566,28 +554,34 @@ export default function ChatDetailScreen() {
           right: {
             backgroundColor: chatData.color,
             marginBottom: SPACING.xs,
-            marginRight: SPACING.xs,
-            ...SHADOWS.small,
+            marginRight: SPACING.sm,
+            borderRadius: 20,
+            borderBottomRightRadius: 6,
+            paddingHorizontal: 4,
+            paddingVertical: 2,
           },
           left: {
             backgroundColor: colors.card,
             marginBottom: SPACING.xs,
-            marginLeft: SPACING.xs,
-            borderWidth: 1,
+            marginLeft: SPACING.sm,
+            borderWidth: StyleSheet.hairlineWidth,
             borderColor: colors.borderSubtle,
-            ...SHADOWS.subtle,
+            borderRadius: 20,
+            borderBottomLeftRadius: 6,
+            paddingHorizontal: 4,
+            paddingVertical: 2,
           },
         }}
         textStyle={{
           right: {
             color: colors.textOnPrimary,
-            fontSize: 14,
-            lineHeight: 20,
+            fontSize: 15,
+            lineHeight: 22,
           },
           left: {
             color: colors.textPrimary,
-            fontSize: 14,
-            lineHeight: 20,
+            fontSize: 15,
+            lineHeight: 22,
           },
         }}
         containerStyle={{
@@ -631,17 +625,10 @@ export default function ChatDetailScreen() {
           <View
             style={[
               styles.aiAvatarSmall,
-              { backgroundColor: `${chatData.color}20` },
+              { backgroundColor: `${chatData.color}22` },
             ]}
           >
-            <LinearGradient
-              colors={[chatData.color, `${chatData.color}CC`]}
-              start={{ x: 0, y: 0 }}
-              end={{ x: 1, y: 1 }}
-              style={styles.aiAvatarGradientSmall}
-            >
-              <Ionicons name="sparkles" size={14} color="#FFFFFF" />
-            </LinearGradient>
+            <Ionicons name="sparkles" size={12} color={chatData.color} />
           </View>
           <View style={styles.typingDots}>
             <Animated.View
@@ -690,10 +677,10 @@ export default function ChatDetailScreen() {
   const renderCustomInput = () => (
     <View style={[styles.customInputBar, { backgroundColor: colors.background, borderTopColor: colors.borderSubtle }]}>
       <TextInput
-        style={[styles.customTextInput, { backgroundColor: colors.backgroundSecondary, color: colors.textPrimary, borderColor: colors.borderSubtle, height: inputHeight }]}
+        style={[styles.customTextInput, { backgroundColor: colors.card, color: colors.textPrimary, borderColor: colors.borderSubtle, height: inputHeight }]}
         value={inputText}
         onChangeText={setInputText}
-        placeholder=""
+        placeholder={t("chat.input.placeholder")}
         placeholderTextColor={colors.textTertiary}
         multiline
         scrollEnabled
@@ -709,7 +696,7 @@ export default function ChatDetailScreen() {
         disabled={!inputText.trim() || sending}
         activeOpacity={0.8}
       >
-        <Ionicons name="send" size={16} color="#fff" style={{ marginLeft: 2 }} />
+        <Ionicons name="arrow-up" size={16} color="#fff" />
       </TouchableOpacity>
     </View>
   );
@@ -730,22 +717,12 @@ export default function ChatDetailScreen() {
   };
 
   return (
-    <NotebookBackground cornerGlyphs={["∴", "⟨⟩"]}>
+    <SoftSurface tone="module" moduleColor={chatData.color}>
       <StatusBar style={isDark ? "light" : "dark"} />
 
-      <ModuleHeader
+      <MinimalHeader
         title={chatData.title}
-        modulePrimary={chatData.color}
-        moduleLight={`${chatData.color}20`}
-        rightAction={
-          isLoggedIn && !isPremium && usageInfo ? (
-            <MinimalUsageBadge
-              used={usageInfo.used}
-              limit={usageInfo.limit}
-              modulePrimary={chatData.color}
-            />
-          ) : undefined
-        }
+        accent={chatData.color}
       />
 
       <KeyboardAvoidingView
@@ -773,8 +750,9 @@ export default function ChatDetailScreen() {
               messagesContainerStyle={styles.messagesContainer}
               minInputToolbarHeight={0}
               keyboardShouldPersistTaps="handled"
-              showUserAvatar={true}
-              showAvatarForEveryMessage={true}
+              showUserAvatar={false}
+              showAvatarForEveryMessage={false}
+              renderAvatarOnTop
               isTyping={isTyping}
               disabled={sending}
             />
@@ -790,7 +768,7 @@ export default function ChatDetailScreen() {
         usageInfo={usageInfo}
         moduleType="chat"
       />
-    </NotebookBackground>
+    </SoftSurface>
   );
 }
 
@@ -846,10 +824,19 @@ const styles = StyleSheet.create({
     textAlign: "center",
     paddingHorizontal: SPACING.xl,
   },
+  avatarFlat: {
+    width: 28,
+    height: 28,
+    borderRadius: 14,
+    alignItems: "center",
+    justifyContent: "center",
+    marginRight: SPACING.xs,
+    marginLeft: SPACING.xs,
+  },
   avatarContainer: {
-    width: 36,
-    height: 36,
-    borderRadius: 18,
+    width: 28,
+    height: 28,
+    borderRadius: 14,
     overflow: "hidden",
     marginRight: SPACING.xs,
     marginLeft: SPACING.xs,

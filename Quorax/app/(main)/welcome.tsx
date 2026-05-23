@@ -1,13 +1,13 @@
-import AsyncStorage from "@react-native-async-storage/async-storage";
 import { useRouter } from "expo-router";
 import { StatusBar } from "expo-status-bar";
-import React from "react";
+import React, { useState } from "react";
 import { useTranslation } from "react-i18next";
 import { Platform, Pressable, StyleSheet, Text, View } from "react-native";
 
 import { Button } from "@/components/common/Button";
 import { NotebookBackground } from "@/components/common/NotebookBackground";
 import { BORDER_RADIUS, SPACING } from "@/constants/theme";
+import { useAuth } from "@/contexts/AuthContext";
 import { useTheme } from "@/contexts/ThemeContext";
 import { useHaptics } from "@/hooks/useHaptics";
 
@@ -16,12 +16,18 @@ export default function WelcomeScreen() {
   const { t } = useTranslation();
   const router = useRouter();
   const haptics = useHaptics();
+  const { signInAnonymouslyIfNeeded } = useAuth();
+  const [busy, setBusy] = useState(false);
 
-  const handleGuest = async () => {
+  const handleContinueAsGuest = async () => {
+    if (busy) return;
+    setBusy(true);
     haptics.selection();
     try {
-      await AsyncStorage.setItem("@guest_mode", "true");
-    } catch {}
+      await signInAnonymouslyIfNeeded();
+    } catch {
+      // Silent — kullanıcı yine de devam etsin
+    }
     router.replace("/(main)");
   };
 
@@ -72,7 +78,7 @@ export default function WelcomeScreen() {
           />
         </View>
 
-        {/* CTA section */}
+        {/* CTA section — primary: register/login, secondary: guest */}
         <View style={styles.actions}>
           <Button
             title={t("welcome.createAccount")}
@@ -80,36 +86,29 @@ export default function WelcomeScreen() {
               haptics.selection();
               router.push("/(main)/signup");
             }}
+            disabled={busy}
             size="large"
             fullWidth
           />
 
-          <Pressable
+          <Button
+            title={t("welcome.signIn")}
             onPress={() => {
               haptics.selection();
               router.push("/(main)/login");
             }}
-            style={({ pressed }) => [
-              styles.signInBtn,
-              {
-                borderColor: colors.borderSubtle,
-                backgroundColor: colors.surface,
-                opacity: pressed ? 0.75 : 1,
-              },
-            ]}
-            accessibilityRole="button"
-            accessibilityLabel={t("welcome.signIn")}
-          >
-            <Text style={[styles.signInText, { color: colors.textPrimary }]}>
-              {t("welcome.signIn")}
-            </Text>
-          </Pressable>
+            disabled={busy}
+            size="large"
+            fullWidth
+            variant="secondary"
+          />
 
           <Pressable
-            onPress={handleGuest}
+            onPress={handleContinueAsGuest}
+            disabled={busy}
             style={({ pressed }) => [
               styles.guestRow,
-              { opacity: pressed ? 0.5 : 1 },
+              { opacity: pressed || busy ? 0.55 : 1 },
             ]}
             hitSlop={8}
             accessibilityRole="button"
@@ -199,26 +198,16 @@ const styles = StyleSheet.create({
   },
 
   actions: {
-    gap: SPACING.md,
-  },
-  signInBtn: {
-    minHeight: 54,
-    borderRadius: BORDER_RADIUS.md + 2,
-    borderWidth: 1,
-    alignItems: "center",
-    justifyContent: "center",
-  },
-  signInText: {
-    fontSize: 16,
-    fontWeight: "600",
-    letterSpacing: 0.1,
+    gap: SPACING.sm,
   },
   guestRow: {
     alignItems: "center",
-    paddingVertical: SPACING.sm + 2,
+    paddingVertical: SPACING.sm,
+    marginTop: SPACING.xs,
   },
   guestText: {
-    fontSize: 14,
+    fontSize: 13,
     fontWeight: "500",
+    textDecorationLine: "underline",
   },
 });

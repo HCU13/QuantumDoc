@@ -7,14 +7,13 @@ import {
   Platform,
   Dimensions,
 } from "react-native";
-import { NotebookBackground } from "@/components/common/NotebookBackground";
+import { MinimalHeader, SoftSurface } from "@/components/v2";
 import { StatusBar } from "expo-status-bar";
 import { useRouter } from "expo-router";
 import { useTranslation } from "react-i18next";
 import { Ionicons } from "@expo/vector-icons";
 
 import { useTheme } from "@/contexts/ThemeContext";
-import { ModuleHeader } from "@/components/common/ModuleHeader";
 import {
   SPACING,
   BORDER_RADIUS,
@@ -347,14 +346,12 @@ export default function CalculatorScreen() {
   };
 
   return (
-    <NotebookBackground cornerGlyphs={["×", "÷"]}>
+    <SoftSurface tone="module" moduleColor={colors.moduleCalcPrimary}>
       <StatusBar style={isDark ? "light" : "dark"} />
 
-      <ModuleHeader
+      <MinimalHeader
         title={t("modules.calculator.title")}
-        modulePrimary={colors.moduleCalcPrimary}
-        moduleLight={colors.moduleCalcLight}
-        onBackPress={() => router.canDismiss() ? router.dismiss() : router.replace("/(main)")}
+        accent={colors.moduleCalcPrimary}
       />
 
       <View style={styles.content}>
@@ -753,7 +750,7 @@ export default function CalculatorScreen() {
           </View>
         </View>
       </View>
-    </NotebookBackground>
+    </SoftSurface>
   );
 }
 

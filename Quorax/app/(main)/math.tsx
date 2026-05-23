@@ -17,11 +17,12 @@ import {
   TouchableOpacity,
   View,
 } from "react-native";
-import { NotebookBackground } from "@/components/common/NotebookBackground";
+import { MinimalHeader, SoftSurface } from "@/components/v2";
 
 import { Button } from "@/components/common/Button";
 import { Chip } from "@/components/common/Chip";
 import { MinimalUsageBadge } from "@/components/common/MinimalUsageBadge";
+import { NotificationSoftPrompt } from "@/components/common/NotificationSoftPrompt";
 import { ModuleHeader } from "@/components/common/ModuleHeader";
 import { AILoadingModal } from "@/components/common/AILoadingModal";
 import { PremiumModal } from "@/components/common/PremiumModal";
@@ -29,6 +30,7 @@ import { BORDER_RADIUS, SPACING, TEXT_STYLES } from "@/constants/theme";
 import { useActivity } from "@/contexts/ActivityContext";
 import { useAd } from "@/contexts/AdContext";
 import { useAuth } from "@/contexts/AuthContext";
+import { usePaywall } from "@/contexts/PaywallContext";
 import { useSubscription } from "@/contexts/SubscriptionContext";
 import { useTheme } from "@/contexts/ThemeContext";
 import FunctionGraph, { containsFunctionExpression } from "@/components/math/FunctionGraph";
@@ -36,6 +38,8 @@ import MathText from "@/components/math/MathText";
 import MathSymbolBar from "@/components/math/MathSymbolBar";
 import { formatTopicDisplay } from "@/utils/topicLabel";
 import { useImagePicker } from "@/hooks/useImagePicker";
+import { hasShownNotificationSoftPrompt, markNotificationSoftPromptShown, triggerNotificationPermissionPrompt } from "@/hooks/usePushToken";
+import { DEFAULT_REMINDER_HOUR, DEFAULT_REMINDER_MINUTE, scheduleDailyReminder } from "@/services/dailyReminder";
 import { manipulateAsync, SaveFormat } from "expo-image-manipulator";
 import { supabase, SUPABASE_URL } from "@/services/supabase";
 import { showError, showWarning } from "@/utils/toast";
@@ -57,6 +61,7 @@ export default function MathScreen() {
   const { prefillProblem, autoSolve } = useLocalSearchParams<{ prefillProblem?: string; autoSolve?: string }>();
   const { pickFromGallery, takePhoto, loading: imageLoading } = useImagePicker();
   const { user, isLoggedIn } = useAuth();
+  const { openPaywall } = usePaywall();
   const { checkUsageLimit, isPremium } = useSubscription();
   const { showAdBeforeAction } = useAd();
   const { refreshActivities } = useActivity();
@@ -86,9 +91,14 @@ export default function MathScreen() {
   const [showPremiumModal, setShowPremiumModal] = useState(false);
   const [premiumModalIsProGate, setPremiumModalIsProGate] = useState(false);
   const [usageInfo, setUsageInfo] = useState<any>(null);
+  const [showNotifPrompt, setShowNotifPrompt] = useState(false);
 
-  const openProGate = () => { setPremiumModalIsProGate(true); setShowPremiumModal(true); };
-  const openLimitModal = () => { setPremiumModalIsProGate(false); setShowPremiumModal(true); };
+  // openProGate: PRO-only feature'a (verify/explain/topics/related) basıldı.
+  // openLimitModal: TOTAL limit doldu — solve denemesi engellendi.
+  // İkisi de paywall'a yönlendirir; openLimitModal direkt paywall'a router push eder
+  // (hard paywall — modal yok, kullanıcı paywall sayfasında karar versin).
+  const openProGate = () => openPaywall("feature");
+  const openLimitModal = () => openPaywall("firstSolve");
 
   // — Çözüm sonuçları —
   const [solution, setSolution] = useState<{
@@ -110,11 +120,17 @@ export default function MathScreen() {
   const [expandedSteps, setExpandedSteps] = useState<Set<number>>(new Set());
 
 
+  // Math sayfası mount edildiğinde usage badge için sayacı yükle (anon + free user)
+  useEffect(() => {
+    if (!user?.id || isPremium) return;
+    checkUsageLimit("math").then((d) => { if (d) setUsageInfo(d); }).catch(() => {});
+  }, [user?.id, isPremium]);
+
   // — Konu analizinden gelen prefill + otomatik çöz —
   // Race condition fix: problem state'ini beklemek yerine handleSolveWithText kullan
   const autoSolveTriggered = useRef(false);
   useEffect(() => {
-    if (!prefillProblem || autoSolveTriggered.current || !isLoggedIn || !user?.id) return;
+    if (!prefillProblem || autoSolveTriggered.current || !user?.id) return;
     setProblem(prefillProblem);
     setInputMethod("text");
     if (autoSolve === 'true') {
@@ -125,7 +141,7 @@ export default function MathScreen() {
       }, 150);
       return () => clearTimeout(t);
     }
-  }, [prefillProblem, autoSolve, isLoggedIn, user?.id]); // eslint-disable-line
+  }, [prefillProblem, autoSolve, user?.id]); // eslint-disable-line
 
   // — Mod geçişi —
   const switchMode = useCallback((mode: AppMode) => {
@@ -312,11 +328,10 @@ export default function MathScreen() {
 
   // — Çöz (overrideProblemText: race condition fix için) —
   const handleSolve = async (overrideProblemText?: string) => {
-    if (!isLoggedIn || !user?.id) {
-      Alert.alert(t("modules.locked"), t("profile.loginToContinue"), [
-        { text: t("common.cancel"), style: "cancel" },
-        { text: t("common.login"), onPress: () => router.push("/(main)/login") },
-      ]);
+    // Anonim/guest user da solve edebilir; auth yoksa otomatik anonim session açılmıştır.
+    if (!user?.id) {
+      // Edge durum: auth context henüz hazır değilse sessizce bekle
+      showWarning(t("common.loading"), t("common.tryAgain"));
       return;
     }
     if (inputMethod === "text" && !(overrideProblemText ?? problem).trim()) { showWarning(t("math.errors.emptyProblem"), t("math.errors.emptyProblemMessage")); return; }
@@ -352,6 +367,18 @@ export default function MathScreen() {
       setTopic(data.topic || null);
       await refreshActivities();
       if (!isPremium) checkUsageLimit("math").then((d) => { if (d) setUsageInfo(d); }).catch(() => {});
+
+      // İlk başarılı solve sonrası notification soft-prompt (sadece 1 kez)
+      (async () => {
+        try {
+          const seen = await hasShownNotificationSoftPrompt();
+          if (!seen) {
+            await markNotificationSoftPromptShown();
+            // Kullanıcı çözümü görsün, 1.5 sn sonra prompt
+            setTimeout(() => setShowNotifPrompt(true), 1500);
+          }
+        } catch {}
+      })();
     } catch (e: any) {
       setLastError(e.message); showError(t("common.error"), e.message);
     } finally {
@@ -361,11 +388,8 @@ export default function MathScreen() {
 
   // — Doğrula —
   const handleVerify = async () => {
-    if (!isLoggedIn || !user?.id) {
-      Alert.alert(t("modules.locked"), t("profile.loginToContinue"), [
-        { text: t("common.cancel"), style: "cancel" },
-        { text: t("common.login"), onPress: () => router.push("/(main)/login") },
-      ]);
+    if (!user?.id) {
+      showWarning(t("common.loading"), t("common.tryAgain"));
       return;
     }
     if (inputMethod === "text" && !problem.trim()) { showWarning(t("math.errors.emptyProblem"), t("math.errors.emptyProblemMessage")); return; }
@@ -633,17 +657,12 @@ export default function MathScreen() {
   );
 
   return (
-    <NotebookBackground cornerGlyphs={["∂", "∇"]}>
+    <SoftSurface tone="module" moduleColor={colors.moduleMathPrimary}>
       <StatusBar style={isDark ? "light" : "dark"} />
 
-      <ModuleHeader
+      <MinimalHeader
         title={t("modules.math.title")}
-        modulePrimary={colors.moduleMathPrimary}
-        moduleLight={colors.moduleMathLight}
-        onBackPress={() => router.canDismiss() ? router.dismiss() : router.replace("/(main)")}
-        rightAction={isLoggedIn && !isPremium && usageInfo ? (
-          <MinimalUsageBadge used={usageInfo.used} limit={usageInfo.limit} modulePrimary={colors.moduleMathPrimary} />
-        ) : undefined}
+        accent={colors.moduleMathPrimary}
       />
 
       <ScrollView ref={scrollViewRef} showsVerticalScrollIndicator={false} contentContainerStyle={styles.scroll}>
@@ -1039,7 +1058,7 @@ export default function MathScreen() {
                 <TouchableOpacity
                   style={[styles.explanationBox, styles.explanationLocked, { backgroundColor: colors.backgroundSecondary, borderColor: '#8B5CF6' }]}
                   onPress={() => openProGate()}
-                  activeOpacity={0.8}
+                  activeOpacity={0.85}
                 >
                   <View style={styles.explanationLockedRow}>
                     <Ionicons name="lock-closed" size={14} color="#8B5CF6" />
@@ -1047,8 +1066,13 @@ export default function MathScreen() {
                       {solution.explanation.trim()}
                     </Text>
                   </View>
-                  <View style={styles.proTagStandalone}>
-                    <Text style={styles.proTagStandaloneText}>PRO</Text>
+                  {/* Net CTA — "PRO" rozeti yerine "Açıklamayı görmek için PRO'ya geç" çağrısı */}
+                  <View style={styles.explanationLockedCTA}>
+                    <Ionicons name="sparkles" size={13} color="#FFFFFF" />
+                    <Text style={styles.explanationLockedCTAText}>
+                      {t("math.unlockExplanation", "Unlock full explanation")}
+                    </Text>
+                    <Ionicons name="chevron-forward" size={13} color="#FFFFFF" />
                   </View>
                 </TouchableOpacity>
               )
@@ -1274,7 +1298,23 @@ export default function MathScreen() {
 
       <AILoadingModal visible={solving} type="math" />
       <PremiumModal visible={showPremiumModal} onClose={() => { setShowPremiumModal(false); setPremiumModalIsProGate(false); }} moduleType="math" usageInfo={premiumModalIsProGate ? undefined : usageInfo} />
-    </NotebookBackground>
+      <NotificationSoftPrompt
+        visible={showNotifPrompt}
+        onAllow={async () => {
+          setShowNotifPrompt(false);
+          const granted = await triggerNotificationPermissionPrompt(user?.id);
+          if (granted) {
+            await scheduleDailyReminder(
+              DEFAULT_REMINDER_HOUR,
+              DEFAULT_REMINDER_MINUTE,
+              t("notifications.daily.title"),
+              t("notifications.daily.body"),
+            );
+          }
+        }}
+        onSkip={() => setShowNotifPrompt(false)}
+      />
+    </SoftSurface>
   );
 }
 
@@ -1417,8 +1457,25 @@ const styles = StyleSheet.create({
   lockText: { fontSize: 13, fontWeight: "600", flex: 1 },
   explanationBox: { padding: SPACING.sm + 2, borderRadius: BORDER_RADIUS.md },
   explanationText: { fontSize: 13, lineHeight: 20 },
-  explanationLocked: { borderWidth: 1, opacity: 0.75 },
-  explanationLockedRow: { flexDirection: 'row', alignItems: 'flex-start', gap: 6, marginBottom: 6 },
+  explanationLocked: { borderWidth: 1, opacity: 0.92 },
+  explanationLockedRow: { flexDirection: 'row', alignItems: 'flex-start', gap: 6, marginBottom: 10 },
+  explanationLockedCTA: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'center',
+    gap: 6,
+    backgroundColor: '#8B5CF6',
+    paddingVertical: 9,
+    paddingHorizontal: 12,
+    borderRadius: 8,
+    marginTop: 4,
+  },
+  explanationLockedCTAText: {
+    color: '#FFFFFF',
+    fontSize: 13,
+    fontWeight: '700',
+    letterSpacing: 0.2,
+  },
   proTagStandalone: { backgroundColor: '#8B5CF6', borderRadius: 4, paddingHorizontal: 5, paddingVertical: 2 },
   proTagStandaloneText: { color: '#fff', fontSize: 9, fontWeight: '800', letterSpacing: 0.5 },
   proTagSegment: { backgroundColor: '#8B5CF6', borderRadius: 3, paddingHorizontal: 4, paddingVertical: 1, marginLeft: 4 },

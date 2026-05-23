@@ -100,10 +100,10 @@ Try Quorax Premium, then subscribe monthly or yearly (best value). Manage or can
 We don't sell your data. Your solutions are stored only for your own history. Start solving anonymously — no account needed.
 
 📧 SUPPORT
-support@quorax.app
+noreply.quorax@gmail.com
 
-Terms: https://quorax.app/terms
-Privacy: https://quorax.app/privacy
+Terms: https://quorax.vercel.app/terms
+Privacy: https://quorax.vercel.app/privacy
 ```
 
 > ⚠️ Before submitting, set the exact trial length / prices to match your real
@@ -145,37 +145,37 @@ Optional: a 15–30s App Preview video (camera → solve → step explanation) l
 
 ---
 
-## 5. Compliance the reviewer WILL check (do these or risk rejection)
+## 5. Reviewer'ın MUTLAKA kontrol edeceği uyumluluk adımları (yapmazsan ret riski)
 
-- **App Privacy "nutrition label":** declare Camera, Photos, Notifications, Email/account. Mark "Data not used to track you" to match the "we don't sell your data" claim — mismatch = rejection.
-- **Age Rating:** complete the questionnaire (this app → 4+ likely).
-- **App Review Information → Notes:** write: *"The app works in anonymous/guest mode — no login or demo account is required to use the solver, exams and chat. Subscriptions are iOS-only via RevenueCat."* This stops the reviewer getting stuck at a login wall.
-- **Subscriptions:** every product needs a localized display name + description; attach a subscription review screenshot if prompted. Prices/trial in the description must match the products.
-- **URLs live:** Support `https://quorax.app`, Privacy `https://quorax.app/privacy`, Terms `https://quorax.app/terms` must all load — Apple clicks them.
-- **iOS-only paywall:** if you ever publish Android, do NOT advertise trial/Premium there (no RevenueCat on Android → premium is always off).
+- **App Privacy "besin etiketi":** Kamera, Fotoğraflar, Bildirimler, E-posta/hesap topladığını beyan et. "Data not used to track you" (veri takip için kullanılmıyor) işaretle ki "verini satmıyoruz" iddiasıyla uyumlu olsun — uyumsuzluk = ret.
+- **Yaş Sınıflandırması (Age Rating):** Anketi doldur (bu app muhtemelen → 4+).
+- **App Review Information → Notes:** Şunu yaz (reviewer İngilizce okuyacağı için İngilizce bırak): *"The app works in anonymous/guest mode — no login or demo account is required to use the solver, exams and chat. Subscriptions are iOS-only via RevenueCat."* Bu, reviewer'ın giriş ekranında takılıp kalmasını önler.
+- **Abonelikler:** Her ürünün lokalize bir görünen adı + açıklaması olmalı; istenirse bir abonelik inceleme ekran görüntüsü ekle. Açıklamadaki fiyat/deneme süresi, gerçek ürünlerle birebir eşleşmeli.
+- **URL'ler canlı olmalı:** Destek `https://quorax.vercel.app`, Gizlilik `https://quorax.vercel.app/privacy`, Koşullar `https://quorax.vercel.app/terms` — hepsi açılmalı, Apple bunlara tıklar.
+- **Paywall sadece iOS'ta:** İleride Android yayınlarsan orada deneme/Premium reklamı YAPMA (Android'de RevenueCat yok → premium her zaman kapalı).
 
 ---
 
-## 6. Apple-side steps, in order
+## 6. Apple tarafında yapılacaklar, sırasıyla
 
-**A. Listing (≈15 min)**
-1. App Store Connect → Apps → Quorax → set Primary Language = English (U.S.); delete other localizations.
-2. App Information / the version page → paste **Name, Subtitle, Keywords, Promotional Text, Description, What's New** from §2.
-3. Save.
+**A. Listeleme (≈15 dk)**
+1. App Store Connect → Apps → Quorax → Primary Language = English (U.S.) yap; diğer dilleri sil.
+2. App Information / sürüm sayfası → §2'deki **Name, Subtitle, Keywords, Promotional Text, Description, What's New** alanlarını yapıştır.
+3. Kaydet (Save).
 
-**B. Assets (1–2 h)**
-4. Upload App Icon (§4) and ≥3 screenshots per required size (§5/§3).
-5. (Optional) upload App Preview video.
+**B. Görseller (1–2 saat)**
+4. App Icon'u (§4) ve her gerekli boyut için ≥3 ekran görüntüsü yükle (§5/§3).
+5. (İsteğe bağlı) App Preview videosu yükle.
 
-**C. Compliance (§5)**
-6. Fill App Privacy, Age Rating, Review Notes, Subscription metadata. Verify URLs load.
+**C. Uyumluluk (§5)**
+6. App Privacy, Age Rating, Review Notes, Abonelik metadata'sını doldur. URL'lerin açıldığını teyit et.
 
-**D. Preview & submit**
-7. On the version page click **View on App Store / Preview** to see exactly how the listing renders (name, subtitle, screenshots, description "more" fold).
-8. Read the first 3 lines of the description as they appear before the fold — that's what converts.
-9. **Add for Review → Submit.** Review typically lands in 24–48h.
+**D. Önizleme ve gönderim**
+7. Sürüm sayfasında **View on App Store / Preview**'a tıkla; listenin tam olarak nasıl göründüğünü gör (isim, subtitle, ekran görüntüleri, açıklamanın "more" kıvrımı).
+8. Açıklamanın katlanma çizgisinden önce görünen ilk 3 satırını oku — dönüşümü sağlayan kısım orası.
+9. **Add for Review → Submit.** İnceleme genelde 24–48 saatte sonuçlanır.
 
-**Ongoing**
-10. Every 1–2 months update **only** the Promotional Text (no re-review). Use the seasonal swaps in §2.
-11. Don't churn the whole listing weekly (re-review loop). Don't buy fake reviews. Don't repeat name/subtitle words in the Keyword field.
+**Süreklilik**
+10. Her 1–2 ayda bir **sadece** Promotional Text'i güncelle (yeniden inceleme gerekmez). §2'deki sezonluk varyasyonları kullan.
+11. Tüm listeyi her hafta değiştirme (yeniden-inceleme döngüsü). Sahte yorum satın alma. İsim/subtitle'daki kelimeleri Keyword alanında tekrarlama.
 ```

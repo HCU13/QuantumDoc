@@ -13,7 +13,7 @@ import {
   TouchableOpacity,
   View,
 } from "react-native";
-import { NotebookBackground } from "@/components/common/NotebookBackground";
+import { MinimalHeader, SoftSurface } from "@/components/v2";
 
 import { ModuleHeader } from "@/components/common/ModuleHeader";
 import MathText from "@/components/math/MathText";
@@ -321,11 +321,11 @@ export default function MathHistoryScreen() {
   };
 
   return (
-    <NotebookBackground cornerGlyphs={["∑", "∏"]}>
+    <SoftSurface tone="module" moduleColor={colors.moduleMathPrimary}>
       <StatusBar style={isDark ? "light" : "dark"} />
-      <ModuleHeader
+      <MinimalHeader
         title={t("mathHistory.title")}
-        onBackPress={() => (router.canDismiss() ? router.dismiss() : router.replace("/(main)/math"))}
+        accent={colors.moduleMathPrimary}
       />
 
       {/* Topic filter pills */}
@@ -386,7 +386,7 @@ export default function MathHistoryScreen() {
           }
         />
       )}
-    </NotebookBackground>
+    </SoftSurface>
   );
 }
 

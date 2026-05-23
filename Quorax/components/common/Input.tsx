@@ -24,6 +24,8 @@ interface InputProps {
   inputStyle?: any;
   icon?: keyof typeof Ionicons.glyphMap;
   onIconPress?: () => void;
+  rightIcon?: keyof typeof Ionicons.glyphMap;
+  onRightIconPress?: () => void;
   autoCapitalize?: "none" | "sentences" | "words" | "characters";
   autoCorrect?: boolean;
   editable?: boolean;
@@ -47,6 +49,8 @@ export const Input: React.FC<InputProps> = ({
   inputStyle,
   icon,
   onIconPress,
+  rightIcon,
+  onRightIconPress,
   autoCapitalize = "none",
   autoCorrect = false,
   editable = true,
@@ -144,6 +148,15 @@ export const Input: React.FC<InputProps> = ({
             hitSlop={HIT_SLOP.medium}
           >
             <Ionicons name={icon} size={20} color={colors.primary} />
+          </TouchableOpacity>
+        )}
+        {rightIcon && !showPasswordToggle && (
+          <TouchableOpacity
+            onPress={onRightIconPress}
+            style={styles.passwordToggle}
+            hitSlop={HIT_SLOP.medium}
+          >
+            <Ionicons name={rightIcon} size={20} color={colors.textSecondary} />
           </TouchableOpacity>
         )}
       </View>

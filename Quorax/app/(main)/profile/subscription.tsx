@@ -1,7 +1,7 @@
 import { Ionicons } from "@expo/vector-icons";
 import { LinearGradient } from "expo-linear-gradient";
 import * as Linking from "expo-linking";
-import { useRouter } from "expo-router";
+import { useLocalSearchParams, useRouter } from "expo-router";
 import { StatusBar } from "expo-status-bar";
 import React, { useEffect, useMemo, useRef, useState } from "react";
 import { useTranslation } from "react-i18next";
@@ -46,11 +46,15 @@ const SECONDARY_FEATURES = [
   { icon: "ban-outline" as const, color: "#F472B6", titleKey: "featureNoAds" },
 ];
 
+type PaywallReason = "limit" | "feature" | "firstSolve" | "exitIntent";
+
 export default function SubscriptionScreen() {
   const { t, i18n } = useTranslation();
   const router = useRouter();
+  const { reason } = useLocalSearchParams<{ reason?: PaywallReason }>();
   const { isLoggedIn, user } = useAuth();
   const { isPremium, expiresAt, refreshSubscription } = useSubscription();
+  const [showExitDiscount, setShowExitDiscount] = useState(false);
 
   const [loading, setLoading] = useState(true);
   const [purchasing, setPurchasing] = useState(false);
@@ -91,11 +95,10 @@ export default function SubscriptionScreen() {
   const yearlyDisplay = yearly?.product ?? FALLBACK_YEARLY;
   const active = selected === "yearly" ? (yearly ?? monthly) : (monthly ?? yearly);
 
-  // Detect an Apple Introductory Offer attached to the currently-selected package. When present,
-  // we lead the CTA with "Start Free Trial" framing and show a reminder microcopy. Otherwise
-  // the flow falls back to a straight purchase CTA.
-  const introOffer = useMemo(() => {
-    const pkg = selected === "yearly" ? yearly : monthly;
+  // Detect a free Apple/Google Introductory Offer attached to a package and return its
+  // length in days, or null. Both plans can carry a trial (e.g. 3-day on monthly AND yearly),
+  // so we compute per-package rather than only for the selected plan.
+  const trialDaysFor = (pkg?: PurchasesPackage) => {
     const intro: any = (pkg?.product as any)?.introPrice ?? (pkg?.product as any)?.introductoryPrice;
     if (!intro) return null;
     const isFree = intro.price === 0 || intro.priceString?.includes("0.00");
@@ -113,8 +116,19 @@ export default function SubscriptionScreen() {
       const unit = intro.periodUnit ?? "DAY";
       days = unit === "DAY" ? n : unit === "WEEK" ? n * 7 : unit === "MONTH" ? n * 30 : n * 365;
     }
-    return days > 0 ? { days } : null;
-  }, [selected, monthly, yearly]);
+    return days > 0 ? days : null;
+  };
+
+  // Per-plan trial days. Falls back to a 3-day default when packages haven't loaded yet so
+  // the screenshot-ready layout still advertises the trial; real value wins once RC resolves.
+  const monthlyTrialDays = useMemo(() => trialDaysFor(monthly) ?? (monthly ? null : 3), [monthly]);
+  const yearlyTrialDays = useMemo(() => trialDaysFor(yearly) ?? (yearly ? null : 3), [yearly]);
+
+  // Trial attached to the currently-selected plan — drives CTA copy + reminder microcopy.
+  const introOffer = useMemo(() => {
+    const days = selected === "yearly" ? yearlyTrialDays : monthlyTrialDays;
+    return days ? { days } : null;
+  }, [selected, monthlyTrialDays, yearlyTrialDays]);
 
   const savingsPercent = useMemo(() => {
     const monthlyPriceYearly = monthlyDisplay.price * 12;
@@ -211,8 +225,20 @@ export default function SubscriptionScreen() {
       )
     : null;
 
-  const openTerms = () => Linking.openURL("https://quorax.app/terms");
-  const openPrivacy = () => Linking.openURL("https://quorax.app/privacy");
+  const openTerms = () => Linking.openURL("https://quorax.vercel.app/terms");
+  const openPrivacy = () => Linking.openURL("https://quorax.vercel.app/privacy");
+
+  // Exit-intent: paywall back basılınca, indirim sheet'i göster.
+  // Sadece firstSolve/limit reason'ları için tetikle (kullanıcı bir solve denemiş).
+  const shouldShowExitIntent = (reason === "firstSolve" || reason === "limit") && !isPremium && !showExitDiscount;
+
+  const handleBack = () => {
+    if (shouldShowExitIntent) {
+      setShowExitDiscount(true);
+      return;
+    }
+    router.back();
+  };
 
   /* ─────────── ACTIVE PREMIUM ─────────── */
   if (isPremium) {
@@ -225,7 +251,7 @@ export default function SubscriptionScreen() {
           style={StyleSheet.absoluteFill}
         />
 
-        <TouchableOpacity style={styles.backBtn} onPress={() => router.back()}>
+        <TouchableOpacity style={styles.backBtn} onPress={handleBack}>
           <Ionicons name="chevron-back" size={20} color="rgba(255,255,255,0.85)" />
         </TouchableOpacity>
 
@@ -299,16 +325,18 @@ export default function SubscriptionScreen() {
       >
         <Animated.View style={[styles.body, { opacity: fadeAnim, transform: [{ translateY: slideAnim }] }]}>
 
-          {/* HERO — minimal, focused. Trial framing wins. */}
+          {/* HERO — reason'a göre kopya uyarlanır; trial varsa trial framing wins. */}
           <View style={styles.hero}>
             <View style={styles.proChip}>
               <Ionicons name="sparkles" size={11} color="#FDE68A" />
               <Text style={styles.proChipText}>QUORAX PREMIUM</Text>
             </View>
             <Text style={styles.heroTitle}>
-              {hasTrial
-                ? t("profile.premium.heroTrialTitle", { days: introOffer!.days })
-                : t("profile.premium.heroInactiveTitle")}
+              {reason === "firstSolve" || reason === "limit"
+                ? t("profile.premium.heroLimitTitle", "Keep solving — unlock everything")
+                : hasTrial
+                  ? t("profile.premium.heroTrialTitle", { days: introOffer!.days })
+                  : t("profile.premium.heroInactiveTitle")}
             </Text>
             <Text style={styles.heroSubtitle}>
               {hasTrial
@@ -348,6 +376,11 @@ export default function SubscriptionScreen() {
               title={t("profile.premium.planMonthly")}
               priceString={monthlyDisplay.priceString}
               periodLabel={`/${t("profile.premium.perMonth")}`}
+              badgeText={
+                monthlyTrialDays
+                  ? t("profile.premium.trialBadge", { days: monthlyTrialDays })
+                  : undefined
+              }
               onPress={() => setSelected("monthly")}
             />
             <PlanCard
@@ -359,8 +392,8 @@ export default function SubscriptionScreen() {
                 ? t("profile.premium.equivMonthly", { price: yearlyPerMonthString })
                 : undefined}
               badgeText={
-                hasTrial
-                  ? t("profile.premium.trialBadge", { days: introOffer!.days })
+                yearlyTrialDays
+                  ? t("profile.premium.trialBadge", { days: yearlyTrialDays })
                   : savingsPercent
                     ? t("profile.premium.savePercent", { pct: savingsPercent })
                     : t("profile.premium.bestValue")
@@ -419,6 +452,52 @@ export default function SubscriptionScreen() {
           </View>
         </Animated.View>
       </ScrollView>
+
+      {/* EXIT-INTENT DISCOUNT — kullanıcı paywall'dan çıkmak isterse son şans teklifi.
+          Aylık plana yumuşak yönlendirme; "Stay" basarsa overlay kapanır ve paywall'da kalır. */}
+      {showExitDiscount && (
+        <View style={styles.exitOverlay}>
+          <View style={styles.exitCard}>
+            <View style={styles.exitBadge}>
+              <Text style={styles.exitBadgeText}>{t("profile.premium.limitedOffer", "LIMITED OFFER")}</Text>
+            </View>
+            <Text style={styles.exitTitle}>
+              {t("profile.premium.exitTitle", "Wait — one more thing")}
+            </Text>
+            <Text style={styles.exitSubtitle}>
+              {t("profile.premium.exitSubtitle", "Try monthly — cancel anytime. No long commitment.")}
+            </Text>
+
+            <TouchableOpacity
+              onPress={() => {
+                setSelected("monthly");
+                setShowExitDiscount(false);
+              }}
+              activeOpacity={0.88}
+              style={styles.exitPrimaryBtn}
+            >
+              <Text style={styles.exitPrimaryText}>
+                {monthlyTrialDays
+                  ? t("profile.premium.exitTryMonthlyTrial", { price: monthlyDisplay.priceString, days: monthlyTrialDays })
+                  : t("profile.premium.exitTryMonthly", { price: monthlyDisplay.priceString })}
+              </Text>
+            </TouchableOpacity>
+
+            <TouchableOpacity
+              onPress={() => {
+                setShowExitDiscount(false);
+                router.back();
+              }}
+              activeOpacity={0.6}
+              style={styles.exitSkip}
+            >
+              <Text style={styles.exitSkipText}>
+                {t("profile.premium.exitNoThanks", "No thanks")}
+              </Text>
+            </TouchableOpacity>
+          </View>
+        </View>
+      )}
     </View>
   );
 }
@@ -813,5 +892,73 @@ const styles = StyleSheet.create({
     color: "rgba(255,255,255,0.4)",
     textDecorationLine: "underline",
     textAlign: "center",
+  },
+
+  /* Exit-intent overlay */
+  exitOverlay: {
+    position: "absolute",
+    top: 0, left: 0, right: 0, bottom: 0,
+    backgroundColor: "rgba(0,0,0,0.72)",
+    alignItems: "center",
+    justifyContent: "center",
+    paddingHorizontal: SPACING.lg,
+  },
+  exitCard: {
+    width: "100%",
+    backgroundColor: "#1B1240",
+    borderRadius: BORDER_RADIUS.lg,
+    paddingHorizontal: SPACING.lg,
+    paddingVertical: SPACING.xl,
+    borderWidth: 1,
+    borderColor: "rgba(253, 230, 138, 0.25)",
+    alignItems: "center",
+  },
+  exitBadge: {
+    backgroundColor: "#FDE68A",
+    paddingHorizontal: 12,
+    paddingVertical: 4,
+    borderRadius: 999,
+    marginBottom: SPACING.md,
+  },
+  exitBadgeText: {
+    fontSize: 11,
+    color: "#422006",
+    fontWeight: "800",
+    letterSpacing: 1,
+  },
+  exitTitle: {
+    fontSize: 22,
+    fontWeight: "800",
+    color: "#fff",
+    textAlign: "center",
+    marginBottom: SPACING.sm,
+  },
+  exitSubtitle: {
+    fontSize: 14,
+    color: "rgba(255,255,255,0.75)",
+    textAlign: "center",
+    marginBottom: SPACING.lg,
+    lineHeight: 20,
+  },
+  exitPrimaryBtn: {
+    backgroundColor: "#FDE68A",
+    borderRadius: BORDER_RADIUS.md,
+    paddingVertical: 14,
+    paddingHorizontal: SPACING.xl,
+    alignSelf: "stretch",
+    alignItems: "center",
+    marginBottom: SPACING.sm,
+  },
+  exitPrimaryText: {
+    fontSize: 15,
+    color: "#3B0764",
+    fontWeight: "800",
+  },
+  exitSkip: {
+    paddingVertical: SPACING.sm,
+  },
+  exitSkipText: {
+    fontSize: 13,
+    color: "rgba(255,255,255,0.5)",
   },
 });

@@ -14,9 +14,9 @@ import {
 } from "react-native";
 
 import { ActivityItem, type Activity } from "@/components/home/ActivityItem";
-import { BORDER_RADIUS, SPACING, TEXT_STYLES } from "@/constants/theme";
+import { HapticPressable, MinimalHeader, SoftSurface } from "@/components/v2";
+import { BORDER_RADIUS, SPACING, SPACING_V2, TEXT_STYLES } from "@/constants/theme";
 import { useActivity } from "@/contexts/ActivityContext";
-import { NotebookBackground } from "@/components/common/NotebookBackground";
 import { useAuth } from "@/contexts/AuthContext";
 import { useTheme } from "@/contexts/ThemeContext";
 import { supabase, TABLES } from "@/services/supabase";
@@ -216,38 +216,30 @@ export default function ActivityScreen() {
   };
 
   return (
-    <NotebookBackground cornerGlyphs={["⏱", "Λ"]}>
-      <View style={styles.header}>
-        <View style={styles.headerContent}>
-          <TouchableOpacity
-            onPress={() => router.back()}
-            activeOpacity={0.7}
-            style={[styles.backButton, { backgroundColor: colors.card }]}
-          >
-            <Ionicons name="arrow-back" size={20} color={colors.textPrimary} />
-          </TouchableOpacity>
-          <Text
-            style={[styles.headerTitle, { color: colors.textPrimary }]}
-            numberOfLines={1}
-          >
-            {t("home.recentActivity") === "home.recentActivity"
-              ? "Son İşlemler"
-              : t("home.recentActivity")}
-          </Text>
-          {activities.length > 0 && (
-            <TouchableOpacity
+    <SoftSurface tone="neutral">
+      <MinimalHeader
+        title={
+          t("home.recentActivity") === "home.recentActivity"
+            ? "Son İşlemler"
+            : t("home.recentActivity")
+        }
+        rightSlot={
+          activities.length > 0 ? (
+            <HapticPressable
+              haptic="warning"
               onPress={handleClearAllActivities}
-              style={styles.clearButton}
+              style={[styles.clearButton, { backgroundColor: colors.card }]}
+              hitSlop={8}
             >
               <Ionicons
                 name="trash-outline"
                 size={18}
                 color={colors.error || "#EF4444"}
               />
-            </TouchableOpacity>
-          )}
-        </View>
-      </View>
+            </HapticPressable>
+          ) : undefined
+        }
+      />
 
       {loading && page === 0 ? (
         <View style={styles.loadingContainer}>
@@ -301,7 +293,7 @@ export default function ActivityScreen() {
           </Text>
         </View>
       )}
-    </NotebookBackground>
+    </SoftSurface>
   );
 }
 
@@ -345,7 +337,8 @@ const styles = StyleSheet.create({
     flex: 1,
   },
   scrollContent: {
-    padding: SPACING.lg,
+    padding: SPACING_V2.lg,
+    gap: SPACING_V2.sm,
   },
   loadingContainer: {
     flex: 1,

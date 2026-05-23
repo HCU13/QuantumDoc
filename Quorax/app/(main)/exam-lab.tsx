@@ -25,9 +25,7 @@ import AsyncStorage from "@react-native-async-storage/async-storage";
 
 import { Button } from "@/components/common/Button";
 import { Chip } from "@/components/common/Chip";
-import { MinimalUsageBadge } from "@/components/common/MinimalUsageBadge";
-import { ModuleHeader } from "@/components/common/ModuleHeader";
-import { NotebookBackground } from "@/components/common/NotebookBackground";
+import { MinimalHeader, SoftSurface } from "@/components/v2";
 import { AILoadingModal } from "@/components/common/AILoadingModal";
 import { PremiumModal } from "@/components/common/PremiumModal";
 import { BORDER_RADIUS, SHADOWS, SPACING, TEXT_STYLES } from "@/constants/theme";
@@ -41,6 +39,7 @@ import {
 } from "@/constants/examTypes";
 import { useAd } from "@/contexts/AdContext";
 import { useAuth } from "@/contexts/AuthContext";
+import { usePaywall } from "@/contexts/PaywallContext";
 import { useExamProgress } from "@/contexts/ExamProgressContext";
 import { useSubscription } from "@/contexts/SubscriptionContext";
 import { useTheme } from "@/contexts/ThemeContext";
@@ -87,7 +86,7 @@ function QuestionCard({
   useEffect(() => {
     if (showFeedbackForThis && !flipped.current) {
       flipped.current = true;
-      Animated.spring(flipAnim, { toValue: 1, useNativeDriver: true, friction: 8, tension: 60 }).start();
+      Animated.timing(flipAnim, { toValue: 1, duration: 320, useNativeDriver: true }).start();
     }
     if (!showFeedbackForThis) {
       flipped.current = false;
@@ -333,6 +332,7 @@ export default function ExamLabScreen() {
   const router = useRouter();
   const { pickFromGallery, takePhoto, loading: imageLoading } = useImagePicker();
   const { user, isLoggedIn } = useAuth();
+  const { openPaywall } = usePaywall();
   const { checkUsageLimit, isPremium } = useSubscription();
   const { showAdBeforeAction } = useAd();
   const { load: loadExamProgress } = useExamProgress();
@@ -352,8 +352,8 @@ export default function ExamLabScreen() {
   const [premiumModalIsProGate, setPremiumModalIsProGate] = useState(false);
   const [usageInfo, setUsageInfo] = useState<any>(null);
 
-  const openProGate = () => { setPremiumModalIsProGate(true); setShowPremiumModal(true); };
-  const openLimitModal = () => { setPremiumModalIsProGate(false); setShowPremiumModal(true); };
+  const openProGate = () => openPaywall("feature");
+  const openLimitModal = () => openPaywall("firstSolve");
 
   const persistSavedExam = (exam: typeof savedExam) => {
     setSavedExam(exam);
@@ -488,12 +488,8 @@ export default function ExamLabScreen() {
   };
 
   const handleTopicSelect = async (topic: string, imageBase64?: string) => {
-    if (!isLoggedIn || !user?.id) {
+    if (!user?.id) {
       setLoading(false);
-            Alert.alert(
-        t("modules.locked"),
-        t("profile.loginToContinue")
-      );
       return;
     }
 
@@ -630,13 +626,7 @@ export default function ExamLabScreen() {
   };
 
   const handleImagePicker = async () => {
-    if (!isLoggedIn || !user?.id) {
-      Alert.alert(
-        t("modules.locked"),
-        t("profile.loginToContinue")
-      );
-      return;
-    }
+    if (!user?.id) return;
 
     try {
       const result = await pickFromGallery();
@@ -659,13 +649,7 @@ export default function ExamLabScreen() {
   };
 
   const handlePhotoCapture = async () => {
-    if (!isLoggedIn || !user?.id) {
-      Alert.alert(
-        t("modules.locked"),
-        t("profile.loginToContinue")
-      );
-      return;
-    }
+    if (!user?.id) return;
 
     try {
       const result = await takePhoto();
@@ -1736,7 +1720,7 @@ export default function ExamLabScreen() {
               <Text style={[styles.realExamTitle, { color: colors.textPrimary }]}>{t("examLab.realExam.title")}</Text>
               {realExamMode && (
                 <View style={[styles.realExamActiveBadge, { backgroundColor: colors.moduleExamLabPrimary + "20" }]}>
-                  <Text style={[styles.realExamActiveBadgeText, { color: colors.moduleExamLabPrimary }]}>Aktif</Text>
+                  <Text style={[styles.realExamActiveBadgeText, { color: colors.moduleExamLabPrimary }]}>{t("profile.premium.active")}</Text>
                 </View>
               )}
             </View>
@@ -1945,22 +1929,12 @@ export default function ExamLabScreen() {
   };
 
   return (
-    <NotebookBackground cornerGlyphs={["α", "β"]}>
+    <SoftSurface tone="module" moduleColor={colors.moduleExamLabPrimary}>
       <StatusBar style={isDark ? "light" : "dark"} />
-      <ModuleHeader
+      <MinimalHeader
         title={t("modules.examLab.title")}
-        modulePrimary={colors.moduleExamLabPrimary}
-        moduleLight={colors.moduleExamLabLight}
-        onBackPress={screen === "exam" ? handleExitExam : () => router.canDismiss() ? router.dismiss() : router.replace("/(main)")}
-        rightAction={
-          isLoggedIn && !isPremium && usageInfo ? (
-            <MinimalUsageBadge
-              used={usageInfo.used}
-              limit={usageInfo.limit}
-              modulePrimary={colors.moduleExamLabPrimary}
-            />
-          ) : undefined
-        }
+        accent={colors.moduleExamLabPrimary}
+        onBack={screen === "exam" ? handleExitExam : undefined}
       />
 
       {screen === "selection" ? renderSelectionScreen() : renderExamScreen()}
@@ -1977,7 +1951,7 @@ export default function ExamLabScreen() {
         moduleType="exam_lab"
         usageInfo={premiumModalIsProGate ? undefined : usageInfo}
       />
-    </NotebookBackground>
+    </SoftSurface>
   );
 }
 

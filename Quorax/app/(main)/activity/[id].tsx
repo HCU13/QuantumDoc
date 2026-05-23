@@ -16,9 +16,9 @@ import { Ionicons } from "@expo/vector-icons";
 import { useTheme } from "@/contexts/ThemeContext";
 import { useAuth } from "@/contexts/AuthContext";
 import { useActivity } from "@/contexts/ActivityContext";
+import { useSubscription } from "@/contexts/SubscriptionContext";
 import { supabase, TABLES } from "@/services/supabase";
-import { ModuleHeader } from "@/components/common/ModuleHeader";
-import { NotebookBackground } from "@/components/common/NotebookBackground";
+import { MinimalHeader, SoftSurface } from "@/components/v2";
 import {
   SPACING,
   BORDER_RADIUS,
@@ -33,6 +33,7 @@ export default function ActivityDetailScreen() {
   const { id, type } = useLocalSearchParams<{ id: string; type: string }>();
   const { user } = useAuth();
   const { deleteActivity, refreshActivities } = useActivity();
+  const { isPremium } = useSubscription();
 
   const [loading, setLoading] = useState(true);
   const [activity, setActivity] = useState<any>(null);
@@ -119,6 +120,48 @@ export default function ActivityDetailScreen() {
     }
   };
 
+  // Mirrors math.tsx parseSolution — splits raw solution into the step-by-step body
+  // (free for everyone) and the trailing explanation (premium-only).
+  const splitMathSolution = (raw?: string): { body: string; explanation: string } => {
+    if (!raw?.trim()) return { body: "", explanation: "" };
+    const lines = raw.split("\n").map((l) => l.trimEnd());
+    const isStepLine = (l: string) => /^\d+[.)]\s+.+/.test(l.trim());
+
+    const bodyLines: string[] = [];
+    const explanationLines: string[] = [];
+    let inExp = false;
+    let seenStep = false;
+
+    for (const line of lines) {
+      if (!line.trim()) {
+        (inExp ? explanationLines : bodyLines).push(line);
+        continue;
+      }
+      if (isStepLine(line)) {
+        seenStep = true;
+        inExp = false;
+        bodyLines.push(line);
+        continue;
+      }
+      // Once we've seen at least one step, any non-step line after it becomes part of the
+      // explanation tail.
+      if (seenStep) {
+        inExp = true;
+        explanationLines.push(line);
+      } else {
+        bodyLines.push(line);
+      }
+    }
+
+    let explanation = explanationLines.join("\n").trim();
+    explanation = explanation.replace(/^(Açıklama|Explanation|Explicación|شرح|व्याख्या|Genel|General):\s*/i, "").trim();
+    if (explanation.length < 20) {
+      // Short tails are usually decorative (e.g. "✓") — fold them back into the body.
+      return { body: [...bodyLines, ...explanationLines].join("\n").trim(), explanation: "" };
+    }
+    return { body: bodyLines.join("\n").trim(), explanation };
+  };
+
   const formatTime = (dateString: string): string => {
     if (!dateString) return "";
     const date = new Date(dateString);
@@ -184,34 +227,34 @@ export default function ActivityDetailScreen() {
 
   if (loading) {
     return (
-      <NotebookBackground cornerGlyphs={["⏱", "•"]}>
-        <ModuleHeader title={t("home.recentActivity")} />
+      <SoftSurface tone="neutral">
+        <MinimalHeader title={t("home.recentActivity")} />
         <View style={styles.loadingContainer}>
           <ActivityIndicator size="large" color={colors.primary} />
         </View>
-      </NotebookBackground>
+      </SoftSurface>
     );
   }
 
   if (!activity) {
     return (
-      <NotebookBackground cornerGlyphs={["⏱", "•"]}>
-        <ModuleHeader title={t("home.recentActivity")} />
+      <SoftSurface tone="neutral">
+        <MinimalHeader title={t("home.recentActivity")} />
         <View style={styles.emptyContainer}>
           <Ionicons name="alert-circle-outline" size={64} color={colors.textTertiary} />
           <Text style={[styles.emptyText, { color: colors.textTertiary }]}>
             {t("home.activity.detail.notFound")}
           </Text>
         </View>
-      </NotebookBackground>
+      </SoftSurface>
     );
   }
 
   return (
-    <NotebookBackground cornerGlyphs={["⏱", "•"]}>
-      <ModuleHeader
+    <SoftSurface tone="neutral">
+      <MinimalHeader
         title={t("home.activity.detail.title")}
-        rightAction={
+        rightSlot={
           <TouchableOpacity
             onPress={handleDeleteActivity}
             style={[styles.deleteButton, { backgroundColor: colors.card }]}
@@ -399,25 +442,69 @@ export default function ActivityDetailScreen() {
               </View>
             )}
 
-            {activity.solution && (
-              <View
-                style={[
-                  styles.contentCard,
-                  {
-                    backgroundColor: colors.card,
-                    borderColor: colors.borderSubtle,
-                  },
-                  SHADOWS.small,
-                ]}
-              >
-                <Text style={[styles.sectionTitle, { color: colors.textPrimary }]}>
-                  {t("home.activity.detail.solution")}
-                </Text>
-                <Text style={[styles.contentText, { color: colors.textSecondary }]}>
-                  {activity.solution}
-                </Text>
-              </View>
-            )}
+            {activity.solution && (() => {
+              const { body, explanation } = splitMathSolution(activity.solution);
+              return (
+                <>
+                  <View
+                    style={[
+                      styles.contentCard,
+                      { backgroundColor: colors.card, borderColor: colors.borderSubtle },
+                      SHADOWS.small,
+                    ]}
+                  >
+                    <Text style={[styles.sectionTitle, { color: colors.textPrimary }]}>
+                      {t("home.activity.detail.solution")}
+                    </Text>
+                    <Text style={[styles.contentText, { color: colors.textSecondary }]}>
+                      {body || activity.solution}
+                    </Text>
+                  </View>
+
+                  {explanation && (
+                    <View
+                      style={[
+                        styles.contentCard,
+                        { backgroundColor: colors.card, borderColor: colors.borderSubtle },
+                        SHADOWS.small,
+                      ]}
+                    >
+                      <Text style={[styles.sectionTitle, { color: colors.textPrimary }]}>
+                        {t("home.activity.detail.description")}
+                      </Text>
+                      {isPremium ? (
+                        <Text style={[styles.contentText, { color: colors.textSecondary }]}>
+                          {explanation}
+                        </Text>
+                      ) : (
+                        <TouchableOpacity
+                          activeOpacity={0.85}
+                          onPress={() => router.push("/(main)/profile/subscription" as any)}
+                          style={[styles.lockedBox, { borderColor: "#8B5CF6" }]}
+                        >
+                          <View style={styles.lockedRow}>
+                            <Ionicons name="lock-closed" size={14} color="#8B5CF6" />
+                            <Text
+                              style={[styles.contentText, { color: colors.textTertiary, flex: 1 }]}
+                              numberOfLines={2}
+                            >
+                              {explanation}
+                            </Text>
+                          </View>
+                          <View style={styles.lockedCTA}>
+                            <Ionicons name="sparkles" size={13} color="#FFFFFF" />
+                            <Text style={styles.lockedCTAText}>
+                              {t("math.unlockExplanation")}
+                            </Text>
+                            <Ionicons name="chevron-forward" size={13} color="#FFFFFF" />
+                          </View>
+                        </TouchableOpacity>
+                      )}
+                    </View>
+                  )}
+                </>
+              );
+            })()}
           </>
         ) : (
           activity.description && (
@@ -443,7 +530,7 @@ export default function ActivityDetailScreen() {
 
         <View style={{ height: SPACING.xl }} />
       </ScrollView>
-    </NotebookBackground>
+    </SoftSurface>
   );
 }
 
@@ -648,6 +735,32 @@ const styles = StyleSheet.create({
   metadataValue: {
     ...TEXT_STYLES.bodySmall,
     fontWeight: "600",
+  },
+  lockedBox: {
+    borderRadius: BORDER_RADIUS.md,
+    borderWidth: 1,
+    padding: SPACING.md,
+    gap: SPACING.sm,
+  },
+  lockedRow: {
+    flexDirection: "row",
+    alignItems: "flex-start",
+    gap: SPACING.sm,
+  },
+  lockedCTA: {
+    flexDirection: "row",
+    alignItems: "center",
+    justifyContent: "center",
+    gap: 4,
+    backgroundColor: "#8B5CF6",
+    paddingHorizontal: SPACING.md,
+    paddingVertical: 8,
+    borderRadius: BORDER_RADIUS.md,
+  },
+  lockedCTAText: {
+    color: "#FFFFFF",
+    fontSize: 13,
+    fontWeight: "700",
   },
 });
 

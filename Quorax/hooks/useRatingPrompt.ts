@@ -1,55 +1,68 @@
+import * as StoreReview from "expo-store-review";
 import { useEffect, useRef, useState } from "react";
 
 import { useAuth } from "@/contexts/AuthContext";
 import { supabase, TABLES } from "@/services/supabase";
 
-const SHOW_INTERVALS = [5, 20]; // 5. girişte, skip ederse 20. girişte göster
+// Trigger at solve #N (lifetime session count). Apple's StoreReview API
+// internally caps to 3 prompts/year, so we can call it relatively liberally.
+const MIN_SESSIONS_TO_PROMPT = 3;
 
 export function useRatingPrompt() {
-  const { user, isLoggedIn, isLoading } = useAuth();
+  const { user, isLoading, isAnonymous } = useAuth();
   const [shouldShow, setShouldShow] = useState(false);
   const checkedRef = useRef(false);
 
   useEffect(() => {
-    // Auth yüklenene kadar bekle
     if (isLoading) return;
-    // Sadece bir kez çalış
     if (checkedRef.current) return;
-    // Giriş yapmamışsa gösterme
-    if (!isLoggedIn || !user?.id) return;
+    // Anonim user için DB write yine de çalışır, ama bu prompt'u
+    // anonim user'lara göstermiyoruz (henüz commitment yok).
+    if (!user?.id || isAnonymous) return;
 
     checkedRef.current = true;
     check(user.id);
-  }, [isLoading, isLoggedIn, user?.id]);
+  }, [isLoading, user?.id, isAnonymous]);
 
   const check = async (userId: string) => {
     try {
       const { data: profile, error } = await supabase
         .from(TABLES.PROFILES)
-        .select("rating_prompt_shown, rating_choice, app_session_count, created_at")
+        .select("rating_choice, app_session_count")
         .eq("id", userId)
-        .single();
+        .maybeSingle();
 
       if (error || !profile) return;
 
-      // Daha önce yes veya no seçtiyse bir daha gösterme
+      // Daha önce yes/no seçtiyse bir daha gösterme.
       if (profile.rating_choice === "yes" || profile.rating_choice === "no") return;
 
-      // Hesap en az 1 günlük olmalı
-      if (profile.created_at) {
-        const accountAgeMs = Date.now() - new Date(profile.created_at).getTime();
-        const oneDayMs = 24 * 60 * 60 * 1000;
-        if (accountAgeMs < oneDayMs) return;
-      }
-
-      // Session sayacını artır
       const newCount = (profile.app_session_count ?? 0) + 1;
       await supabase
         .from(TABLES.PROFILES)
         .update({ app_session_count: newCount })
         .eq("id", userId);
 
-      if (SHOW_INTERVALS.includes(newCount)) {
+      if (newCount >= MIN_SESSIONS_TO_PROMPT) {
+        // Prefer Apple's native StoreReview API — it's quiet, capped to 3/year,
+        // and never blocks the UX. Fall back to our custom modal if unavailable.
+        try {
+          const available = await StoreReview.isAvailableAsync();
+          if (available) {
+            await StoreReview.requestReview();
+            // Mark as prompted to avoid re-triggering custom modal on next session
+            await supabase
+              .from(TABLES.PROFILES)
+              .update({
+                rating_prompt_shown: true,
+                rating_prompt_shown_at: new Date().toISOString(),
+              })
+              .eq("id", userId);
+            return;
+          }
+        } catch {
+          // Native API fail -> fall back to custom modal
+        }
         setShouldShow(true);
       }
     } catch {

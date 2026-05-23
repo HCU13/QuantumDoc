@@ -112,6 +112,18 @@ const templates = {
   },
 };
 
+// Spam filtrelerine "meşru transactional mail" sinyali vermek için
+// HTML'den düz metin alternatifi üretir (etiketleri temizler).
+function htmlToText(html: string): string {
+  return html
+    .replace(/<style[\s\S]*?<\/style>/gi, "")
+    .replace(/<[^>]+>/g, " ")
+    .replace(/&copy;/g, "©")
+    .replace(/&[a-z]+;/gi, " ")
+    .replace(/\s+/g, " ")
+    .trim();
+}
+
 async function sendEmail(to: string, subject: string, html: string) {
   const client = new SMTPClient({
     connection: {
@@ -124,11 +136,25 @@ async function sendEmail(to: string, subject: string, html: string) {
       },
     },
   });
+
+  // Domain-temelli, benzersiz Message-ID → spam filtreleri düzgün kimlik bekler.
+  const messageId = `<${crypto.randomUUID()}@quorax.vercel.app>`;
+
   await client.send({
     from: `${SENDER_NAME} <${SMTP_USER}>`,
     to,
+    replyTo: SMTP_USER,
     subject,
+    // HTML + düz metin birlikte: yalnızca-HTML mailler spam puanı alır.
+    content: htmlToText(html),
     html,
+    // Transactional mailler için bile List-Unsubscribe varlığı güven sinyalidir.
+    headers: {
+      "Message-ID": messageId,
+      "List-Unsubscribe": `<mailto:${SMTP_USER}?subject=unsubscribe>`,
+      "X-Entity-Ref-ID": crypto.randomUUID(),
+      "Auto-Submitted": "auto-generated",
+    },
   });
   await client.close();
 }

@@ -5,9 +5,8 @@ import { useTranslation } from "react-i18next";
 
 import { useTheme } from "@/contexts/ThemeContext";
 import { useSubscription } from "@/contexts/SubscriptionContext";
-import { ModuleHeader } from "@/components/common/ModuleHeader";
 import { BORDER_RADIUS, SPACING, TEXT_STYLES } from "@/constants/theme";
-import { NotebookBackground } from "@/components/common/NotebookBackground";
+import { MinimalHeader, SoftSurface } from "@/components/v2";
 
 // ─── Section helpers ────────────────────────────────────────────────────────
 function SectionTitle({ text, color }: { text: string; color: string }) {
@@ -45,9 +44,9 @@ export default function TermsScreen() {
   const accent = colors.primary ?? "#8B5CF6";
 
   return (
-    <NotebookBackground cornerGlyphs={["§", "¶"]}>
+    <SoftSurface tone="neutral">
       <StatusBar style={isDark ? "light" : "dark"} />
-      <ModuleHeader title={t("profile.terms.title")} />
+      <MinimalHeader title={t("profile.terms.title")} />
 
       <ScrollView
         style={styles.scroll}
@@ -258,8 +257,8 @@ export default function TermsScreen() {
           <SectionTitle color={accent}
             text={isTr ? "16. İletişim" : "16. Contact"} />
           <Paragraph color={primary} text={isTr
-            ? "Kullanım Koşulları hakkında sorularınız için:\n\nE-posta: support@quorax.app\nUygulama içi: Profil > Yardım & Destek"
-            : "For questions about these Terms:\n\nEmail: support@quorax.app\nIn-app: Profile > Help & Support"} />
+            ? "Kullanım Koşulları hakkında sorularınız için:\n\nE-posta: noreply.quorax@gmail.com\nUygulama içi: Profil > Yardım & Destek"
+            : "For questions about these Terms:\n\nEmail: noreply.quorax@gmail.com\nIn-app: Profile > Help & Support"} />
 
           <Text style={[styles.versionNote, { color: secondary }]}>
             {isTr
@@ -271,7 +270,7 @@ export default function TermsScreen() {
 
         <View style={{ height: SPACING.xl }} />
       </ScrollView>
-    </NotebookBackground>
+    </SoftSurface>
   );
 }
 

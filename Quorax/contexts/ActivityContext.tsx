@@ -83,17 +83,20 @@ export const ActivityProvider: React.FC<{ children: ReactNode }> = ({
         .limit(10);
 
       const allActivities: (Activity & { created_at: string })[] = [
-        ...(mathData || []).map((math) => ({
-          id: `math-${math.id}`,
-          type: "math" as const,
-          title:
-            math.problem_text?.slice(0, 50) ||
-            t("home.activity.mathProblem") ||
-            "Matematik problemi",
-          timestamp: formatTime(math.created_at),
-          problemImageUrl: math.problem_image_url || undefined,
-          created_at: math.created_at,
-        })),
+        ...(mathData || []).map((math) => {
+          // Placeholder values stored when the problem came from a photo (no text)
+          const isPlaceholder = !math.problem_text ||
+            ["[image]", "IMAGE", "image", "[IMAGE]"].includes(math.problem_text.trim());
+          const fallback = t("home.activity.mathProblem") || "Matematik problemi";
+          return {
+            id: `math-${math.id}`,
+            type: "math" as const,
+            title: isPlaceholder ? fallback : math.problem_text!.slice(0, 50),
+            timestamp: formatTime(math.created_at),
+            problemImageUrl: math.problem_image_url || undefined,
+            created_at: math.created_at,
+          };
+        }),
         ...(examData || []).map((exam) => ({
           id: `exam-${exam.id}`,
           type: "exam" as const,

@@ -114,6 +114,39 @@ const OnboardingSlide: React.FC<SlideProps> = ({ item, index, scrollX }) => {
             ))}
           </View>
         )}
+
+        {/* Inline demo "preview" — non-interactive, just shows the user what a solve looks like.
+            Builds trust before the real solve flow. */}
+        {item.demoEquation && (
+          <View style={[styles.demoBox, { borderColor: colors.borderSubtle, backgroundColor: colors.surface }]}>
+            <Text style={[styles.demoLabel, { color: colors.textTertiary }]}>{t("onboarding.demoLabel", { defaultValue: "ÖRNEK" })}</Text>
+            <Text style={[styles.demoEquation, { color: colors.textPrimary }]}>
+              {item.demoEquation}
+            </Text>
+            {item.demoSteps && item.demoSteps.length > 0 && (
+              <View style={styles.demoStepsList}>
+                {item.demoSteps.map((step, i) => (
+                  <View key={i} style={styles.demoStepRow}>
+                    <Text style={[styles.demoStepNum, { color: colors.primary }]}>
+                      {i + 1}.
+                    </Text>
+                    <Text style={[styles.demoStepText, { color: colors.textSecondary }]}>
+                      {step}
+                    </Text>
+                  </View>
+                ))}
+              </View>
+            )}
+            {item.demoAnswer && (
+              <View style={styles.demoAnswerRow}>
+                <Text style={[styles.demoArrow, { color: colors.primary }]}>→</Text>
+                <Text style={[styles.demoAnswer, { color: colors.primary }]}>
+                  {item.demoAnswer}
+                </Text>
+              </View>
+            )}
+          </View>
+        )}
       </Animated.View>
     </View>
   );
@@ -174,6 +207,7 @@ export default function OnboardingScreen() {
   const [currentIndex, setCurrentIndex] = useState(
     startAtLast === "true" ? lastIndex : 0,
   );
+  const [finishing, setFinishing] = useState(false);
 
   useEffect(() => {
     if (startAtLast === "true") {
@@ -208,9 +242,12 @@ export default function OnboardingScreen() {
   };
 
   const handleFinish = async () => {
+    if (finishing) return;
+    setFinishing(true);
     try {
       await AsyncStorage.setItem("@onboarding_completed", "true");
     } catch {}
+    // Welcome ekranına yönlendir — kullanıcı login/register/guest arasında seçim yapar
     router.replace("/(main)/welcome" as any);
   };
 
@@ -372,6 +409,59 @@ const styles = StyleSheet.create({
   featureText: {
     fontSize: 15,
     fontWeight: "500",
+  },
+
+  demoBox: {
+    marginTop: SPACING.lg,
+    paddingHorizontal: SPACING.lg,
+    paddingVertical: SPACING.md,
+    borderRadius: BORDER_RADIUS.md,
+    borderWidth: 1,
+    alignSelf: "stretch",
+  },
+  demoLabel: {
+    fontSize: 10,
+    fontWeight: "700",
+    letterSpacing: 1.5,
+    marginBottom: 6,
+  },
+  demoEquation: {
+    fontSize: 22,
+    fontWeight: "700",
+    fontVariant: ["tabular-nums"],
+  },
+  demoStepsList: {
+    marginTop: 10,
+    gap: 4,
+  },
+  demoStepRow: {
+    flexDirection: "row",
+    alignItems: "baseline",
+    gap: 6,
+  },
+  demoStepNum: {
+    fontSize: 12,
+    fontWeight: "700",
+  },
+  demoStepText: {
+    fontSize: 14,
+    fontWeight: "500",
+    fontVariant: ["tabular-nums"],
+  },
+  demoAnswerRow: {
+    flexDirection: "row",
+    alignItems: "center",
+    gap: 8,
+    marginTop: 6,
+  },
+  demoArrow: {
+    fontSize: 16,
+    fontWeight: "700",
+  },
+  demoAnswer: {
+    fontSize: 18,
+    fontWeight: "800",
+    fontVariant: ["tabular-nums"],
   },
 
   bottomBar: {

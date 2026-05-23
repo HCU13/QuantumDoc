@@ -26,6 +26,7 @@ import { ActivityProvider } from '@/contexts/ActivityContext';
 import { AdProvider } from '@/contexts/AdContext';
 import { AuthProvider, useAuth } from '@/contexts/AuthContext';
 import { ExamProgressProvider } from '@/contexts/ExamProgressContext';
+import { PaywallProvider } from '@/contexts/PaywallContext';
 import { SubscriptionProvider, useSubscription } from '@/contexts/SubscriptionContext';
 import { ThemeProvider, useTheme } from '@/contexts/ThemeContext';
 import i18n from '@/i18n/config';
@@ -185,13 +186,11 @@ function SplashScreen({ onReady, allReady }: { onReady: () => void; allReady: bo
     if (!allReady || exitStarted.current) return;
     exitStarted.current = true;
 
-    setTimeout(() => {
-      Animated.timing(containerFade, {
-        toValue: 0,
-        duration: 500,
-        useNativeDriver: true,
-      }).start(() => onReady());
-    }, 400); // veriler geldikten 400ms sonra çık — ani geçiş olmasın
+    Animated.timing(containerFade, {
+      toValue: 0,
+      duration: 360,
+      useNativeDriver: true,
+    }).start(() => onReady());
   }, [allReady]);
 
   return (
@@ -241,19 +240,17 @@ function SplashScreen({ onReady, allReady }: { onReady: () => void; allReady: bo
 
 function RootLayoutContent() {
   const { isDark } = useTheme();
-  const { isLoggedIn, isLoading: authLoading } = useAuth();
+  const { isLoggedIn, isAnonymous, isLoading: authLoading } = useAuth();
   const { isLoading: subLoading } = useSubscription();
   const router = useRouter();
   const segments = useSegments();
   const [onboardingChecked, setOnboardingChecked] = useState(false);
   const [splashDone, setSplashDone] = useState(false);
-  const [isGuestMode, setIsGuestMode] = useState(false);
-  const [guestChecked, setGuestChecked] = useState(false);
   const { shouldShow: showRatingPrompt, markPrompted } = useRatingPrompt();
   usePushToken();
 
   // Tüm veriler hazır mı?
-  const allReady = onboardingChecked && guestChecked && !authLoading && !subLoading;
+  const allReady = onboardingChecked && !authLoading && !subLoading;
 
   useEffect(() => {
     const checkOnboarding = async () => {
@@ -271,35 +268,25 @@ function RootLayoutContent() {
     checkOnboarding();
   }, []);
 
-  // Guest mode durumunu kontrol et (bir kez başlangıçta)
-  useEffect(() => {
-    const checkGuestMode = async () => {
-      try {
-        const guest = await AsyncStorage.getItem('@guest_mode');
-        setIsGuestMode(!!guest);
-      } catch {}
-      setGuestChecked(true);
-    };
-    checkGuestMode();
-  }, []);
-
-  // Auth durumu değişince tek yerden yönlendir
+  // Auth durumu değişince tek yerden yönlendir.
+  // NOT: Anonymous auth açık olduğunda Welcome ekranı 'Get Started' butonuyla
+  // session açtığı için, kullanıcı (main)'a session ile gelir. Kalan durumlarda
+  // (signed out) welcome ekranına yönlendir.
   useEffect(() => {
     if (!allReady) return;
     const inAuthFlow = segments.includes('login') || segments.includes('signup') || segments.includes('welcome');
     const inResetPassword = segments.includes('reset-password');
-    if (isLoggedIn) {
-      AsyncStorage.removeItem('@guest_mode').catch(() => {});
+    // Anonymous users count as "not signed in" for auth-flow routing — let them reach login/signup
+    // from inside the app (e.g. profile screen CTAs).
+    const isRealUser = isLoggedIn && !isAnonymous;
+    if (isRealUser) {
       if (segments.includes('login') || segments.includes('signup') || segments.includes('welcome')) {
         router.replace('/(main)');
       }
     } else if (!isLoggedIn && !inAuthFlow && !inResetPassword && segments.includes('(main)')) {
-      // Direkt AsyncStorage'dan oku — state güncellenmemiş olabilir
-      AsyncStorage.getItem('@guest_mode').then((guest) => {
-        if (!guest) router.replace('/(main)/welcome');
-      }).catch(() => {});
+      router.replace('/(main)/welcome');
     }
-  }, [isLoggedIn, allReady, segments]);
+  }, [isLoggedIn, isAnonymous, allReady, segments]);
 
   // Şifre sıfırlama deep link'i yakala (quorax://reset-password)
   useEffect(() => {
@@ -308,7 +295,7 @@ function RootLayoutContent() {
         const parsed = new URL(url);
         return (
           (parsed.protocol === 'quorax:' && parsed.pathname.includes('reset-password')) ||
-          (parsed.hostname === 'quorax.app' && parsed.pathname.includes('reset-password')) ||
+          (parsed.hostname === 'quorax.vercel.app' && parsed.pathname.includes('reset-password')) ||
           parsed.searchParams.get('type') === 'recovery'
         );
       } catch {
@@ -443,15 +430,17 @@ function RootLayout() {
           <ThemeProvider>
             <AuthProvider>
               <SubscriptionProvider>
-                <ActivityProvider>
-                  <AdProvider>
-                    <ExamProgressProvider>
-                      <SheetProvider>
-                        <RootLayoutContent />
-                      </SheetProvider>
-                    </ExamProgressProvider>
-                  </AdProvider>
-                </ActivityProvider>
+                <PaywallProvider>
+                  <ActivityProvider>
+                    <AdProvider>
+                      <ExamProgressProvider>
+                        <SheetProvider>
+                          <RootLayoutContent />
+                        </SheetProvider>
+                      </ExamProgressProvider>
+                    </AdProvider>
+                  </ActivityProvider>
+                </PaywallProvider>
               </SubscriptionProvider>
             </AuthProvider>
           </ThemeProvider>

@@ -9,7 +9,7 @@ import {
   KeyboardAvoidingView,
   Platform,
 } from "react-native";
-import { NotebookBackground } from "@/components/common/NotebookBackground";
+import { MinimalHeader, SoftSurface } from "@/components/v2";
 import { StatusBar } from "expo-status-bar";
 import { useTranslation } from "react-i18next";
 import { Ionicons } from "@expo/vector-icons";
@@ -17,7 +17,6 @@ import { useRouter } from "expo-router";
 
 import { useTheme } from "@/contexts/ThemeContext";
 import { useAuth } from "@/contexts/AuthContext";
-import { ModuleHeader } from "@/components/common/ModuleHeader";
 import { Button } from "@/components/common/Button";
 import { Input } from "@/components/common/Input";
 import { supabase, TABLES } from "@/services/supabase";
@@ -159,9 +158,9 @@ export default function FeedbackScreen() {
   };
 
   return (
-    <NotebookBackground cornerGlyphs={["✎", "★"]}>
+    <SoftSurface tone="neutral">
       <StatusBar style={isDark ? "light" : "dark"} />
-      <ModuleHeader title={t("profile.feedback.title")} />
+      <MinimalHeader title={t("profile.feedback.title")} />
 
       <KeyboardAvoidingView
         behavior={Platform.OS === "ios" ? "padding" : "height"}
@@ -345,7 +344,7 @@ export default function FeedbackScreen() {
           <View style={{ height: SPACING.xl }} />
         </ScrollView>
       </KeyboardAvoidingView>
-    </NotebookBackground>
+    </SoftSurface>
   );
 }
 

@@ -9,7 +9,7 @@ import {
   Alert,
   ActivityIndicator,
 } from "react-native";
-import { NotebookBackground } from "@/components/common/NotebookBackground";
+import { MinimalHeader, SoftSurface } from "@/components/v2";
 import { StatusBar } from "expo-status-bar";
 import { useTranslation } from "react-i18next";
 import { Ionicons } from "@expo/vector-icons";
@@ -19,7 +19,6 @@ import { useFocusEffect } from "@react-navigation/native";
 
 import { useTheme } from "@/contexts/ThemeContext";
 import { useAuth } from "@/contexts/AuthContext";
-import { ModuleHeader } from "@/components/common/ModuleHeader";
 import { Button } from "@/components/common/Button";
 import { supabase, TABLES } from "@/services/supabase";
 import { showSuccess, showError } from "@/utils/toast";
@@ -253,9 +252,9 @@ export default function HelpSupportScreen() {
   };
 
   return (
-    <NotebookBackground cornerGlyphs={["?", "!"]}>
+    <SoftSurface tone="neutral">
       <StatusBar style={isDark ? "light" : "dark"} />
-      <ModuleHeader title={t("profile.help.title")} />
+      <MinimalHeader title={t("profile.help.title")} />
 
       <ScrollView
         style={styles.scrollView}
@@ -420,7 +419,7 @@ export default function HelpSupportScreen() {
               </Text>
 
               <Button
-                label={t("profile.help.send")}
+                title={t("profile.help.send")}
                 onPress={handleSubmitTicket}
                 loading={submitting}
                 disabled={submitting}
@@ -637,7 +636,7 @@ export default function HelpSupportScreen() {
 
           <View style={{ height: SPACING.xl }} />
         </ScrollView>
-    </NotebookBackground>
+    </SoftSurface>
   );
 }
 

@@ -875,7 +875,7 @@
     },
     "privacy": {
       "title": "Privacy",
-      "policy": "Effective: March 4, 2026\n\nQuorax collects account information (name, email), app usage data, content you submit to AI modules, and subscription/payment data (processed by Apple/Google — we never store your card details).\n\nYour data is used to deliver services, improve the app, and prevent fraud. We do not sell your personal data.\n\nThird-party providers: Anthropic (Claude AI — does not use your data to train models), Supabase, RevenueCat, Google AdMob, Apple/Google.\n\nYou have the right to access, correct, delete, and port your data, and to withdraw consent at any time. Contact: privacy@quorax.app\n\nFor the full Privacy Policy, see Profile > Privacy Policy.",
+      "policy": "Effective: March 4, 2026\n\nQuorax collects account information (name, email), app usage data, content you submit to AI modules, and subscription/payment data (processed by Apple/Google — we never store your card details).\n\nYour data is used to deliver services, improve the app, and prevent fraud. We do not sell your personal data.\n\nThird-party providers: Anthropic (Claude AI — does not use your data to train models), Supabase, RevenueCat, Google AdMob, Apple/Google.\n\nYou have the right to access, correct, delete, and port your data, and to withdraw consent at any time. Contact: noreply.quorax@gmail.com\n\nFor the full Privacy Policy, see Profile > Privacy Policy.",
       "sections": {
         "controls": "Privacy Controls",
         "dataCollection": "Data Collection",
@@ -934,7 +934,7 @@
       },
       "contact": {
         "title": "Contact",
-        "email": "privacy@quorax.com",
+        "email": "noreply.quorax@gmail.com",
         "alert": "Email app will open..."
       }
     },

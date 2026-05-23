@@ -1004,7 +1004,7 @@
     },
     "privacy": {
       "title": "Gizlilik",
-      "policy": "Yürürlük: 4 Mart 2026\n\nQuorax; hesap bilgilerini (ad, e-posta), uygulama kullanım verilerini, AI modüllerine gönderdiğiniz içerikleri ve abonelik/ödeme verilerini toplar (ödemeler Apple/Google tarafından işlenir — kart bilgileriniz tarafımızca saklanmaz).\n\nVerileriniz hizmet sunumu, uygulama iyileştirme ve dolandırıcılık önleme amacıyla kullanılır. Kişisel verileriniz satılmaz.\n\nÜçüncü taraf sağlayıcılar: Anthropic (Claude AI — verilerinizi model eğitiminde kullanmaz), Supabase, RevenueCat, Google AdMob, Apple/Google.\n\nVerilerinize erişme, düzeltme, silme, taşıma ve rızayı geri çekme hakkına sahipsiniz. İletişim: privacy@quorax.app\n\nTam Gizlilik Politikası için: Profil > Gizlilik Politikası.",
+      "policy": "Yürürlük: 4 Mart 2026\n\nQuorax; hesap bilgilerini (ad, e-posta), uygulama kullanım verilerini, AI modüllerine gönderdiğiniz içerikleri ve abonelik/ödeme verilerini toplar (ödemeler Apple/Google tarafından işlenir — kart bilgileriniz tarafımızca saklanmaz).\n\nVerileriniz hizmet sunumu, uygulama iyileştirme ve dolandırıcılık önleme amacıyla kullanılır. Kişisel verileriniz satılmaz.\n\nÜçüncü taraf sağlayıcılar: Anthropic (Claude AI — verilerinizi model eğitiminde kullanmaz), Supabase, RevenueCat, Google AdMob, Apple/Google.\n\nVerilerinize erişme, düzeltme, silme, taşıma ve rızayı geri çekme hakkına sahipsiniz. İletişim: noreply.quorax@gmail.com\n\nTam Gizlilik Politikası için: Profil > Gizlilik Politikası.",
       "sections": {
         "controls": "Gizlilik Kontrolleri",
         "dataCollection": "Veri Toplama",
@@ -1063,7 +1063,7 @@
       },
       "contact": {
         "title": "İletişim",
-        "email": "privacy@quorax.com",
+        "email": "noreply.quorax@gmail.com",
         "alert": "E-posta uygulaması açılacak..."
       }
     },

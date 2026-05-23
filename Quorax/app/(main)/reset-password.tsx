@@ -19,7 +19,7 @@ import {
 
 import { Button } from "@/components/common/Button";
 import { Input } from "@/components/common/Input";
-import { NotebookBackground } from "@/components/common/NotebookBackground";
+import { SoftSurface } from "@/components/v2";
 import { BORDER_RADIUS, HIT_SLOP, SPACING, TEXT_STYLES } from "@/constants/theme";
 import { useTheme } from "@/contexts/ThemeContext";
 import { useHaptics } from "@/hooks/useHaptics";
@@ -233,7 +233,7 @@ export default function ResetPasswordScreen() {
   const pageNum = String(stepIdx + 1).padStart(2, "0");
 
   return (
-    <NotebookBackground cornerGlyphs={["≈", "θ"]}>
+    <SoftSurface tone="warm">
       <StatusBar style={isDark ? "light" : "dark"} />
 
       <KeyboardAvoidingView
@@ -421,7 +421,7 @@ export default function ResetPasswordScreen() {
           )}
         </ScrollView>
       </KeyboardAvoidingView>
-    </NotebookBackground>
+    </SoftSurface>
   );
 }
 
