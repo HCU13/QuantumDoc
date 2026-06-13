@@ -24,7 +24,7 @@ export const ONBOARDING_SLIDES: OnboardingSlide[] = [
     descriptionKey: 'onboarding.slide1.description',
     icon: '🚀',
     gradient: ['#8A4FFF', '#6932E0'],
-    features: ['Kayıt gerekmez', '3 gün ücretsiz deneme', 'Reklamsız'],
+    features: ['Kayıt gerekmez', '3 gün ücretsiz deneme'],
   },
   {
     id: '2',

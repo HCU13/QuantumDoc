@@ -37,7 +37,6 @@ import {
   ExamType,
   getExamTypeById,
 } from "@/constants/examTypes";
-import { useAd } from "@/contexts/AdContext";
 import { useAuth } from "@/contexts/AuthContext";
 import { usePaywall } from "@/contexts/PaywallContext";
 import { useExamProgress } from "@/contexts/ExamProgressContext";
@@ -50,6 +49,10 @@ import { showError, showWarning } from "@/utils/toast";
 const { width: SCREEN_WIDTH } = Dimensions.get("window");
 const CARD_WIDTH = SCREEN_WIDTH - SPACING.lg * 2;
 const REAL_EXAM_MODE_ENABLED = false; // TODO: Gerçek sınav modu hazır olunca true yap
+
+// ⚠️ APP STORE SCREENSHOT MODE — sadece "screenshots-mock" branch'inde.
+// true iken tüm PRO kilitleri açık görünür (mağaza görselleri için). Asla main'e merge etme.
+const DEMO_MODE = true;
 
 type Screen = "selection" | "exam";
 
@@ -333,8 +336,9 @@ export default function ExamLabScreen() {
   const { pickFromGallery, takePhoto, loading: imageLoading } = useImagePicker();
   const { user, isLoggedIn } = useAuth();
   const { openPaywall } = usePaywall();
-  const { checkUsageLimit, isPremium } = useSubscription();
-  const { showAdBeforeAction } = useAd();
+  const { checkUsageLimit, isPremium: isPremiumReal } = useSubscription();
+  // DEMO_MODE'da tüm PRO kilitleri açık görünsün (mağaza görselleri için).
+  const isPremium = DEMO_MODE ? true : isPremiumReal;
   const { load: loadExamProgress } = useExamProgress();
 
   const [screen, setScreen] = useState<Screen>("selection");
@@ -1774,7 +1778,7 @@ export default function ExamLabScreen() {
           onPress={() => {
             if (!isPremium && usageInfo?.allowed === false) { openLimitModal(); return; }
             setLoading(true);
-            showAdBeforeAction(handleCreateExam, "exam");
+            handleCreateExam();
           }}
           disabled={!canCreateExam || loading}
           loading={loading}

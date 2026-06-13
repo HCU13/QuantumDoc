@@ -23,7 +23,6 @@ Sentry.init({
 import { RatingPromptModal } from '@/components/common/RatingPromptModal';
 import { Toast } from '@/components/common/Toast';
 import { ActivityProvider } from '@/contexts/ActivityContext';
-import { AdProvider } from '@/contexts/AdContext';
 import { AuthProvider, useAuth } from '@/contexts/AuthContext';
 import { ExamProgressProvider } from '@/contexts/ExamProgressContext';
 import { PaywallProvider } from '@/contexts/PaywallContext';
@@ -78,9 +77,6 @@ class ErrorBoundary extends Component<
     return this.props.children;
   }
 }
-
-// AdContext zaten ilk yüklemeyi yapıyor, ayrıca loader gerekmez
-function AppStartupAdLoader() { return null; }
 
 // İnternet bağlantısı kesilince üstte gösterilen banner
 function OfflineBanner() {
@@ -325,7 +321,6 @@ function RootLayoutContent() {
   return (
     <NavigationThemeProvider value={isDark ? DarkTheme : DefaultTheme}>
       <OfflineBanner />
-      <AppStartupAdLoader />
       <Stack screenOptions={{ headerShown: false }}>
         <Stack.Screen name="(onboarding)" />
         <Stack.Screen name="(main)" />
@@ -432,13 +427,11 @@ function RootLayout() {
               <SubscriptionProvider>
                 <PaywallProvider>
                   <ActivityProvider>
-                    <AdProvider>
-                      <ExamProgressProvider>
-                        <SheetProvider>
-                          <RootLayoutContent />
-                        </SheetProvider>
-                      </ExamProgressProvider>
-                    </AdProvider>
+                    <ExamProgressProvider>
+                      <SheetProvider>
+                        <RootLayoutContent />
+                      </SheetProvider>
+                    </ExamProgressProvider>
                   </ActivityProvider>
                 </PaywallProvider>
               </SubscriptionProvider>

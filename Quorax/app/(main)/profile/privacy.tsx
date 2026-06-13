@@ -122,7 +122,6 @@ export default function PrivacyScreen() {
             "Uygulama performansını iyileştirme — Meşru menfaat",
             "Dolandırıcılık ve kötüye kullanımın önlenmesi — Meşru menfaat & yasal yükümlülük",
             "Pazarlama iletişimleri — Açık rıza (her zaman geri çekilebilir)",
-            "Reklam kişiselleştirme — Açık rıza (cihaz ayarlarından kontrol edilebilir)",
           ] : [
             "Account creation and authentication — Performance of contract",
             "Delivery of AI features (via Claude) — Performance of contract & explicit consent",
@@ -130,7 +129,6 @@ export default function PrivacyScreen() {
             "App performance improvement — Legitimate interest",
             "Fraud prevention and abuse detection — Legitimate interest & legal obligation",
             "Marketing communications — Explicit consent (withdrawable at any time)",
-            "Ad personalization — Explicit consent (controllable via device settings)",
           ]).map((item, i) => <BulletItem key={i} text={item} color={primary} />)}
 
           {/* 4 */}
@@ -143,13 +141,11 @@ export default function PrivacyScreen() {
             "Anthropic, Inc. (Claude AI) — AI modüllerine gönderilen içerik; Anthropic'in gizlilik politikasına tabidir ve modeli eğitmek için kullanılmaz.",
             "Supabase — Veritabanı barındırma ve kimlik doğrulama",
             "RevenueCat — Abonelik ve satın alma yönetimi",
-            "Google AdMob — Ücretsiz katman reklamları (kişiselleştirme kapatılabilir)",
             "Apple / Google — Uygulama dağıtımı ve ödeme işleme",
           ] : [
             "Anthropic, Inc. (Claude AI) — Content submitted to AI modules; subject to Anthropic's privacy policy and not used to train their models.",
             "Supabase — Database hosting and authentication",
             "RevenueCat — Subscription and purchase management",
-            "Google AdMob — Free tier advertising (personalization can be disabled)",
             "Apple / Google — App distribution and payment processing",
           ]).map((item, i) => <BulletItem key={i} text={item} color={primary} />)}
           <Paragraph color={primary} text={isTr
@@ -236,22 +232,7 @@ export default function PrivacyScreen() {
 
           {/* 10 */}
           <SectionTitle color={accent}
-            text={isTr ? "10. Reklamlar ve Kişiselleştirme" : "10. Advertising & Personalization"} />
-          {(isTr ? [
-            "Ücretsiz katman kullanıcılarına Google AdMob aracılığıyla reklam gösterilir.",
-            "Reklamlar ilgi alanlarınıza göre kişiselleştirilebilir (Google'ın gizlilik politikasına tabidir).",
-            "Kişiselleştirilmiş reklamları cihaz ayarlarınızdan devre dışı bırakabilirsiniz (iOS: Ayarlar > Gizlilik > Apple Reklamları / Android: Ayarlar > Google > Reklamlar).",
-            "Premium abonelik ile reklamları tamamen kaldırabilirsiniz.",
-          ] : [
-            "Free tier users are shown ads via Google AdMob.",
-            "Ads may be personalized based on your interests (subject to Google's privacy policy).",
-            "You can disable personalized ads in your device settings (iOS: Settings > Privacy > Apple Advertising / Android: Settings > Google > Ads).",
-            "You can remove ads entirely by purchasing a Premium subscription.",
-          ]).map((item, i) => <BulletItem key={i} text={item} color={primary} />)}
-
-          {/* 11 */}
-          <SectionTitle color={accent}
-            text={isTr ? "11. Çerezler ve Yerel Depolama" : "11. Cookies & Local Storage"} />
+            text={isTr ? "10. Çerezler ve Yerel Depolama" : "10. Cookies & Local Storage"} />
           <Paragraph color={primary} text={isTr
             ? "Uygulama, cihazınızda aşağıdaki verileri yerel olarak saklar; web tarayıcılarındaki anlamıyla çerez kullanmaz:"
             : "The App stores the following data locally on your device and does not use cookies in the web browser sense:"} />
@@ -265,16 +246,16 @@ export default function PrivacyScreen() {
             "Usage progress (e.g. daily limit status)",
           ]).map((item, i) => <BulletItem key={i} text={item} color={primary} />)}
 
-          {/* 12 */}
+          {/* 11 */}
           <SectionTitle color={accent}
-            text={isTr ? "12. Politika Değişiklikleri" : "12. Policy Changes"} />
+            text={isTr ? "11. Politika Değişiklikleri" : "11. Policy Changes"} />
           <Paragraph color={primary} text={isTr
             ? "Bu politikayı zaman zaman güncelleyebiliriz. Önemli değişiklikler Uygulama içi bildirim ve/veya e-posta ile en az 14 gün önceden duyurulacaktır. Bildirim döneminin ardından uygulamayı kullanmaya devam etmeniz güncellenmiş politikayı kabul ettiğiniz anlamına gelir."
             : "We may update this policy from time to time. Material changes will be announced via in-app notification and/or email at least 14 days in advance. Continued use of the App after the notice period constitutes acceptance of the updated policy."} />
 
-          {/* 13 */}
+          {/* 12 */}
           <SectionTitle color={accent}
-            text={isTr ? "13. İletişim ve Veri Sorumlusu" : "13. Contact & Data Controller"} />
+            text={isTr ? "12. İletişim ve Veri Sorumlusu" : "12. Contact & Data Controller"} />
           <Paragraph color={primary} text={isTr
             ? "Veri Sorumlusu: Quorax\nGizlilik talepleri: noreply.quorax@gmail.com\nGenel destek: noreply.quorax@gmail.com\nUygulama içi: Profil > Yardım & Destek\nWeb: https://quorax.vercel.app\n\nTalepler en geç 30 gün içinde yanıtlanır."
             : "Data Controller: Quorax\nPrivacy requests: noreply.quorax@gmail.com\nGeneral support: noreply.quorax@gmail.com\nIn-app: Profile > Help & Support\nWeb: https://quorax.vercel.app\n\nRequests are responded to within 30 days."} />

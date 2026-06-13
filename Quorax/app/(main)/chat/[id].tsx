@@ -33,7 +33,6 @@ import {
     SPACING_V2,
     TEXT_STYLES,
 } from "@/constants/theme";
-import { useAd } from "@/contexts/AdContext";
 import { useAuth } from "@/contexts/AuthContext";
 import { useSubscription } from "@/contexts/SubscriptionContext";
 import { useTheme } from "@/contexts/ThemeContext";
@@ -46,7 +45,6 @@ export default function ChatDetailScreen() {
   const { id } = useLocalSearchParams<{ id: string }>();
   const { profile, user: authUser, isLoggedIn, refreshUser } = useAuth();
   const { checkUsageLimit, isPremium } = useSubscription();
-  const { showAdBeforeAction } = useAd();
   const [messages, setMessages] = useState<IMessage[]>([]);
   const [isTyping, setIsTyping] = useState(false);
   const [loading, setLoading] = useState(true);
@@ -502,9 +500,9 @@ export default function ChatDetailScreen() {
 
   const onSend = useCallback(
     (newMessages: IMessage[] = []) => {
-      showAdBeforeAction(() => doActualSend(newMessages), "chat");
+      doActualSend(newMessages);
     },
-    [showAdBeforeAction, doActualSend],
+    [doActualSend],
   );
 
   const displayName =

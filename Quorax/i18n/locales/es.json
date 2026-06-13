@@ -719,7 +719,6 @@
         "math": "Matemáticas",
         "examLab": "Exam Lab",
         "prioritySupport": "Soporte prioritario",
-        "adFree": "Sin anuncios",
         "unlimited": "Uso ilimitado",
         "priority": "Soporte prioritario"
       },
@@ -755,8 +754,6 @@
       "featureUnlimitedChatDesc": "Chat, notas y herramientas de texto sin límite diario",
       "featureUnlimitedMath": "Herramientas IA ilimitadas",
       "featureUnlimitedMathDesc": "Solucionador de matemáticas, exam lab y todos los módulos desbloqueados",
-      "featureNoAds": "Experiencia sin anuncios",
-      "featureNoAdsDesc": "Sin interrupciones, pura concentración",
       "featureUnlimitedExam": "Exam Lab ilimitado",
       "featurePrioritySupport": "Soporte prioritario",
       "loadError": "No se pudieron cargar los paquetes Premium. Intenta de nuevo.",
@@ -875,7 +872,7 @@
     },
     "privacy": {
       "title": "Privacidad",
-      "policy": "Vigente: 4 de marzo de 2026\n\nQuorax recopila información de la cuenta (nombre, correo), datos de uso de la app, contenido que envías a los módulos de IA y datos de suscripción/pago (procesados por Apple/Google — nunca almacenamos los datos de tu tarjeta).\n\nTus datos se usan para entregar los servicios, mejorar la app y prevenir fraudes. No vendemos tus datos personales.\n\nProveedores externos: Anthropic (Claude AI — no usa tus datos para entrenar modelos), Supabase, RevenueCat, Google AdMob, Apple/Google.\n\nTienes derecho a acceder, corregir, eliminar y portar tus datos, y a retirar tu consentimiento en cualquier momento. Contacto: noreply.quorax@gmail.com\n\nPara la Política de Privacidad completa, consulta Perfil > Política de Privacidad.",
+      "policy": "Vigente: 4 de marzo de 2026\n\nQuorax recopila información de la cuenta (nombre, correo), datos de uso de la app, contenido que envías a los módulos de IA y datos de suscripción/pago (procesados por Apple/Google — nunca almacenamos los datos de tu tarjeta).\n\nTus datos se usan para entregar los servicios, mejorar la app y prevenir fraudes. No vendemos tus datos personales.\n\nProveedores externos: Anthropic (Claude AI — no usa tus datos para entrenar modelos), Supabase, RevenueCat, Apple/Google.\n\nTienes derecho a acceder, corregir, eliminar y portar tus datos, y a retirar tu consentimiento en cualquier momento. Contacto: noreply.quorax@gmail.com\n\nPara la Política de Privacidad completa, consulta Perfil > Política de Privacidad.",
       "sections": {
         "controls": "Controles de privacidad",
         "dataCollection": "Recopilación de datos",
@@ -975,7 +972,7 @@
         {
           "id": "1",
           "question": "¿Qué es la membresía Premium?",
-          "answer": "Con la membresía Premium obtienes uso ilimitado y una experiencia sin anuncios. Visita Perfil > Premium para más detalles."
+          "answer": "Con la membresía Premium obtienes uso ilimitado. Visita Perfil > Premium para más detalles."
         },
         {
           "id": "3",
@@ -1259,7 +1256,6 @@
     "benefitUnlimited": "Soluciones de matemáticas ilimitadas",
     "benefitVerify": "Verifica tu propio trabajo",
     "benefitExplanations": "Explicaciones paso a paso",
-    "benefitNoAds": "Sin anuncios, nunca",
     "trialHint": "Prueba gratis, cancela cuando quieras",
     "cta": "Ver planes",
     "later": "Quizás luego"
@@ -1282,7 +1278,6 @@
     "features": {
       "unlimited": "Uso ilimitado",
       "priority": "Soporte prioritario",
-      "noAds": "Experiencia sin anuncios",
       "topicAnalysis": "Análisis de temas y seguimiento de fortalezas/debilidades",
       "verify": "Verifica tu trabajo",
       "explanations": "Explicaciones de temas y soluciones detalladas"

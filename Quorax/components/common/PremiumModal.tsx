@@ -77,7 +77,6 @@ export const PremiumModal: React.FC<PremiumModalProps> = ({
     { icon: "infinite-outline" as const, titleKey: "premiumModal.benefitUnlimited" },
     { icon: "checkmark-done-outline" as const, titleKey: "premiumModal.benefitVerify" },
     { icon: "bulb-outline" as const, titleKey: "premiumModal.benefitExplanations" },
-    { icon: "ban-outline" as const, titleKey: "premiumModal.benefitNoAds" },
   ];
 
   const handleGoPaywall = () => {

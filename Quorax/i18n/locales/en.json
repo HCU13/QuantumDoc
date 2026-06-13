@@ -719,7 +719,6 @@
         "math": "Math",
         "examLab": "Exam Lab",
         "prioritySupport": "Priority Support",
-        "adFree": "Ad-Free",
         "unlimited": "Unlimited Usage",
         "priority": "Priority Support"
       },
@@ -755,8 +754,6 @@
       "featureUnlimitedChatDesc": "Chat, notes and text tools without any daily limit",
       "featureUnlimitedMath": "Unlimited AI Tools",
       "featureUnlimitedMathDesc": "Math solver, exam lab and all modules unlocked",
-      "featureNoAds": "Ad-Free Experience",
-      "featureNoAdsDesc": "No interruptions, pure focus",
       "featureUnlimitedExam": "Unlimited Exam Lab",
       "featurePrioritySupport": "Priority Support",
       "loadError": "Failed to load premium packages. Please try again.",
@@ -875,7 +872,7 @@
     },
     "privacy": {
       "title": "Privacy",
-      "policy": "Effective: March 4, 2026\n\nQuorax collects account information (name, email), app usage data, content you submit to AI modules, and subscription/payment data (processed by Apple/Google — we never store your card details).\n\nYour data is used to deliver services, improve the app, and prevent fraud. We do not sell your personal data.\n\nThird-party providers: Anthropic (Claude AI — does not use your data to train models), Supabase, RevenueCat, Google AdMob, Apple/Google.\n\nYou have the right to access, correct, delete, and port your data, and to withdraw consent at any time. Contact: noreply.quorax@gmail.com\n\nFor the full Privacy Policy, see Profile > Privacy Policy.",
+      "policy": "Effective: March 4, 2026\n\nQuorax collects account information (name, email), app usage data, content you submit to AI modules, and subscription/payment data (processed by Apple/Google — we never store your card details).\n\nYour data is used to deliver services, improve the app, and prevent fraud. We do not sell your personal data.\n\nThird-party providers: Anthropic (Claude AI — does not use your data to train models), Supabase, RevenueCat, Apple/Google.\n\nYou have the right to access, correct, delete, and port your data, and to withdraw consent at any time. Contact: noreply.quorax@gmail.com\n\nFor the full Privacy Policy, see Profile > Privacy Policy.",
       "sections": {
         "controls": "Privacy Controls",
         "dataCollection": "Data Collection",
@@ -975,7 +972,7 @@
         {
           "id": "1",
           "question": "What is Premium membership?",
-          "answer": "With Premium membership, you get unlimited usage and an ad-free experience. Visit Profile > Premium for details."
+          "answer": "With Premium membership, you get unlimited usage. Visit Profile > Premium for details."
         },
         {
           "id": "3",
@@ -1259,7 +1256,6 @@
     "benefitUnlimited": "Unlimited math solutions",
     "benefitVerify": "Verify your own work",
     "benefitExplanations": "Step-by-step explanations",
-    "benefitNoAds": "No ads, ever",
     "trialHint": "Try free, cancel anytime",
     "cta": "See Plans",
     "later": "Maybe later"
@@ -1282,7 +1278,6 @@
     "features": {
       "unlimited": "Unlimited usage",
       "priority": "Priority support",
-      "noAds": "Ad-free experience",
       "topicAnalysis": "Topic analysis & strength/weakness tracking",
       "verify": "Verify your work",
       "explanations": "Topic explanations & detailed solutions"

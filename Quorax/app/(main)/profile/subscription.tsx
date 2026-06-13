@@ -43,7 +43,6 @@ const SECONDARY_FEATURES = [
   { icon: "infinite-outline" as const, color: "#A78BFA", titleKey: "featureUnlimited" },
   { icon: "bulb-outline" as const, color: "#FBBF24", titleKey: "featureExplanations" },
   { icon: "analytics-outline" as const, color: "#67E8F9", titleKey: "featureTopics" },
-  { icon: "ban-outline" as const, color: "#F472B6", titleKey: "featureNoAds" },
 ];
 
 type PaywallReason = "limit" | "feature" | "firstSolve" | "exitIntent";

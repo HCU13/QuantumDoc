@@ -138,15 +138,13 @@ export default function TermsScreen() {
           <SectionTitle color={accent}
             text={isTr ? "5. Ücretsiz ve Premium Katman" : "5. Free vs. Premium Tier"} />
           <Paragraph color={primary} text={isTr
-            ? "Ücretsiz kullanıcılar günlük kullanım limitlerine ve reklam gösterimine tabidir. Premium aboneler:"
-            : "Free users are subject to daily usage limits and ad display. Premium subscribers enjoy:"} />
+            ? "Ücretsiz kullanıcılar günlük kullanım limitlerine tabidir. Premium aboneler:"
+            : "Free users are subject to daily usage limits. Premium subscribers enjoy:"} />
           {(isTr ? [
             "Tüm AI modülleri için artırılmış günlük limit",
-            "Reklamsız deneyim",
             "Öncelikli AI işleme",
           ] : [
             "Increased daily limits across all AI modules",
-            "Ad-free experience",
             "Priority AI processing",
           ]).map((item, i) => <BulletItem key={i} text={item} color={primary} />)}
 
@@ -197,58 +195,42 @@ export default function TermsScreen() {
 
           {/* 9 */}
           <SectionTitle color={accent}
-            text={isTr ? "9. Reklamlar" : "9. Advertisements"} />
-          <Paragraph color={primary} text={isTr
-            ? "Ücretsiz katman kullanıcılarına Google AdMob aracılığıyla reklam gösterilir. Reklamlar hakkında:"
-            : "Free tier users are shown advertisements via Google AdMob. Regarding ads:"} />
-          {(isTr ? [
-            "Reklamlar Google'ın gizlilik politikasına tabidir.",
-            "Kişiselleştirilmiş reklamları cihaz ayarlarından devre dışı bırakabilirsiniz.",
-            "Premium abonelik satın alarak reklamları tamamen kaldırabilirsiniz.",
-          ] : [
-            "Advertisements are subject to Google's privacy policy.",
-            "You can opt out of personalized ads via your device settings.",
-            "You can remove ads entirely by purchasing a Premium subscription.",
-          ]).map((item, i) => <BulletItem key={i} text={item} color={primary} />)}
-
-          {/* 10 */}
-          <SectionTitle color={accent}
-            text={isTr ? "10. Sorumluluk Sınırlaması" : "10. Limitation of Liability"} />
+            text={isTr ? "9. Sorumluluk Sınırlaması" : "9. Limitation of Liability"} />
           <Paragraph color={primary} text={isTr
             ? "Quorax'ın toplam sorumluluğu, söz konusu olaydan önceki 12 aylık dönemde ödediğiniz abonelik ücretleriyle sınırlıdır. Quorax, dolaylı, tesadüfi, özel, sonuçsal veya cezai zararlar dahil olmak üzere herhangi bir kayıp veya zarardan sorumlu tutulamaz. Bu kısıtlama yürürlükteki hukukun izin verdiği azami ölçüde geçerlidir."
             : "Quorax's total liability is limited to subscription fees paid by you in the 12-month period preceding the event in question. Quorax shall not be liable for any indirect, incidental, special, consequential, or punitive damages. This limitation applies to the maximum extent permitted by applicable law."} />
 
-          {/* 11 */}
+          {/* 10 */}
           <SectionTitle color={accent}
-            text={isTr ? "11. Garanti Reddi" : "11. Disclaimer of Warranties"} />
+            text={isTr ? "10. Garanti Reddi" : "10. Disclaimer of Warranties"} />
           <Paragraph color={primary} text={isTr
             ? "Uygulama 'OLDUĞU GİBİ' ve 'MEVCUT OLDUĞU HÂLDE' sunulmaktadır; açık veya zımni hiçbir garanti verilmemektedir. Quorax, Uygulamanın kesintisiz, hatasız veya güvenli olacağını garanti etmez. Belirli bir amaca uygunluk veya ihlal yapmama garantisi dahil olmak üzere tüm garantiler reddedilmektedir."
             : "The App is provided \"AS IS\" and \"AS AVAILABLE\" without any warranties, express or implied. Quorax does not warrant that the App will be uninterrupted, error-free, or secure. All warranties, including fitness for a particular purpose and non-infringement, are disclaimed."} />
 
-          {/* 12 */}
+          {/* 11 */}
           <SectionTitle color={accent}
-            text={isTr ? "12. Değişiklikler" : "12. Changes to Terms"} />
+            text={isTr ? "11. Değişiklikler" : "11. Changes to Terms"} />
           <Paragraph color={primary} text={isTr
             ? "Quorax bu Koşulları istediği zaman değiştirme hakkını saklı tutar. Önemli değişiklikler Uygulama içi bildirim veya e-posta ile duyurulacaktır. Değişikliklerin yayımlanmasından sonra Uygulamayı kullanmaya devam etmeniz, güncellenmiş Koşulları kabul ettiğiniz anlamına gelir."
             : "Quorax reserves the right to modify these Terms at any time. Material changes will be announced via in-app notification or email. Continued use of the App following publication of changes constitutes acceptance of the updated Terms."} />
 
-          {/* 13 */}
+          {/* 12 */}
           <SectionTitle color={accent}
-            text={isTr ? "13. Hesap Feshi" : "13. Account Termination"} />
+            text={isTr ? "12. Hesap Feshi" : "12. Account Termination"} />
           <Paragraph color={primary} text={isTr
             ? "Quorax, bu Koşullar'ı ihlal eden hesapları önceden bildirim yapmaksızın askıya alma veya sonlandırma hakkını saklı tutar. Hesabınızı dilediğiniz zaman Profil > Hesabı Sil seçeneğiyle silebilirsiniz."
             : "Quorax reserves the right to suspend or terminate accounts that violate these Terms without prior notice. You may delete your account at any time via Profile > Delete Account."} />
 
-          {/* 14 */}
+          {/* 13 */}
           <SectionTitle color={accent}
-            text={isTr ? "14. Uygulanacak Hukuk" : "14. Governing Law"} />
+            text={isTr ? "13. Uygulanacak Hukuk" : "13. Governing Law"} />
           <Paragraph color={primary} text={isTr
             ? "Bu Koşullar Türk hukukuna tabidir. Bu Koşullar'dan kaynaklanan uyuşmazlıklar öncelikle dostane yollarla çözülmeye çalışılacak; anlaşmazlık hâlinde Türk mahkemelerinin yargı yetkisi kabul edilir."
             : "These Terms are governed by the laws of Turkey. Disputes arising from these Terms will first be resolved amicably; failing that, the parties submit to the jurisdiction of Turkish courts."} />
 
-          {/* 15 */}
+          {/* 14 */}
           <SectionTitle color={accent}
-            text={isTr ? "15. Gizlilik Politikası" : "15. Privacy Policy"} />
+            text={isTr ? "14. Gizlilik Politikası" : "14. Privacy Policy"} />
           <Paragraph color={primary} text={isTr
             ? "Kişisel verilerinizin nasıl toplandığı, kullanıldığı ve korunduğu hakkında ayrıntılı bilgi için Profil > Gizlilik Politikası sayfasını inceleyiniz."
             : "For detailed information on how your personal data is collected, used, and protected, please review our Privacy Policy at Profile > Privacy Policy."} />

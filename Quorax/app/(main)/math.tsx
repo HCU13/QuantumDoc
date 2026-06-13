@@ -28,7 +28,6 @@ import { AILoadingModal } from "@/components/common/AILoadingModal";
 import { PremiumModal } from "@/components/common/PremiumModal";
 import { BORDER_RADIUS, SPACING, TEXT_STYLES } from "@/constants/theme";
 import { useActivity } from "@/contexts/ActivityContext";
-import { useAd } from "@/contexts/AdContext";
 import { useAuth } from "@/contexts/AuthContext";
 import { usePaywall } from "@/contexts/PaywallContext";
 import { useSubscription } from "@/contexts/SubscriptionContext";
@@ -54,6 +53,11 @@ interface VerifyResult {
   tip: string;
 }
 
+// ⚠️ APP STORE SCREENSHOT MODE — sadece "screenshots-mock" branch'inde.
+// true iken math ekranı, AI çağrısı yapmadan sahte bir çözüm/doğrulama ile dolu gelir.
+// Mağaza görsellerini aldıktan sonra bu satırı false yap (veya branch'i sil). Asla main'e merge etme.
+const DEMO_MODE = true;
+
 export default function MathScreen() {
   const { colors, isDark } = useTheme();
   const { t, i18n } = useTranslation();
@@ -62,8 +66,9 @@ export default function MathScreen() {
   const { pickFromGallery, takePhoto, loading: imageLoading } = useImagePicker();
   const { user, isLoggedIn } = useAuth();
   const { openPaywall } = usePaywall();
-  const { checkUsageLimit, isPremium } = useSubscription();
-  const { showAdBeforeAction } = useAd();
+  const { checkUsageLimit, isPremium: isPremiumReal } = useSubscription();
+  // DEMO_MODE'da tüm PRO kilitleri açık görünsün (mağaza görselleri için).
+  const isPremium = DEMO_MODE ? true : isPremiumReal;
   const { refreshActivities } = useActivity();
   const scrollViewRef = useRef<any>(null);
   const solveButtonScale = useRef(new Animated.Value(1)).current;
@@ -120,6 +125,50 @@ export default function MathScreen() {
   const [expandedSteps, setExpandedSteps] = useState<Set<number>>(new Set());
 
 
+  // ⚠️ DEMO_MODE — App Store görselleri için ekranı sahte veriyle doldurur (AI çağrısı yok).
+  // appMode'a göre: "solve" → çözüm + adımlar + açık "why?", "verify" → doğrulama sonucu.
+  useEffect(() => {
+    if (!DEMO_MODE) return;
+    if (appMode === "verify") {
+      setSolution(null);
+      setProblem("x² − 5x + 6 = 0");
+      setUserSolutionText("x = 2 and x = 3");
+      setVerifyResult({
+        result: "Correct",
+        steps: [
+          { text: "Factor as (x − 2)(x − 3) = 0", isCorrect: true },
+          { text: "Set each factor to zero", isCorrect: true },
+          { text: "Solve: x = 2, x = 3", isCorrect: true },
+        ],
+        error: "",
+        tip: "Always check by substituting both roots back into the original equation.",
+      });
+    } else {
+      setVerifyResult(null);
+      setProblem("Solve for x:  3x + 7 = 22");
+      setTopic("Linear Equations");
+      setSolution({
+        answer: "x = 5",
+        steps: [
+          "Subtract 7 from both sides:  3x = 15",
+          "Divide both sides by 3:  x = 5",
+          "Check:  3(5) + 7 = 22 ✓",
+        ],
+        explanation:
+          "A linear equation is solved by isolating the variable. We undo addition with subtraction, then undo multiplication with division — keeping both sides balanced at every step.",
+      });
+      setStepExplanations({
+        0: { text: "We move the constant term to the right so only the term with x stays on the left. Subtracting 7 from both sides keeps the equation balanced: 3x + 7 − 7 = 22 − 7." },
+      });
+      setExpandedSteps(new Set([0]));
+      setRelatedQuestions([
+        "Solve for x:  5x − 4 = 16",
+        "Solve for y:  2y + 9 = 3y − 1",
+        "If 4x + 3 = 19, what is x?",
+      ]);
+    }
+  }, [appMode]); // eslint-disable-line
+
   // Math sayfası mount edildiğinde usage badge için sayacı yükle (anon + free user)
   useEffect(() => {
     if (!user?.id || isPremium) return;
@@ -137,7 +186,7 @@ export default function MathScreen() {
       autoSolveTriggered.current = true;
       const t = setTimeout(() => {
         // prefillProblem'i direkt kullan — problem state'inin settle olmasını bekleme
-        showAdBeforeAction(() => handleSolve(prefillProblem), "math");
+        handleSolve(prefillProblem);
       }, 150);
       return () => clearTimeout(t);
     }
@@ -894,7 +943,7 @@ export default function MathScreen() {
             title={appMode === "verify" ? t("math.verify.checkButton") : t("math.solve")}
             onPress={() => {
               if (!isPremium && usageInfo?.allowed === false) { openLimitModal(); return; }
-              showAdBeforeAction(appMode === "verify" ? handleVerify : handleSolve, "math");
+              (appMode === "verify" ? handleVerify : handleSolve)();
             }}
             disabled={!canSolve || solving}
             loading={solving}
@@ -917,7 +966,7 @@ export default function MathScreen() {
             <Text style={[styles.errorBody, { color: colors.textSecondary }]}>{lastError}</Text>
             <Button title={t("math.retry")} onPress={() => {
               if (!isPremium && usageInfo?.allowed === false) { openLimitModal(); return; }
-              showAdBeforeAction(appMode === "verify" ? handleVerify : handleSolve, "math");
+              (appMode === "verify" ? handleVerify : handleSolve)();
             }} loading={solving} disabled={!canSolve || solving} modulePrimary={colors.moduleMathPrimary} />
           </View>
         )}
@@ -1277,7 +1326,7 @@ export default function MathScreen() {
                         setTimeout(() => scrollViewRef.current?.scrollTo({ y: 0, animated: true }), 50);
                         setTimeout(() => {
                           if (!isPremium && usageInfo?.allowed === false) { openLimitModal(); return; }
-                          showAdBeforeAction(() => handleSolve(q), "math");
+                          handleSolve(q);
                         }, 200);
                       }}
                       style={[styles.relatedSolveBtn, { backgroundColor: colors.moduleMathPrimary }]}
