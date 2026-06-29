@@ -44,6 +44,7 @@ import { useSubscription } from "@/contexts/SubscriptionContext";
 import { useTheme } from "@/contexts/ThemeContext";
 import { useImagePicker } from "@/hooks/useImagePicker";
 import { supabase, SUPABASE_URL, TABLES } from "@/services/supabase";
+import { registerSuccessAndMaybePrompt } from "@/services/reviewPrompt";
 import { showError, showWarning } from "@/utils/toast";
 
 const { width: SCREEN_WIDTH } = Dimensions.get("window");
@@ -871,6 +872,10 @@ export default function ExamLabScreen() {
     });
 
     reportSavedRef.current = true;
+
+    // Finishing an exam is a milestone; a solid score (>= 60%) is a happy moment.
+    const examScore = questions.length > 0 ? correctCount / questions.length : 0;
+    registerSuccessAndMaybePrompt(examScore >= 0.6);
 
     // 1. exam_results kaydet
     supabase

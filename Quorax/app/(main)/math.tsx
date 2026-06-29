@@ -39,6 +39,7 @@ import { formatTopicDisplay } from "@/utils/topicLabel";
 import { useImagePicker } from "@/hooks/useImagePicker";
 import { hasShownNotificationSoftPrompt, markNotificationSoftPromptShown, triggerNotificationPermissionPrompt } from "@/hooks/usePushToken";
 import { DEFAULT_REMINDER_HOUR, DEFAULT_REMINDER_MINUTE, scheduleDailyReminder } from "@/services/dailyReminder";
+import { registerSuccessAndMaybePrompt } from "@/services/reviewPrompt";
 import { manipulateAsync, SaveFormat } from "expo-image-manipulator";
 import { supabase, SUPABASE_URL } from "@/services/supabase";
 import { showError, showWarning } from "@/utils/toast";
@@ -416,6 +417,9 @@ export default function MathScreen() {
       setTopic(data.topic || null);
       await refreshActivities();
       if (!isPremium) checkUsageLimit("math").then((d) => { if (d) setUsageInfo(d); }).catch(() => {});
+
+      // A successful solve is a happy moment — eligible for the rating prompt.
+      registerSuccessAndMaybePrompt(true);
 
       // İlk başarılı solve sonrası notification soft-prompt (sadece 1 kez)
       (async () => {
